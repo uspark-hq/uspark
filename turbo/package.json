@@ -1,5 +1,5 @@
 {
-  "name": "makita",
+  "name": "uspark",
   "private": true,
   "scripts": {
     "build": "turbo run build",

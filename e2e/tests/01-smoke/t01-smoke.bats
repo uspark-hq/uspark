@@ -5,7 +5,7 @@ load '../../helpers/setup'
 @test "CLI hello command shows welcome message" {
     run $CLI_COMMAND hello
     assert_success
-    assert_output --partial "Welcome to the Makita CLI!"
+    assert_output --partial "Welcome to the uSpark CLI!"
 }
 
 @test "CLI shows help with --help flag" {
