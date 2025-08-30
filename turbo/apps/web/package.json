@@ -1,0 +1,51 @@
+{
+  "name": "web",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "next dev --turbopack --port 3000",
+    "build": "next build",
+    "start": "next start",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "next lint --max-warnings 0",
+    "check-types": "tsc --noEmit",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio"
+  },
+  "dependencies": {
+    "@neondatabase/serverless": "^1.0.1",
+    "@makita/core": "workspace:*",
+    "@makita/ui": "workspace:*",
+    "@t3-oss/env-nextjs": "^0.13.8",
+    "@ts-rest/core": "^3.52.1",
+    "@ts-rest/serverless": "^3.52.1",
+    "dotenv": "^17.2.1",
+    "drizzle-orm": "^0.44.5",
+    "next": "^15.5.2",
+    "pg": "^8.16.3",
+    "postgres": "^3.4.7",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "zod": "^4.1.5"
+  },
+  "devDependencies": {
+    "@makita/eslint-config": "workspace:*",
+    "@makita/typescript-config": "workspace:*",
+    "@testing-library/jest-dom": "^6.7.0",
+    "@testing-library/react": "^16.1.0",
+    "@types/node": "^24.3.0",
+    "@types/pg": "^8.15.5",
+    "@types/react": "^19.1.12",
+    "@types/react-dom": "^19.1.9",
+    "@vitejs/plugin-react": "^4.4.3",
+    "drizzle-kit": "^0.31.4",
+    "eslint": "^9.34.0",
+    "jsdom": "^26.0.0",
+    "tsx": "^4.20.5",
+    "typescript": "5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

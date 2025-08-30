@@ -1,0 +1,51 @@
+{
+  "name": "Node.js & TypeScript",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22"
+    },
+    "ghcr.io/devcontainers-extra/features/pnpm:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers-extra/features/lefthook-asdf:1": {},
+    "ghcr.io/itsmechlark/features/postgresql:1": {},
+    "ghcr.io/guiyomh/features/vim:0": {},
+    "ghcr.io/devcontainers-extra/features/ripgrep:1": {}
+  },
+  "forwardPorts": [4983],
+  "remoteEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.config/claude",
+    "HISTFILE": "/home/vscode/.cache/.zsh_history",
+    "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/postgres"
+  },
+  "mounts": [
+    "source=config,target=/home/vscode/.config",
+    "source=cache,target=/home/vscode/.cache",
+    "source=vercel,target=/home/vscode/.local/share/com.vercel.cli"
+  ],
+  "postCreateCommand": "sudo mkdir -p /home/vscode/.local/bin && sudo chown -R vscode:vscode /home/vscode/.config /home/vscode/.cache /home/vscode/.local && npm install -g vercel",
+  "customizations": {
+    "vscode": {
+      "settings": {
+        "sqltools.connections": [
+          {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "local",
+            "username": "postgres",
+            "database": "postgres",
+            "password": ""
+          }
+        ],
+        "terminal.integrated.defaultProfile.linux": "zsh",
+        "terminal.integrated.profiles.linux": {
+          "zsh": {
+            "path": "/usr/bin/zsh"
+          }
+        }
+      }
+    }
+  }
+}

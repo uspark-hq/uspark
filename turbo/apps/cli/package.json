@@ -1,0 +1,37 @@
+{
+  "name": "makita-cli",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CLI application",
+  "type": "module",
+  "bin": {
+    "makita-cli": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "postbuild": "cp package.json dist/ && pnpm json -I -f dist/package.json -e 'this.name=\"e7h4n-makita-cli\"; delete this.private; delete this.scripts; delete this.devDependencies; delete this.dependencies[\"@makita/core\"]; this.bin[\"makita-cli\"]=\"index.js\"; this.files=[\".\"]'",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@makita/core": "workspace:*",
+    "chalk": "^5.6.0",
+    "commander": "^14.0.0"
+  },
+  "devDependencies": {
+    "@makita/eslint-config": "workspace:*",
+    "@makita/typescript-config": "workspace:*",
+    "@types/node": "^24.3.0",
+    "eslint": "^9.34.0",
+    "json": "^11.0.0",
+    "tsup": "^8.5.0",
+    "typescript": "5.9.2",
+    "vitest": "^3.2.4"
+  }
+}

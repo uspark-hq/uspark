@@ -1,0 +1,28 @@
+{
+  "name": "@makita/core",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@makita/eslint-config": "workspace:*",
+    "@makita/typescript-config": "workspace:*",
+    "typescript": "5.9.2",
+    "vitest": "^3.2.4"
+  },
+  "dependencies": {
+    "@ts-rest/core": "^3.52.1",
+    "zod": "^4.1.5"
+  }
+}

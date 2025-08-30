@@ -1,0 +1,104 @@
+name: "Vercel Deploy"
+description: "Deploy to Vercel with reusable configuration"
+
+inputs:
+  vercel-token:
+    description: "Vercel authentication token"
+    required: true
+  vercel-org-id:
+    description: "Vercel organization ID"
+    required: true
+  vercel-project-id:
+    description: "Vercel project ID"
+    required: true
+  environment:
+    description: "Deployment environment (preview or production)"
+    required: false
+    default: "preview"
+  environment-variables:
+    description: "Environment variables for deployment (key=value pairs, one per line)"
+    required: false
+    default: ""
+  meta-branch:
+    description: "Branch name for metadata"
+    required: false
+    default: ""
+  meta-pr:
+    description: "PR number for metadata"
+    required: false
+    default: ""
+  deployment-env:
+    description: "Deployment environment name (e.g., web, docs)"
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+    - name: Start deployment
+      id: deployment
+      uses: bobheadxi/deployments@v1
+      with:
+        step: start
+        token: ${{ github.token }}
+        env: ${{ inputs.environment == 'production' && format('{0}/production', inputs.deployment-env) || format('{0}/preview/{1}', inputs.deployment-env, inputs.meta-branch || github.head_ref || github.ref_name) }}
+        ref: ${{ github.head_ref || github.ref }}
+        desc: Deploying ${{ inputs.environment }} environment
+
+    - name: Setup Vercel
+      uses: ./.github/actions/vercel-setup
+      with:
+        vercel-token: ${{ inputs.vercel-token }}
+        vercel-org-id: ${{ inputs.vercel-org-id }}
+        vercel-project-id: ${{ inputs.vercel-project-id }}
+
+    - name: Deploy to Vercel
+      id: deploy
+      shell: bash
+      run: |
+        # Build deployment command
+        DEPLOY_CMD="vercel deploy --prebuilt --token=${{ inputs.vercel-token }}"
+
+        # Add production flag if needed
+        if [ "${{ inputs.environment }}" == "production" ]; then
+          DEPLOY_CMD="$DEPLOY_CMD --prod"
+        fi
+
+        # Add metadata if provided
+        if [ -n "${{ inputs.meta-branch }}" ]; then
+          DEPLOY_CMD="$DEPLOY_CMD --meta branch=${{ inputs.meta-branch }}"
+        fi
+
+        if [ -n "${{ inputs.meta-pr }}" ]; then
+          DEPLOY_CMD="$DEPLOY_CMD --meta pr=${{ inputs.meta-pr }}"
+        fi
+
+        # Add environment variables if provided
+        if [ -n "${{ inputs.environment-variables }}" ]; then
+          while IFS= read -r line; do
+            if [ -n "$line" ]; then
+              # Parse key=value format
+              KEY=$(echo "$line" | cut -d'=' -f1)
+              VALUE=$(echo "$line" | cut -d'=' -f2-)
+              DEPLOY_CMD="$DEPLOY_CMD --env $KEY=\"$VALUE\""
+            fi
+          done <<< "${{ inputs.environment-variables }}"
+        fi
+
+        # Execute deployment and capture URL
+        echo "Executing deployment..."
+        DEPLOYMENT_URL=$(eval $DEPLOY_CMD)
+
+        # Output the deployment URL
+        echo "url=$DEPLOYMENT_URL" >> $GITHUB_OUTPUT
+        echo "Deployment URL: $DEPLOYMENT_URL"
+
+    - name: Finish deployment
+      uses: bobheadxi/deployments@v1
+      if: always()
+      with:
+        step: finish
+        token: ${{ github.token }}
+        status: ${{ job.status }}
+        env: ${{ steps.deployment.outputs.env }}
+        env_url: ${{ steps.deploy.outputs.url }}
+        deployment_id: ${{ steps.deployment.outputs.deployment_id }}

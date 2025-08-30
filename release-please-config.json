@@ -1,0 +1,22 @@
+{
+    "packages": {
+        "turbo/packages/core": {
+            "releaseType": "node"
+        },
+        "turbo/apps/cli": {
+            "releaseType": "node"
+        },
+        "turbo/apps/web": {
+            "releaseType": "node"
+        },
+        "turbo/apps/docs": {
+            "releaseType": "node"
+        }
+    },
+    "plugins": [
+        {
+            "type": "node-workspace",
+            "alwaysLinkLocal": true
+        }
+    ]
+}

@@ -1,0 +1,11 @@
+pre-commit:
+  parallel: true
+  commands:
+    lint:
+      root: turbo/
+      run: pnpm turbo run lint
+      glob: "turbo/**/*.{js,ts,tsx,jsx,mjs,cjs}"
+    prettier:
+      root: turbo/
+      run: pnpm prettier --list-different --ignore-unknown {staged_files}
+      glob: "turbo/**/*"
