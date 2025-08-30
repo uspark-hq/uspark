@@ -1,4 +1,4 @@
-# Makita Stack
+# uSpark Stack
 
 A modern, production-ready monorepo template featuring TypeScript, Next.js, and automated CI/CD with comprehensive deployment tracking.
 
@@ -7,7 +7,7 @@ A modern, production-ready monorepo template featuring TypeScript, Next.js, and 
 To create a new project from this template, copy and paste the following prompt to your preferred coding AI assistant:
 
 ```
-I want to create a new project based on the Makita monorepo template. Please help me set up everything automatically.
+I want to create a new project based on the uSpark monorepo template. Please help me set up everything automatically.
 
 Here's what I need you to do:
 1. First, verify GitHub CLI installation and authentication:
