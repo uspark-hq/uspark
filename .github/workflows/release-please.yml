@@ -34,8 +34,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: dawidd6/action-download-artifact@v6
         with:
+          run_id: ${{ github.event.workflow_run.id }}
           name: turbo-build-${{ github.event.workflow_run.head_sha }}-cli
           path: turbo/apps/cli/dist
 
@@ -62,11 +63,14 @@ jobs:
       - name: Push database schema
         env:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
         run: cd turbo/apps/web && pnpm db:migrate
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: dawidd6/action-download-artifact@v6
         with:
+          run_id: ${{ github.event.workflow_run.id }}
           name: turbo-build-${{ github.event.workflow_run.head_sha }}-web
           path: .vercel/output
 
@@ -95,8 +99,9 @@ jobs:
       - uses: ./.github/actions/init
 
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: dawidd6/action-download-artifact@v6
         with:
+          run_id: ${{ github.event.workflow_run.id }}
           name: turbo-build-${{ github.event.workflow_run.head_sha }}-docs
           path: .vercel/output
 
