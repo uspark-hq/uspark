@@ -5,6 +5,7 @@ on:
   push:
     branches:
       - main
+  merge_group:
 
 jobs:
   lint:
@@ -163,6 +164,8 @@ jobs:
           deployment-env: web
           environment-variables: |
             DATABASE_URL=${{ needs.database.outputs.database-url }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+            CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
           meta-branch: ${{ github.head_ref }}
           meta-pr: ${{ github.event.pull_request.number }}
 
