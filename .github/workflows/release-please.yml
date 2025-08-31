@@ -72,7 +72,6 @@ jobs:
         with:
           run_id: ${{ github.event.workflow_run.id }}
           name: turbo-build-${{ github.event.workflow_run.head_sha }}-web
-          path: .vercel/output
 
       - name: Deploy Web to Vercel Production
         id: deploy
@@ -103,7 +102,6 @@ jobs:
         with:
           run_id: ${{ github.event.workflow_run.id }}
           name: turbo-build-${{ github.event.workflow_run.head_sha }}-docs
-          path: .vercel/output
 
       - name: Deploy Docs to Vercel Production
         id: deploy
