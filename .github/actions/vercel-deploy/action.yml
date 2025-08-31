@@ -41,7 +41,7 @@ runs:
         step: start
         token: ${{ github.token }}
         env: ${{ inputs.environment == 'production' && format('{0}/production', inputs.deployment-env) || format('{0}/preview/{1}', inputs.deployment-env, inputs.meta-branch || github.head_ref || github.ref_name) }}
-        ref: ${{ github.head_ref || github.ref }}
+        ref: ${{ github.head_ref && format('refs/heads/{0}', github.head_ref) || github.ref }}
         desc: Deploying ${{ inputs.environment }} environment
 
     - name: Setup Vercel
