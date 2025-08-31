@@ -17,6 +17,10 @@ jobs:
 
       - name: Lint
         run: npx -y @evilmartians/lefthook run pre-commit --all-files
+        env:
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          DATABASE_URL: "postgresql://placeholder:placeholder@placeholder:5432/placeholder"
 
   test:
     runs-on: ubuntu-latest
@@ -139,6 +143,9 @@ jobs:
           neon-project-id: ${{ vars.NEON_PROJECT_ID }}
           branch-name: "${{ github.head_ref }}"
           action: "create"
+        env:
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
 
   # Deploy web application (skip for merge_group)
   deploy-web:
