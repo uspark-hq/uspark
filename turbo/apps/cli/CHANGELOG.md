@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/uspark-hq/uspark/compare/makita-cli-v0.1.0...makita-cli-v0.1.1) (2025-08-31)
+
+
+### Bug Fixes
+
+* replace remaining makita references with uspark ([#1](https://github.com/uspark-hq/uspark/issues/1)) ([64fafed](https://github.com/uspark-hq/uspark/commit/64fafed420bf195669898b8591f8fa663863fcf4))
+
 ## [0.1.0](https://github.com/e7h4n/makita/compare/makita-cli-v0.0.1...makita-cli-v0.1.0) (2025-08-30)
 
 

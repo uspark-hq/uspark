@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/uspark-hq/uspark/compare/web-v0.1.0...web-v0.2.0) (2025-08-31)
+
+
+### Features
+
+* add clerk authentication with environment-based configuration ([#3](https://github.com/uspark-hq/uspark/issues/3)) ([ec5fcb6](https://github.com/uspark-hq/uspark/commit/ec5fcb607f9f9bc5de863a54705908f98402cd3a))
+
 ## [0.1.0](https://github.com/e7h4n/makita/compare/web-v0.0.1...web-v0.1.0) (2025-08-30)
 
 
