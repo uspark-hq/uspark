@@ -1,5 +1,5 @@
-name: "Vercel Deploy"
-description: "Deploy to Vercel with reusable configuration"
+name: "Vercel Direct Deploy"
+description: "Deploy to Vercel with build and deploy in one step"
 
 inputs:
   vercel-token:
@@ -54,21 +54,9 @@ runs:
     - name: Deploy to Vercel
       id: deploy
       shell: bash
-      run: |
-        # Verify build output exists
-        if [ ! -d ".vercel/output" ]; then
-          echo "Error: .vercel/output directory not found"
-          echo "Contents of current directory:"
-          ls -la
-          echo "Contents of .vercel directory (if exists):"
-          ls -la .vercel/ || echo ".vercel directory does not exist"
-          exit 1
-        fi
-        
-        echo "Found .vercel/output directory, proceeding with deployment..."
-        
-        # Build deployment command
-        DEPLOY_CMD="vercel deploy --prebuilt --token=${{ inputs.vercel-token }}"
+      run: |        
+        # Build deployment command - direct deploy without prebuilt
+        DEPLOY_CMD="vercel deploy --token=${{ inputs.vercel-token }}"
 
         # Add production flag if needed
         if [ "${{ inputs.environment }}" == "production" ]; then
@@ -98,6 +86,7 @@ runs:
 
         # Execute deployment and capture URL
         echo "Executing deployment..."
+        echo "Command: $DEPLOY_CMD"
         DEPLOYMENT_URL=$(eval $DEPLOY_CMD)
 
         # Output the deployment URL
