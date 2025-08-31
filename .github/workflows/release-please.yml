@@ -66,13 +66,16 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-        run: cd turbo/apps/web && pnpm db:migrate
+        run: |
+          cd turbo/apps/web
+          pnpm db:migrate
 
       - name: Download build artifacts
         uses: dawidd6/action-download-artifact@v6
         with:
           run_id: ${{ github.event.workflow_run.id }}
           name: turbo-build-${{ github.event.workflow_run.head_sha }}-web
+          path: .
 
       - name: Deploy Web to Vercel Production
         id: deploy
@@ -103,6 +106,7 @@ jobs:
         with:
           run_id: ${{ github.event.workflow_run.id }}
           name: turbo-build-${{ github.event.workflow_run.head_sha }}-docs
+          path: .
 
       - name: Deploy Docs to Vercel Production
         id: deploy
