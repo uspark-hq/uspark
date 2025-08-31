@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/uspark-hq/uspark/compare/core-v0.1.0...core-v0.2.0) (2025-08-31)
+
+
+### Features
+
+* **core:** add BAR constant for testing release automation ([#5](https://github.com/uspark-hq/uspark/issues/5)) ([2f65cca](https://github.com/uspark-hq/uspark/commit/2f65ccae970620cc202dbf078fc908ded8a68f6a))
+
 ## [0.1.0](https://github.com/e7h4n/makita/compare/core-v0.0.1...core-v0.1.0) (2025-08-30)
 
 
