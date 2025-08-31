@@ -1,5 +1,5 @@
 {
-  "extends": "@makita/typescript-config/base.json",
+  "extends": "@uspark/typescript-config/base.json",
   "compilerOptions": {
     "lib": ["ES2022"],
     "types": ["vitest/globals"]

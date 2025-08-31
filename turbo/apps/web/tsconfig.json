@@ -1,5 +1,5 @@
 {
-  "extends": "@makita/typescript-config/nextjs.json",
+  "extends": "@uspark/typescript-config/nextjs.json",
   "compilerOptions": {
     "plugins": [
       {

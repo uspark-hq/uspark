@@ -1,4 +1,4 @@
-import { FOO } from "@makita/core";
+import { FOO } from "@uspark/core";
 import { Command } from "commander";
 import chalk from "chalk";
 

@@ -68,4 +68,4 @@ The CLI is built with:
 - **Commander.js** - Command-line interface framework
 - **Chalk** - Terminal string styling
 - **tsup** - TypeScript bundler for fast builds
-- **@makita/core** - Shared core functionality
+- **@uspark/core** - Shared core functionality
