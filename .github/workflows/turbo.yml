@@ -147,6 +147,13 @@ jobs:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
 
+      - name: Debug database output
+        run: |
+          echo "Branch output database-url: '${{ steps.branch.outputs.database-url }}'"
+          echo "Length: ${#DATABASE_URL}"
+        env:
+          DATABASE_URL: ${{ steps.branch.outputs.database-url }}
+
   # Deploy web application (skip for merge_group)
   deploy-web:
     runs-on: ubuntu-latest
