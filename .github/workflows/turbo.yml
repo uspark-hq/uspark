@@ -53,7 +53,7 @@ jobs:
       - uses: ./.github/actions/init
 
       - name: Build Cli
-        run: cd turbo && pnpm -F makita-cli build
+        run: cd turbo && pnpm -F @uspark/cli build
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v4

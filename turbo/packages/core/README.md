@@ -1,4 +1,4 @@
-# @makita/core
+# @uspark/core
 
 Core utilities package for the Turbo monorepo.
 
@@ -33,7 +33,7 @@ pnpm check-types
 ## Usage
 
 ```typescript
-import { FOO } from "@makita/core";
+import { FOO } from "@uspark/core";
 
 console.log(FOO); // 'hello'
 ```

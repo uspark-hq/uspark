@@ -11,5 +11,5 @@ export default defineConfig({
     js: "#!/usr/bin/env node",
   },
   // Bundle workspace packages
-  noExternal: [/@makita\/.*/],
+  noExternal: [/@uspark\/.*/],
 });

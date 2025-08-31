@@ -1,5 +1,5 @@
 {
-  "extends": "@makita/typescript-config/react-library.json",
+  "extends": "@uspark/typescript-config/react-library.json",
   "compilerOptions": {
     "outDir": "dist"
   },

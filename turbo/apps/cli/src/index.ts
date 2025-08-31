@@ -1,11 +1,11 @@
-import { FOO } from "@makita/core";
+import { FOO } from "@uspark/core";
 import { Command } from "commander";
 import chalk from "chalk";
 
 const program = new Command();
 
 program
-  .name("makita-cli")
+  .name("uspark")
   .description("uSpark CLI - A modern build tool")
   .version("0.1.0");
 

@@ -7,13 +7,13 @@
 
 * **core:** add BAR constant for testing release automation ([#5](https://github.com/uspark-hq/uspark/issues/5)) ([2f65cca](https://github.com/uspark-hq/uspark/commit/2f65ccae970620cc202dbf078fc908ded8a68f6a))
 
-## [0.1.0](https://github.com/e7h4n/makita/compare/core-v0.0.1...core-v0.1.0) (2025-08-30)
+## [0.1.0](https://github.com/uspark-hq/uspark/compare/core-v0.0.1...core-v0.1.0) (2025-08-30)
 
 
 ### Features
 
-* implement centralized API contract system ([#13](https://github.com/e7h4n/makita/issues/13)) ([77bbbd9](https://github.com/e7h4n/makita/commit/77bbbd913b52341a7720e9bb711d889253d9681a))
-* initial commit - app template with turborepo monorepo structure ([4123914](https://github.com/e7h4n/makita/commit/41239143cdaea284f55a02c89fde348c2e3b53ff))
+* implement centralized API contract system ([#13](https://github.com/uspark-hq/uspark/issues/13)) ([77bbbd9](https://github.com/uspark-hq/uspark/commit/77bbbd913b52341a7720e9bb711d889253d9681a))
+* initial commit - app template with turborepo monorepo structure ([4123914](https://github.com/uspark-hq/uspark/commit/41239143cdaea284f55a02c89fde348c2e3b53ff))
 
 ## Changelog
 

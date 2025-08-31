@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { HelloRequestSchema } from "@makita/core";
+import { HelloRequestSchema } from "@uspark/core";
 import { z } from "zod";
 
 const greetings = {

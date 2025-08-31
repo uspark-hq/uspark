@@ -1,5 +1,5 @@
 {
-  "name": "@makita/core",
+  "name": "@uspark/core",
   "version": "0.2.0",
   "private": true,
   "type": "module",
@@ -16,8 +16,8 @@
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
-    "@makita/eslint-config": "workspace:*",
-    "@makita/typescript-config": "workspace:*",
+    "@uspark/eslint-config": "workspace:*",
+    "@uspark/typescript-config": "workspace:*",
     "typescript": "5.9.2",
     "vitest": "^3.2.4"
   },
