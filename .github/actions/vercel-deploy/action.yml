@@ -55,6 +55,18 @@ runs:
       id: deploy
       shell: bash
       run: |
+        # Verify build output exists
+        if [ ! -d ".vercel/output" ]; then
+          echo "Error: .vercel/output directory not found"
+          echo "Contents of current directory:"
+          ls -la
+          echo "Contents of .vercel directory (if exists):"
+          ls -la .vercel/ || echo ".vercel directory does not exist"
+          exit 1
+        fi
+        
+        echo "Found .vercel/output directory, proceeding with deployment..."
+        
         # Build deployment command
         DEPLOY_CMD="vercel deploy --prebuilt --token=${{ inputs.vercel-token }}"
 
