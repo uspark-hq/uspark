@@ -11,7 +11,7 @@ load '../../helpers/setup'
 @test "CLI shows help with --help flag" {
     run $CLI_COMMAND --help
     assert_success
-    assert_output --partial "Usage: makita-cli"
+    assert_output --partial "Usage: uspark"
 }
 
 @test "CLI info command shows system information" {

@@ -24,8 +24,8 @@ if [[ ! -f "$BATS_BIN" ]]; then
 fi
 
 # Build the CLI before testing
-echo -e "${YELLOW}Building makita-cli...${NC}"
-(cd "$SCRIPT_DIR/../turbo" && pnpm build --filter makita-cli)
+echo -e "${YELLOW}Building @uspark/cli...${NC}"
+(cd "$SCRIPT_DIR/../turbo" && pnpm build --filter @uspark/cli)
 
 # Ensure CLI is available globally
 echo -e "${YELLOW}Linking CLI globally...${NC}"

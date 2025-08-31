@@ -5,7 +5,7 @@ import chalk from "chalk";
 const program = new Command();
 
 program
-  .name("makita-cli")
+  .name("uspark")
   .description("uSpark CLI - A modern build tool")
   .version("0.1.0");
 

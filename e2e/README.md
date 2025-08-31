@@ -118,7 +118,7 @@ TAP output is used for CI reporting:
 - BATS Core
 - bats-support
 - bats-assert
-- Built CLI (`pnpm build --filter makita-cli`)
+- Built CLI (`pnpm build --filter @uspark/cli`)
 
 ## Troubleshooting
 
@@ -127,7 +127,7 @@ TAP output is used for CI reporting:
 Ensure the CLI is built and linked:
 ```bash
 cd turbo
-pnpm build --filter makita-cli
+pnpm build --filter @uspark/cli
 cd packages/cli
 pnpm link --global
 ```
