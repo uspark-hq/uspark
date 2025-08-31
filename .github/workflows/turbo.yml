@@ -114,7 +114,7 @@ jobs:
       - name: Run E2E Tests
         run: cd e2e && make test
 
-  # Database for preview environment
+  # Database for preview environment (skip for merge_group)
   database:
     runs-on: ubuntu-latest
     needs: test
@@ -136,7 +136,7 @@ jobs:
           branch-name: "${{ github.head_ref }}"
           action: "create"
 
-  # Deploy web application
+  # Deploy web application (skip for merge_group)
   deploy-web:
     runs-on: ubuntu-latest
     needs: [build-web, database]
@@ -169,7 +169,7 @@ jobs:
           meta-branch: ${{ github.head_ref }}
           meta-pr: ${{ github.event.pull_request.number }}
 
-  # Deploy docs application
+  # Deploy docs application (skip for merge_group)
   deploy-docs:
     runs-on: ubuntu-latest
     needs: [build-docs]
