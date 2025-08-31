@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.2](https://github.com/uspark-hq/uspark/compare/web-v0.2.1...web-v0.2.2) (2025-08-31)
+
+
+### Bug Fixes
+
+* update package names from makita to uspark and fix deployment paths ([#7](https://github.com/uspark-hq/uspark/issues/7)) ([9f726a0](https://github.com/uspark-hq/uspark/commit/9f726a0fa74984124a1670ac91bf845db969a1cc))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.2.1
+
 ## [0.2.1](https://github.com/uspark-hq/uspark/compare/web-v0.2.0...web-v0.2.1) (2025-08-31)
 
 
