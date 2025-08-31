@@ -122,42 +122,10 @@ jobs:
       - name: Run E2E Tests
         run: cd e2e && make test
 
-  # Database for preview environment (skip for merge_group)
-  database:
-    runs-on: ubuntu-latest
-    needs: test
-    if: github.event_name == 'pull_request'
-    permissions:
-      deployments: write
-    outputs:
-      database-url: ${{ steps.branch.outputs.database-url }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/init
-
-      - name: Create Neon Branch and Run Migrations
-        id: branch
-        uses: ./.github/actions/neon-branch
-        with:
-          neon-api-key: ${{ secrets.NEON_API_KEY }}
-          neon-project-id: ${{ vars.NEON_PROJECT_ID }}
-          branch-name: "${{ github.head_ref }}"
-          action: "create"
-        env:
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-
-      - name: Debug database output
-        run: |
-          echo "Branch output database-url: '${{ steps.branch.outputs.database-url }}'"
-          echo "Length: ${#DATABASE_URL}"
-        env:
-          DATABASE_URL: ${{ steps.branch.outputs.database-url }}
-
   # Deploy web application (skip for merge_group)
   deploy-web:
     runs-on: ubuntu-latest
-    needs: [build-web, database]
+    needs: [build-web, test]
     if: github.event_name == 'pull_request'
     permissions:
       pull-requests: write
@@ -171,6 +139,35 @@ jobs:
         with:
           name: turbo-build-${{ github.sha }}-web
 
+      - name: Create Neon Branch and Run Migrations
+        id: database-url
+        run: |
+          # Install Neon CLI
+          npm install -g neonctl@latest
+
+          BRANCH_NAME="preview/${{ github.head_ref }}"
+
+          # Create branch if it doesn't exist
+          if neonctl branches list --project-id ${{ vars.NEON_PROJECT_ID }} --output json | jq -e ".[] | select(.name == \"$BRANCH_NAME\")" > /dev/null 2>&1; then
+            echo "Branch $BRANCH_NAME already exists"
+          else
+            echo "Create branch $BRANCH_NAME"
+            neonctl branches create --name $BRANCH_NAME --project-id ${{ vars.NEON_PROJECT_ID }}
+          fi
+
+          # Generate DATABASE_URL
+          export DATABASE_URL=$(neonctl connection-string $BRANCH_NAME --project-id ${{ vars.NEON_PROJECT_ID }} --database-name neondb --pooled)
+          echo "database-url=$DATABASE_URL" >> $GITHUB_OUTPUT
+          echo "Generated DATABASE_URL for branch: $BRANCH_NAME"
+
+          # Run database migrations
+          echo "Running database migrations..."
+          cd turbo && pnpm -F web db:migrate
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+
       - name: Deploy Web to Vercel
         id: deploy
         uses: ./.github/actions/vercel-deploy
@@ -181,7 +178,7 @@ jobs:
           environment: preview
           deployment-env: web
           environment-variables: |
-            DATABASE_URL=${{ needs.database.outputs.database-url }}
+            DATABASE_URL=${{ steps.database-url.outputs.database-url }}
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
             CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
           meta-branch: ${{ github.head_ref }}
