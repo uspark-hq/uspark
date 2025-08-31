@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.1.3](https://github.com/uspark-hq/uspark/compare/cli-v0.1.2...cli-v0.1.3) (2025-08-31)
+
+
+### Bug Fixes
+
+* replace remaining makita references with uspark ([#1](https://github.com/uspark-hq/uspark/issues/1)) ([64fafed](https://github.com/uspark-hq/uspark/commit/64fafed420bf195669898b8591f8fa663863fcf4))
+* update package names from makita to uspark and fix deployment paths ([#7](https://github.com/uspark-hq/uspark/issues/7)) ([9f726a0](https://github.com/uspark-hq/uspark/commit/9f726a0fa74984124a1670ac91bf845db969a1cc))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.2.1
+
 ## [0.1.2](https://github.com/uspark-hq/uspark/compare/@uspark/cli-v0.1.1...@uspark/cli-v0.1.2) (2025-08-31)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/uspark-hq/uspark/compare/core-v0.2.0...core-v0.2.1) (2025-08-31)
+
+
+### Bug Fixes
+
+* update package names from makita to uspark and fix deployment paths ([#7](https://github.com/uspark-hq/uspark/issues/7)) ([9f726a0](https://github.com/uspark-hq/uspark/commit/9f726a0fa74984124a1670ac91bf845db969a1cc))
+
 ## [0.2.0](https://github.com/uspark-hq/uspark/compare/core-v0.1.0...core-v0.2.0) (2025-08-31)
 
 
