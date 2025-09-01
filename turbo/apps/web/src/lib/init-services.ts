@@ -28,6 +28,8 @@ export function initServices(): void {
     return;
   }
 
+  const isVercel = !!process.env.VERCEL;
+
   _services = {
     get env() {
       if (!_env) {
@@ -39,8 +41,9 @@ export function initServices(): void {
       if (!_pool) {
         _pool = new Pool({
           connectionString: this.env.DATABASE_URL,
-          max: 10,
-          idleTimeoutMillis: 30000,
+          // Serverless environments should use single connection
+          max: isVercel ? 1 : 10,
+          idleTimeoutMillis: isVercel ? 10000 : 30000,
           connectionTimeoutMillis: 10000,
         });
       }
