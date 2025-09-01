@@ -16,13 +16,5 @@ export async function GET() {
   return NextResponse.json({
     success: true,
     users: allUsers,
-    // Debug info in development
-    debug:
-      globalThis.services.env.NODE_ENV === "development"
-        ? {
-            isVercel: !!process.env.VERCEL,
-            nodeEnv: globalThis.services.env.NODE_ENV,
-          }
-        : undefined,
   });
 }
