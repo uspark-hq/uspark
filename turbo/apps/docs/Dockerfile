@@ -4,7 +4,6 @@ WORKDIR /app
 
 COPY .next/standalone ./
 COPY .next/static ./.next/static
-COPY public ./public
 
 EXPOSE 3000
 ENV PORT=3000
