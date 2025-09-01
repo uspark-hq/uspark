@@ -9,19 +9,15 @@ function initEnv() {
     server: {
       DATABASE_URL: z.string().min(1),
       CLERK_SECRET_KEY: z.string().min(1),
-      NODE_ENV: z
-        .enum(["development", "test", "production"])
-        .default("development"),
+      CLERK_PUBLISHABLE_KEY: z.string().min(1), // 移到服务端，支持运行时注入
     },
     client: {
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
+      // 不再使用客户端环境变量，避免构建时嵌入
     },
     runtimeEnv: {
       DATABASE_URL: process.env.DATABASE_URL,
       CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
-      NODE_ENV: process.env.NODE_ENV,
-      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
-        process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+      CLERK_PUBLISHABLE_KEY: process.env.CLERK_PUBLISHABLE_KEY,
     },
     emptyStringAsUndefined: true,
   });

@@ -6,5 +6,5 @@ import { env } from "../env";
  */
 export function getClerkPublishableKey(): string {
   const environment = env();
-  return environment.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  return environment.CLERK_PUBLISHABLE_KEY;
 }
