@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.3](https://github.com/uspark-hq/uspark/compare/web-v0.2.2...web-v0.2.3) (2025-09-01)
+
+
+### Bug Fixes
+
+* add build-time environment variables for vercel deployment ([#12](https://github.com/uspark-hq/uspark/issues/12)) ([ce55047](https://github.com/uspark-hq/uspark/commit/ce5504708ea5debcdc92b051307a68e08a494777))
+* correct release-please output format for monorepo packages ([#9](https://github.com/uspark-hq/uspark/issues/9)) ([9a941a9](https://github.com/uspark-hq/uspark/commit/9a941a9b78654a2f9df8410506e2583c8a63ae96))
+
 ## [0.2.2](https://github.com/uspark-hq/uspark/compare/web-v0.2.1...web-v0.2.2) (2025-08-31)
 
 
