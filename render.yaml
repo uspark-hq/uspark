@@ -1,0 +1,48 @@
+services:
+  - type: web
+    name: uspark-web-preview
+    runtime: docker
+    repo: https://github.com/uspark-hq/uspark
+    dockerfilePath: turbo/apps/web/Dockerfile
+    registryCredential:
+      fromRegistryCreds:
+        name: ghcr
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        sync: false
+    healthCheckPath: /api/health
+    plan: starter
+    region: oregon
+    scaling:
+      minInstances: 0
+      maxInstances: 3
+    
+  - type: web
+    name: uspark-web-production
+    runtime: docker
+    repo: https://github.com/uspark-hq/uspark
+    dockerfilePath: turbo/apps/web/Dockerfile
+    registryCredential:
+      fromRegistryCreds:
+        name: ghcr
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+        sync: false
+    healthCheckPath: /api/health
+    plan: starter
+    region: oregon
+    scaling:
+      minInstances: 1
+      maxInstances: 5

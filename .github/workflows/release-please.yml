@@ -70,50 +70,30 @@ jobs:
           cd turbo/apps/web
           pnpm db:migrate
 
-      - name: Download build artifacts
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          run_id: ${{ github.event.workflow_run.id }}
-          name: turbo-build-${{ github.event.workflow_run.head_sha }}-web
-          path: .
-
-      - name: Deploy Web to Vercel Production
+      - name: Deploy Web to Render Production
         id: deploy
-        uses: ./.github/actions/vercel-deploy
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ vars.VERCEL_TEAM_ID }}
-          vercel-project-id: ${{ vars.VERCEL_PROJECT_ID_WEB }}
-          environment: production
-          deployment-env: web
-          environment-variables: |
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-            CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
+        run: |
+          # Build the deployment payload with environment variables
+          PAYLOAD=$(cat <<EOF
+          {
+            "imageUrl": "ghcr.io/uspark-hq/uspark-web:${{ github.event.workflow_run.head_sha }}",
+            "clearCache": "do_not_clear",
+            "env": {
+              "DATABASE_URL": "${{ secrets.DATABASE_URL }}",
+              "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}",
+              "CLERK_SECRET_KEY": "${{ secrets.CLERK_SECRET_KEY }}"
+            }
+          }
+          EOF
+          )
+          
+          echo "Deploying image: ghcr.io/uspark-hq/uspark-web:${{ github.event.workflow_run.head_sha }}"
+          echo "Service ID: ${{ secrets.RENDER_PRODUCTION_SERVICE_ID }}"
+          
+          # Make the deployment request
+          curl -X POST \
+            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "https://api.render.com/v1/services/${{ secrets.RENDER_PRODUCTION_SERVICE_ID }}/deploys"
 
-  deploy-docs:
-    needs: release-please
-    if: ${{ needs.release-please.outputs.docs_release_created == 'true' }}
-    runs-on: ubuntu-latest
-    permissions:
-      deployments: write
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/init
-
-      - name: Download build artifacts
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          run_id: ${{ github.event.workflow_run.id }}
-          name: turbo-build-${{ github.event.workflow_run.head_sha }}-docs
-          path: .
-
-      - name: Deploy Docs to Vercel Production
-        id: deploy
-        uses: ./.github/actions/vercel-deploy
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ vars.VERCEL_TEAM_ID }}
-          vercel-project-id: ${{ vars.VERCEL_PROJECT_ID_DOCS }}
-          environment: production
-          deployment-env: docs
