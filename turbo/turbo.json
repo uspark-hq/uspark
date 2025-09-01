@@ -3,9 +3,6 @@
   "ui": "tui",
   "globalEnv": [
     "DATABASE_URL",
-    "NODE_ENV",
-    "SKIP_ENV_VALIDATION",
-    "VERCEL",
     "CLERK_SECRET_KEY",
     "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY"
   ],
