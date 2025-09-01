@@ -67,12 +67,6 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
         run: cd turbo/apps/web && pnpm db:migrate
 
-      - name: Download build artifacts
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          run_id: ${{ github.event.workflow_run.id }}
-          name: turbo-build-${{ github.event.workflow_run.head_sha }}-web
-
       - name: Deploy Web to Vercel Production
         id: deploy
         uses: ./.github/actions/vercel-deploy
@@ -96,12 +90,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/init
-
-      - name: Download build artifacts
-        uses: dawidd6/action-download-artifact@v6
-        with:
-          run_id: ${{ github.event.workflow_run.id }}
-          name: turbo-build-${{ github.event.workflow_run.head_sha }}-docs
 
       - name: Deploy Docs to Vercel Production
         id: deploy

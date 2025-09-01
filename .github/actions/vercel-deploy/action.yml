@@ -56,7 +56,7 @@ runs:
       shell: bash
       run: |
         # Build deployment command
-        DEPLOY_CMD="vercel deploy --prebuilt --token=${{ inputs.vercel-token }}"
+        DEPLOY_CMD="vercel deploy --token=${{ inputs.vercel-token }}"
 
         # Add production flag if needed
         if [ "${{ inputs.environment }}" == "production" ]; then
