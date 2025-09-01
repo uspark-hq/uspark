@@ -87,7 +87,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./turbo/apps/web
-          file: ./Dockerfile
+          file: ./turbo/apps/web/Dockerfile
           platforms: linux/amd64
           push: true
           tags: ghcr.io/uspark-hq/uspark-web:${{ github.sha }}
@@ -122,7 +122,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: ./turbo/apps/docs
-          file: ./Dockerfile
+          file: ./turbo/apps/docs/Dockerfile
           platforms: linux/amd64
           push: true
           tags: ghcr.io/uspark-hq/uspark-docs:${{ github.sha }}
