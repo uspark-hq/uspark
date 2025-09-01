@@ -33,20 +33,16 @@ As a developer, I want to sync uSpark documents to my local filesystem and edit 
 
    - Documents appear as regular Markdown files
    - Maintain folder structure from workspace
-   - Support for .gitignore patterns
-   - Metadata preserved (timestamps, permissions)
 
 4. **Developer Experience**
    - Use any text editor or IDE
-   - Git-friendly for version control
    - Batch operations support (grep, find, sed)
-   - Watch mode for continuous sync
 
 ## Example Workflow
 
 1. Developer installs `usync` CLI tool
 2. Authenticates and selects workspace to sync
-3. Documents appear in `~/uspark/workspace-name/`
+3. Documents appear in `usync` target folder
 4. Opens PRD.md in VS Code, makes edits
 5. Changes auto-sync to cloud, visible to team
 6. Can continue AI conversation based on local edits
