@@ -69,31 +69,3 @@ jobs:
         run: |
           cd turbo/apps/web
           pnpm db:migrate
-
-      - name: Deploy Web to Render Production
-        id: deploy
-        run: |
-          # Build the deployment payload with environment variables
-          PAYLOAD=$(cat <<EOF
-          {
-            "imageUrl": "ghcr.io/uspark-hq/uspark-web:${{ github.event.workflow_run.head_sha }}",
-            "clearCache": "do_not_clear",
-            "env": {
-              "DATABASE_URL": "${{ secrets.DATABASE_URL }}",
-              "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}",
-              "CLERK_SECRET_KEY": "${{ secrets.CLERK_SECRET_KEY }}"
-            }
-          }
-          EOF
-          )
-          
-          echo "Deploying image: ghcr.io/uspark-hq/uspark-web:${{ github.event.workflow_run.head_sha }}"
-          echo "Service ID: ${{ secrets.RENDER_PRODUCTION_SERVICE_ID }}"
-          
-          # Make the deployment request
-          curl -X POST \
-            -H "Authorization: Bearer ${{ secrets.RENDER_API_KEY }}" \
-            -H "Content-Type: application/json" \
-            -d "$PAYLOAD" \
-            "https://api.render.com/v1/services/${{ secrets.RENDER_PRODUCTION_SERVICE_ID }}/deploys"
-
