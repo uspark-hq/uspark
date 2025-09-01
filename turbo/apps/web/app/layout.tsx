@@ -11,6 +11,9 @@ import {
 import { getClerkPublishableKey } from "../src/lib/clerk-config";
 import "./globals.css";
 
+// 强制使用动态渲染（SSR），避免构建时需要环境变量
+export const dynamic = "force-dynamic";
+
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
   variable: "--font-geist-sans",
