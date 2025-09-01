@@ -1,19 +1,10 @@
-FROM node:20-alpine
+FROM node:22-alpine
 
 WORKDIR /app
 
-ENV NODE_ENV=production
-
-# 创建非 root 用户
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs
-
-# 复制 standalone 构建产物（从 GitHub Actions 构建）
-COPY --chown=nextjs:nodejs .next/standalone ./
-COPY --chown=nextjs:nodejs .next/static ./.next/static
-COPY --chown=nextjs:nodejs public ./public
-
-USER nextjs
+COPY .next/standalone ./
+COPY .next/static ./.next/static
+COPY public ./public
 
 EXPOSE 3000
 ENV PORT=3000

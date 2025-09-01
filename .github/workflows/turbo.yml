@@ -86,8 +86,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./turbo/apps/web/Dockerfile
+          context: ./turbo/apps/web
+          file: ./Dockerfile
           platforms: linux/amd64
           push: true
           tags: ghcr.io/uspark-hq/uspark-web:${{ github.sha }}
@@ -121,8 +121,8 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: .
-          file: ./turbo/apps/web/Dockerfile
+          context: ./turbo/apps/docs
+          file: ./Dockerfile
           platforms: linux/amd64
           push: true
           tags: ghcr.io/uspark-hq/uspark-docs:${{ github.sha }}
