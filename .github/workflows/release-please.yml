@@ -20,7 +20,6 @@ jobs:
       release_created: ${{ steps.release.outputs.release_created }}
       cli_release_created: ${{ steps.release.outputs['turbo/apps/cli--release_created'] }}
       web_release_created: ${{ steps.release.outputs['turbo/apps/web--release_created'] }}
-      docs_release_created: ${{ steps.release.outputs['turbo/apps/docs--release_created'] }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -66,6 +65,50 @@ jobs:
           DATABASE_URL: ${{ secrets.DATABASE_URL }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-        run: |
-          cd turbo/apps/web
-          pnpm db:migrate
+        run: cd turbo/apps/web && pnpm db:migrate
+
+      - name: Download build artifacts
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          run_id: ${{ github.event.workflow_run.id }}
+          name: turbo-build-${{ github.event.workflow_run.head_sha }}-web
+
+      - name: Deploy Web to Vercel Production
+        id: deploy
+        uses: ./.github/actions/vercel-deploy
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ vars.VERCEL_TEAM_ID }}
+          vercel-project-id: ${{ vars.VERCEL_PROJECT_ID_WEB }}
+          environment: production
+          deployment-env: web
+          environment-variables: |
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+            CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
+
+  deploy-docs:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.release_created == 'true' && vars.VERCEL_PROJECT_ID_DOCS != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/init
+
+      - name: Download build artifacts
+        uses: dawidd6/action-download-artifact@v6
+        with:
+          run_id: ${{ github.event.workflow_run.id }}
+          name: turbo-build-${{ github.event.workflow_run.head_sha }}-docs
+
+      - name: Deploy Docs to Vercel Production
+        id: deploy
+        uses: ./.github/actions/vercel-deploy
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ vars.VERCEL_TEAM_ID }}
+          vercel-project-id: ${{ vars.VERCEL_PROJECT_ID_DOCS }}
+          environment: production
+          deployment-env: docs
