@@ -20,12 +20,12 @@ This repository is configured to automatically create preview deployments for pu
 Configure these in your GitHub repository settings (Settings → Secrets and variables → Actions):
 
 ### Secrets (Store as Secrets)
-- `VERCEL_TOKEN`: Your Vercel personal access token
-  - Generate at: https://vercel.com/account/tokens
+
 - `NEON_API_KEY`: Your Neon API key (Optional but Recommended)
   - Generate at: https://console.neon.tech/app/settings/api-keys
 
 ### Variables (Store as Repository Variables)
+
 - `VERCEL_TEAM_ID`: Your Vercel team/organization ID
   - Find in Vercel project settings → General → Team ID
 - `VERCEL_PROJECT_ID`: Your Vercel project ID
@@ -38,6 +38,7 @@ Configure these in your GitHub repository settings (Settings → Secrets and var
 ## Initial Setup
 
 1. **Configure Vercel Project Settings**:
+
    - Go to your Vercel project settings: https://vercel.com/[your-team]/uspark/settings
    - Under "General" → "Root Directory", set it to: `turbo/apps/web`
    - Save the changes
@@ -53,6 +54,7 @@ Configure these in your GitHub repository settings (Settings → Secrets and var
 ## Database Schema Push
 
 The workflow automatically pushes database schema to preview branches using:
+
 ```bash
 pnpm db:push
 ```
