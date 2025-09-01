@@ -146,4 +146,3 @@ dist
 settings.local.json
 
 .pnpm-store
-.vercel
