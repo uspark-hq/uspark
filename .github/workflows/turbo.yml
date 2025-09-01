@@ -92,7 +92,6 @@ jobs:
 
   deploy-web:
     runs-on: ubuntu-latest
-    needs: [build-web, test]
     if: github.event_name == 'pull_request'
     permissions:
       pull-requests: write
@@ -148,7 +147,6 @@ jobs:
 
   deploy-docs:
     runs-on: ubuntu-latest
-    needs: [build-docs]
     if: github.event_name == 'pull_request' && vars.VERCEL_PROJECT_ID_DOCS != ''
     permissions:
       pull-requests: write
