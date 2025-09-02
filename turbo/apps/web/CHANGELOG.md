@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.0](https://github.com/uspark-hq/uspark/compare/web-v0.3.0...web-v0.4.0) (2025-09-02)
+
+
+### Features
+
+* implement cli auth token exchange api ([#42](https://github.com/uspark-hq/uspark/issues/42)) ([d0b4321](https://github.com/uspark-hq/uspark/commit/d0b4321cc9a513ee6e4dddf3c9b6559771354464))
+* implement cli token generation api endpoint ([#45](https://github.com/uspark-hq/uspark/issues/45)) ([862c53d](https://github.com/uspark-hq/uspark/commit/862c53da230adc5aa6df545d62cb573ee00219b4))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.4.0
+
 ## [0.3.0](https://github.com/uspark-hq/uspark/compare/web-v0.2.4...web-v0.3.0) (2025-09-02)
 
 

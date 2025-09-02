@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.0](https://github.com/uspark-hq/uspark/compare/core-v0.3.0...core-v0.4.0) (2025-09-02)
+
+
+### Features
+
+* implement cli token generation api endpoint ([#45](https://github.com/uspark-hq/uspark/issues/45)) ([862c53d](https://github.com/uspark-hq/uspark/commit/862c53da230adc5aa6df545d62cb573ee00219b4))
+
 ## [0.3.0](https://github.com/uspark-hq/uspark/compare/core-v0.2.1...core-v0.3.0) (2025-09-02)
 
 
