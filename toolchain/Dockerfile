@@ -42,9 +42,11 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
 # Install Vercel CLI globally (locked version)
 RUN npm install -g vercel@46.1.1
 
-# Create non-root user
-RUN useradd -m -s /usr/bin/zsh uspark \
-    && echo "uspark ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+# Create vscode user with standard UID/GID for devcontainer compatibility
+RUN groupadd --gid 1000 vscode \
+    && useradd --uid 1000 --gid vscode --shell /usr/bin/zsh --create-home vscode \
+    && echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/vscode \
+    && chmod 0440 /etc/sudoers.d/vscode
 
 # Default command
 CMD ["/usr/bin/zsh"]
