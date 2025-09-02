@@ -1,0 +1,73 @@
+name: Docker Publish
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'toolchain/**'
+      - '.github/workflows/docker-*.yml'
+
+permissions:
+  contents: read
+  packages: write
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        run: |
+          echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT
+          echo "date=$(date +'%Y%m%d')" >> $GITHUB_OUTPUT
+
+      - name: Build and push toolchain image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./toolchain
+          file: ./toolchain/Dockerfile
+          target: toolchain
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/uspark-hq/uspark-toolchain:latest
+            ${{ env.REGISTRY }}/uspark-hq/uspark-toolchain:${{ steps.meta.outputs.sha_short }}
+            ${{ env.REGISTRY }}/uspark-hq/uspark-toolchain:${{ steps.meta.outputs.date }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: |
+            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Build and push development image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./toolchain
+          file: ./toolchain/Dockerfile
+          target: development
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/uspark-hq/uspark-dev:latest
+            ${{ env.REGISTRY }}/uspark-hq/uspark-dev:${{ steps.meta.outputs.sha_short }}
+            ${{ env.REGISTRY }}/uspark-hq/uspark-dev:${{ steps.meta.outputs.date }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          labels: |
+            org.opencontainers.image.source=${{ github.event.repository.html_url }}
+            org.opencontainers.image.revision=${{ github.sha }}

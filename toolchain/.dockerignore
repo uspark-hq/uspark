@@ -1,0 +1,58 @@
+# Git
+.git
+.gitignore
+
+# Node modules
+node_modules
+**/node_modules
+
+# Build outputs
+dist
+build
+.next
+out
+
+# Cache and temp files
+.cache
+tmp
+temp
+*.tmp
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Test coverage
+coverage
+.nyc_output
+
+# Documentation
+*.md
+docs
+
+# CI/CD
+.github
+.circleci
+.gitlab-ci.yml
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
