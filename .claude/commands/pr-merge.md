@@ -16,9 +16,10 @@ This command automates the process of merging a pull request after ensuring all 
    - Show a summary of what will be merged
 
 3. **Merge the PR**
-   - Use `gh pr merge` with squash merge strategy
-   - Auto-delete the branch after merge
-   - Wait for merge to complete
+   - If merge queue is enabled: Use `gh pr merge --auto` to queue the PR for merge
+   - If merge queue is disabled: Use `gh pr merge --squash --delete-branch`
+   - The merge queue will handle the merge strategy and branch deletion automatically
+   - Wait for merge to complete (may take a few moments if queued)
 
 4. **Switch to Latest Main**
    - After successful merge: `git checkout main`
@@ -45,8 +46,10 @@ gh pr checks
 git fetch origin
 git diff origin/main...HEAD --stat
 
-# 3. Merge with squash
-gh pr merge --squash --delete-branch
+# 3. Merge (auto-detects merge queue)
+gh pr merge --auto  # If merge queue is enabled
+# OR
+gh pr merge --squash --delete-branch  # If merge queue is disabled
 
 # 4. Switch to main
 git checkout main
@@ -70,5 +73,9 @@ The command uses these defaults:
 ## Notes:
 
 - This command is designed for the project's workflow where PRs are typically squash-merged
+- If merge queue is enabled on the repository:
+  - Cannot use `--delete-branch` flag (merge queue handles branch deletion)
+  - Merge strategy is controlled by merge queue settings
+  - Use `gh pr merge --auto` to add PR to the merge queue
 - The PR's commit message will be preserved in the squash commit
 - Branch protection rules (if any) are respected

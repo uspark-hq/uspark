@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/uspark-hq/uspark/compare/web-v0.2.3...web-v0.2.4) (2025-09-01)
+
+
+### Bug Fixes
+
+* use process.env directly for database config in build scripts ([#13](https://github.com/uspark-hq/uspark/issues/13)) ([2a5e373](https://github.com/uspark-hq/uspark/commit/2a5e3733e8337f9e86324afbb65c947605bb5860))
+
 ## [0.2.3](https://github.com/uspark-hq/uspark/compare/web-v0.2.2...web-v0.2.3) (2025-09-01)
 
 
