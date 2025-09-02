@@ -163,7 +163,7 @@ export const cliAuthContract = c.router({
     method: "POST",
     path: "/api/cli/auth/generate-token",
     headers: z.object({
-      authorization: z.string().describe("Bearer token from Clerk"),
+      authorization: z.string().describe("Bearer token"),
     }),
     body: z.object({
       name: z
@@ -198,6 +198,6 @@ export const cliAuthContract = c.router({
     },
     summary: "Generate a long-lived CLI token",
     description:
-      "Creates a long-lived access token for CLI/CI usage. Requires authentication via Clerk. Users can have a limited number of active tokens",
+      "Creates a long-lived access token for CLI/CI usage. Requires Bearer token authentication. Users can have a limited number of active tokens",
   },
 });
