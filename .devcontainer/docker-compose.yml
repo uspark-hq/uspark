@@ -4,7 +4,6 @@ services:
   app:
     image: mcr.microsoft.com/devcontainers/base:ubuntu-22.04
     volumes:
-      - ..:/workspace:cached
       - config:/home/vscode/.config
       - cache:/home/vscode/.cache
       - vercel:/home/vscode/.local/share/com.vercel.cli
