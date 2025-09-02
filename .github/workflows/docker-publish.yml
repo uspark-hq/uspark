@@ -22,6 +22,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -44,6 +47,7 @@ jobs:
           context: ./toolchain
           file: ./toolchain/Dockerfile
           target: toolchain
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ env.REGISTRY }}/uspark-hq/uspark-toolchain:latest
@@ -61,6 +65,7 @@ jobs:
           context: ./toolchain
           file: ./toolchain/Dockerfile
           target: development
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: |
             ${{ env.REGISTRY }}/uspark-hq/uspark-dev:latest
