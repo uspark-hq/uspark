@@ -24,17 +24,21 @@ CLI                            Web App                      Clerk
 The CLI supports two authentication methods:
 
 ### Method 1: Interactive Login
+
 ```bash
 uspark auth login
 ```
+
 - Generate unique device code (e.g., `WDJB-MJHT`)
 - Call backend API to create authentication session
 - Store token in system keychain for future use
 
 ### Method 2: Environment Variable
+
 ```bash
 USPARK_TOKEN=xxx uspark sync
 ```
+
 - Pass token directly via environment variable
 - Useful for CI/CD pipelines and automation
 - Token can be generated from web UI settings page
@@ -42,12 +46,15 @@ USPARK_TOKEN=xxx uspark sync
 ## Implementation Steps
 
 ### 1. Token Resolution Priority
+
 The CLI checks for authentication in the following order:
+
 1. `USPARK_TOKEN` environment variable (if present)
 2. Stored credentials from `uspark auth login`
 3. Prompt user to authenticate if neither exists
 
 ### 2. Backend API Endpoints
+
 ```typescript
 POST /api/cli/auth/device
 Returns: { device_code, user_code, verification_url }
@@ -62,18 +69,21 @@ Returns: { token, expires_at }
 ```
 
 ### 3. Web Authentication Page
+
 - Create `/cli-auth` page
 - User enters device code
 - Authenticate with Clerk
 - Associate JWT token with device code upon success
 
 ### 4. CLI Polls for Token
+
 - Poll `/api/cli/auth/token` every 5 seconds
 - Store token locally once received
 
 ## Code Structure
 
 ### CLI Side
+
 ```
 src/
 ├── commands/
@@ -88,6 +98,7 @@ src/
 ```
 
 ### Web Side
+
 ```
 app/
 ├── api/cli/auth/
@@ -117,25 +128,30 @@ app/
 ### Phase 1: Backend API Setup
 
 #### 1. Create Device Code Session API
+
 **Task**: Implement `/api/cli/auth/device` endpoint
 **Acceptance Criteria**:
+
 - [x] Generates unique 8-character device code (e.g., WDJB-MJHT)
-- [ ] Stores device code in database with 15-minute TTL
+- [x] Stores device code in database with 15-minute TTL
 - [x] Returns device_code, user_code, and verification_url
-- [ ] Rate limits requests to prevent abuse
 
 #### 2. Create Token Exchange API
+
 **Task**: Implement `/api/cli/auth/token` endpoint
 **Acceptance Criteria**:
-- [ ] Validates device code exists and not expired
+
+- [x] Validates device code exists and not expired
 - [x] Returns `{ pending: true }` if not yet authenticated
 - [x] Returns `{ access_token, refresh_token }` after user authentication
-- [ ] Deletes device code after successful token exchange
+- [x] Deletes device code after successful token exchange
 - [x] Returns appropriate error for expired/invalid codes
 
 #### 3. Create Token Generation API
+
 **Task**: Implement `/api/cli/auth/generate-token` endpoint
 **Acceptance Criteria**:
+
 - [ ] Requires authenticated user (Clerk JWT)
 - [ ] Generates long-lived CLI token (30-90 days)
 - [ ] Stores token metadata (name, created_at, last_used)
@@ -145,8 +161,10 @@ app/
 ### Phase 2: Web UI Implementation
 
 #### 4. Create CLI Authentication Page
+
 **Task**: Implement `/cli-auth` page for device code entry
 **Acceptance Criteria**:
+
 - [ ] Clean UI for entering 8-character device code
 - [ ] Input validation and formatting (auto-uppercase, dash handling)
 - [ ] Shows clear error messages for invalid/expired codes
@@ -154,8 +172,10 @@ app/
 - [ ] Mobile-responsive design
 
 #### 5. Create Token Management Page
+
 **Task**: Implement `/settings/tokens` page
 **Acceptance Criteria**:
+
 - [ ] Lists all active CLI tokens with metadata
 - [ ] Shows last used timestamp for each token
 - [ ] Allows generating new tokens with custom names
@@ -165,8 +185,10 @@ app/
 ### Phase 3: CLI Implementation
 
 #### 6. Setup CLI Project Structure
+
 **Task**: Initialize CLI package with TypeScript and dependencies
 **Acceptance Criteria**:
+
 - [ ] TypeScript configuration with strict mode
 - [ ] ESLint and Prettier setup matching project standards
 - [ ] Test framework (Vitest) configured
@@ -174,8 +196,10 @@ app/
 - [ ] Package.json with correct bin entry point
 
 #### 7. Implement Authentication Service
+
 **Task**: Create `auth.service.ts` with core auth logic
 **Acceptance Criteria**:
+
 - [ ] `getAuthToken()` checks env var then stored credentials
 - [ ] `requestDeviceCode()` calls device API and returns code
 - [ ] `pollForToken()` polls every 5 seconds with timeout
@@ -184,8 +208,10 @@ app/
 - [ ] Proper error handling and retry logic
 
 #### 8. Implement Auth Commands
+
 **Task**: Create `auth` command with subcommands
 **Acceptance Criteria**:
+
 - [ ] `uspark auth login` initiates device flow
 - [ ] `uspark auth logout` clears stored credentials
 - [ ] `uspark auth status` shows current auth state
@@ -194,8 +220,10 @@ app/
 - [ ] Graceful handling of network errors
 
 #### 9. Add Environment Variable Support
+
 **Task**: Implement `USPARK_TOKEN` environment variable support
 **Acceptance Criteria**:
+
 - [ ] Token from env var takes precedence over stored credentials
 - [ ] Works with all CLI commands requiring authentication
 - [ ] Clear error message if token is invalid/expired
@@ -205,8 +233,10 @@ app/
 ### Phase 4: Integration & Testing
 
 #### 10. Database Schema Updates
+
 **Task**: Add necessary database tables for device codes and CLI tokens
 **Acceptance Criteria**:
+
 - [ ] Device codes table with TTL support
 - [ ] CLI tokens table with user association
 - [ ] Indexes for efficient lookups
@@ -214,8 +244,10 @@ app/
 - [ ] Cleanup job for expired entries
 
 #### 11. End-to-End Testing
+
 **Task**: Create comprehensive test suite
 **Acceptance Criteria**:
+
 - [ ] Unit tests for auth service functions
 - [ ] Integration tests for API endpoints
 - [ ] E2E test for complete auth flow
@@ -224,8 +256,10 @@ app/
 - [ ] Tests for rate limiting
 
 #### 12. Documentation
+
 **Task**: Create user-facing documentation
 **Acceptance Criteria**:
+
 - [ ] README section for CLI installation
 - [ ] Authentication setup guide
 - [ ] Troubleshooting section
