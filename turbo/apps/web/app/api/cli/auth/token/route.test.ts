@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { POST } from "./route";
 import { NextRequest } from "next/server";
 import {
@@ -6,13 +6,28 @@ import {
   TokenExchangePendingSchema,
   TokenExchangeErrorSchema,
 } from "@uspark/core";
+import { createTestDeviceCode, cleanupDeviceCodes } from "../../../../src/test/test-helpers";
 
 describe("/api/cli/auth/token", () => {
+  beforeEach(async () => {
+    await cleanupDeviceCodes();
+  });
+
+  afterEach(async () => {
+    await cleanupDeviceCodes();
+  });
+
   it("should return pending status for valid device code not yet authenticated", async () => {
+    const deviceCode = "WXYZ-1234";
+    await createTestDeviceCode({
+      code: deviceCode,
+      status: "pending",
+    });
+
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
       body: JSON.stringify({
-        device_code: "WXYZ-1234",
+        device_code: deviceCode,
       }),
     });
 
@@ -32,11 +47,17 @@ describe("/api/cli/auth/token", () => {
   });
 
   it("should return success with tokens for authenticated device code", async () => {
-    // Device codes starting with 'A' simulate successful authentication
+    const deviceCode = "ABCD-5678";
+    await createTestDeviceCode({
+      code: deviceCode,
+      status: "authenticated",
+      userId: "test-user-123",
+    });
+
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
       body: JSON.stringify({
-        device_code: "ABCD-5678",
+        device_code: deviceCode,
       }),
     });
 
@@ -56,11 +77,16 @@ describe("/api/cli/auth/token", () => {
   });
 
   it("should return expired error for expired device code", async () => {
-    // Device codes starting with 'E' simulate expired codes
+    const deviceCode = "EFGH-9012";
+    await createTestDeviceCode({
+      code: deviceCode,
+      status: "expired",
+    });
+
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
       body: JSON.stringify({
-        device_code: "EFGH-9012",
+        device_code: deviceCode,
       }),
     });
 
@@ -78,11 +104,16 @@ describe("/api/cli/auth/token", () => {
   });
 
   it("should return access denied error for denied device code", async () => {
-    // Device codes starting with 'D' simulate denied authorization
+    const deviceCode = "DXYZ-3456";
+    await createTestDeviceCode({
+      code: deviceCode,
+      status: "denied",
+    });
+
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
       body: JSON.stringify({
-        device_code: "DXYZ-3456",
+        device_code: deviceCode,
       }),
     });
 
@@ -135,6 +166,56 @@ describe("/api/cli/auth/token", () => {
 
     if (validationResult.success) {
       expect(validationResult.data.error).toBe("invalid_request");
+    }
+  });
+
+  it("should return expired error when device code has passed expiration time", async () => {
+    const deviceCode = "EXPD-TIME";
+    const expiredTime = new Date(Date.now() - 1000 * 60); // 1 minute ago
+    await createTestDeviceCode({
+      code: deviceCode,
+      status: "pending",
+      expiresAt: expiredTime,
+    });
+
+    const request = new NextRequest("http://localhost/api/cli/auth/token", {
+      method: "POST",
+      body: JSON.stringify({
+        device_code: deviceCode,
+      }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(400);
+
+    const data = await response.json();
+    const validationResult = TokenExchangeErrorSchema.safeParse(data);
+    expect(validationResult.success).toBe(true);
+
+    if (validationResult.success) {
+      expect(validationResult.data.error).toBe("expired_token");
+      expect(validationResult.data.error_description).toContain("expired");
+    }
+  });
+
+  it("should return invalid request error for non-existent device code", async () => {
+    const request = new NextRequest("http://localhost/api/cli/auth/token", {
+      method: "POST",
+      body: JSON.stringify({
+        device_code: "NONE-XIST",
+      }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(400);
+
+    const data = await response.json();
+    const validationResult = TokenExchangeErrorSchema.safeParse(data);
+    expect(validationResult.success).toBe(true);
+
+    if (validationResult.success) {
+      expect(validationResult.data.error).toBe("invalid_request");
+      expect(validationResult.data.error_description).toBe("Invalid device code");
     }
   });
 });
