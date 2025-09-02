@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
       - 'toolchain/**'
+      - '.devcontainer/**'
       - '.github/workflows/docker-*.yml'
 
 permissions:

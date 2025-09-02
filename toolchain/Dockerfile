@@ -11,8 +11,6 @@ RUN apt-get update && apt-get install -y \
     gnupg \
     lsb-release \
     ca-certificates \
-    sudo \
-    zsh \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Node.js 22
@@ -36,8 +34,10 @@ WORKDIR /workspace
 # Stage 2: Development environment with additional tools
 FROM toolchain AS development
 
-# Install development tools
+# Install development tools and user requirements
 RUN apt-get update && apt-get install -y \
+    sudo \
+    zsh \
     vim \
     ripgrep \
     && rm -rf /var/lib/apt/lists/*
