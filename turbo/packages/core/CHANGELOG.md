@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/uspark-hq/uspark/compare/core-v0.2.1...core-v0.3.0) (2025-09-02)
+
+
+### Features
+
+* implement cli auth device code api with tdd approach ([#25](https://github.com/uspark-hq/uspark/issues/25)) ([224c386](https://github.com/uspark-hq/uspark/commit/224c386b22f5fff16c926cf06f1617032a616e40))
+
 ## [0.2.1](https://github.com/uspark-hq/uspark/compare/core-v0.2.0...core-v0.2.1) (2025-08-31)
 
 
