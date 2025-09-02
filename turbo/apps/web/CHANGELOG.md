@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/uspark-hq/uspark/compare/web-v0.4.0...web-v0.5.0) (2025-09-02)
+
+
+### Features
+
+* implement cli authentication web ui ([#48](https://github.com/uspark-hq/uspark/issues/48)) ([e0d067e](https://github.com/uspark-hq/uspark/commit/e0d067e3ae9a7f8e634064c0458fdf0834be5925))
+
 ## [0.4.0](https://github.com/uspark-hq/uspark/compare/web-v0.3.0...web-v0.4.0) (2025-09-02)
 
 
