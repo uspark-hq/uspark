@@ -1,5 +1,4 @@
 import "@testing-library/jest-dom/vitest";
-import { bypass } from "msw";
 import { server, http, HttpResponse } from "./msw-setup";
 import { handlers } from "./msw-handlers";
 
@@ -22,7 +21,8 @@ server.use(
     // Allow local requests (database, etc.)
     const url = new URL(request.url);
     if (url.hostname === "localhost" || url.hostname === "127.0.0.1") {
-      return bypass();
+      // Don't intercept local requests
+      return;
     }
 
     // Log and block external requests
