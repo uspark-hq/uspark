@@ -158,7 +158,7 @@ app/
 - [x] Returns token and expiration date
 - [x] Limits number of active tokens per user (e.g., 10)
 
-### Phase 2: Web UI Implementation
+### Phase 2: CLI Authentication Minimum Viable Flow
 
 #### 4. Create CLI Authentication Page
 
@@ -171,7 +171,31 @@ app/
 - [ ] Redirects to success page after authentication
 - [ ] Mobile-responsive design
 
-#### 5. Create Token Management Page
+#### 5. Implement Basic CLI Authentication Commands
+
+**Task**: Create minimal CLI with auth commands
+**Acceptance Criteria**:
+
+- [ ] `uspark auth login` initiates device flow
+- [ ] `uspark auth logout` clears stored credentials
+- [ ] `uspark auth status` shows current auth state
+- [ ] Store token in simple config file (~/.uspark/config.json)
+- [ ] Basic error handling for network issues
+
+#### 6. Implement Authentication Service
+
+**Task**: Create basic auth service for CLI
+**Acceptance Criteria**:
+
+- [ ] `requestDeviceCode()` calls device API and returns code
+- [ ] `pollForToken()` polls every 5 seconds with timeout
+- [ ] `storeToken()` saves to config file
+- [ ] `getStoredToken()` reads from config file
+- [ ] Basic retry logic for network errors
+
+### Phase 3: Enhanced Features
+
+#### 7. Create Token Management Page
 
 **Task**: Implement `/settings/tokens` page
 **Acceptance Criteria**:
@@ -182,44 +206,7 @@ app/
 - [ ] Supports revoking individual tokens
 - [ ] Shows token only once after generation (with copy button)
 
-### Phase 3: CLI Implementation
-
-#### 6. Setup CLI Project Structure
-
-**Task**: Initialize CLI package with TypeScript and dependencies
-**Acceptance Criteria**:
-
-- [ ] TypeScript configuration with strict mode
-- [ ] ESLint and Prettier setup matching project standards
-- [ ] Test framework (Vitest) configured
-- [ ] Build pipeline with tsup configured
-- [ ] Package.json with correct bin entry point
-
-#### 7. Implement Authentication Service
-
-**Task**: Create `auth.service.ts` with core auth logic
-**Acceptance Criteria**:
-
-- [ ] `getAuthToken()` checks env var then stored credentials
-- [ ] `requestDeviceCode()` calls device API and returns code
-- [ ] `pollForToken()` polls every 5 seconds with timeout
-- [ ] `storeCredentials()` uses keytar for secure storage
-- [ ] `clearCredentials()` removes stored tokens
-- [ ] Proper error handling and retry logic
-
-#### 8. Implement Auth Commands
-
-**Task**: Create `auth` command with subcommands
-**Acceptance Criteria**:
-
-- [ ] `uspark auth login` initiates device flow
-- [ ] `uspark auth logout` clears stored credentials
-- [ ] `uspark auth status` shows current auth state
-- [ ] `uspark auth whoami` displays user info
-- [ ] Proper --help documentation for each command
-- [ ] Graceful handling of network errors
-
-#### 9. Add Environment Variable Support
+#### 8. Add Environment Variable Support
 
 **Task**: Implement `USPARK_TOKEN` environment variable support
 **Acceptance Criteria**:
@@ -230,38 +217,73 @@ app/
 - [ ] Does not interfere with stored credentials
 - [ ] Documented in CLI help text
 
-### Phase 4: Integration & Testing
+#### 9. Enhance CLI with Additional Commands
 
-#### 10. Database Schema Updates
-
-**Task**: Add necessary database tables for device codes and CLI tokens
+**Task**: Add more CLI auth capabilities
 **Acceptance Criteria**:
 
-- [ ] Device codes table with TTL support
-- [ ] CLI tokens table with user association
-- [ ] Indexes for efficient lookups
-- [ ] Migration scripts created
-- [ ] Cleanup job for expired entries
+- [ ] `uspark auth whoami` displays user info
+- [ ] Proper --help documentation for each command
+- [ ] Secure credential storage using keytar
+- [ ] Advanced retry logic and error recovery
 
-#### 11. End-to-End Testing
+#### 10. Token Validation and Management APIs
 
-**Task**: Create comprehensive test suite
+**Task**: Add APIs for token lifecycle management
+**Acceptance Criteria**:
+
+- [ ] API to validate CLI token and get user info
+- [ ] API to list user's active tokens
+- [ ] API to revoke specific tokens
+- [ ] API to update last_used timestamp
+- [ ] Automatic cleanup of expired tokens
+
+### Phase 4: Production Readiness
+
+#### 11. Setup CLI Project Structure
+
+**Task**: Formalize CLI package structure
+**Acceptance Criteria**:
+
+- [ ] TypeScript configuration with strict mode
+- [ ] ESLint and Prettier setup matching project standards
+- [ ] Test framework (Vitest) configured
+- [ ] Build pipeline with tsup configured
+- [ ] Package.json with correct bin entry point
+- [ ] NPM publishing configuration
+
+#### 12. Comprehensive Testing
+
+**Task**: Create full test coverage
 **Acceptance Criteria**:
 
 - [ ] Unit tests for auth service functions
-- [ ] Integration tests for API endpoints
+- [ ] Integration tests for all API endpoints
 - [ ] E2E test for complete auth flow
 - [ ] Tests for token expiration scenarios
 - [ ] Tests for concurrent device code requests
-- [ ] Tests for rate limiting
+- [ ] Performance and load testing
 
-#### 12. Documentation
+#### 13. Documentation and Developer Experience
 
-**Task**: Create user-facing documentation
+**Task**: Create complete documentation
 **Acceptance Criteria**:
 
-- [ ] README section for CLI installation
+- [ ] README with installation instructions
 - [ ] Authentication setup guide
-- [ ] Troubleshooting section
+- [ ] API reference documentation
+- [ ] Troubleshooting guide
 - [ ] CI/CD integration examples
-- [ ] API documentation for token endpoints
+- [ ] Video tutorial for first-time users
+
+#### 14. Security Hardening
+
+**Task**: Implement security best practices
+**Acceptance Criteria**:
+
+- [ ] Rate limiting on all auth endpoints
+- [ ] Audit logging for auth events
+- [ ] Token rotation capabilities
+- [ ] Security headers on web pages
+- [ ] Penetration testing
+- [ ] Security documentation
