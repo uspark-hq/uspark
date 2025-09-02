@@ -152,11 +152,11 @@ app/
 **Task**: Implement `/api/cli/auth/generate-token` endpoint
 **Acceptance Criteria**:
 
-- [ ] Requires authenticated user (Clerk JWT)
-- [ ] Generates long-lived CLI token (30-90 days)
-- [ ] Stores token metadata (name, created_at, last_used)
-- [ ] Returns token and expiration date
-- [ ] Limits number of active tokens per user (e.g., 10)
+- [x] Requires authenticated user (Clerk JWT)
+- [x] Generates long-lived CLI token (30-90 days)
+- [x] Stores token metadata (name, created_at, last_used)
+- [x] Returns token and expiration date
+- [x] Limits number of active tokens per user (e.g., 10)
 
 ### Phase 2: Web UI Implementation
 

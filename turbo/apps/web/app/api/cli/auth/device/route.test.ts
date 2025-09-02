@@ -55,6 +55,10 @@ describe("/api/cli/auth/device", () => {
     const storedCode = storedCodes[0];
     expect(storedCode).toBeDefined();
 
+    if (!storedCode) {
+      throw new Error("Device code was not stored in database");
+    }
+
     // Verify all fields are correctly stored
     expect(storedCode.code).toBe(deviceCode);
     expect(storedCode.status).toBe("pending");
