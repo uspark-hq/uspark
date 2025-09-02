@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.3.0](https://github.com/uspark-hq/uspark/compare/web-v0.2.4...web-v0.3.0) (2025-09-02)
+
+
+### Features
+
+* implement cli auth device code api with tdd approach ([#25](https://github.com/uspark-hq/uspark/issues/25)) ([224c386](https://github.com/uspark-hq/uspark/commit/224c386b22f5fff16c926cf06f1617032a616e40))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.3.0
+
 ## [0.2.4](https://github.com/uspark-hq/uspark/compare/web-v0.2.3...web-v0.2.4) (2025-09-01)
 
 
