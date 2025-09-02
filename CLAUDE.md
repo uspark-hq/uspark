@@ -67,6 +67,47 @@ export async function GET() {
 - Don't wrap every async operation in try/catch
 - Only use try/catch when you have specific error recovery logic
 
+#### Good vs Bad Examples:
+
+**❌ Bad - Defensive programming (catches everything unnecessarily):**
+```typescript
+export async function POST(request: NextRequest) {
+  try {
+    const { userId } = await auth();
+    const body = await request.json();
+    const result = await db.select().from(table);
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("Error:", error);
+    return NextResponse.json({ error: "server_error" }, { status: 500 });
+  }
+}
+```
+
+**✅ Good - Let errors propagate naturally:**
+```typescript
+export async function POST(request: NextRequest) {
+  const { userId } = await auth();
+  const body = await request.json();
+  const result = await db.select().from(table);
+  return NextResponse.json(result);
+}
+```
+
+**✅ Good - Only catch when you need specific error handling:**
+```typescript
+const handleSubmit = async () => {
+  try {
+    const response = await fetch("/api/endpoint");
+    if (!response.ok) throw new Error("Request failed");
+    setSuccess(true);
+  } catch (err) {
+    // Meaningful handling: show user-friendly error in UI
+    setError(err instanceof Error ? err.message : "An error occurred");
+  }
+};
+```
+
 ### Strict Type Checking
 **Maintain type safety throughout the codebase.** Never compromise on type checking.
 
