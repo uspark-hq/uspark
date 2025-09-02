@@ -9,7 +9,7 @@
     "CLAUDE_CONFIG_DIR": "/home/vscode/.config/claude",
     "HISTFILE": "/home/vscode/.cache/.zsh_history"
   },
-  "postCreateCommand": "mkdir -p /home/vscode/.local/bin",
+  "postCreateCommand": "echo 'Dev container initialized successfully'",
   "customizations": {
     "vscode": {
       "settings": {
