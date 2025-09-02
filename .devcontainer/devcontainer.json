@@ -3,8 +3,13 @@
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
   "workspaceFolder": "/workspace",
-  "remoteUser": "uspark",
+  "remoteUser": "vscode",
   "forwardPorts": [4983, 5432],
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/vscode/.config/claude",
+    "HISTFILE": "/home/vscode/.cache/.zsh_history"
+  },
+  "postCreateCommand": "sudo apt-get update && sudo apt-get install -y curl git gnupg lsb-release ca-certificates ripgrep vim zsh && curl -fsSL https://deb.nodesource.com/setup_22.x | sudo -E bash - && sudo apt-get install -y nodejs && curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && echo \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main\" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt-get update && sudo apt-get install -y gh && npm install -g pnpm@10.15.0 lefthook@1.12.3 vercel@46.1.1 && mkdir -p /home/vscode/.config /home/vscode/.cache /home/vscode/.local/share/com.vercel.cli /home/vscode/.local/bin && sudo chown -R vscode:vscode /home/vscode/.config /home/vscode/.cache /home/vscode/.local",
   "customizations": {
     "vscode": {
       "settings": {
