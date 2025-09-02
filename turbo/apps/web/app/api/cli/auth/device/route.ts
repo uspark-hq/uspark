@@ -1,30 +1,28 @@
 import { NextResponse } from "next/server";
-import {
-  DeviceAuthResponseSchema,
-  type DeviceAuthResponse,
-} from "@uspark/core";
-import { z } from "zod";
+import { type DeviceAuthResponse } from "@uspark/core";
+import { initServices } from "~/lib/init-services";
+import crypto from "crypto";
 
 /**
- * Generate a random device code in format XXXX-XXXX
+ * Generate a cryptographically secure device code in format XXXX-XXXX
  * Uses uppercase letters and numbers, avoiding confusing characters
  */
 function generateDeviceCode(): string {
   // Use characters that are easy to read and type
   // Avoid confusing characters like 0/O, 1/I/L
   const chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789";
+  const randomBytes = crypto.randomBytes(8);
 
-  // Generate two 4-character parts
-  const part1 = Array.from(
-    { length: 4 },
-    () => chars[Math.floor(Math.random() * chars.length)],
-  ).join("");
-  const part2 = Array.from(
-    { length: 4 },
-    () => chars[Math.floor(Math.random() * chars.length)],
-  ).join("");
+  let code = "";
+  for (let i = 0; i < 8; i++) {
+    if (i === 4) {
+      code += "-";
+    }
+    // Use modulo to map random byte to character set
+    code += chars[randomBytes[i] % chars.length];
+  }
 
-  return `${part1}-${part2}`;
+  return code;
 }
 
 /**
@@ -36,39 +34,29 @@ function generateDeviceCode(): string {
  * @returns DeviceAuthResponse with device_code, user_code, verification_url, etc.
  */
 export async function POST() {
-  try {
-    // Generate a unique device code
-    const deviceCode = generateDeviceCode();
+  // Initialize services for database access
+  initServices();
 
-    // Prepare the response according to the contract
-    const response: DeviceAuthResponse = {
-      device_code: deviceCode,
-      user_code: deviceCode, // Same as device_code for simplicity
-      verification_url: "https://app.uspark.com/cli-auth",
-      expires_in: 900, // 15 minutes in seconds
-      interval: 5, // Poll every 5 seconds
-    };
+  // Generate a unique device code
+  const deviceCode = generateDeviceCode();
 
-    // Validate response against schema
-    const validatedResponse = DeviceAuthResponseSchema.parse(response);
+  // Prepare the response according to the contract
+  const response: DeviceAuthResponse = {
+    device_code: deviceCode,
+    user_code: deviceCode, // Same as device_code for simplicity
+    verification_url: "https://app.uspark.com/cli-auth",
+    expires_in: 900, // 15 minutes in seconds
+    interval: 5, // Poll every 5 seconds
+  };
 
-    // TODO: Store device code in database with TTL
-    // TODO: Implement rate limiting
+  // TODO: Store device code in database with TTL
+  // await globalThis.services.db.insert(deviceCodes).values({
+  //   code: deviceCode,
+  //   expires_at: new Date(Date.now() + 900 * 1000),
+  //   created_at: new Date(),
+  // });
 
-    return NextResponse.json(validatedResponse);
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      // This shouldn't happen in production, but helps during development
-      console.error("Response validation error:", error.issues);
-      return NextResponse.json(
-        { error: "Internal validation error" },
-        { status: 500 },
-      );
-    }
+  // TODO: Implement rate limiting
 
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
-  }
+  return NextResponse.json(response);
 }
