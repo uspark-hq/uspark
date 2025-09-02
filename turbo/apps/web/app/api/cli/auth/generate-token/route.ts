@@ -63,7 +63,7 @@ export async function POST(request: NextRequest) {
   const validationResult = GenerateTokenRequestSchema.safeParse(body);
 
   if (!validationResult.success) {
-    const errors = validationResult.error?.errors || [];
+    const errors = validationResult.error?.issues || [];
     const firstError = errors[0];
     const errorResponse: GenerateTokenError = {
       error: "invalid_request",

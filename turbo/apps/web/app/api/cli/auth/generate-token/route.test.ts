@@ -25,8 +25,8 @@ describe("/api/cli/auth/generate-token", () => {
 
   it("should generate a new CLI token for authenticated user", async () => {
     // Mock authenticated user
-    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as ReturnType<
-      typeof auth
+    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as Awaited<
+      ReturnType<typeof auth>
     >);
 
     const request = new NextRequest(
@@ -71,13 +71,18 @@ describe("/api/cli/auth/generate-token", () => {
 
     const storedToken = storedTokens[0];
     expect(storedToken).toBeDefined();
+
+    if (!storedToken) {
+      throw new Error("Token was not stored in database");
+    }
+
     expect(storedToken.name).toBe("GitHub Actions CI");
     expect(storedToken.token).toMatch(/^usp_live_/);
   });
 
   it("should use default expiration of 90 days when not specified", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as ReturnType<
-      typeof auth
+    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as Awaited<
+      ReturnType<typeof auth>
     >);
 
     const request = new NextRequest(
@@ -104,8 +109,8 @@ describe("/api/cli/auth/generate-token", () => {
 
   it("should return unauthorized error when user is not authenticated", async () => {
     // Mock unauthenticated user
-    vi.mocked(auth).mockResolvedValue({ userId: null } as ReturnType<
-      typeof auth
+    vi.mocked(auth).mockResolvedValue({ userId: null } as Awaited<
+      ReturnType<typeof auth>
     >);
 
     const request = new NextRequest(
@@ -135,8 +140,8 @@ describe("/api/cli/auth/generate-token", () => {
   });
 
   it("should enforce token limit per user", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as ReturnType<
-      typeof auth
+    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as Awaited<
+      ReturnType<typeof auth>
     >);
 
     // Create 10 tokens (the max limit)
@@ -182,8 +187,8 @@ describe("/api/cli/auth/generate-token", () => {
   });
 
   it("should not count expired tokens towards the limit", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as ReturnType<
-      typeof auth
+    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as Awaited<
+      ReturnType<typeof auth>
     >);
 
     const now = new Date();
@@ -244,8 +249,8 @@ describe("/api/cli/auth/generate-token", () => {
   });
 
   it("should return invalid request error for missing name", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as ReturnType<
-      typeof auth
+    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as Awaited<
+      ReturnType<typeof auth>
     >);
 
     const request = new NextRequest(
@@ -271,8 +276,8 @@ describe("/api/cli/auth/generate-token", () => {
   });
 
   it("should return invalid request error for invalid expires_in_days", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as ReturnType<
-      typeof auth
+    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as Awaited<
+      ReturnType<typeof auth>
     >);
 
     const request = new NextRequest(
@@ -299,8 +304,8 @@ describe("/api/cli/auth/generate-token", () => {
   });
 
   it("should return invalid request error for malformed JSON", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as ReturnType<
-      typeof auth
+    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as Awaited<
+      ReturnType<typeof auth>
     >);
 
     const request = new NextRequest(
@@ -342,8 +347,8 @@ describe("/api/cli/auth/generate-token", () => {
     }
 
     // User_456 should still be able to create tokens
-    vi.mocked(auth).mockResolvedValue({ userId: "user_456" } as ReturnType<
-      typeof auth
+    vi.mocked(auth).mockResolvedValue({ userId: "user_456" } as Awaited<
+      ReturnType<typeof auth>
     >);
 
     const request = new NextRequest(
