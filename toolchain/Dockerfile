@@ -21,25 +21,26 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && rm -rf /var/lib/apt/lists/*
 
 # Install pnpm 10.15.0 and set up
+ENV SHELL=/bin/bash
 RUN npm install -g pnpm@10.15.0 \
-    && pnpm setup \
+    && SHELL=/bin/bash pnpm setup \
     && echo 'export PNPM_HOME="/root/.local/share/pnpm"' >> /etc/profile.d/pnpm.sh \
     && echo 'export PATH="$PNPM_HOME:$PATH"' >> /etc/profile.d/pnpm.sh
 
 # Install lefthook using pnpm
-RUN /root/.local/share/pnpm/pnpm install -g lefthook@1.12.3
+RUN . /etc/profile.d/pnpm.sh && pnpm install -g lefthook@1.12.3
 
 # Create non-root user
-RUN useradd -m -s /usr/bin/zsh vscode \
-    && echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
+RUN useradd -m -s /usr/bin/zsh uspark \
+    && echo "uspark ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
 
 # Switch to non-root user
-USER vscode
-WORKDIR /home/vscode
+USER uspark
+WORKDIR /home/uspark
 
-# Set up shell environment and pnpm for vscode user
-RUN pnpm setup \
-    && echo 'export PNPM_HOME="/home/vscode/.local/share/pnpm"' >> ~/.zshrc \
+# Set up shell environment and pnpm for uspark user
+RUN SHELL=/usr/bin/zsh pnpm setup \
+    && echo 'export PNPM_HOME="/home/uspark/.local/share/pnpm"' >> ~/.zshrc \
     && echo 'export PATH="$PNPM_HOME:$PATH"' >> ~/.zshrc
 
 # Stage 2: Development environment with additional tools
@@ -66,20 +67,20 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
 RUN npm install -g vercel
 
 # Create directories that will be mounted as volumes
-RUN mkdir -p /home/vscode/.config \
-    && mkdir -p /home/vscode/.cache \
-    && mkdir -p /home/vscode/.local/share/com.vercel.cli \
-    && mkdir -p /home/vscode/.local/bin \
-    && chown -R vscode:vscode /home/vscode/.config \
-    && chown -R vscode:vscode /home/vscode/.cache \
-    && chown -R vscode:vscode /home/vscode/.local
+RUN mkdir -p /home/uspark/.config \
+    && mkdir -p /home/uspark/.cache \
+    && mkdir -p /home/uspark/.local/share/com.vercel.cli \
+    && mkdir -p /home/uspark/.local/bin \
+    && chown -R uspark:uspark /home/uspark/.config \
+    && chown -R uspark:uspark /home/uspark/.cache \
+    && chown -R uspark:uspark /home/uspark/.local
 
 # Switch back to non-root user
-USER vscode
+USER uspark
 
 # Set environment variables for development
-ENV CLAUDE_CONFIG_DIR=/home/vscode/.config/claude
-ENV HISTFILE=/home/vscode/.cache/.zsh_history
+ENV CLAUDE_CONFIG_DIR=/home/uspark/.config/claude
+ENV HISTFILE=/home/uspark/.cache/.zsh_history
 
 # Default command
 CMD ["/usr/bin/zsh"]

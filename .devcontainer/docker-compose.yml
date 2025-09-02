@@ -5,13 +5,13 @@ services:
     image: ghcr.io/uspark-hq/uspark-dev:latest
     volumes:
       - ..:/workspace:cached
-      - config:/home/vscode/.config
-      - cache:/home/vscode/.cache
-      - vercel:/home/vscode/.local/share/com.vercel.cli
+      - config:/home/uspark/.config
+      - cache:/home/uspark/.cache
+      - vercel:/home/uspark/.local/share/com.vercel.cli
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
-      CLAUDE_CONFIG_DIR: /home/vscode/.config/claude
-      HISTFILE: /home/vscode/.cache/.zsh_history
+      CLAUDE_CONFIG_DIR: /home/uspark/.config/claude
+      HISTFILE: /home/uspark/.cache/.zsh_history
     command: sleep infinity
     networks:
       - uspark-network
