@@ -18,18 +18,7 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pnpm 10.15.0 and set up
-ENV SHELL=/bin/bash
-RUN npm install -g pnpm@10.15.0 \
-    && SHELL=/bin/bash pnpm setup \
-    && echo 'export PNPM_HOME="/root/.local/share/pnpm"' >> /etc/profile.d/pnpm.sh \
-    && echo 'export PATH="$PNPM_HOME:$PATH"' >> /etc/profile.d/pnpm.sh
-
-# Install lefthook using pnpm
-RUN . /etc/profile.d/pnpm.sh && pnpm install -g lefthook@1.12.3
-
-# Keep as root user for CI/CD usage
-WORKDIR /workspace
+RUN npm install -g pnpm@10.15.0 lefthook@1.12.3
 
 # Stage 2: Development environment with additional tools
 FROM toolchain AS development
@@ -56,28 +45,6 @@ RUN npm install -g vercel@46.1.1
 # Create non-root user
 RUN useradd -m -s /usr/bin/zsh uspark \
     && echo "uspark ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers
-
-# Create directories that will be mounted as volumes
-RUN mkdir -p /home/uspark/.config \
-    && mkdir -p /home/uspark/.cache \
-    && mkdir -p /home/uspark/.local/share/com.vercel.cli \
-    && mkdir -p /home/uspark/.local/bin \
-    && chown -R uspark:uspark /home/uspark/.config \
-    && chown -R uspark:uspark /home/uspark/.cache \
-    && chown -R uspark:uspark /home/uspark/.local
-
-# Switch to non-root user and set up pnpm
-USER uspark
-WORKDIR /home/uspark
-
-# Set up shell environment and pnpm for uspark user
-RUN SHELL=/usr/bin/zsh pnpm setup \
-    && echo 'export PNPM_HOME="/home/uspark/.local/share/pnpm"' >> ~/.zshrc \
-    && echo 'export PATH="$PNPM_HOME:$PATH"' >> ~/.zshrc
-
-# Set environment variables for development
-ENV CLAUDE_CONFIG_DIR=/home/uspark/.config/claude
-ENV HISTFILE=/home/uspark/.cache/.zsh_history
 
 # Default command
 CMD ["/usr/bin/zsh"]

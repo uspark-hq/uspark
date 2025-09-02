@@ -5,6 +5,11 @@
   "workspaceFolder": "/workspace",
   "remoteUser": "uspark",
   "forwardPorts": [4983, 5432],
+  "containerEnv": {
+    "CLAUDE_CONFIG_DIR": "/home/uspark/.config/claude",
+    "HISTFILE": "/home/uspark/.cache/.zsh_history"
+  },
+  "postCreateCommand": "mkdir -p /home/uspark/.config /home/uspark/.cache /home/uspark/.local/share/com.vercel.cli /home/uspark/.local/bin && sudo chown -R uspark:uspark /home/uspark/.config /home/uspark/.cache /home/uspark/.local",
   "customizations": {
     "vscode": {
       "settings": {
