@@ -10,6 +10,7 @@ The CLI Authentication API provides secure device authorization flow for authent
 ## Overview
 
 This API implements a device authorization flow similar to GitHub CLI, where:
+
 1. CLI requests a device code
 2. User enters the code in their browser to authenticate
 3. CLI polls for the authentication result
@@ -27,14 +28,14 @@ Initiates the device authorization flow by generating a unique device code.
 {}
 ```
 
-*Note: This endpoint accepts an empty request body.*
+_Note: This endpoint accepts an empty request body._
 
 #### Response
 
 ```json
 {
   "device_code": "WDJB-MJHT",
-  "user_code": "WDJB-MJHT", 
+  "user_code": "WDJB-MJHT",
   "verification_url": "https://app.uspark.com/cli-auth",
   "expires_in": 900,
   "interval": 5
@@ -60,6 +61,7 @@ curl -X POST https://app.uspark.com/api/cli/auth/device \
 #### Error Responses
 
 **429 Rate Limit Exceeded**
+
 ```json
 {
   "error": "rate_limit_exceeded",
@@ -105,6 +107,7 @@ Returned when user hasn't completed authentication yet:
 #### Error Responses
 
 **400 Bad Request**
+
 ```json
 {
   "error": "expired_token",
@@ -113,9 +116,10 @@ Returned when user hasn't completed authentication yet:
 ```
 
 **404 Not Found**
+
 ```json
 {
-  "error": "invalid_grant", 
+  "error": "invalid_grant",
   "error_description": "Invalid or unknown device code"
 }
 ```
@@ -132,12 +136,12 @@ while true; do
   TOKEN_RESPONSE=$(curl -X POST https://app.uspark.com/api/cli/auth/token \
     -H "Content-Type: application/json" \
     -d "{\"device_code\": \"$DEVICE_CODE\"}")
-  
+
   if echo $TOKEN_RESPONSE | jq -e '.access_token' > /dev/null; then
     echo "Authentication successful!"
     break
   fi
-  
+
   sleep 5
 done
 ```
@@ -177,6 +181,7 @@ Generates long-lived CLI tokens for CI/CD usage. Requires authentication via Bea
 #### Error Responses
 
 **401 Unauthorized**
+
 ```json
 {
   "error": "unauthorized",
@@ -185,9 +190,10 @@ Generates long-lived CLI tokens for CI/CD usage. Requires authentication via Bea
 ```
 
 **403 Token Limit Exceeded**
+
 ```json
 {
-  "error": "token_limit_exceeded", 
+  "error": "token_limit_exceeded",
   "error_description": "Maximum number of active tokens reached",
   "max_tokens": 10
 }
@@ -208,7 +214,8 @@ curl -X POST https://app.uspark.com/api/cli/auth/generate-token \
 ## Device Code Format
 
 Device codes follow the pattern `XXXX-XXXX` where:
-- Each character is uppercase letter or number  
+
+- Each character is uppercase letter or number
 - Excludes confusing characters (0, O, 1, I, L)
 - Total of 8 characters with a dash separator
 - Example: `WDJB-MJHT`, `P3R4-N8M9`
@@ -246,12 +253,12 @@ USPARK_TOKEN=usp_live_abc123... uspark sync
 The API contracts are defined in `@uspark/core`:
 
 ```typescript
-import { 
-  DeviceAuthRequest, 
+import {
+  DeviceAuthRequest,
   DeviceAuthResponse,
   TokenExchangeRequest,
   TokenExchangeSuccess,
-  TokenExchangePending
+  TokenExchangePending,
 } from "@uspark/core";
 
 // Device authorization request (empty object)
@@ -259,11 +266,11 @@ type DeviceAuthRequest = {};
 
 // Device authorization response
 type DeviceAuthResponse = {
-  device_code: string;      // XXXX-XXXX format
-  user_code: string;        // Same as device_code
+  device_code: string; // XXXX-XXXX format
+  user_code: string; // Same as device_code
   verification_url: string; // https://app.uspark.com/cli-auth
-  expires_in: number;       // 900 (15 minutes)
-  interval: number;         // 5 (seconds)
+  expires_in: number; // 900 (15 minutes)
+  interval: number; // 5 (seconds)
 };
 
 // Token exchange request
@@ -271,7 +278,7 @@ type TokenExchangeRequest = {
   device_code: string;
 };
 
-// Token exchange success response  
+// Token exchange success response
 type TokenExchangeSuccess = {
   access_token: string;
   refresh_token?: string;
@@ -289,17 +296,20 @@ type TokenExchangePending = {
 ## Security Considerations
 
 ### Token Security
+
 - **Storage**: CLI tokens stored in system keychain (using `keytar`)
 - **Transmission**: All API calls use HTTPS
 - **Expiration**: Device codes expire in 15 minutes
 - **Scope**: Tokens have limited scope for CLI operations
 
 ### Rate Limiting
+
 - Device code requests are rate limited to prevent abuse
 - Failed authentication attempts are tracked
 - Slow down requests if polling too frequently
 
 ### Token Management
+
 - Users can view and revoke tokens from web UI
 - Maximum number of active tokens per user (typically 10)
 - Tokens include metadata (name, creation date, last used)
@@ -324,19 +334,19 @@ while true; do
   TOKEN_RESPONSE=$(curl -s -X POST https://app.uspark.com/api/cli/auth/token \
     -H "Content-Type: application/json" \
     -d "{\"device_code\": \"$DEVICE_CODE\"}")
-  
+
   if echo $TOKEN_RESPONSE | jq -e '.access_token' > /dev/null; then
     ACCESS_TOKEN=$(echo $TOKEN_RESPONSE | jq -r '.access_token')
     echo "Got access token: ${ACCESS_TOKEN:0:20}..."
     break
   fi
-  
+
   ERROR=$(echo $TOKEN_RESPONSE | jq -r '.error // empty')
   if [[ "$ERROR" != "authorization_pending" && "$ERROR" != "" ]]; then
     echo "Error: $ERROR"
     break
   fi
-  
+
   echo "Waiting for authentication..."
   sleep 5
 done
@@ -350,31 +360,35 @@ import { cliAuthContract } from "@uspark/core";
 async function authenticateCLI() {
   // Step 1: Request device code
   const deviceResponse = await fetch("/api/cli/auth/device", {
-    method: "POST", 
+    method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({})
+    body: JSON.stringify({}),
   });
-  
+
   const deviceData = await deviceResponse.json();
-  console.log(`Visit ${deviceData.verification_url} and enter: ${deviceData.device_code}`);
-  
+  console.log(
+    `Visit ${deviceData.verification_url} and enter: ${deviceData.device_code}`,
+  );
+
   // Step 2: Poll for token
   while (true) {
-    await new Promise(resolve => setTimeout(resolve, deviceData.interval * 1000));
-    
+    await new Promise((resolve) =>
+      setTimeout(resolve, deviceData.interval * 1000),
+    );
+
     const tokenResponse = await fetch("/api/cli/auth/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ device_code: deviceData.device_code })
+      body: JSON.stringify({ device_code: deviceData.device_code }),
     });
-    
+
     const tokenData = await tokenResponse.json();
-    
+
     if (tokenData.access_token) {
       console.log("Authentication successful!");
       return tokenData.access_token;
     }
-    
+
     if (tokenData.error !== "authorization_pending") {
       throw new Error(`Authentication failed: ${tokenData.error}`);
     }
