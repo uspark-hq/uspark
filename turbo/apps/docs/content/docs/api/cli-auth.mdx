@@ -58,18 +58,6 @@ curl -X POST https://app.uspark.com/api/cli/auth/device \
   -d '{}'
 ```
 
-#### Error Responses
-
-**429 Rate Limit Exceeded**
-
-```json
-{
-  "error": "rate_limit_exceeded",
-  "error_description": "Too many device code requests",
-  "retry_after": 60
-}
-```
-
 ### POST /api/cli/auth/token
 
 Exchanges device code for access token. CLI should poll this endpoint until authentication is complete.
@@ -302,12 +290,6 @@ type TokenExchangePending = {
 - **Expiration**: Device codes expire in 15 minutes
 - **Scope**: Tokens have limited scope for CLI operations
 
-### Rate Limiting
-
-- Device code requests are rate limited to prevent abuse
-- Failed authentication attempts are tracked
-- Slow down requests if polling too frequently
-
 ### Token Management
 
 - Users can view and revoke tokens from web UI
@@ -398,6 +380,5 @@ async function authenticateCLI() {
 
 ## Related Resources
 
-- [CLI Authentication Specification](/spec/cli-auth.md) - Detailed implementation spec
 - [Hello API](/api/hello) - Example API endpoint documentation
-- [Web Authentication Flow](/cli-auth) - Browser-based auth page
+- [Core Package](https://github.com/uspark-hq/uspark/tree/main/packages/core) - TypeScript API contracts
