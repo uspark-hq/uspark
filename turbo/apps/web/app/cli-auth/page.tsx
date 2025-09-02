@@ -179,7 +179,9 @@ export default function CliAuthPage() {
               {[...Array(8)].map((_, index) => (
                 <React.Fragment key={index}>
                   <input
-                    ref={(el) => (inputRefs.current[index] = el)}
+                    ref={(el) => {
+                      inputRefs.current[index] = el;
+                    }}
                     type="text"
                     maxLength={1}
                     value={deviceCode[index] || ""}
