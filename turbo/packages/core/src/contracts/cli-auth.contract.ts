@@ -93,6 +93,33 @@ export const TokenExchangeErrorSchema = z.object({
   error_description: z.string(),
 });
 
+/**
+ * Generate Token Request Schema
+ */
+export const GenerateTokenRequestSchema = z.object({
+  name: z.string().min(1).max(100),
+  expires_in_days: z.number().min(1).max(365).default(90),
+});
+
+/**
+ * Generate Token Response Schema
+ */
+export const GenerateTokenResponseSchema = z.object({
+  token: z.string(), // e.g., "usp_live_abc123..."
+  name: z.string(),
+  expires_at: z.string(), // ISO date string
+  created_at: z.string(), // ISO date string
+});
+
+/**
+ * Generate Token Error Schema
+ */
+export const GenerateTokenErrorSchema = z.object({
+  error: z.enum(["unauthorized", "token_limit_exceeded", "invalid_request"]),
+  error_description: z.string(),
+  max_tokens: z.number().optional(),
+});
+
 // Type exports
 export type DeviceAuthRequest = z.infer<typeof DeviceAuthRequestSchema>;
 export type DeviceAuthResponse = z.infer<typeof DeviceAuthResponseSchema>;
@@ -100,6 +127,9 @@ export type TokenExchangeRequest = z.infer<typeof TokenExchangeRequestSchema>;
 export type TokenExchangeSuccess = z.infer<typeof TokenExchangeSuccessSchema>;
 export type TokenExchangePending = z.infer<typeof TokenExchangePendingSchema>;
 export type TokenExchangeError = z.infer<typeof TokenExchangeErrorSchema>;
+export type GenerateTokenRequest = z.infer<typeof GenerateTokenRequestSchema>;
+export type GenerateTokenResponse = z.infer<typeof GenerateTokenResponseSchema>;
+export type GenerateTokenError = z.infer<typeof GenerateTokenErrorSchema>;
 
 /**
  * CLI Authentication API Contract

@@ -15,6 +15,13 @@
       "when": 1756804196812,
       "tag": "0001_dark_dreadnoughts",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1756815502373,
+      "tag": "0002_mighty_amazoness",
+      "breakpoints": true
     }
   ]
 }
