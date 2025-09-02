@@ -10,8 +10,6 @@ services:
       - vercel:/home/uspark/.local/share/com.vercel.cli
     environment:
       DATABASE_URL: postgresql://postgres:postgres@db:5432/postgres
-      CLAUDE_CONFIG_DIR: /home/uspark/.config/claude
-      HISTFILE: /home/uspark/.cache/.zsh_history
     command: sleep infinity
     networks:
       - uspark-network
