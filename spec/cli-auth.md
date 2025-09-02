@@ -119,19 +119,19 @@ app/
 #### 1. Create Device Code Session API
 **Task**: Implement `/api/cli/auth/device` endpoint
 **Acceptance Criteria**:
-- [ ] Generates unique 8-character device code (e.g., WDJB-MJHT)
+- [x] Generates unique 8-character device code (e.g., WDJB-MJHT)
 - [ ] Stores device code in database with 15-minute TTL
-- [ ] Returns device_code, user_code, and verification_url
+- [x] Returns device_code, user_code, and verification_url
 - [ ] Rate limits requests to prevent abuse
 
 #### 2. Create Token Exchange API
 **Task**: Implement `/api/cli/auth/token` endpoint
 **Acceptance Criteria**:
 - [ ] Validates device code exists and not expired
-- [ ] Returns `{ pending: true }` if not yet authenticated
-- [ ] Returns `{ access_token, refresh_token }` after user authentication
+- [x] Returns `{ pending: true }` if not yet authenticated
+- [x] Returns `{ access_token, refresh_token }` after user authentication
 - [ ] Deletes device code after successful token exchange
-- [ ] Returns appropriate error for expired/invalid codes
+- [x] Returns appropriate error for expired/invalid codes
 
 #### 3. Create Token Generation API
 **Task**: Implement `/api/cli/auth/generate-token` endpoint

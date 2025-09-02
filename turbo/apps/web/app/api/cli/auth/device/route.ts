@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { type DeviceAuthResponse } from "@uspark/core";
 import { initServices } from "../../../../../src/lib/init-services";
+import { DEVICE_CODES_TBL } from "../../../../../src/db/schema/device-codes";
 import crypto from "crypto";
 
 /**
@@ -42,22 +43,25 @@ export async function POST() {
 
   // Generate a unique device code
   const deviceCode = generateDeviceCode();
+  const expiresIn = 900; // 15 minutes in seconds
+
+  // Store device code in database with TTL
+  await globalThis.services.db.insert(DEVICE_CODES_TBL).values({
+    code: deviceCode,
+    status: "pending",
+    expiresAt: new Date(Date.now() + expiresIn * 1000),
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  });
 
   // Prepare the response according to the contract
   const response: DeviceAuthResponse = {
     device_code: deviceCode,
     user_code: deviceCode, // Same as device_code for simplicity
     verification_url: "https://app.uspark.com/cli-auth",
-    expires_in: 900, // 15 minutes in seconds
+    expires_in: expiresIn,
     interval: 5, // Poll every 5 seconds
   };
-
-  // TODO: Store device code in database with TTL
-  // await globalThis.services.db.insert(deviceCodes).values({
-  //   code: deviceCode,
-  //   expires_at: new Date(Date.now() + 900 * 1000),
-  //   created_at: new Date(),
-  // });
 
   // TODO: Implement rate limiting
 

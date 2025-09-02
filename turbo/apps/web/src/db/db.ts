@@ -1,3 +1,7 @@
-import * as schema from "./schema/user";
+import * as userSchema from "./schema/user";
+import * as deviceCodesSchema from "./schema/device-codes";
 
-export { schema };
+export const schema = {
+  ...userSchema,
+  ...deviceCodesSchema,
+};

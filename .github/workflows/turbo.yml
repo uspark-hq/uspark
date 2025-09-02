@@ -17,10 +17,6 @@ jobs:
 
       - name: Lint
         run: npx -y @evilmartians/lefthook run pre-commit --all-files
-        env:
-          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
-          DATABASE_URL: "postgresql://placeholder:placeholder@placeholder:5432/placeholder"
 
   test:
     runs-on: ubuntu-latest
@@ -44,6 +40,10 @@ jobs:
 
       - name: Test
         run: cd turbo && pnpm test
+        env:
+          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
+          CLERK_SECRET_KEY: "test_clerk_secret_key"
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "test_clerk_publishable_key"
 
   build-cli:
     runs-on: ubuntu-latest
