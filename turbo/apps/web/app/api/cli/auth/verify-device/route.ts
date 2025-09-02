@@ -59,7 +59,7 @@ export async function POST(request: NextRequest) {
   }
 
   const deviceCodeRecord = deviceCodes[0];
-  
+
   if (!deviceCodeRecord) {
     throw new Error("Device code record not found after validation");
   }
