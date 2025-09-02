@@ -6,7 +6,6 @@ on:
       - main
     paths:
       - 'toolchain/**'
-      - '.devcontainer/**'
       - '.github/workflows/docker-*.yml'
 
 permissions:
