@@ -66,6 +66,11 @@ Returns: { access_token, refresh_token } or { pending: true }
 POST /api/cli/auth/generate-token
 Description: Generate long-lived CLI token from web UI
 Returns: { token, expires_at }
+
+POST /api/cli/auth/verify-device
+Body: { device_code }
+Description: Associates authenticated user with device code
+Returns: { success, message } or error
 ```
 
 ### 3. Web Authentication Page
@@ -160,15 +165,27 @@ app/
 
 ### Phase 2: CLI Authentication Minimum Viable Flow
 
+#### 3.5. Create Device Code Verification API
+
+**Task**: Implement `/api/cli/auth/verify-device` endpoint
+**Acceptance Criteria**:
+
+- [x] Requires authenticated user (Clerk JWT)
+- [x] Validates device code exists and not expired
+- [x] Associates user ID with device code
+- [x] Returns success response after association
+- [x] Returns appropriate error for invalid/expired codes
+- [x] Handles case where device code already used
+
 #### 4. Create CLI Authentication Page
 
 **Task**: Implement `/cli-auth` page for device code entry
 **Acceptance Criteria**:
 
-- [ ] Clean UI for entering 8-character device code
-- [ ] Input validation and formatting (auto-uppercase, dash handling)
-- [ ] Shows clear error messages for invalid/expired codes
-- [ ] Redirects to success page after authentication
+- [x] Clean UI for entering 8-character device code
+- [x] Input validation and formatting (auto-uppercase, dash handling)
+- [x] Shows clear error messages for invalid/expired codes
+- [x] Redirects to success page after authentication
 - [ ] Mobile-responsive design
 
 #### 5. Implement Basic CLI Authentication Commands

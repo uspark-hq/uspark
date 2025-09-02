@@ -78,7 +78,7 @@ export default function CliAuthPage() {
       // Format the device code with dash (XXXX-XXXX)
       const formattedCode = `${deviceCode.slice(0, 4)}-${deviceCode.slice(4)}`;
 
-      // TODO: Call API to verify device code and associate with user
+      // Call API to verify device code and associate with user
       const response = await fetch("/api/cli/auth/verify-device", {
         method: "POST",
         headers: {
