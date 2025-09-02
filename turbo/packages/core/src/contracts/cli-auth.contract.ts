@@ -24,10 +24,10 @@ export const DeviceAuthRequestSchema = z
  */
 export const DeviceAuthResponseSchema = z.object({
   device_code: DeviceCodeSchema.describe(
-    "The device verification code to be entered by the user"
+    "The device verification code to be entered by the user",
   ),
   user_code: DeviceCodeSchema.describe(
-    "The user-friendly verification code (same as device_code)"
+    "The user-friendly verification code (same as device_code)",
   ),
   verification_url: z
     .string()
@@ -67,11 +67,7 @@ export const TokenExchangeSuccessSchema = z.object({
     .literal("Bearer")
     .default("Bearer")
     .describe("The type of token"),
-  expires_in: z
-    .number()
-    .int()
-    .positive()
-    .describe("Token lifetime in seconds"),
+  expires_in: z.number().int().positive().describe("Token lifetime in seconds"),
 });
 
 /**
