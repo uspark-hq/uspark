@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { type DeviceAuthResponse } from "@uspark/core";
-import { initServices } from "~/lib/init-services";
+import { initServices } from "../../../../../src/lib/init-services";
 import crypto from "crypto";
 
 /**
@@ -19,7 +19,10 @@ function generateDeviceCode(): string {
       code += "-";
     }
     // Use modulo to map random byte to character set
-    code += chars[randomBytes[i] % chars.length];
+    const byte = randomBytes[i];
+    if (byte !== undefined) {
+      code += chars[byte % chars.length];
+    }
   }
 
   return code;
