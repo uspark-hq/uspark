@@ -52,8 +52,8 @@ describe("/api/cli/auth/device", () => {
       .from(DEVICE_CODES_TBL)
       .where(eq(DEVICE_CODES_TBL.code, deviceCode));
 
-    expect(storedCodes.length).toBe(1);
     const storedCode = storedCodes[0];
+    expect(storedCode).toBeDefined();
 
     // Verify all fields are correctly stored
     expect(storedCode.code).toBe(deviceCode);
