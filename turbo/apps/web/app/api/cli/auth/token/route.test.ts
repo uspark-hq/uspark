@@ -6,7 +6,10 @@ import {
   TokenExchangePendingSchema,
   TokenExchangeErrorSchema,
 } from "@uspark/core";
-import { createTestDeviceCode, cleanupDeviceCodes } from "../../../../src/test/test-helpers";
+import {
+  createTestDeviceCode,
+  cleanupDeviceCodes,
+} from "../../../../../src/test/test-helpers";
 
 describe("/api/cli/auth/token", () => {
   beforeEach(async () => {
@@ -215,7 +218,9 @@ describe("/api/cli/auth/token", () => {
 
     if (validationResult.success) {
       expect(validationResult.data.error).toBe("invalid_request");
-      expect(validationResult.data.error_description).toBe("Invalid device code");
+      expect(validationResult.data.error_description).toBe(
+        "Invalid device code",
+      );
     }
   });
 });

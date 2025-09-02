@@ -2,9 +2,9 @@ import { pgTable, varchar, timestamp, text, pgEnum } from "drizzle-orm/pg-core";
 
 export const deviceCodeStatusEnum = pgEnum("device_code_status", [
   "pending",
-  "authenticated", 
+  "authenticated",
   "expired",
-  "denied"
+  "denied",
 ]);
 
 export const deviceCodes = pgTable("device_codes", {
