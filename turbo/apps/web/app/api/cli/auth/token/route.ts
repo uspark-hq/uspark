@@ -7,7 +7,7 @@ import {
 } from "@uspark/core";
 import { initServices } from "../../../../../src/lib/init-services";
 import { eq } from "drizzle-orm";
-import { deviceCodes } from "../../../../../src/db/schema/device-codes";
+import { DEVICE_CODES_TBL } from "../../../../../src/db/schema/device-codes";
 
 /**
  * POST /api/cli/auth/token
@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
   // Check if device code exists in database
   const deviceSession = await globalThis.services.db
     .select()
-    .from(deviceCodes)
-    .where(eq(deviceCodes.code, device_code))
+    .from(DEVICE_CODES_TBL)
+    .where(eq(DEVICE_CODES_TBL.code, device_code))
     .limit(1);
 
   const session = deviceSession[0];
@@ -94,8 +94,8 @@ export async function POST(request: NextRequest) {
 
       // Delete the device code from database after successful exchange
       await globalThis.services.db
-        .delete(deviceCodes)
-        .where(eq(deviceCodes.code, device_code));
+        .delete(DEVICE_CODES_TBL)
+        .where(eq(DEVICE_CODES_TBL.code, device_code));
 
       return NextResponse.json(successResponse, { status: 200 });
     }

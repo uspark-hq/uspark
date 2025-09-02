@@ -1,31 +1,60 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { POST } from "./route";
+import { POST as createDevice } from "../device/route";
 import { NextRequest } from "next/server";
 import {
   TokenExchangeSuccessSchema,
   TokenExchangePendingSchema,
   TokenExchangeErrorSchema,
+  DeviceAuthResponseSchema,
 } from "@uspark/core";
-import {
-  createTestDeviceCode,
-  cleanupDeviceCodes,
-} from "../../../../../src/test/test-helpers";
+import { cleanupDeviceCodes } from "../../../../../src/test/test-helpers";
+import { DEVICE_CODES_TBL } from "../../../../../src/db/schema/device-codes";
+import { eq } from "drizzle-orm";
+import { initServices } from "../../../../../src/lib/init-services";
 
 describe("/api/cli/auth/token", () => {
   beforeEach(async () => {
     await cleanupDeviceCodes();
   });
 
-  afterEach(async () => {
-    await cleanupDeviceCodes();
-  });
+  async function createDeviceCode(): Promise<string> {
+    const response = await createDevice();
+    const data = await response.json();
+    const validationResult = DeviceAuthResponseSchema.safeParse(data);
+    expect(validationResult.success).toBe(true);
+    return validationResult.data!.device_code;
+  }
+
+  async function updateDeviceCodeStatus(
+    code: string,
+    status: "pending" | "authenticated" | "expired" | "denied",
+    userId?: string,
+  ) {
+    initServices();
+    await globalThis.services.db
+      .update(DEVICE_CODES_TBL)
+      .set({
+        status,
+        userId,
+        updatedAt: new Date(),
+      })
+      .where(eq(DEVICE_CODES_TBL.code, code));
+  }
+
+  async function setDeviceCodeExpired(code: string) {
+    initServices();
+    await globalThis.services.db
+      .update(DEVICE_CODES_TBL)
+      .set({
+        expiresAt: new Date(Date.now() - 1000), // 1 second ago
+        updatedAt: new Date(),
+      })
+      .where(eq(DEVICE_CODES_TBL.code, code));
+  }
 
   it("should return pending status for valid device code not yet authenticated", async () => {
-    const deviceCode = "WXYZ-1234";
-    await createTestDeviceCode({
-      code: deviceCode,
-      status: "pending",
-    });
+    const deviceCode = await createDeviceCode();
 
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
@@ -50,12 +79,8 @@ describe("/api/cli/auth/token", () => {
   });
 
   it("should return success with tokens for authenticated device code", async () => {
-    const deviceCode = "ABCD-5678";
-    await createTestDeviceCode({
-      code: deviceCode,
-      status: "authenticated",
-      userId: "test-user-123",
-    });
+    const deviceCode = await createDeviceCode();
+    await updateDeviceCodeStatus(deviceCode, "authenticated", "test-user-123");
 
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
@@ -77,14 +102,19 @@ describe("/api/cli/auth/token", () => {
       expect(validationResult.data.expires_in).toBe(3600);
       expect(validationResult.data.refresh_token).toBeTruthy();
     }
+
+    // Verify the device code was deleted after successful exchange
+    initServices();
+    const deletedCode = await globalThis.services.db
+      .select()
+      .from(DEVICE_CODES_TBL)
+      .where(eq(DEVICE_CODES_TBL.code, deviceCode));
+    expect(deletedCode.length).toBe(0);
   });
 
   it("should return expired error for expired device code", async () => {
-    const deviceCode = "EFGH-9012";
-    await createTestDeviceCode({
-      code: deviceCode,
-      status: "expired",
-    });
+    const deviceCode = await createDeviceCode();
+    await updateDeviceCodeStatus(deviceCode, "expired");
 
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
@@ -107,11 +137,8 @@ describe("/api/cli/auth/token", () => {
   });
 
   it("should return access denied error for denied device code", async () => {
-    const deviceCode = "DXYZ-3456";
-    await createTestDeviceCode({
-      code: deviceCode,
-      status: "denied",
-    });
+    const deviceCode = await createDeviceCode();
+    await updateDeviceCodeStatus(deviceCode, "denied");
 
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
@@ -173,13 +200,8 @@ describe("/api/cli/auth/token", () => {
   });
 
   it("should return expired error when device code has passed expiration time", async () => {
-    const deviceCode = "EXPD-TIME";
-    const expiredTime = new Date(Date.now() - 1000 * 60); // 1 minute ago
-    await createTestDeviceCode({
-      code: deviceCode,
-      status: "pending",
-      expiresAt: expiredTime,
-    });
+    const deviceCode = await createDeviceCode();
+    await setDeviceCodeExpired(deviceCode);
 
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",

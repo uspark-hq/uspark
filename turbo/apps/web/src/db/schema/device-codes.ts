@@ -7,7 +7,7 @@ export const deviceCodeStatusEnum = pgEnum("device_code_status", [
   "denied",
 ]);
 
-export const deviceCodes = pgTable("device_codes", {
+export const DEVICE_CODES_TBL = pgTable("device_codes", {
   code: varchar("code", { length: 9 }).primaryKey(), // XXXX-XXXX format
   status: deviceCodeStatusEnum("status").default("pending").notNull(),
   userId: text("user_id"), // Set when authenticated
