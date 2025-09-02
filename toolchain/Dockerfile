@@ -20,12 +20,14 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pnpm 10
-RUN npm install -g pnpm@10.0.0
+# Install pnpm 10.15.0 and set up
+RUN npm install -g pnpm@10.15.0 \
+    && pnpm setup \
+    && echo 'export PNPM_HOME="/root/.local/share/pnpm"' >> /etc/profile.d/pnpm.sh \
+    && echo 'export PATH="$PNPM_HOME:$PATH"' >> /etc/profile.d/pnpm.sh
 
-# Install lefthook for git hooks
-RUN curl -fsSL https://raw.githubusercontent.com/evilmartians/lefthook/master/install.sh | bash \
-    && mv lefthook /usr/local/bin/
+# Install lefthook using pnpm
+RUN /root/.local/share/pnpm/pnpm install -g lefthook@1.12.3
 
 # Create non-root user
 RUN useradd -m -s /usr/bin/zsh vscode \
@@ -35,8 +37,10 @@ RUN useradd -m -s /usr/bin/zsh vscode \
 USER vscode
 WORKDIR /home/vscode
 
-# Set up shell environment
-RUN touch ~/.zshrc
+# Set up shell environment and pnpm for vscode user
+RUN pnpm setup \
+    && echo 'export PNPM_HOME="/home/vscode/.local/share/pnpm"' >> ~/.zshrc \
+    && echo 'export PATH="$PNPM_HOME:$PATH"' >> ~/.zshrc
 
 # Stage 2: Development environment with additional tools
 FROM toolchain AS development
