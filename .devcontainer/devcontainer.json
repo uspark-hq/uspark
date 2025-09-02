@@ -9,7 +9,7 @@
     "CLAUDE_CONFIG_DIR": "/home/vscode/.config/claude",
     "HISTFILE": "/home/vscode/.cache/.zsh_history"
   },
-  "postCreateCommand": "echo 'Dev container initialized successfully'",
+  "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.cache /home/vscode/.local && echo 'Dev container initialized successfully'",
   "customizations": {
     "vscode": {
       "settings": {
