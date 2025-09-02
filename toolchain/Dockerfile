@@ -50,8 +50,8 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && apt-get install -y gh \
     && rm -rf /var/lib/apt/lists/*
 
-# Install Vercel CLI globally
-RUN npm install -g vercel
+# Install Vercel CLI globally (locked version)
+RUN npm install -g vercel@46.1.1
 
 # Create non-root user
 RUN useradd -m -s /usr/bin/zsh uspark \
