@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect } from "vitest";
 import { POST } from "./route";
 import { POST as createDevice } from "../device/route";
 import { NextRequest } from "next/server";
@@ -8,16 +8,12 @@ import {
   TokenExchangeErrorSchema,
   DeviceAuthResponseSchema,
 } from "@uspark/core";
-import { cleanupDeviceCodes } from "../../../../../src/test/test-helpers";
+
 import { DEVICE_CODES_TBL } from "../../../../../src/db/schema/device-codes";
 import { eq } from "drizzle-orm";
 import { initServices } from "../../../../../src/lib/init-services";
 
 describe("/api/cli/auth/token", () => {
-  beforeEach(async () => {
-    await cleanupDeviceCodes();
-  });
-
   async function createDeviceCode(): Promise<string> {
     const response = await createDevice();
     const data = await response.json();
