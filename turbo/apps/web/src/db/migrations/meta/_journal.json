@@ -22,6 +22,13 @@
       "when": 1756815502373,
       "tag": "0002_mighty_amazoness",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1756892955209,
+      "tag": "0003_motionless_liz_osborn",
+      "breakpoints": true
     }
   ]
 }
