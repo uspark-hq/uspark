@@ -1,4 +1,5 @@
 import * as Y from "yjs";
+import { createHash } from "crypto";
 import type { FileNode, BlobInfo, BlobStore } from "./types";
 
 export class FileSystem {
@@ -76,8 +77,7 @@ export class FileSystem {
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
     } else {
-      // Node.js fallback
-      const { createHash } = await import('crypto');
+      // Node.js fallback using static import
       return createHash("sha256").update(bytes).digest("hex");
     }
   }
