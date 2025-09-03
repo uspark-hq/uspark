@@ -1,6 +1,11 @@
 "use client";
 
 import { SignUpButton } from "@clerk/nextjs";
+import {
+  AINetworkIllustration,
+  DataFlowIllustration,
+  CreativeSparkIllustration,
+} from "./components/AIIllustration";
 import styles from "./page.module.css";
 
 export default function Home() {
@@ -37,7 +42,9 @@ export default function Home() {
         </div>
         <div className={styles.heroVisual}>
           <div className={styles.floatingCard}>
-            <div className={styles.cardGradient}></div>
+            <div className={styles.cardGradient}>
+              <AINetworkIllustration />
+            </div>
           </div>
         </div>
       </section>
@@ -97,7 +104,11 @@ export default function Home() {
         <div className={styles.storiesContainer}>
           <div className={styles.storyCard}>
             <div className={styles.storyImage}>
-              <div className={styles.imageGradient1}></div>
+              <div className={styles.imageGradient1}>
+                <div className={styles.illustrationContainer}>
+                  <AINetworkIllustration />
+                </div>
+              </div>
             </div>
             <div className={styles.storyContent}>
               <span className={styles.storyLabel}>For Developers</span>
@@ -142,13 +153,21 @@ export default function Home() {
               </div>
             </div>
             <div className={styles.storyImage}>
-              <div className={styles.imageGradient2}></div>
+              <div className={styles.imageGradient2}>
+                <div className={styles.illustrationContainer}>
+                  <DataFlowIllustration />
+                </div>
+              </div>
             </div>
           </div>
 
           <div className={styles.storyCard}>
             <div className={styles.storyImage}>
-              <div className={styles.imageGradient3}></div>
+              <div className={styles.imageGradient3}>
+                <div className={styles.illustrationContainer}>
+                  <CreativeSparkIllustration />
+                </div>
+              </div>
             </div>
             <div className={styles.storyContent}>
               <span className={styles.storyLabel}>For Creators</span>
@@ -177,9 +196,8 @@ export default function Home() {
       <section className={styles.finalCta}>
         <div className={styles.finalCtaContent}>
           <h2>Ready to Spark Your Potential?</h2>
-          <p>
-            Join thousands of innovators already on the waiting list. Be first
-            to experience the AI assistant that changes everything.
+          <p className={styles.finalCtaTopText}>
+            Join thousands of innovators already on the waiting list.
           </p>
           <SignUpButton mode="modal">
             <button className={styles.primaryCta}>
@@ -187,8 +205,8 @@ export default function Home() {
               <span className={styles.arrow}>→</span>
             </button>
           </SignUpButton>
-          <p className={styles.availabilityText}>
-            Limited early access • Launching Q1 2025
+          <p className={styles.finalCtaBottomText}>
+            Be first to experience the AI assistant that changes everything.
           </p>
         </div>
         <div className={styles.finalCtaBackground}></div>
