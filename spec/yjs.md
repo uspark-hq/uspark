@@ -55,6 +55,50 @@ interface BlobInfo {
 4. **Performance**: O(1) lookups for both path and content information
 5. **Extensibility**: Easy to add more metadata fields in the future
 
+## Client Architecture Design
+
+### Simplified FileSystem Extension Approach
+
+The client-side synchronization is implemented by extending the existing `FileSystem` class with remote sync capabilities, avoiding the complexity of separate coordinator classes.
+
+### Extended FileSystem Class
+
+```typescript
+export class FileSystem {
+  private ydoc: Y.Doc;
+  private files: Y.Map<FileNode>;
+  private blobs: Y.Map<BlobInfo>;
+  private blobStore: BlobStore;
+
+  // Existing methods
+  async writeFile(path: string, content: string): Promise<void>
+  readFile(path: string): string
+
+  // New sync methods
+  async syncFromRemote(projectId: string): Promise<void> {
+    // Fetch complete YDoc state from GET /api/projects/:projectId
+    // Apply remote state to local ydoc using Y.applyUpdate
+  }
+
+  async syncToRemote(projectId: string): Promise<void> {
+    // Generate incremental update using Y.encodeStateAsUpdate
+    // Send to PATCH /api/projects/:projectId
+  }
+
+  async pullFile(projectId: string, filePath: string): Promise<void> {
+    // 1. Sync from remote to get latest YDoc state
+    // 2. Read file content from ydoc using existing readFile logic
+    // 3. Write to local filesystem using fs.writeFile
+  }
+
+  async pushFile(projectId: string, filePath: string): Promise<void> {
+    // 1. Read from local filesystem using fs.readFile
+    // 2. Update ydoc using existing writeFile method
+    // 3. Sync to remote
+  }
+}
+```
+
 ## API Design
 
 ### Core Synchronization APIs
@@ -194,70 +238,69 @@ CREATE TABLE projects (
 
 File contents are stored separately in Vercel Blob Storage, referenced by hash from the YDoc.
 
-## Implementation Todos
+## Implementation Todos - Client-First Approach
 
-### Phase 1: Backend API Setup
+### Phase 1: Mock Server Setup (Testing Foundation)
 
-#### 1. Implement GET /api/projects/:projectId
+#### 1. Create MockYjsServer for testing
 
-**Task**: Create endpoint to retrieve complete YDoc state
+**Task**: Build test infrastructure with real YJS integration
 **Acceptance Criteria**:
-- [ ] Endpoint returns binary YDoc data with correct Content-Type
-- [ ] Authenticates user and verifies project ownership
-- [ ] Creates empty YDoc if project doesn't exist
-- [ ] Handles database connection errors gracefully
+- [ ] Implement MockYjsServer class managing multiple project Y.Doc instances
+- [ ] Handle GET /api/projects/:projectId returning Y.encodeStateAsUpdate(ydoc)
+- [ ] Handle PATCH /api/projects/:projectId applying updates with Y.applyUpdate
+- [ ] Set up MSW request handlers for HTTP mocking
+- [ ] Support multiple concurrent project states for testing
 
-#### 2. Implement PATCH /api/projects/:projectId
+#### 2. Configure test environment
 
-**Task**: Create endpoint to apply YDoc updates
+**Task**: Set up testing infrastructure for client sync
 **Acceptance Criteria**:
-- [ ] Accepts binary update data in request body
-- [ ] Loads current YDoc from database
-- [ ] Applies update using Y.applyUpdate
-- [ ] Implements optimistic locking with version field
-- [ ] Returns 409 Conflict on version mismatch
-- [ ] Updates timestamp on successful save
+- [ ] Configure MSW in vitest setup files
+- [ ] Create test helpers for MockYjsServer interactions
+- [ ] Set up temporary filesystem utilities for file operations
+- [ ] Configure test isolation with beforeEach/afterEach cleanup
 
 ### Phase 2: CLI Implementation
 
-#### 3. Implement uspark pull command
+#### 3. Extend FileSystem class with sync methods
 
-**Task**: Pull single file from remote YDoc
+**Task**: Add remote synchronization methods to existing FileSystem class
 **Acceptance Criteria**:
-- [ ] Parse --project-id and file path arguments
-- [ ] Fetch complete YDoc from GET endpoint
-- [ ] Extract file metadata from files Map
-- [ ] Download blob content if needed
-- [ ] Write file to local filesystem with correct path
+- [ ] Add `syncFromRemote(projectId)` method to fetch and apply remote YDoc state
+- [ ] Add `syncToRemote(projectId)` method to send local YDoc updates
+- [ ] Add `pullFile(projectId, filePath)` method combining sync + local file write
+- [ ] Add `pushFile(projectId, filePath)` method combining local file read + sync
+- [ ] Use existing hash computation and blob storage logic
 
-#### 4. Implement uspark push command
+#### 4. Implement uspark CLI commands
 
-**Task**: Push single file to remote YDoc
+**Task**: Add pull/push commands using extended FileSystem
 **Acceptance Criteria**:
-- [ ] Parse --project-id and file path arguments
-- [ ] Read local file and compute hash
-- [ ] Upload blob content if new
-- [ ] Generate YDoc update with new FileNode
-- [ ] Send update via PATCH endpoint
-- [ ] Handle conflict errors with retry
+- [ ] Add `uspark pull <filePath> --project-id <id>` command
+- [ ] Add `uspark push <filePath> --project-id <id>` command
+- [ ] Instantiate FileSystem with appropriate BlobStore
+- [ ] Handle basic command argument parsing
+- [ ] Integrate with existing CLI framework
 
-### Phase 3: Testing
+### Phase 3: Client Testing with Mock Server
 
-#### 5. API Endpoint Testing
+#### 5. Mock YJS Server Implementation
 
-**Task**: Comprehensive test coverage for sync APIs
+**Task**: Create test server that uses real YJS for state management
 **Acceptance Criteria**:
-- [ ] Unit tests for YDoc serialization/deserialization
-- [ ] Integration tests for GET/PATCH endpoints
-- [ ] Concurrent update conflict tests
-- [ ] Binary data handling tests
-- [ ] Authentication and authorization tests
+- [ ] Implement MockYjsServer class with internal Y.Doc instance
+- [ ] Mock GET /api/projects/:projectId returning YDoc binary data
+- [ ] Mock PATCH /api/projects/:projectId applying YDoc updates with real Y.applyUpdate
+- [ ] Set up MSW handlers for HTTP request interception
+- [ ] Store multiple project states in mock server
 
-#### 6. End-to-End Sync Testing
+#### 6. FileSystem Sync Testing
 
-**Task**: Test complete pull/push workflows
+**Task**: Test extended FileSystem sync methods
 **Acceptance Criteria**:
-- [ ] Single file pull/push test
-- [ ] Binary file handling test
-- [ ] Large file test
-- [ ] Network error recovery test
+- [ ] Test `pullFile()` with empty local and populated remote state
+- [ ] Test `pushFile()` with local file changes
+- [ ] Test YJS merge behavior when both sides have changes
+- [ ] Test basic file content read/write to local filesystem
+- [ ] Unit tests for new sync methods with mocked HTTP calls
