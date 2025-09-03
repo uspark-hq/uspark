@@ -1,5 +1,4 @@
 export default {
-  extends: ['@commitlint/config-conventional'],
   rules: {
     // Ensure type is in lowercase
     'type-case': [2, 'always', 'lower-case'],

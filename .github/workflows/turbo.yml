@@ -10,16 +10,25 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
 
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/init
+
+      - name: Configure git safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Install dependencies
+        run: cd turbo && pnpm install --frozen-lockfile --strict-peer-dependencies
 
       - name: Lint
-        run: npx -y @evilmartians/lefthook run pre-commit --all-files
+        run: lefthook run pre-commit --all-files
 
   test:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
 
     services:
       postgres:
@@ -36,18 +45,25 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/init
+
+      - name: Configure git safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+
+      - name: Install dependencies
+        run: cd turbo && pnpm install --frozen-lockfile --strict-peer-dependencies
 
       - name: Test
         run: cd turbo && pnpm test
         env:
-          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
+          DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/postgres"
           CLERK_SECRET_KEY: "test_clerk_secret_key"
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "test_clerk_publishable_key"
 
   # Deploy web application with database
   deploy-web:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
@@ -58,14 +74,18 @@ jobs:
         with:
           fetch-depth: 2
       
+      - name: Configure git safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      
       - name: Check for changes in web app
         id: check-changes
         run: |
           cd turbo/apps/web
           npx turbo-ignore web || echo "has-changes=true" >> $GITHUB_OUTPUT
-      
-      - uses: ./.github/actions/init
+
+      - name: Install dependencies
         if: steps.check-changes.outputs.has-changes == 'true'
+        run: cd turbo && pnpm install --frozen-lockfile --strict-peer-dependencies
 
       # Step 1: Create Neon database branch
       - name: Create Neon Branch and Run Migrations
@@ -99,6 +119,8 @@ jobs:
   # Deploy docs application
   deploy-docs:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
@@ -109,14 +131,18 @@ jobs:
         with:
           fetch-depth: 2
       
+      - name: Configure git safe directory
+        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
+      
       - name: Check for changes in docs app
         id: check-changes
         run: |
           cd turbo/apps/docs
           npx turbo-ignore docs || echo "has-changes=true" >> $GITHUB_OUTPUT
-      
-      - uses: ./.github/actions/init
+
+      - name: Install dependencies
         if: steps.check-changes.outputs.has-changes == 'true'
+        run: cd turbo && pnpm install --frozen-lockfile --strict-peer-dependencies
 
       - name: Deploy Docs to Vercel
         if: steps.check-changes.outputs.has-changes == 'true'
