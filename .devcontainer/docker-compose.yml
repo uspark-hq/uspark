@@ -31,8 +31,14 @@ services:
 
 volumes:
   config:
+    external: true
+    name: devcontainer-config
   cache:
+    external: true
+    name: devcontainer-cache
   vercel:
+    external: true
+    name: devcontainer-vercel
   postgres-data:
 
 networks:
