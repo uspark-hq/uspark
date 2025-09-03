@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.9.0](https://github.com/uspark-hq/uspark/compare/web-v0.8.0...web-v0.9.0) (2025-09-03)
+
+
+### Features
+
+* remove polling interval from cli auth flow ([#83](https://github.com/uspark-hq/uspark/issues/83)) ([f98a617](https://github.com/uspark-hq/uspark/commit/f98a6177a457cabd70373896ce5e8302beb7eae6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.7.0
+
 ## [0.8.0](https://github.com/uspark-hq/uspark/compare/web-v0.7.0...web-v0.8.0) (2025-09-03)
 
 
