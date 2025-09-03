@@ -1,22 +1,29 @@
 {
   "name": "USpark Development",
-  "dockerComposeFile": "docker-compose.yml",
-  "service": "app",
-  "workspaceFolder": "/workspace/uspark",
+  "image": "ghcr.io/uspark-hq/uspark-dev:8767eed",
+  "features": {
+    "ghcr.io/itsmechlark/features/postgresql:1": {}
+  },
   "remoteUser": "vscode",
   "forwardPorts": [4983, 5432],
-  "containerEnv": {
+  "remoteEnv": {
     "CLAUDE_CONFIG_DIR": "/home/vscode/.config/claude",
-    "HISTFILE": "/home/vscode/.cache/.zsh_history"
+    "HISTFILE": "/home/vscode/.cache/.zsh_history",
+    "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/postgres"
   },
-  "postCreateCommand": "sudo chown -R vscode:vscode /home/vscode/.cache /home/vscode/.local && echo 'Dev container initialized successfully'",
+  "mounts": [
+    "source=config,target=/home/vscode/.config",
+    "source=cache,target=/home/vscode/.cache",
+    "source=vercel,target=/home/vscode/.local/share/com.vercel.cli"
+  ],
+  "postCreateCommand": "sudo mkdir -p /home/vscode/.local/bin && sudo chown -R vscode:vscode /home/vscode/.config /home/vscode/.cache /home/vscode/.local && echo 'Dev container initialized successfully'",
   "customizations": {
     "vscode": {
       "settings": {
         "sqltools.connections": [
           {
             "previewLimit": 50,
-            "server": "db",
+            "server": "localhost",
             "port": 5432,
             "driver": "PostgreSQL",
             "name": "local",
