@@ -359,20 +359,20 @@ async function authenticateCLI() {
     });
 
     const tokenData = await tokenResponse.json();
-    
+
     if (tokenData.access_token) {
       console.log("Authentication successful!");
       return tokenData.access_token;
     }
-    
+
     if (tokenData.error === "authorization_pending") {
       // User hasn't authenticated yet, retry later
       return null;
     }
-    
+
     throw new Error(`Authentication failed: ${tokenData.error}`);
   };
-  
+
   // Call exchangeToken with your own retry strategy
   return await exchangeToken();
 }
