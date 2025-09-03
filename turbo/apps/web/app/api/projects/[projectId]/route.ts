@@ -10,7 +10,7 @@ import { eq, and } from "drizzle-orm";
  */
 export async function GET(
   _request: NextRequest,
-  context: { params: Promise<{ projectId: string }> }
+  context: { params: Promise<{ projectId: string }> },
 ) {
   initServices();
   const { projectId } = await context.params;
@@ -24,7 +24,7 @@ export async function GET(
     .select()
     .from(PROJECTS_TBL)
     .where(
-      and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId))
+      and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)),
     );
 
   if (project) {
@@ -66,7 +66,7 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  context: { params: Promise<{ projectId: string }> }
+  context: { params: Promise<{ projectId: string }> },
 ) {
   initServices();
   const { projectId } = await context.params;
@@ -86,7 +86,7 @@ export async function PATCH(
     .select()
     .from(PROJECTS_TBL)
     .where(
-      and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId))
+      and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)),
     );
 
   if (!project) {
@@ -97,7 +97,7 @@ export async function PATCH(
   if (clientVersion && parseInt(clientVersion) !== project.version) {
     return NextResponse.json(
       { error: "Version conflict", currentVersion: project.version },
-      { status: 409 }
+      { status: 409 },
     );
   }
 
@@ -125,8 +125,8 @@ export async function PATCH(
       and(
         eq(PROJECTS_TBL.id, projectId),
         eq(PROJECTS_TBL.userId, userId),
-        eq(PROJECTS_TBL.version, project.version)
-      )
+        eq(PROJECTS_TBL.version, project.version),
+      ),
     )
     .returning();
 
@@ -134,7 +134,7 @@ export async function PATCH(
     // Concurrent update happened
     return NextResponse.json(
       { error: "Concurrent update conflict" },
-      { status: 409 }
+      { status: 409 },
     );
   }
 

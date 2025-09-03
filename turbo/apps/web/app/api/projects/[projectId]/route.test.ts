@@ -26,7 +26,9 @@ describe("/api/projects/:projectId", () => {
       const response = await GET(mockRequest, context);
 
       expect(response.status).toBe(200);
-      expect(response.headers.get("Content-Type")).toBe("application/octet-stream");
+      expect(response.headers.get("Content-Type")).toBe(
+        "application/octet-stream",
+      );
       expect(response.headers.get("X-Version")).toBe("0");
 
       // Verify the response is a valid YDoc
@@ -42,9 +44,9 @@ describe("/api/projects/:projectId", () => {
         .select()
         .from(PROJECTS_TBL)
         .where(
-          and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId))
+          and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)),
         );
-      
+
       expect(storedProject).toBeDefined();
       expect(storedProject?.version).toBe(0);
     });
@@ -54,7 +56,7 @@ describe("/api/projects/:projectId", () => {
       const ydoc = new Y.Doc();
       const files = ydoc.getMap("files");
       files.set("test.md", { hash: "abc123", mtime: Date.now() });
-      
+
       const state = Y.encodeStateAsUpdate(ydoc);
       const base64Data = Buffer.from(state).toString("base64");
 
@@ -103,10 +105,10 @@ describe("/api/projects/:projectId", () => {
       const clientDoc = new Y.Doc();
       Y.applyUpdate(clientDoc, state);
       const stateVector = Y.encodeStateVector(clientDoc);
-      
+
       const files = clientDoc.getMap("files");
       files.set("newfile.ts", { hash: "xyz789", mtime: Date.now() });
-      
+
       const update = Y.encodeStateAsUpdate(clientDoc, stateVector);
 
       // Send PATCH request
@@ -130,16 +132,19 @@ describe("/api/projects/:projectId", () => {
         .select()
         .from(PROJECTS_TBL)
         .where(
-          and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId))
+          and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)),
         );
 
       expect(updatedProject?.version).toBe(1);
 
       // Verify the YDoc content
       const storedDoc = new Y.Doc();
-      const storedBinary = Buffer.from(updatedProject?.ydocData || "", "base64");
+      const storedBinary = Buffer.from(
+        updatedProject?.ydocData || "",
+        "base64",
+      );
       Y.applyUpdate(storedDoc, new Uint8Array(storedBinary));
-      
+
       const storedFiles = storedDoc.getMap("files");
       expect(storedFiles.size).toBe(1);
       expect(storedFiles.get("newfile.ts")).toHaveProperty("hash", "xyz789");
@@ -155,7 +160,9 @@ describe("/api/projects/:projectId", () => {
           "Content-Type": "application/octet-stream",
         },
       });
-      const context = { params: Promise.resolve({ projectId: "non-existent" }) };
+      const context = {
+        params: Promise.resolve({ projectId: "non-existent" }),
+      };
 
       const response = await PATCH(mockRequest, context);
 
@@ -247,7 +254,7 @@ describe("/api/projects/:projectId", () => {
       });
       const context2 = { params: Promise.resolve({ projectId }) };
       const response2 = await PATCH(request2, context2);
-      
+
       expect(response2.status).toBe(409);
       const error = await response2.json();
       expect(error).toHaveProperty("error", "Version conflict");

@@ -1,8 +1,6 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isPublicRoute = createRouteMatcher([
-  "/api/projects/(.*)",
-]);
+const isPublicRoute = createRouteMatcher(["/api/projects/(.*)"]);
 
 export default clerkMiddleware((auth, request) => {
   // For now, skip auth for public routes

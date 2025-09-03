@@ -59,9 +59,7 @@
         "cli_tokens_token_unique": {
           "name": "cli_tokens_token_unique",
           "nullsNotDistinct": false,
-          "columns": [
-            "token"
-          ]
+          "columns": ["token"]
         }
       },
       "policies": {},
@@ -212,12 +210,7 @@
     "public.device_code_status": {
       "name": "device_code_status",
       "schema": "public",
-      "values": [
-        "pending",
-        "authenticated",
-        "expired",
-        "denied"
-      ]
+      "values": ["pending", "authenticated", "expired", "denied"]
     }
   },
   "schemas": {},
