@@ -246,20 +246,20 @@ File contents are stored separately in Vercel Blob Storage, referenced by hash f
 
 **Task**: Build test infrastructure with real YJS integration
 **Acceptance Criteria**:
-- [ ] Implement MockYjsServer class managing multiple project Y.Doc instances
-- [ ] Handle GET /api/projects/:projectId returning Y.encodeStateAsUpdate(ydoc)
-- [ ] Handle PATCH /api/projects/:projectId applying updates with Y.applyUpdate
-- [ ] Set up MSW request handlers for HTTP mocking
-- [ ] Support multiple concurrent project states for testing
+- [x] Implement MockYjsServer class managing multiple project Y.Doc instances
+- [x] Handle GET /api/projects/:projectId returning Y.encodeStateAsUpdate(ydoc)
+- [x] Handle PATCH /api/projects/:projectId applying updates with Y.applyUpdate
+- [x] Set up MSW request handlers for HTTP mocking
+- [x] Support multiple concurrent project states for testing
 
 #### 2. Configure test environment
 
 **Task**: Set up testing infrastructure for client sync
 **Acceptance Criteria**:
-- [ ] Configure MSW in vitest setup files
-- [ ] Create test helpers for MockYjsServer interactions
-- [ ] Set up temporary filesystem utilities for file operations
-- [ ] Configure test isolation with beforeEach/afterEach cleanup
+- [x] Configure MSW in vitest setup files
+- [x] Create test helpers for MockYjsServer interactions
+- [x] Set up temporary filesystem utilities for file operations
+- [x] Configure test isolation with beforeEach/afterEach cleanup
 
 ### Phase 2: CLI Implementation
 
@@ -267,21 +267,21 @@ File contents are stored separately in Vercel Blob Storage, referenced by hash f
 
 **Task**: Add remote synchronization methods to existing FileSystem class
 **Acceptance Criteria**:
-- [ ] Add `syncFromRemote(projectId)` method to fetch and apply remote YDoc state
-- [ ] Add `syncToRemote(projectId)` method to send local YDoc updates
-- [ ] Add `pullFile(projectId, filePath)` method combining sync + local file write
-- [ ] Add `pushFile(projectId, filePath)` method combining local file read + sync
-- [ ] Use existing hash computation and blob storage logic
+- [x] Add `syncFromRemote(projectId)` method to fetch and apply remote YDoc state
+- [x] Add `syncToRemote(projectId)` method to send local YDoc updates
+- [x] Add `pullFile(projectId, filePath)` method combining sync + local file write
+- [x] Add `pushFile(projectId, filePath)` method combining local file read + sync
+- [x] Use existing hash computation and blob storage logic
 
 #### 4. Implement uspark CLI commands
 
 **Task**: Add pull/push commands using extended FileSystem
 **Acceptance Criteria**:
-- [ ] Add `uspark pull <filePath> --project-id <id>` command
+- [x] Add `uspark pull <filePath> --project-id <id>` command
 - [ ] Add `uspark push <filePath> --project-id <id>` command
-- [ ] Instantiate FileSystem with appropriate BlobStore
-- [ ] Handle basic command argument parsing
-- [ ] Integrate with existing CLI framework
+- [x] Instantiate FileSystem with appropriate BlobStore
+- [x] Handle basic command argument parsing
+- [x] Integrate with existing CLI framework
 
 ### Phase 3: Client Testing with Mock Server
 
@@ -289,18 +289,18 @@ File contents are stored separately in Vercel Blob Storage, referenced by hash f
 
 **Task**: Create test server that uses real YJS for state management
 **Acceptance Criteria**:
-- [ ] Implement MockYjsServer class with internal Y.Doc instance
-- [ ] Mock GET /api/projects/:projectId returning YDoc binary data
-- [ ] Mock PATCH /api/projects/:projectId applying YDoc updates with real Y.applyUpdate
-- [ ] Set up MSW handlers for HTTP request interception
-- [ ] Store multiple project states in mock server
+- [x] Implement MockYjsServer class with internal Y.Doc instance
+- [x] Mock GET /api/projects/:projectId returning YDoc binary data
+- [x] Mock PATCH /api/projects/:projectId applying YDoc updates with real Y.applyUpdate
+- [x] Set up MSW handlers for HTTP request interception
+- [x] Store multiple project states in mock server
 
 #### 6. FileSystem Sync Testing
 
 **Task**: Test extended FileSystem sync methods
 **Acceptance Criteria**:
-- [ ] Test `pullFile()` with empty local and populated remote state
+- [x] Test `pullFile()` with empty local and populated remote state
 - [ ] Test `pushFile()` with local file changes
 - [ ] Test YJS merge behavior when both sides have changes
-- [ ] Test basic file content read/write to local filesystem
-- [ ] Unit tests for new sync methods with mocked HTTP calls
+- [x] Test basic file content read/write to local filesystem
+- [x] Unit tests for new sync methods with mocked HTTP calls
