@@ -1,0 +1,6 @@
+# Map all author variations to canonical name and email
+# Format: Proper Name <proper@email> Current Name <current@email>
+<ethan@uspark.ai> <perfectworks@gmail.com>
+<ethan@uspark.ai> <ethan@paraflow.com>
+Ethan Zhang <ethan@uspark.ai> Yuchen <ethan@uspark.ai>
+Ethan Zhang <ethan@uspark.ai> e7h4n <perfectworks@gmail.com>
