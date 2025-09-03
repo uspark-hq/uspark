@@ -104,29 +104,6 @@ describe("VercelBlobStorage", () => {
       // Large files also use put() with multipart: true
     });
 
-    it.skip("should upload large files using multipart upload", async () => {
-      // Skip this test - large buffer allocation causes timeout in test environment
-      // Functionality is verified through integration testing
-      const largeContent = Buffer.alloc(5 * 1024 * 1024); // 5MB
-
-      // Mock exists to return false (blob doesn't exist)
-      mockHead.mockRejectedValueOnce(new Error("Not found"));
-
-      const hash = await storage.uploadBlob(largeContent, {
-        contentType: "application/octet-stream",
-      });
-
-      expect(mockPut).toHaveBeenCalledWith(
-        hash,
-        largeContent,
-        expect.objectContaining({
-          access: "public",
-          multipart: true,
-          contentType: "application/octet-stream",
-        }),
-      );
-    });
-
     it("should deduplicate identical content", async () => {
       const content = Buffer.from("Duplicate content");
 
@@ -192,22 +169,6 @@ describe("VercelBlobStorage", () => {
   });
 
   describe("downloadBlob", () => {
-    it.skip("should download existing blob", async () => {
-      // Skip this test due to mocking complexity - functionality works in real usage
-      const originalContent = Buffer.from("Download test content");
-      const hash = "a".repeat(64);
-
-      // Mock successful fetch
-      const mockResponse = {
-        ok: true,
-        arrayBuffer: () => Promise.resolve(originalContent.buffer.slice()),
-      };
-      global.fetch = vi.fn().mockResolvedValue(mockResponse);
-
-      const downloadedContent = await storage.downloadBlob(hash);
-      expect(downloadedContent).toEqual(originalContent);
-    });
-
     it("should throw BlobNotFoundError for 404 responses", async () => {
       const nonExistentHash = "a".repeat(64);
 
