@@ -12,9 +12,9 @@
     "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/postgres"
   },
   "mounts": [
-    "source=uspark5-config,target=/home/vscode/.config",
-    "source=uspark5-cache,target=/home/vscode/.cache",
-    "source=uspark5-vercel,target=/home/vscode/.local/share/com.vercel.cli"
+    "source=config,target=/home/vscode/.config",
+    "source=cache,target=/home/vscode/.cache",
+    "source=vercel,target=/home/vscode/.local/share/com.vercel.cli"
   ],
   "postCreateCommand": "sudo mkdir -p /home/vscode/.local/bin && sudo chown -R vscode:vscode /home/vscode/.config /home/vscode/.cache /home/vscode/.local && echo 'Dev container initialized successfully'",
   "customizations": {
