@@ -35,6 +35,10 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Install Neon CLI (temporary workaround)
+      shell: bash
+      run: npm install -g neonctl@latest
+      
     - name: Start deployment
       id: deployment
       if: inputs.action == 'create'
