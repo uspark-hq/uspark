@@ -13,7 +13,7 @@ describe("pull command", () => {
   beforeEach(async () => {
     // Create a temporary directory for test files
     tempDir = await mkdtemp(join(tmpdir(), "uspark-test-"));
-    
+
     // Reset mock server state
     mockServer.reset();
   });
@@ -68,14 +68,14 @@ describe("pull command", () => {
     const filePath = "nonexistent.txt";
 
     // Don't add any files to the project
-    
+
     const outputPath = join(tempDir, "output.txt");
-    
+
     await expect(
       pullCommand(filePath, {
         projectId,
         output: outputPath,
-      })
+      }),
     ).rejects.toThrow("File not found in project: nonexistent.txt");
   });
 });

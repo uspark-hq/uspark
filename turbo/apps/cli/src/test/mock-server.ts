@@ -12,7 +12,7 @@ export class MockYjsServer {
       project = new Doc();
       this.projects.set(projectId, project);
     }
-    
+
     return encodeStateAsUpdate(project);
   }
 
@@ -22,7 +22,7 @@ export class MockYjsServer {
       project = new Doc();
       this.projects.set(projectId, project);
     }
-    
+
     applyUpdate(project, update);
   }
 
@@ -36,10 +36,10 @@ export class MockYjsServer {
 
     const files = project.getMap("files");
     const blobs = project.getMap("blobs");
-    
+
     // Compute hash (simple for testing)
     const hash = this.computeHash(content);
-    
+
     // Store file metadata
     const fileNode: FileNode = {
       hash,

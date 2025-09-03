@@ -35,36 +35,39 @@ export const handlers = [
   http.get(`${API_BASE_URL}/api/projects/:projectId`, ({ params }) => {
     const { projectId } = params;
     const ydocData = mockServer.getProject(projectId as string);
-    
+
     return new HttpResponse(ydocData, {
       headers: {
-        'Content-Type': 'application/octet-stream',
+        "Content-Type": "application/octet-stream",
       },
     });
   }),
 
   // PATCH /api/projects/:projectId - Accept YDoc updates
-  http.patch(`${API_BASE_URL}/api/projects/:projectId`, async ({ params, request }) => {
-    const { projectId } = params;
-    const update = new Uint8Array(await request.arrayBuffer());
-    
-    mockServer.patchProject(projectId as string, update);
-    
-    return new HttpResponse(null, { status: 200 });
-  }),
+  http.patch(
+    `${API_BASE_URL}/api/projects/:projectId`,
+    async ({ params, request }) => {
+      const { projectId } = params;
+      const update = new Uint8Array(await request.arrayBuffer());
+
+      mockServer.patchProject(projectId as string, update);
+
+      return new HttpResponse(null, { status: 200 });
+    },
+  ),
 
   // GET /api/blobs/:hash - Return blob content (for file content)
   http.get(`${API_BASE_URL}/api/blobs/:hash`, ({ params }) => {
     const { hash } = params;
     const content = mockServer.getBlobContent(hash as string);
-    
+
     if (!content) {
       return new HttpResponse("Blob not found", { status: 404 });
     }
-    
+
     return new HttpResponse(content, {
       headers: {
-        'Content-Type': 'text/plain',
+        "Content-Type": "text/plain",
       },
     });
   }),

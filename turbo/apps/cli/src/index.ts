@@ -32,25 +32,39 @@ program
   .description("Pull a file from remote project")
   .argument("<filePath>", "File path to pull")
   .requiredOption("--project-id <projectId>", "Project ID")
-  .option("--output <outputPath>", "Local output path (defaults to same as remote path)")
-  .action(async (filePath: string, options: { projectId: string; output?: string }) => {
-    try {
-      await pullCommand(filePath, options);
-    } catch (error) {
-      console.error(chalk.red(`✗ Failed to pull file: ${error instanceof Error ? error.message : error}`));
-      process.exit(1);
-    }
-  });
+  .option(
+    "--output <outputPath>",
+    "Local output path (defaults to same as remote path)",
+  )
+  .action(
+    async (
+      filePath: string,
+      options: { projectId: string; output?: string },
+    ) => {
+      try {
+        await pullCommand(filePath, options);
+      } catch (error) {
+        console.error(
+          chalk.red(
+            `✗ Failed to pull file: ${error instanceof Error ? error.message : error}`,
+          ),
+        );
+        process.exit(1);
+      }
+    },
+  );
 
 export async function pullCommand(
   filePath: string,
-  options: { projectId: string; output?: string }
+  options: { projectId: string; output?: string },
 ): Promise<void> {
-  console.log(chalk.blue(`Pulling ${filePath} from project ${options.projectId}...`));
-  
+  console.log(
+    chalk.blue(`Pulling ${filePath} from project ${options.projectId}...`),
+  );
+
   const fs = new FileSystem();
   await fs.pullFile(options.projectId, filePath, options.output);
-  
+
   const outputPath = options.output || filePath;
   console.log(chalk.green(`✓ Successfully pulled to ${outputPath}`));
 }
