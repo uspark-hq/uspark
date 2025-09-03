@@ -28,11 +28,11 @@ export async function saveConfig(config: CliConfig): Promise<void> {
   try {
     // Ensure config directory exists
     await mkdir(CONFIG_DIR, { recursive: true });
-    
+
     // Merge with existing config
     const existing = await loadConfig();
     const merged = { ...existing, ...config };
-    
+
     // Write config file
     await writeFile(CONFIG_FILE, JSON.stringify(merged, null, 2), "utf8");
   } catch (error) {

@@ -79,7 +79,6 @@ export class FileSystem {
     return Y.encodeStateAsUpdate(this.ydoc, stateVector);
   }
 
-
   private async computeHash(bytes: Uint8Array): Promise<string> {
     // Always use Node.js crypto for consistency
     return createHash("sha256").update(bytes).digest("hex");

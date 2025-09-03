@@ -110,12 +110,14 @@ export async function pullCommand(
   // Check authentication
   const token = await getToken();
   if (!token) {
-    console.error(chalk.red("✗ Not authenticated. Please run 'uspark auth' first."));
+    console.error(
+      chalk.red("✗ Not authenticated. Please run 'uspark auth' first."),
+    );
     throw new Error("Not authenticated");
   }
 
   const apiUrl = await getApiUrl();
-  
+
   console.log(
     chalk.blue(`Pulling ${filePath} from project ${options.projectId}...`),
   );
@@ -137,15 +139,19 @@ export async function pushCommand(
   // Check authentication
   const token = await getToken();
   if (!token) {
-    console.error(chalk.red("✗ Not authenticated. Please run 'uspark auth' first."));
+    console.error(
+      chalk.red("✗ Not authenticated. Please run 'uspark auth' first."),
+    );
     throw new Error("Not authenticated");
   }
 
   const apiUrl = await getApiUrl();
-  
+
   const sourcePath = options.source || filePath;
   console.log(
-    chalk.blue(`Pushing ${sourcePath} to project ${options.projectId} as ${filePath}...`),
+    chalk.blue(
+      `Pushing ${sourcePath} to project ${options.projectId} as ${filePath}...`,
+    ),
   );
 
   const sync = new ProjectSync();

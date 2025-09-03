@@ -9,26 +9,23 @@ export interface SyncOptions {
 
 export class ProjectSync {
   private fs: FileSystem;
-  
+
   constructor(fs?: FileSystem) {
     this.fs = fs || new FileSystem();
   }
 
   async syncFromRemote(
     projectId: string,
-    options?: SyncOptions
+    options?: SyncOptions,
   ): Promise<void> {
     const apiUrl = options?.apiUrl || "http://localhost:3000";
     const token = options?.token || "test_token";
-    
-    const response = await fetch(
-      `${apiUrl}/api/projects/${projectId}`,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+
+    const response = await fetch(`${apiUrl}/api/projects/${projectId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
       },
-    );
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to fetch project: ${response.statusText}`);
@@ -41,27 +38,21 @@ export class ProjectSync {
     this.fs.applyUpdate(update);
   }
 
-  async syncToRemote(
-    projectId: string,
-    options?: SyncOptions
-  ): Promise<void> {
+  async syncToRemote(projectId: string, options?: SyncOptions): Promise<void> {
     const apiUrl = options?.apiUrl || "http://localhost:3000";
     const token = options?.token || "test_token";
-    
+
     // Get update from FileSystem's YDoc
     const update = this.fs.getUpdate();
 
-    const response = await fetch(
-      `${apiUrl}/api/projects/${projectId}`,
-      {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/octet-stream",
-          Authorization: `Bearer ${token}`,
-        },
-        body: Buffer.from(update),
+    const response = await fetch(`${apiUrl}/api/projects/${projectId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/octet-stream",
+        Authorization: `Bearer ${token}`,
       },
-    );
+      body: Buffer.from(update),
+    });
 
     if (!response.ok) {
       throw new Error(`Failed to sync to remote: ${response.statusText}`);
@@ -72,11 +63,11 @@ export class ProjectSync {
     projectId: string,
     filePath: string,
     localPath?: string,
-    options?: SyncOptions
+    options?: SyncOptions,
   ): Promise<void> {
     const apiUrl = options?.apiUrl || "http://localhost:3000";
     const token = options?.token || "test_token";
-    
+
     // 1. Sync from remote to get latest state
     await this.syncFromRemote(projectId, options);
 
@@ -90,14 +81,11 @@ export class ProjectSync {
     let content = this.fs.getBlob(fileNode.hash);
     if (!content) {
       // Try to fetch from remote blob storage
-      const response = await fetch(
-        `${apiUrl}/api/blobs/${fileNode.hash}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+      const response = await fetch(`${apiUrl}/api/blobs/${fileNode.hash}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
         },
-      );
+      });
 
       if (!response.ok) {
         throw new Error(`Failed to fetch blob content: ${response.statusText}`);
@@ -117,7 +105,7 @@ export class ProjectSync {
     projectId: string,
     filePath: string,
     localPath?: string,
-    options?: SyncOptions
+    options?: SyncOptions,
   ): Promise<void> {
     // 1. Read from local filesystem
     const inputPath = localPath || filePath;

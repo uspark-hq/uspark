@@ -11,7 +11,12 @@ import { pullCommand } from "../index";
 vi.mock("../config", () => ({
   getToken: vi.fn().mockResolvedValue("test_token"),
   getApiUrl: vi.fn().mockResolvedValue("http://localhost:3000"),
-  loadConfig: vi.fn().mockResolvedValue({ token: "test_token", apiUrl: "http://localhost:3000" }),
+  loadConfig: vi
+    .fn()
+    .mockResolvedValue({
+      token: "test_token",
+      apiUrl: "http://localhost:3000",
+    }),
   saveConfig: vi.fn().mockResolvedValue(undefined),
   clearConfig: vi.fn().mockResolvedValue(undefined),
 }));
