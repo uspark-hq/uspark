@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/uspark-hq/uspark/compare/docs-v1.0.2...docs-v1.1.0) (2025-09-02)
+
+
+### Features
+
+* implement cli auth token exchange api ([#42](https://github.com/uspark-hq/uspark/issues/42)) ([d0b4321](https://github.com/uspark-hq/uspark/commit/d0b4321cc9a513ee6e4dddf3c9b6559771354464))
+
 ## [1.0.2](https://github.com/uspark-hq/uspark/compare/docs-v1.0.1...docs-v1.0.2) (2025-09-01)
 
 

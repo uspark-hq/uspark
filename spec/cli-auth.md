@@ -1,5 +1,19 @@
 # CLI Authentication Specification
 
+## Progress Summary
+
+### Phase Completion Status
+- **Phase 1: Backend API Setup** ✅ Complete (3/3 tasks)
+- **Phase 2: CLI Authentication Minimum Viable Flow** 🚧 In Progress (1/3 tasks)
+- **Phase 3: Enhanced Features** ⏳ Not Started (0/4 tasks)
+- **Phase 4: Production Readiness** ⏳ Not Started (0/4 tasks)
+
+### Recent Updates
+- 2024-12-02: Completed CLI Authentication Page (PR #48)
+- 2024-12-02: Completed Token Generation API (PR #45)
+- 2024-12-01: Completed Token Exchange API (PR #42)
+- 2024-12-01: Completed Device Code Session API (PR #42)
+
 ## Overview
 
 Since Clerk does not natively support OAuth Device Authorization Grant Flow, we implement a hybrid approach combining device code authentication pattern with Clerk's JWT-based authentication system.
@@ -24,17 +38,21 @@ CLI                            Web App                      Clerk
 The CLI supports two authentication methods:
 
 ### Method 1: Interactive Login
+
 ```bash
 uspark auth login
 ```
+
 - Generate unique device code (e.g., `WDJB-MJHT`)
 - Call backend API to create authentication session
 - Store token in system keychain for future use
 
 ### Method 2: Environment Variable
+
 ```bash
 USPARK_TOKEN=xxx uspark sync
 ```
+
 - Pass token directly via environment variable
 - Useful for CI/CD pipelines and automation
 - Token can be generated from web UI settings page
@@ -42,12 +60,15 @@ USPARK_TOKEN=xxx uspark sync
 ## Implementation Steps
 
 ### 1. Token Resolution Priority
+
 The CLI checks for authentication in the following order:
+
 1. `USPARK_TOKEN` environment variable (if present)
 2. Stored credentials from `uspark auth login`
 3. Prompt user to authenticate if neither exists
 
 ### 2. Backend API Endpoints
+
 ```typescript
 POST /api/cli/auth/device
 Returns: { device_code, user_code, verification_url }
@@ -59,21 +80,29 @@ Returns: { access_token, refresh_token } or { pending: true }
 POST /api/cli/auth/generate-token
 Description: Generate long-lived CLI token from web UI
 Returns: { token, expires_at }
+
+POST /api/cli/auth/verify-device
+Body: { device_code }
+Description: Associates authenticated user with device code
+Returns: { success, message } or error
 ```
 
 ### 3. Web Authentication Page
+
 - Create `/cli-auth` page
 - User enters device code
 - Authenticate with Clerk
 - Associate JWT token with device code upon success
 
 ### 4. CLI Polls for Token
+
 - Poll `/api/cli/auth/token` every 5 seconds
 - Store token locally once received
 
 ## Code Structure
 
 ### CLI Side
+
 ```
 src/
 ├── commands/
@@ -88,6 +117,7 @@ src/
 ```
 
 ### Web Side
+
 ```
 app/
 ├── api/cli/auth/
@@ -117,117 +147,178 @@ app/
 ### Phase 1: Backend API Setup
 
 #### 1. Create Device Code Session API
+
 **Task**: Implement `/api/cli/auth/device` endpoint
 **Acceptance Criteria**:
-- [ ] Generates unique 8-character device code (e.g., WDJB-MJHT)
-- [ ] Stores device code in database with 15-minute TTL
-- [ ] Returns device_code, user_code, and verification_url
-- [ ] Rate limits requests to prevent abuse
+
+- [x] Generates unique 8-character device code (e.g., WDJB-MJHT)
+- [x] Stores device code in database with 15-minute TTL
+- [x] Returns device_code, user_code, and verification_url
 
 #### 2. Create Token Exchange API
+
 **Task**: Implement `/api/cli/auth/token` endpoint
 **Acceptance Criteria**:
-- [ ] Validates device code exists and not expired
-- [ ] Returns `{ pending: true }` if not yet authenticated
-- [ ] Returns `{ access_token, refresh_token }` after user authentication
-- [ ] Deletes device code after successful token exchange
-- [ ] Returns appropriate error for expired/invalid codes
+
+- [x] Validates device code exists and not expired
+- [x] Returns `{ pending: true }` if not yet authenticated
+- [x] Returns `{ access_token, refresh_token }` after user authentication
+- [x] Deletes device code after successful token exchange
+- [x] Returns appropriate error for expired/invalid codes
 
 #### 3. Create Token Generation API
+
 **Task**: Implement `/api/cli/auth/generate-token` endpoint
 **Acceptance Criteria**:
-- [ ] Requires authenticated user (Clerk JWT)
-- [ ] Generates long-lived CLI token (30-90 days)
-- [ ] Stores token metadata (name, created_at, last_used)
-- [ ] Returns token and expiration date
-- [ ] Limits number of active tokens per user (e.g., 10)
 
-### Phase 2: Web UI Implementation
+- [x] Requires authenticated user (Clerk JWT)
+- [x] Generates long-lived CLI token (30-90 days)
+- [x] Stores token metadata (name, created_at, last_used)
+- [x] Returns token and expiration date
+- [x] Limits number of active tokens per user (e.g., 10)
 
-#### 4. Create CLI Authentication Page
-**Task**: Implement `/cli-auth` page for device code entry
+### Phase 2: CLI Authentication Minimum Viable Flow
+
+#### 3.5. Create Device Code Verification API
+
+**Task**: Implement `/api/cli/auth/verify-device` endpoint
 **Acceptance Criteria**:
-- [ ] Clean UI for entering 8-character device code
-- [ ] Input validation and formatting (auto-uppercase, dash handling)
-- [ ] Shows clear error messages for invalid/expired codes
-- [ ] Redirects to success page after authentication
-- [ ] Mobile-responsive design
 
-#### 5. Create Token Management Page
+- [x] Requires authenticated user (Clerk JWT)
+- [x] Validates device code exists and not expired
+- [x] Associates user ID with device code
+- [x] Returns success response after association
+- [x] Returns appropriate error for invalid/expired codes
+- [x] Handles case where device code already used
+
+#### 4. Create CLI Authentication Page ✅
+
+**Task**: Implement `/cli-auth` page for device code entry
+**Status**: Completed (PR #48)
+**Acceptance Criteria**:
+
+- [x] Clean UI for entering 8-character device code
+- [x] Input validation and formatting (auto-uppercase, dash handling)
+- [x] Shows clear error messages for invalid/expired codes
+- [x] Redirects to success page after authentication
+- [x] Mobile-responsive design
+- [x] Verify-device API endpoint to associate code with user
+- [x] Success page with auto-close functionality
+- [x] Comprehensive test coverage (6 tests)
+
+#### 5. Implement Basic CLI Authentication Commands
+
+**Task**: Create minimal CLI with auth commands
+**Acceptance Criteria**:
+
+- [ ] `uspark auth login` initiates device flow
+- [ ] `uspark auth logout` clears stored credentials
+- [ ] `uspark auth status` shows current auth state
+- [ ] Store token in simple config file (~/.uspark/config.json)
+- [ ] Basic error handling for network issues
+
+#### 6. Implement Authentication Service
+
+**Task**: Create basic auth service for CLI
+**Acceptance Criteria**:
+
+- [ ] `requestDeviceCode()` calls device API and returns code
+- [ ] `pollForToken()` polls every 5 seconds with timeout
+- [ ] `storeToken()` saves to config file
+- [ ] `getStoredToken()` reads from config file
+- [ ] Basic retry logic for network errors
+
+### Phase 3: Enhanced Features
+
+#### 7. Create Token Management Page
+
 **Task**: Implement `/settings/tokens` page
 **Acceptance Criteria**:
+
 - [ ] Lists all active CLI tokens with metadata
 - [ ] Shows last used timestamp for each token
 - [ ] Allows generating new tokens with custom names
 - [ ] Supports revoking individual tokens
 - [ ] Shows token only once after generation (with copy button)
 
-### Phase 3: CLI Implementation
+#### 8. Add Environment Variable Support
 
-#### 6. Setup CLI Project Structure
-**Task**: Initialize CLI package with TypeScript and dependencies
-**Acceptance Criteria**:
-- [ ] TypeScript configuration with strict mode
-- [ ] ESLint and Prettier setup matching project standards
-- [ ] Test framework (Vitest) configured
-- [ ] Build pipeline with tsup configured
-- [ ] Package.json with correct bin entry point
-
-#### 7. Implement Authentication Service
-**Task**: Create `auth.service.ts` with core auth logic
-**Acceptance Criteria**:
-- [ ] `getAuthToken()` checks env var then stored credentials
-- [ ] `requestDeviceCode()` calls device API and returns code
-- [ ] `pollForToken()` polls every 5 seconds with timeout
-- [ ] `storeCredentials()` uses keytar for secure storage
-- [ ] `clearCredentials()` removes stored tokens
-- [ ] Proper error handling and retry logic
-
-#### 8. Implement Auth Commands
-**Task**: Create `auth` command with subcommands
-**Acceptance Criteria**:
-- [ ] `uspark auth login` initiates device flow
-- [ ] `uspark auth logout` clears stored credentials
-- [ ] `uspark auth status` shows current auth state
-- [ ] `uspark auth whoami` displays user info
-- [ ] Proper --help documentation for each command
-- [ ] Graceful handling of network errors
-
-#### 9. Add Environment Variable Support
 **Task**: Implement `USPARK_TOKEN` environment variable support
 **Acceptance Criteria**:
+
 - [ ] Token from env var takes precedence over stored credentials
 - [ ] Works with all CLI commands requiring authentication
 - [ ] Clear error message if token is invalid/expired
 - [ ] Does not interfere with stored credentials
 - [ ] Documented in CLI help text
 
-### Phase 4: Integration & Testing
+#### 9. Enhance CLI with Additional Commands
 
-#### 10. Database Schema Updates
-**Task**: Add necessary database tables for device codes and CLI tokens
+**Task**: Add more CLI auth capabilities
 **Acceptance Criteria**:
-- [ ] Device codes table with TTL support
-- [ ] CLI tokens table with user association
-- [ ] Indexes for efficient lookups
-- [ ] Migration scripts created
-- [ ] Cleanup job for expired entries
 
-#### 11. End-to-End Testing
-**Task**: Create comprehensive test suite
+- [ ] `uspark auth whoami` displays user info
+- [ ] Proper --help documentation for each command
+- [ ] Secure credential storage using keytar
+- [ ] Advanced retry logic and error recovery
+
+#### 10. Token Validation and Management APIs
+
+**Task**: Add APIs for token lifecycle management
 **Acceptance Criteria**:
+
+- [ ] API to validate CLI token and get user info
+- [ ] API to list user's active tokens
+- [ ] API to revoke specific tokens
+- [ ] API to update last_used timestamp
+- [ ] Automatic cleanup of expired tokens
+
+### Phase 4: Production Readiness
+
+#### 11. Setup CLI Project Structure
+
+**Task**: Formalize CLI package structure
+**Acceptance Criteria**:
+
+- [ ] TypeScript configuration with strict mode
+- [ ] ESLint and Prettier setup matching project standards
+- [ ] Test framework (Vitest) configured
+- [ ] Build pipeline with tsup configured
+- [ ] Package.json with correct bin entry point
+- [ ] NPM publishing configuration
+
+#### 12. Comprehensive Testing
+
+**Task**: Create full test coverage
+**Acceptance Criteria**:
+
 - [ ] Unit tests for auth service functions
-- [ ] Integration tests for API endpoints
+- [ ] Integration tests for all API endpoints
 - [ ] E2E test for complete auth flow
 - [ ] Tests for token expiration scenarios
 - [ ] Tests for concurrent device code requests
-- [ ] Tests for rate limiting
+- [ ] Performance and load testing
 
-#### 12. Documentation
-**Task**: Create user-facing documentation
+#### 13. Documentation and Developer Experience
+
+**Task**: Create complete documentation
 **Acceptance Criteria**:
-- [ ] README section for CLI installation
+
+- [ ] README with installation instructions
 - [ ] Authentication setup guide
-- [ ] Troubleshooting section
+- [ ] API reference documentation
+- [ ] Troubleshooting guide
 - [ ] CI/CD integration examples
-- [ ] API documentation for token endpoints
+- [ ] Video tutorial for first-time users
+
+#### 14. Security Hardening
+
+**Task**: Implement security best practices
+**Acceptance Criteria**:
+
+- [ ] Rate limiting on all auth endpoints
+- [ ] Audit logging for auth events
+- [ ] Token rotation capabilities
+- [ ] Security headers on web pages
+- [ ] Penetration testing
+- [ ] Security documentation

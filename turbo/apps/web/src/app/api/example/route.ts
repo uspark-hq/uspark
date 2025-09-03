@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { initServices } from "../../../lib/init-services";
-import { users } from "../../../db/schema/user";
+import { USERS_TBL } from "../../../db/schema/user";
 
 /**
  * Example API route
@@ -11,7 +11,7 @@ export async function GET() {
   initServices();
 
   // No ! needed - getter ensures services exists
-  const allUsers = await globalThis.services.db.select().from(users);
+  const allUsers = await globalThis.services.db.select().from(USERS_TBL);
 
   return NextResponse.json({
     success: true,

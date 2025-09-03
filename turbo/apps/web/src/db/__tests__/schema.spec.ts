@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { users } from "../schema/user";
+import { USERS_TBL } from "../schema/user";
 import { getTableName } from "drizzle-orm";
 
 describe("Database Schema", () => {
   it("should have users table defined", () => {
-    expect(users).toBeDefined();
-    expect(getTableName(users)).toBe("users");
+    expect(USERS_TBL).toBeDefined();
+    expect(getTableName(USERS_TBL)).toBe("users");
   });
 
   it("should have correct user table columns", () => {
-    expect(users.id).toBeDefined();
-    expect(users.createdAt).toBeDefined();
-    expect(users.updatedAt).toBeDefined();
+    expect(USERS_TBL.id).toBeDefined();
+    expect(USERS_TBL.createdAt).toBeDefined();
+    expect(USERS_TBL.updatedAt).toBeDefined();
   });
 });

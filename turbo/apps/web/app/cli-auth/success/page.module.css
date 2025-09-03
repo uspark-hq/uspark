@@ -1,0 +1,118 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.card {
+  background: white;
+  border-radius: 12px;
+  padding: 3rem 2rem;
+  max-width: 500px;
+  width: 100%;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  text-align: center;
+}
+
+.iconWrapper {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 2rem;
+}
+
+.icon {
+  color: #48bb78;
+}
+
+.title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin: 0 0 0.5rem 0;
+}
+
+.description {
+  color: #4a5568;
+  margin: 0 0 2rem 0;
+  line-height: 1.5;
+  font-size: 1.125rem;
+}
+
+.message {
+  background: #f7fafc;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.message p {
+  margin: 0;
+  color: #2d3748;
+  line-height: 1.5;
+}
+
+.message p:first-child {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.hint {
+  font-size: 0.875rem;
+  color: #718096;
+  font-style: italic;
+}
+
+.divider {
+  height: 1px;
+  background: #e2e8f0;
+  margin: 2rem 0;
+}
+
+.nextSteps {
+  text-align: left;
+}
+
+.nextSteps h2 {
+  font-size: 1rem;
+  font-weight: 600;
+  color: #4a5568;
+  margin: 0 0 1rem 0;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.nextSteps ul {
+  margin: 0;
+  padding-left: 1.5rem;
+  color: #718096;
+  line-height: 1.75;
+}
+
+.nextSteps code {
+  background: #f7fafc;
+  padding: 0.125rem 0.375rem;
+  border-radius: 4px;
+  font-family: "Consolas", "Monaco", monospace;
+  font-size: 0.875rem;
+  color: #2d3748;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .card {
+    padding: 2rem 1.5rem;
+  }
+
+  .title {
+    font-size: 1.5rem;
+  }
+
+  .description {
+    font-size: 1rem;
+  }
+}

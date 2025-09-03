@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "type": "module",
   "private": true,
   "scripts": {
@@ -17,12 +17,12 @@
   },
   "dependencies": {
     "@clerk/nextjs": "^6.31.6",
-    "@uspark/core": "workspace:*",
-    "@uspark/ui": "workspace:*",
     "@neondatabase/serverless": "^1.0.1",
     "@t3-oss/env-nextjs": "^0.13.8",
     "@ts-rest/core": "^3.52.1",
     "@ts-rest/serverless": "^3.52.1",
+    "@uspark/core": "workspace:*",
+    "@uspark/ui": "workspace:*",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.5",
     "next": "^15.5.2",
@@ -33,18 +33,19 @@
     "zod": "^4.1.5"
   },
   "devDependencies": {
-    "@uspark/eslint-config": "workspace:*",
-    "@uspark/typescript-config": "workspace:*",
     "@testing-library/jest-dom": "^6.7.0",
     "@testing-library/react": "^16.1.0",
     "@types/node": "^24.3.0",
     "@types/pg": "^8.15.5",
     "@types/react": "^19.1.12",
     "@types/react-dom": "^19.1.9",
+    "@uspark/eslint-config": "workspace:*",
+    "@uspark/typescript-config": "workspace:*",
     "@vitejs/plugin-react": "^4.4.3",
     "drizzle-kit": "^0.31.4",
     "eslint": "^9.34.0",
     "jsdom": "^26.0.0",
+    "msw": "^2.11.1",
     "tsx": "^4.20.5",
     "typescript": "5.9.2",
     "vitest": "^3.2.4"
