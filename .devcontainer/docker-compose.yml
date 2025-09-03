@@ -2,7 +2,7 @@ version: "3.8"
 
 services:
   app:
-    image: mcr.microsoft.com/devcontainers/base:ubuntu-22.04
+    image: ghcr.io/uspark-hq/uspark-dev:8767eed
     volumes:
       - config:/home/vscode/.config
       - cache:/home/vscode/.cache
