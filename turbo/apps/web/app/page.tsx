@@ -1,101 +1,210 @@
-import Image, { type ImageProps } from "next/image";
-import { Button } from "@uspark/ui/button";
+"use client";
+
+import { SignUpButton } from "@clerk/nextjs";
 import styles from "./page.module.css";
-
-type Props = Omit<ImageProps, "src"> & {
-  srcLight: string;
-  srcDark: string;
-};
-
-const ThemeImage = (props: Props) => {
-  const { srcLight, srcDark, ...rest } = props;
-
-  return (
-    <>
-      <Image {...rest} src={srcLight} className="imgLight" />
-      <Image {...rest} src={srcDark} className="imgDark" />
-    </>
-  );
-};
 
 export default function Home() {
   return (
-    <div className={styles.page}>
-      <main className={styles.main}>
-        <ThemeImage
-          className={styles.logo}
-          srcLight="turborepo-dark.svg"
-          srcDark="turborepo-light.svg"
-          alt="Turborepo logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol>
-          <li>
-            Get started by editing <code>apps/web/app/page.tsx</code>
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
-
-        <div className={styles.ctas}>
-          <a
-            className={styles.primary}
-            href="https://vercel.com/new/clone?demo-description=Learn+to+implement+a+monorepo+with+a+two+Next.js+sites+that+has+installed+three+local+packages.&demo-image=%2F%2Fimages.ctfassets.net%2Fe5382hct74si%2F4K8ZISWAzJ8X1504ca0zmC%2F0b21a1c6246add355e55816278ef54bc%2FBasic.png&demo-title=Monorepo+with+Turborepo&demo-url=https%3A%2F%2Fexamples-basic-web.vercel.sh%2F&from=templates&project-name=Monorepo+with+Turborepo&repository-name=monorepo-turborepo&repository-url=https%3A%2F%2Fgithub.com%2Fvercel%2Fturborepo%2Ftree%2Fmain%2Fexamples%2Fbasic&root-directory=apps%2Fdocs&skippable-integrations=1&teamSlug=vercel&utm_source=create-turbo"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className={styles.logo}
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            href="https://turborepo.com/docs?utm_source"
-            target="_blank"
-            rel="noopener noreferrer"
-            className={styles.secondary}
-          >
-            Read our docs
-          </a>
+    <div className={styles.container}>
+      {/* Hero Section */}
+      <section className={styles.hero}>
+        <div className={styles.heroContent}>
+          <div className={styles.logoContainer}>
+            <div className={styles.sparkEffect}></div>
+            <h1 className={styles.logo}>
+              <span className={styles.logoU}>u</span>
+              <span className={styles.logoSpark}>Spark</span>
+            </h1>
+          </div>
+          <p className={styles.slogan}>
+            Ignite Your AI Workflow. Supercharge Your Productivity.
+          </p>
+          <p className={styles.heroDescription}>
+            The next-generation AI assistant that understands your context,
+            learns your patterns, and delivers intelligent automation at scale.
+          </p>
+          <div className={styles.ctaContainer}>
+            <SignUpButton mode="modal">
+              <button className={styles.primaryCta}>
+                Join the Waiting List
+                <span className={styles.arrow}>→</span>
+              </button>
+            </SignUpButton>
+            <p className={styles.ctaSubtext}>
+              Be among the first to experience the future of AI assistance
+            </p>
+          </div>
         </div>
-        <Button appName="web" className={styles.secondary}>
-          Open alert
-        </Button>
-      </main>
+        <div className={styles.heroVisual}>
+          <div className={styles.floatingCard}>
+            <div className={styles.cardGradient}></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Core Concepts Section */}
+      <section className={styles.concepts}>
+        <h2 className={styles.sectionTitle}>
+          Redefining What AI Can Do For You
+        </h2>
+        <div className={styles.conceptsGrid}>
+          <div className={styles.conceptCard}>
+            <div className={styles.conceptIcon}>
+              <span className={styles.iconGradient}>🧠</span>
+            </div>
+            <h3>Contextual Intelligence</h3>
+            <p>
+              uSpark remembers your preferences, understands your projects, and
+              adapts to your unique workflow patterns.
+            </p>
+          </div>
+          <div className={styles.conceptCard}>
+            <div className={styles.conceptIcon}>
+              <span className={styles.iconGradient}>⚡</span>
+            </div>
+            <h3>Lightning Fast Automation</h3>
+            <p>
+              Execute complex workflows in seconds. From data analysis to
+              content creation, uSpark handles it all with unprecedented speed.
+            </p>
+          </div>
+          <div className={styles.conceptCard}>
+            <div className={styles.conceptIcon}>
+              <span className={styles.iconGradient}>🔐</span>
+            </div>
+            <h3>Enterprise-Grade Security</h3>
+            <p>
+              Your data stays yours. With end-to-end encryption and
+              privacy-first architecture, trust is built into every interaction.
+            </p>
+          </div>
+          <div className={styles.conceptCard}>
+            <div className={styles.conceptIcon}>
+              <span className={styles.iconGradient}>🎯</span>
+            </div>
+            <h3>Precision Customization</h3>
+            <p>
+              Fine-tune uSpark to match your exact needs. Create custom agents,
+              workflows, and integrations that work perfectly for you.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* User Stories Section */}
+      <section className={styles.stories}>
+        <h2 className={styles.sectionTitle}>Transform Your Daily Workflow</h2>
+        <div className={styles.storiesContainer}>
+          <div className={styles.storyCard}>
+            <div className={styles.storyImage}>
+              <div className={styles.imageGradient1}></div>
+            </div>
+            <div className={styles.storyContent}>
+              <span className={styles.storyLabel}>For Developers</span>
+              <h3>Code Smarter, Ship Faster</h3>
+              <p>
+                &quot;uSpark reduced our development cycle by 40%. It
+                understands our codebase, suggests optimal solutions, and
+                automates testing workflows. It&apos;s like having a senior
+                developer available 24/7.&quot;
+              </p>
+              <div className={styles.storyMetrics}>
+                <div className={styles.metric}>
+                  <span className={styles.metricValue}>40%</span>
+                  <span className={styles.metricLabel}>Faster Development</span>
+                </div>
+                <div className={styles.metric}>
+                  <span className={styles.metricValue}>60%</span>
+                  <span className={styles.metricLabel}>Fewer Bugs</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.storyCard}>
+            <div className={styles.storyContent}>
+              <span className={styles.storyLabel}>For Researchers</span>
+              <h3>Accelerate Discovery</h3>
+              <p>
+                &quot;What used to take weeks now takes hours. uSpark analyzes
+                research papers, synthesizes findings, and helps us identify
+                patterns we would have never found manually.&quot;
+              </p>
+              <div className={styles.storyMetrics}>
+                <div className={styles.metric}>
+                  <span className={styles.metricValue}>10x</span>
+                  <span className={styles.metricLabel}>Research Speed</span>
+                </div>
+                <div className={styles.metric}>
+                  <span className={styles.metricValue}>95%</span>
+                  <span className={styles.metricLabel}>Accuracy Rate</span>
+                </div>
+              </div>
+            </div>
+            <div className={styles.storyImage}>
+              <div className={styles.imageGradient2}></div>
+            </div>
+          </div>
+
+          <div className={styles.storyCard}>
+            <div className={styles.storyImage}>
+              <div className={styles.imageGradient3}></div>
+            </div>
+            <div className={styles.storyContent}>
+              <span className={styles.storyLabel}>For Creators</span>
+              <h3>Unleash Creative Potential</h3>
+              <p>
+                &quot;uSpark is my creative partner. From ideation to final
+                polish, it helps me produce content that resonates. My
+                engagement has tripled since I started using it.&quot;
+              </p>
+              <div className={styles.storyMetrics}>
+                <div className={styles.metric}>
+                  <span className={styles.metricValue}>3x</span>
+                  <span className={styles.metricLabel}>Engagement Growth</span>
+                </div>
+                <div className={styles.metric}>
+                  <span className={styles.metricValue}>5h</span>
+                  <span className={styles.metricLabel}>Saved Daily</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
+      <section className={styles.finalCta}>
+        <div className={styles.finalCtaContent}>
+          <h2>Ready to Spark Your Potential?</h2>
+          <p>
+            Join thousands of innovators already on the waiting list. Be first
+            to experience the AI assistant that changes everything.
+          </p>
+          <SignUpButton mode="modal">
+            <button className={styles.primaryCta}>
+              Reserve Your Spot
+              <span className={styles.arrow}>→</span>
+            </button>
+          </SignUpButton>
+          <p className={styles.availabilityText}>
+            Limited early access • Launching Q1 2025
+          </p>
+        </div>
+        <div className={styles.finalCtaBackground}></div>
+      </section>
+
+      {/* Footer */}
       <footer className={styles.footer}>
-        <a
-          href="https://vercel.com/templates?search=turborepo&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          href="https://turborepo.com?utm_source=create-turbo"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to turborepo.com →
-        </a>
+        <div className={styles.footerContent}>
+          <div className={styles.footerLogo}>
+            <span className={styles.logoU}>u</span>
+            <span className={styles.logoSpark}>Spark</span>
+          </div>
+          <p className={styles.footerText}>
+            © 2025 uSpark. Building the future of AI assistance.
+          </p>
+        </div>
       </footer>
     </div>
   );
