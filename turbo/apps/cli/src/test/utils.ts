@@ -24,17 +24,17 @@ export const useHandler = (...handlers: HttpHandler[]) => {
 export const mockConsole = () => {
   const originalLog = console.log;
   const originalError = console.error;
-  
+
   beforeEach(() => {
     console.log = vi.fn();
     console.error = vi.fn();
   });
-  
+
   afterEach(() => {
     console.log = originalLog;
     console.error = originalError;
   });
-  
+
   return {
     getLogCalls: () => (console.log as ReturnType<typeof vi.fn>).mock.calls,
     getErrorCalls: () => (console.error as ReturnType<typeof vi.fn>).mock.calls,

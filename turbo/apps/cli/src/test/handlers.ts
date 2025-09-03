@@ -47,7 +47,7 @@ export const mockExpiredDeviceCode = () => {
   return http.post(`${API_BASE_URL}/api/cli/auth/token`, () => {
     return HttpResponse.json(
       { error: "expired_device_code", message: "The device code has expired" },
-      { status: 400 }
+      { status: 400 },
     );
   });
 };
@@ -57,7 +57,7 @@ export const mockInvalidDeviceCode = () => {
   return http.post(`${API_BASE_URL}/api/cli/auth/device`, () => {
     return HttpResponse.json(
       { error: "invalid_request", message: "Invalid request parameters" },
-      { status: 400 }
+      { status: 400 },
     );
   });
 };
