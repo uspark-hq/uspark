@@ -7,12 +7,14 @@ This document defines the specification for running Claude Code CLI within E2B c
 ## Architecture
 
 ```
-Host Environment              E2B Container                  Claude Code CLI
+Server Environment            E2B Container                  Claude Code CLI
       |                           |                              |
-      |-- 1. uspark sync push --> |                              |
-      |    (sync files to YJS)    |                              |
-      |                           |-- 2. uspark sync pull -----> |
-      |                           |    (pull from YJS)           |
+      |-- 1. Start container ---> |                              |
+      |    (with PROJECT_ID)      |                              |
+      |                           |                              |
+      |                           |-- 2. uspark pull ----------> |
+      |                           |    --project-id a1b2c3       |
+      |                           |    (pull entire project)     |
       |                           |                              |
       |                           |-- 3. claude --output-json -> |
       |                           |           |                  |
@@ -20,23 +22,22 @@ Host Environment              E2B Container                  Claude Code CLI
       |                           |    (real-time sync)          |
       |                           |           |                  |
       |<-- 4. Streaming updates ---|<-- File writes detected ----|
-      |    (via uspark sync)      |    and pushed immediately   |
+      |    (via uspark sync push) |    and pushed immediately   |
 ```
 
 ## Container Workflow
 
 ### Phase 1: Environment Preparation
 
-1. **E2B Container Initialization**
-   - Start E2B container with Node.js runtime
-   - Install uspark CLI within container
-   - Configure authentication for uspark sync operations
+1. **E2B Container Startup**
+   - Server environment starts E2B container with Node.js runtime
+   - Container comes pre-installed with uspark CLI and Claude Code CLI
+   - Configure authentication for uspark sync operations via environment variables
 
-2. **File Synchronization (Host → Container)**
-   - Execute `uspark sync push --project-id <id> <files>` on host
-   - Files are uploaded to YJS database via uspark sync
-   - Container pulls files using `uspark sync pull --project-id <id>`
-   - Files are materialized in container filesystem
+2. **Project Synchronization (Server → Container)**
+   - Container automatically executes `uspark pull --project-id a1b2c3`
+   - Entire project is pulled from YJS database into container filesystem
+   - All files are materialized and ready for Claude Code execution
 
 ### Phase 2: Real-time Claude Code Execution
 
@@ -111,9 +112,9 @@ uspark auth login --token $USPARK_TOKEN
 mkdir -p $WORKSPACE_PATH
 cd $WORKSPACE_PATH
 
-# Pull initial files from YJS
+# Pull entire project from YJS
 echo "Pulling project files..."
-uspark sync pull --project-id $PROJECT_ID
+uspark pull --project-id $PROJECT_ID
 
 echo "Container ready for Claude Code execution"
 ```
@@ -145,21 +146,21 @@ The synchronization leverages the existing YJS-based uspark sync protocol define
 #### Pull Operation (YJS → Container)
 
 ```bash
-# Pull all project files to container
-uspark sync pull --project-id <project-id>
+# Pull entire project to container
+uspark pull --project-id <project-id>
 
-# Pull specific files or directories
-uspark sync pull --project-id <project-id> src/ package.json
+# Pull specific files (for incremental updates)
+uspark pull --project-id <project-id> src/specific-file.js
 ```
 
 #### Push Operation (Container → YJS)
 
 ```bash
-# Push modified files to YJS
-uspark sync push --project-id <project-id> src/modified-file.js
+# Push individual modified file to YJS (used by watch-claude)
+uspark push --project-id <project-id> src/modified-file.js
 
-# Push all changes (git-aware)
-uspark sync push --project-id <project-id> --all
+# Push all changes
+uspark push --project-id <project-id> --all
 ```
 
 ### Real-time File Change Detection with watch-claude
@@ -212,7 +213,7 @@ export async function watchClaude(projectId: string) {
 
 async function syncFile(projectId: string, filePath: string) {
   // Push individual file to YJS immediately
-  spawn('uspark', ['sync', 'push', '--project-id', projectId, filePath], {
+  spawn('uspark', ['push', '--project-id', projectId, filePath], {
     stdio: 'ignore' // Run in background
   });
 }
@@ -340,17 +341,17 @@ const getCachedFile = async (path: string, hash: string): Promise<Buffer> => {
 ### Basic Workflow with Real-time Sync
 
 ```bash
-# 1. Initialize and run container with streaming sync
+# 1. Server starts container with streaming sync
 docker run -e PROJECT_ID=abc123 -e USPARK_TOKEN=token e2b/uspark-claude \
   /bin/bash -c "
-    uspark sync pull --project-id abc123 &&
+    uspark pull --project-id abc123 &&
     claude --dangerously-skip-permissions \
       --prompt 'Add error handling to the login function' \
       --output-json | uspark watch-claude --project-id abc123
   "
 
-# 2. Changes are synced in real-time, no collection needed
-# Host can monitor changes as they happen
+# 2. Changes are synced in real-time, server can monitor progress
+# No manual collection needed - files are pushed automatically
 ```
 
 ### Advanced Configuration
@@ -371,7 +372,7 @@ services:
     working_dir: /workspace
     command: >
       bash -c "
-        uspark sync pull --project-id $$PROJECT_ID &&
+        uspark pull --project-id $$PROJECT_ID &&
         claude --dangerously-skip-permissions \
           --prompt \"$$USER_PROMPT\" \
           --output-json | \
