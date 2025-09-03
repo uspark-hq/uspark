@@ -72,10 +72,17 @@ export class FileSystem {
 
   private async computeHash(bytes: Uint8Array): Promise<string> {
     // Use Web Crypto API when available (browsers), fallback to Node.js crypto
-    if (typeof globalThis !== 'undefined' && globalThis.crypto && globalThis.crypto.subtle) {
-      const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+    if (
+      typeof globalThis !== "undefined" &&
+      globalThis.crypto &&
+      globalThis.crypto.subtle
+    ) {
+      const hashBuffer = await globalThis.crypto.subtle.digest(
+        "SHA-256",
+        bytes,
+      );
       const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
     } else {
       // Node.js fallback using static import
       return createHash("sha256").update(bytes).digest("hex");
