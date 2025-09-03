@@ -1,6 +1,9 @@
-import { FOO, FileSystem } from "@uspark/core";
+import { FOO } from "@uspark/core";
 import { Command } from "commander";
 import chalk from "chalk";
+import { authenticate, logout } from "./auth";
+import { getToken, getApiUrl } from "./config";
+import { ProjectSync } from "./project-sync";
 
 const program = new Command();
 
@@ -25,6 +28,25 @@ program
     console.log(`Node Version: ${process.version}`);
     console.log(`Platform: ${process.platform}`);
     console.log(`Architecture: ${process.arch}`);
+  });
+
+program
+  .command("auth")
+  .description("Authenticate with uSpark")
+  .option("--api-url <url>", "API URL", "http://localhost:3000")
+  .action(async (options: { apiUrl: string }) => {
+    try {
+      await authenticate(options.apiUrl);
+    } catch {
+      process.exit(1);
+    }
+  });
+
+program
+  .command("logout")
+  .description("Logout from uSpark")
+  .action(async () => {
+    await logout();
   });
 
 program
@@ -54,19 +76,85 @@ program
     },
   );
 
+program
+  .command("push")
+  .description("Push a file to remote project")
+  .argument("<filePath>", "File path to push")
+  .requiredOption("--project-id <projectId>", "Project ID")
+  .option(
+    "--source <sourcePath>",
+    "Local source path (defaults to same as remote path)",
+  )
+  .action(
+    async (
+      filePath: string,
+      options: { projectId: string; source?: string },
+    ) => {
+      try {
+        await pushCommand(filePath, options);
+      } catch (error) {
+        console.error(
+          chalk.red(
+            `✗ Failed to push file: ${error instanceof Error ? error.message : error}`,
+          ),
+        );
+        process.exit(1);
+      }
+    },
+  );
+
 export async function pullCommand(
   filePath: string,
   options: { projectId: string; output?: string },
 ): Promise<void> {
+  // Check authentication
+  const token = await getToken();
+  if (!token) {
+    console.error(chalk.red("✗ Not authenticated. Please run 'uspark auth' first."));
+    throw new Error("Not authenticated");
+  }
+
+  const apiUrl = await getApiUrl();
+  
   console.log(
     chalk.blue(`Pulling ${filePath} from project ${options.projectId}...`),
   );
 
-  const fs = new FileSystem();
-  await fs.pullFile(options.projectId, filePath, options.output);
+  const sync = new ProjectSync();
+  await sync.pullFile(options.projectId, filePath, options.output, {
+    token,
+    apiUrl,
+  });
 
   const outputPath = options.output || filePath;
   console.log(chalk.green(`✓ Successfully pulled to ${outputPath}`));
+}
+
+export async function pushCommand(
+  filePath: string,
+  options: { projectId: string; source?: string },
+): Promise<void> {
+  // Check authentication
+  const token = await getToken();
+  if (!token) {
+    console.error(chalk.red("✗ Not authenticated. Please run 'uspark auth' first."));
+    throw new Error("Not authenticated");
+  }
+
+  const apiUrl = await getApiUrl();
+  
+  const sourcePath = options.source || filePath;
+  console.log(
+    chalk.blue(`Pushing ${sourcePath} to project ${options.projectId} as ${filePath}...`),
+  );
+
+  const sync = new ProjectSync();
+  await sync.pushFile(options.projectId, filePath, options.source, {
+    token,
+    apiUrl,
+  });
+
+  console.log(chalk.green(`✓ Successfully pushed ${filePath}`));
 }
 
 if (require.main === module) {

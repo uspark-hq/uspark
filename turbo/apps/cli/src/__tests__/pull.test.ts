@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { tmpdir } from "os";
 import { join } from "path";
 import { mkdtemp, readFile, rm } from "fs/promises";
@@ -6,6 +6,15 @@ import { mockServer } from "../test/mock-server";
 
 // Import the pull command function for direct testing
 import { pullCommand } from "../index";
+
+// Mock the config module
+vi.mock("../config", () => ({
+  getToken: vi.fn().mockResolvedValue("test_token"),
+  getApiUrl: vi.fn().mockResolvedValue("http://localhost:3000"),
+  loadConfig: vi.fn().mockResolvedValue({ token: "test_token", apiUrl: "http://localhost:3000" }),
+  saveConfig: vi.fn().mockResolvedValue(undefined),
+  clearConfig: vi.fn().mockResolvedValue(undefined),
+}));
 
 describe("pull command", () => {
   let tempDir: string;
@@ -77,5 +86,21 @@ describe("pull command", () => {
         output: outputPath,
       }),
     ).rejects.toThrow("File not found in project: nonexistent.txt");
+  });
+
+  it("should throw error when not authenticated", async () => {
+    const { getToken } = await import("../config");
+    vi.mocked(getToken).mockResolvedValueOnce(undefined);
+
+    const projectId = "test-project";
+    const filePath = "test.txt";
+    const outputPath = join(tempDir, "test.txt");
+
+    await expect(
+      pullCommand(filePath, {
+        projectId,
+        output: outputPath,
+      }),
+    ).rejects.toThrow("Not authenticated");
   });
 });
