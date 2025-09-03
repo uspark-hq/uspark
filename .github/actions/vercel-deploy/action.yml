@@ -19,10 +19,6 @@ inputs:
     description: "Environment variables for deployment (key=value pairs, one per line)"
     required: false
     default: ""
-  build-environment-variables:
-    description: "Build-time environment variables (key=value pairs, one per line)"
-    required: false
-    default: ""
   meta-branch:
     description: "Branch name for metadata"
     required: false
@@ -55,11 +51,29 @@ runs:
         vercel-org-id: ${{ inputs.vercel-org-id }}
         vercel-project-id: ${{ inputs.vercel-project-id }}
 
-    - name: Deploy to Vercel
+    - name: Build and Deploy to Vercel
       id: deploy
       shell: bash
       run: |
-        # Build deployment command
+        # Set environment variables for build
+        ENV_VARS="${{ inputs.environment-variables }}"
+        if [ -n "$ENV_VARS" ]; then
+          while IFS= read -r line; do
+            # Skip empty lines
+            line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            if [ -n "$line" ]; then
+              # Parse key=value format and export for build
+              KEY="${line%%=*}"
+              VALUE="${line#*=}"
+              if [ -n "$KEY" ] && [ -n "$VALUE" ]; then
+                export "$KEY=$VALUE"
+                echo "Set env: $KEY"
+              fi
+            fi
+          done <<< "$ENV_VARS"
+        fi
+
+        # Build deployment command (build and deploy in one step)
         DEPLOY_CMD="vercel deploy --token=${{ inputs.vercel-token }}"
 
         # Add production flag if needed
@@ -76,28 +90,23 @@ runs:
           DEPLOY_CMD="$DEPLOY_CMD --meta pr=${{ inputs.meta-pr }}"
         fi
 
-        # Add build environment variables if provided
-        if [ -n "${{ inputs.build-environment-variables }}" ]; then
+        # Add environment variables for both build and runtime
+        if [ -n "$ENV_VARS" ]; then
           while IFS= read -r line; do
+            # Skip empty lines
+            line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
             if [ -n "$line" ]; then
               # Parse key=value format
-              KEY=$(echo "$line" | cut -d'=' -f1)
-              VALUE=$(echo "$line" | cut -d'=' -f2-)
-              DEPLOY_CMD="$DEPLOY_CMD --build-env $KEY=\"$VALUE\""
+              KEY="${line%%=*}"
+              VALUE="${line#*=}"
+              if [ -n "$KEY" ] && [ -n "$VALUE" ]; then
+                # Add as both build-env and runtime env
+                # build-env is needed for Next.js build process
+                # env is needed for runtime serverless functions
+                DEPLOY_CMD="$DEPLOY_CMD --build-env \"${KEY}=${VALUE}\" --env \"${KEY}=${VALUE}\""
+              fi
             fi
-          done <<< "${{ inputs.build-environment-variables }}"
-        fi
-
-        # Add runtime environment variables if provided
-        if [ -n "${{ inputs.environment-variables }}" ]; then
-          while IFS= read -r line; do
-            if [ -n "$line" ]; then
-              # Parse key=value format
-              KEY=$(echo "$line" | cut -d'=' -f1)
-              VALUE=$(echo "$line" | cut -d'=' -f2-)
-              DEPLOY_CMD="$DEPLOY_CMD --env $KEY=\"$VALUE\""
-            fi
-          done <<< "${{ inputs.environment-variables }}"
+          done <<< "$ENV_VARS"
         fi
 
         # Execute deployment and capture URL

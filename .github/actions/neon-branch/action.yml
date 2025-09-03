@@ -68,6 +68,12 @@ runs:
         fi
 
         DATABASE_URL=$(neonctl connection-string $BRANCH_NAME --project-id $NEON_PROJECT_ID --database-name ${{ inputs.database-name }} --pooled)
+        if [ -z "$DATABASE_URL" ]; then
+          echo "Error: Failed to get database URL from neonctl"
+          echo "Attempting without --pooled flag..."
+          DATABASE_URL=$(neonctl connection-string $BRANCH_NAME --project-id $NEON_PROJECT_ID --database-name ${{ inputs.database-name }})
+        fi
+        echo "DATABASE_URL value: $DATABASE_URL"
         echo "database-url=$DATABASE_URL" >> $GITHUB_OUTPUT
         echo "Neon branch ready: $BRANCH_NAME"
 
