@@ -2,6 +2,7 @@
   "name": "USpark Development",
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
+  "workspaceFolder": "/workspace/uspark",
   "remoteUser": "vscode",
   "forwardPorts": [4983, 5432],
   "containerEnv": {
