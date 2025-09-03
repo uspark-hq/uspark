@@ -25,11 +25,12 @@
     "commander": "^14.0.0"
   },
   "devDependencies": {
+    "@types/node": "^24.3.0",
     "@uspark/eslint-config": "workspace:*",
     "@uspark/typescript-config": "workspace:*",
-    "@types/node": "^24.3.0",
     "eslint": "^9.34.0",
     "json": "^11.0.0",
+    "msw": "^2.11.1",
     "tsup": "^8.5.0",
     "typescript": "5.9.2",
     "vitest": "^3.2.4"
