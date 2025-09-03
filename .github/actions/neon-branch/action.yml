@@ -89,7 +89,12 @@ runs:
       env:
         DATABASE_URL: ${{ steps.branch.outputs.database-url }}
       run: |
-        cd turbo && pnpm -F web db:migrate
+        if [ -n "$DATABASE_URL" ]; then
+          echo "Running database migrations..."
+          cd turbo && pnpm -F web db:migrate
+        else
+          echo "No database URL provided, skipping migrations"
+        fi
 
     - name: Delete Neon Branch
       if: inputs.action == 'cleanup'
