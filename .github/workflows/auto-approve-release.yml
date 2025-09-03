@@ -1,44 +1,90 @@
-name: Auto Approve Release PR
+name: Auto Approve and Merge Release PR
 
 on:
   schedule:
     # Run every hour at minute 0
     - cron: '0 * * * *'
   workflow_dispatch: # Allow manual trigger
+  pull_request:
+    types: [opened, reopened, synchronize]
 
 jobs:
-  auto-approve:
+  auto-approve-and-merge:
     runs-on: ubuntu-latest
+    # Only run if it's a release PR or manual/scheduled trigger
+    if: |
+      github.event_name == 'schedule' || 
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'pull_request' && 
+       github.event.pull_request.user.login == 'release-please[bot]')
     permissions:
       pull-requests: write
-      contents: read
+      contents: write
     
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Find and approve release PR
+      - name: Find release PR
+        id: find-pr
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Find open PRs from release-please bot
-          PR_NUMBER=$(gh pr list \
-            --json number,author,title \
-            --jq '.[] | select(.author.login == "release-please[bot]" or (.title | startswith("chore: release")) or (.title | startswith("chore(main): release"))) | .number' \
-            --limit 1)
+          if [ "${{ github.event_name }}" == "pull_request" ]; then
+            # If triggered by a PR, use that PR number
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+          else
+            # Otherwise, find the release PR
+            PR_NUMBER=$(gh pr list \
+              --json number,author,title \
+              --jq '.[] | select(.author.login == "release-please[bot]" or (.title | startswith("chore: release")) or (.title | startswith("chore(main): release"))) | .number' \
+              --limit 1)
+          fi
           
           if [ -n "$PR_NUMBER" ]; then
             echo "Found release PR #$PR_NUMBER"
-            
+            echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          else
+            echo "No release PR found"
+            echo "pr_number=" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Approve PR (if token is available)
+        if: steps.find-pr.outputs.pr_number != '' && env.HAS_APPROVER_TOKEN == 'true'
+        env:
+          # Use a PAT or GitHub App token that's different from the PR creator
+          GH_TOKEN: ${{ secrets.RELEASE_APPROVER_TOKEN || secrets.GITHUB_TOKEN }}
+          HAS_APPROVER_TOKEN: ${{ secrets.RELEASE_APPROVER_TOKEN != '' }}
+        run: |
+          PR_NUMBER="${{ steps.find-pr.outputs.pr_number }}"
+          
+          # Only try to approve if we have a different token
+          if [ "$HAS_APPROVER_TOKEN" == "true" ]; then
             # Check if already approved
-            REVIEW_STATE=$(gh pr view "$PR_NUMBER" --json reviews --jq '.reviews[] | select(.author.login == "github-actions[bot]") | .state' | head -1)
+            REVIEW_STATE=$(gh pr view "$PR_NUMBER" --json reviews --jq '.reviews[-1].state' 2>/dev/null || echo "")
             
             if [ "$REVIEW_STATE" != "APPROVED" ]; then
-              echo "Approving PR #$PR_NUMBER"
-              gh pr review "$PR_NUMBER" --approve --body "Auto-approved by GitHub Actions workflow"
+              echo "Approving PR #$PR_NUMBER with PAT token"
+              gh pr review "$PR_NUMBER" --approve --body "Auto-approved release PR 🚀" || echo "Could not approve PR (may need different token)"
             else
               echo "PR #$PR_NUMBER is already approved"
             fi
           else
-            echo "No release PR found"
+            echo "No RELEASE_APPROVER_TOKEN configured, skipping approval"
+            echo "Note: To enable auto-approval, create a PAT token and add it as RELEASE_APPROVER_TOKEN secret"
           fi
+
+      - name: Enable auto-merge
+        if: steps.find-pr.outputs.pr_number != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          PR_NUMBER="${{ steps.find-pr.outputs.pr_number }}"
+          
+          # Check if all required checks have passed
+          echo "Checking PR status..."
+          gh pr checks "$PR_NUMBER" || true
+          
+          # Enable auto-merge (will merge when all checks pass)
+          echo "Enabling auto-merge for PR #$PR_NUMBER"
+          gh pr merge "$PR_NUMBER" --auto --squash || echo "Auto-merge may already be enabled or PR not ready"
