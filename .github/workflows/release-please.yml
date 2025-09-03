@@ -41,11 +41,23 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/init
 
+      - name: Get Production Database URL
+        id: get-db-url
+        run: |
+          # Install Neon CLI
+          npm install -g neonctl@latest
+          
+          # Get the main branch database URL (production)
+          DATABASE_URL=$(neonctl connection-string main --project-id ${{ vars.NEON_PROJECT_ID }} --database-name neondb --pooled)
+          echo "database-url=$DATABASE_URL" >> $GITHUB_OUTPUT
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+
       - name: Run Production Migrations
         run: |
           cd turbo && pnpm -F web db:migrate
         env:
-          DATABASE_URL: ${{ secrets.PRODUCTION_DATABASE_URL }}
+          DATABASE_URL: ${{ steps.get-db-url.outputs.database-url }}
 
   # Deploy web app to production
   deploy-web-production:
@@ -59,6 +71,18 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/init
 
+      - name: Get Production Database URL
+        id: get-db-url
+        run: |
+          # Install Neon CLI
+          npm install -g neonctl@latest
+          
+          # Get the main branch database URL (production)
+          DATABASE_URL=$(neonctl connection-string main --project-id ${{ vars.NEON_PROJECT_ID }} --database-name neondb --pooled)
+          echo "database-url=$DATABASE_URL" >> $GITHUB_OUTPUT
+        env:
+          NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
+
       - name: Deploy Web to Vercel Production
         uses: ./.github/actions/vercel-deploy
         with:
@@ -68,7 +92,7 @@ jobs:
           environment: production
           deployment-env: web
           environment-variables: |
-            DATABASE_URL=${{ secrets.PRODUCTION_DATABASE_URL }}
+            DATABASE_URL=${{ steps.get-db-url.outputs.database-url }}
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
             CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
 
