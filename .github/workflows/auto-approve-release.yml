@@ -1,0 +1,44 @@
+name: Auto Approve Release PR
+
+on:
+  schedule:
+    # Run every hour at minute 0
+    - cron: '0 * * * *'
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  auto-approve:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find and approve release PR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Find open PRs from release-please bot
+          PR_NUMBER=$(gh pr list \
+            --json number,author,title \
+            --jq '.[] | select(.author.login == "release-please[bot]" or (.title | startswith("chore: release")) or (.title | startswith("chore(main): release"))) | .number' \
+            --limit 1)
+          
+          if [ -n "$PR_NUMBER" ]; then
+            echo "Found release PR #$PR_NUMBER"
+            
+            # Check if already approved
+            REVIEW_STATE=$(gh pr view "$PR_NUMBER" --json reviews --jq '.reviews[] | select(.author.login == "github-actions[bot]") | .state' | head -1)
+            
+            if [ "$REVIEW_STATE" != "APPROVED" ]; then
+              echo "Approving PR #$PR_NUMBER"
+              gh pr review "$PR_NUMBER" --approve --body "Auto-approved by GitHub Actions workflow"
+            else
+              echo "PR #$PR_NUMBER is already approved"
+            fi
+          else
+            echo "No release PR found"
+          fi
