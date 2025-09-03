@@ -60,7 +60,6 @@ export async function POST() {
     user_code: deviceCode, // Same as device_code for simplicity
     verification_url: "https://app.uspark.com/cli-auth",
     expires_in: expiresIn,
-    interval: 5, // Poll every 5 seconds
   };
 
   // TODO: Implement rate limiting

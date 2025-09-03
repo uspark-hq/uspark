@@ -249,7 +249,7 @@ const blobs = ydoc.getMap('blobs');  // hash -> content metadata
 ```
 1. uspark auth login → Generate device code
 2. Open browser → User authenticates with Clerk  
-3. CLI polls for token → Receive JWT token
+3. CLI exchanges code for token → Receive JWT token
 4. Store in keychain → Future requests authenticated
 ```
 
