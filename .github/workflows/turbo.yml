@@ -51,6 +51,7 @@ jobs:
     needs: test
     if: github.event_name == 'pull_request'
     permissions:
+      contents: read
       deployments: write
     outputs:
       database-url: ${{ steps.branch.outputs.database-url }}
@@ -100,6 +101,7 @@ jobs:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     permissions:
+      contents: read
       pull-requests: write
       deployments: write
     steps:
