@@ -82,6 +82,8 @@ runs:
       shell: bash
       env:
         DATABASE_URL: ${{ steps.branch.outputs.database-url }}
+        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+        CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
       run: |
         if [ -n "$DATABASE_URL" ]; then
           echo "Running database migrations..."

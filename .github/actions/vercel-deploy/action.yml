@@ -19,10 +19,6 @@ inputs:
     description: "Environment variables for deployment (key=value pairs, one per line)"
     required: false
     default: ""
-  build-environment-variables:
-    description: "Build-time environment variables (key=value pairs, one per line)"
-    required: false
-    default: ""
   meta-branch:
     description: "Branch name for metadata"
     required: false
@@ -60,7 +56,7 @@ runs:
       shell: bash
       run: |
         # Build deployment command
-        DEPLOY_CMD="vercel deploy --token=${{ inputs.vercel-token }}"
+        DEPLOY_CMD="vercel deploy --prebuilt --token=${{ inputs.vercel-token }}"
 
         # Add production flag if needed
         if [ "${{ inputs.environment }}" == "production" ]; then
@@ -76,19 +72,7 @@ runs:
           DEPLOY_CMD="$DEPLOY_CMD --meta pr=${{ inputs.meta-pr }}"
         fi
 
-        # Add build environment variables if provided
-        if [ -n "${{ inputs.build-environment-variables }}" ]; then
-          while IFS= read -r line; do
-            if [ -n "$line" ]; then
-              # Parse key=value format
-              KEY=$(echo "$line" | cut -d'=' -f1)
-              VALUE=$(echo "$line" | cut -d'=' -f2-)
-              DEPLOY_CMD="$DEPLOY_CMD --build-env $KEY=\"$VALUE\""
-            fi
-          done <<< "${{ inputs.build-environment-variables }}"
-        fi
-
-        # Add runtime environment variables if provided
+        # Add environment variables if provided
         if [ -n "${{ inputs.environment-variables }}" ]; then
           while IFS= read -r line; do
             if [ -n "$line" ]; then
