@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/uspark-hq/uspark/compare/core-v0.6.0...core-v0.7.0) (2025-09-03)
+
+
+### Features
+
+* remove polling interval from cli auth flow ([#83](https://github.com/uspark-hq/uspark/issues/83)) ([f98a617](https://github.com/uspark-hq/uspark/commit/f98a6177a457cabd70373896ce5e8302beb7eae6))
+
 ## [0.6.0](https://github.com/uspark-hq/uspark/compare/core-v0.5.0...core-v0.6.0) (2025-09-03)
 
 
