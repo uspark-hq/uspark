@@ -14,12 +14,13 @@ Host Environment              E2B Container                  Claude Code CLI
       |                           |-- 2. uspark sync pull -----> |
       |                           |    (pull from YJS)           |
       |                           |                              |
-      |                           |<-- 3. Run Claude Code CLI ---|
-      |                           |    (user prompt + changes)   |
-      |                           |                              |
-      |                           |-- 4. uspark sync push -----> |
-      |<-- 5. uspark sync pull -- |    (push changes to YJS)    |
-      |    (collect changes)      |                              |
+      |                           |-- 3. claude --output-json -> |
+      |                           |           |                  |
+      |                           |    uspark watch-claude       |
+      |                           |    (real-time sync)          |
+      |                           |           |                  |
+      |<-- 4. Streaming updates ---|<-- File writes detected ----|
+      |    (via uspark sync)      |    and pushed immediately   |
 ```
 
 ## Container Workflow
@@ -37,23 +38,25 @@ Host Environment              E2B Container                  Claude Code CLI
    - Container pulls files using `uspark sync pull --project-id <id>`
    - Files are materialized in container filesystem
 
-### Phase 2: Claude Code Execution
+### Phase 2: Real-time Claude Code Execution
 
-3. **Claude Code CLI Execution**
-   - Run Claude Code CLI within container with user prompt
-   - Claude Code operates on synchronized files
-   - All file modifications happen within container isolation
+3. **Claude Code CLI with Watch Integration**
+   - Execute Claude Code CLI with JSON output format and permissions bypass
+   - Pipe output through `uspark watch-claude` for real-time monitoring
+   - Watch-claude acts as a transparent proxy, preserving stdout
+   - File modifications are detected and synced immediately
 
-### Phase 3: Change Collection
+### Phase 3: Streaming Synchronization
 
-4. **Modified File Detection**
-   - Monitor filesystem changes within container
-   - Identify files modified by Claude Code CLI
+4. **Real-time File Change Detection**
+   - `uspark watch-claude` intercepts file write operations
+   - Each detected change triggers immediate `uspark sync push`
+   - No need for post-execution batch synchronization
 
-5. **Reverse Synchronization (Container → Host)**
-   - Execute `uspark sync push --project-id <id> <modified-files>` in container
-   - Host collects changes using `uspark sync pull --project-id <id>`
-   - Updated files are available in host environment
+5. **Continuous Host Updates**
+   - Host can monitor changes in real-time
+   - Files are available immediately after Claude writes them
+   - Streaming architecture enables live progress tracking
 
 ## E2B Container Configuration
 
@@ -71,6 +74,9 @@ RUN npm install -g uspark-cli
 
 # Install Claude Code CLI
 RUN npm install -g claude-code
+
+# Install uspark watch-claude tool
+RUN npm install -g @uspark/watch-claude
 
 # Set working directory
 WORKDIR /workspace
@@ -112,11 +118,29 @@ uspark sync pull --project-id $PROJECT_ID
 echo "Container ready for Claude Code execution"
 ```
 
+### Container Execution Script
+
+```bash
+#!/bin/bash
+# execute-claude.sh
+
+set -e
+
+# Execute Claude with real-time sync
+claude \
+  --dangerously-skip-permissions \
+  --prompt "$USER_PROMPT" \
+  --output-json \
+  | uspark watch-claude \
+    --project-id $PROJECT_ID \
+    --stream-output
+```
+
 ## Synchronization Protocol
 
 ### uspark sync Integration
 
-The synchronization leverages the existing YJS-based uspark sync protocol defined in [yjs.md](./yjs.md).
+The synchronization leverages the existing YJS-based uspark sync protocol defined in [yjs.md](./yjs.md), enhanced with real-time streaming capabilities through `uspark watch-claude`.
 
 #### Pull Operation (YJS → Container)
 
@@ -138,32 +162,60 @@ uspark sync push --project-id <project-id> src/modified-file.js
 uspark sync push --project-id <project-id> --all
 ```
 
-### File Change Detection
+### Real-time File Change Detection with watch-claude
 
-The container implements file system monitoring to track Claude Code modifications:
+The `uspark watch-claude` command implements real-time file monitoring and synchronization:
 
 ```typescript
-// File watcher implementation
-import { watch } from 'fs';
-import { execSync } from 'child_process';
+// watch-claude implementation
+import { spawn } from 'child_process';
+import { createReadStream } from 'fs';
+import { pipeline } from 'stream';
 
-const watchedPaths = ['/workspace'];
-const modifiedFiles = new Set<string>();
+interface ClaudeEvent {
+  type: 'file_write' | 'console' | 'error';
+  data: {
+    path?: string;
+    content?: string;
+    message?: string;
+  };
+}
 
-// Monitor file changes during Claude Code execution
-const watcher = watch('/workspace', { recursive: true }, (eventType, filename) => {
-  if (eventType === 'change' && filename) {
-    modifiedFiles.add(filename);
+// Parse Claude's JSON output stream
+const parseClaudeOutput = (line: string): ClaudeEvent | null => {
+  try {
+    return JSON.parse(line);
+  } catch {
+    return null;
   }
-});
+};
 
-// After Claude Code exits, sync changes
-process.on('exit', () => {
-  if (modifiedFiles.size > 0) {
-    const fileList = Array.from(modifiedFiles).join(' ');
-    execSync(`uspark sync push --project-id ${PROJECT_ID} ${fileList}`);
-  }
-});
+// Watch and sync file changes in real-time
+export async function watchClaude(projectId: string) {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    terminal: false
+  });
+
+  rl.on('line', async (line) => {
+    // Pass through all output to maintain transparency
+    console.log(line);
+    
+    const event = parseClaudeOutput(line);
+    if (event?.type === 'file_write' && event.data.path) {
+      // Immediately sync the written file
+      await syncFile(projectId, event.data.path);
+    }
+  });
+}
+
+async function syncFile(projectId: string, filePath: string) {
+  // Push individual file to YJS immediately
+  spawn('uspark', ['sync', 'push', '--project-id', projectId, filePath], {
+    stdio: 'ignore' // Run in background
+  });
+}
 ```
 
 ## Security Considerations
@@ -240,28 +292,32 @@ const getCachedFile = async (path: string, hash: string): Promise<Buffer> => {
 - [ ] Configure authentication and environment variables
 - [ ] Test basic container startup and teardown
 
-#### 2. uspark sync Integration
+#### 2. uspark watch-claude Implementation
 **Acceptance Criteria**:
-- [ ] Implement pull operation (YJS → container)
-- [ ] Implement push operation (container → YJS)
-- [ ] Add error handling and retry logic
-- [ ] Test sync operations with sample files
+- [ ] Create watch-claude command parsing Claude's JSON output
+- [ ] Implement real-time file change detection from JSON events
+- [ ] Trigger immediate sync push for each file write
+- [ ] Ensure transparent stdout passthrough (tee-like behavior)
+- [ ] Add error handling and retry logic for sync failures
+- [ ] Test with various Claude output scenarios
 
 ### Phase 2: Claude Code CLI Integration
 
-#### 3. Claude Code Runtime
+#### 3. Claude Code Runtime Integration
 **Acceptance Criteria**:
-- [ ] Integrate Claude Code CLI within container
-- [ ] Implement file change monitoring during execution
+- [ ] Configure Claude CLI with --dangerously-skip-permissions flag
+- [ ] Implement --output-json format parsing
+- [ ] Integrate with watch-claude via pipe
 - [ ] Handle Claude Code exit and cleanup
 - [ ] Test end-to-end workflow with sample prompts
 
-#### 4. Change Detection & Collection
+#### 4. Real-time Streaming Architecture
 **Acceptance Criteria**:
-- [ ] Implement filesystem watcher for modifications
-- [ ] Filter relevant file changes (ignore temp files, logs)
-- [ ] Batch changed files for efficient sync
-- [ ] Test change detection with various file operations
+- [ ] Implement JSON event stream parsing
+- [ ] Create file write event handlers
+- [ ] Ensure zero-latency sync triggers
+- [ ] Maintain stdout transparency for user visibility
+- [ ] Test streaming with concurrent file operations
 
 ### Phase 3: Production Readiness
 
@@ -281,19 +337,20 @@ const getCachedFile = async (path: string, hash: string): Promise<Buffer> => {
 
 ## Usage Examples
 
-### Basic Workflow
+### Basic Workflow with Real-time Sync
 
 ```bash
-# 1. Initialize container with project files
+# 1. Initialize and run container with streaming sync
 docker run -e PROJECT_ID=abc123 -e USPARK_TOKEN=token e2b/uspark-claude \
   /bin/bash -c "
     uspark sync pull --project-id abc123 &&
-    claude-code 'Add error handling to the login function' &&
-    uspark sync push --project-id abc123 --all
+    claude --dangerously-skip-permissions \
+      --prompt 'Add error handling to the login function' \
+      --output-json | uspark watch-claude --project-id abc123
   "
 
-# 2. Collect changes on host
-uspark sync pull --project-id abc123
+# 2. Changes are synced in real-time, no collection needed
+# Host can monitor changes as they happen
 ```
 
 ### Advanced Configuration
@@ -308,14 +365,17 @@ services:
       - PROJECT_ID=${PROJECT_ID}
       - USPARK_TOKEN=${USPARK_TOKEN}
       - CLAUDE_API_KEY=${CLAUDE_API_KEY}
+      - USER_PROMPT=${USER_PROMPT}
     volumes:
       - ./workspace:/workspace
     working_dir: /workspace
     command: >
       bash -c "
         uspark sync pull --project-id $$PROJECT_ID &&
-        claude-code --interactive &&
-        uspark sync push --project-id $$PROJECT_ID --all
+        claude --dangerously-skip-permissions \
+          --prompt \"$$USER_PROMPT\" \
+          --output-json | \
+        uspark watch-claude --project-id $$PROJECT_ID --stream-output
       "
 ```
 
@@ -341,8 +401,12 @@ uspark e2b start --project-id <id> --prompt "user prompt"
 # Monitor running container
 uspark e2b status --container-id <id>
 
-# Collect results and cleanup
-uspark e2b collect --container-id <id>
+# Real-time file sync command (used within container)
+uspark watch-claude --project-id <id> [--stream-output]
+  # Reads Claude's JSON output from stdin
+  # Detects file write events and syncs immediately
+  # Transparently passes through all output to stdout
+  # --stream-output: Enable real-time output streaming to host
 ```
 
 ## Benefits
