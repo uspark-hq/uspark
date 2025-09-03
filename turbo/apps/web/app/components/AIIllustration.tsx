@@ -20,7 +20,13 @@ export const AINetworkIllustration = () => (
     </defs>
 
     {/* Neural network nodes */}
-    <circle cx="200" cy="200" r="15" fill="url(#gradient1)" filter="url(#glow)" />
+    <circle
+      cx="200"
+      cy="200"
+      r="15"
+      fill="url(#gradient1)"
+      filter="url(#glow)"
+    />
     <circle cx="100" cy="150" r="12" fill="#667eea" opacity="0.7" />
     <circle cx="300" cy="150" r="12" fill="#764ba2" opacity="0.7" />
     <circle cx="150" cy="100" r="10" fill="#667eea" opacity="0.5" />
@@ -43,9 +49,17 @@ export const AINetworkIllustration = () => (
       strokeWidth="2"
       opacity="0.3"
     />
-    
+
     {/* Animated pulses */}
-    <circle cx="200" cy="200" r="15" fill="none" stroke="#ffd700" strokeWidth="2" opacity="0">
+    <circle
+      cx="200"
+      cy="200"
+      r="15"
+      fill="none"
+      stroke="#ffd700"
+      strokeWidth="2"
+      opacity="0"
+    >
       <animate
         attributeName="r"
         from="15"
