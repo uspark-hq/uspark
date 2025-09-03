@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.2.0](https://github.com/uspark-hq/uspark/compare/cli-v0.1.5...cli-v0.2.0) (2025-09-03)
+
+
+### Features
+
+* add msw testing infrastructure for cli package ([#60](https://github.com/uspark-hq/uspark/issues/60)) ([f1c3050](https://github.com/uspark-hq/uspark/commit/f1c3050746ead7cf7ebc6f007d486b1207d456fc))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.5.0
+
 ## [0.1.5](https://github.com/uspark-hq/uspark/compare/cli-v0.1.4...cli-v0.1.5) (2025-09-02)
 
 

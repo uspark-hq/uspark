@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/uspark-hq/uspark/compare/core-v0.4.0...core-v0.5.0) (2025-09-03)
+
+
+### Features
+
+* add first test for yjs filesystem implementation ([#53](https://github.com/uspark-hq/uspark/issues/53)) ([58f690e](https://github.com/uspark-hq/uspark/commit/58f690e199427283b827ea39ee42cddab890b79b))
+
 ## [0.4.0](https://github.com/uspark-hq/uspark/compare/core-v0.3.0...core-v0.4.0) (2025-09-02)
 
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.0](https://github.com/uspark-hq/uspark/compare/web-v0.5.0...web-v0.6.0) (2025-09-03)
+
+
+### Features
+
+* add clerk sign-in and sign-up pages for cli authentication ([#56](https://github.com/uspark-hq/uspark/issues/56)) ([ce9c4c7](https://github.com/uspark-hq/uspark/commit/ce9c4c731a9f51806d7a0a17284b64c36fd8b383))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.5.0
+
 ## [0.5.0](https://github.com/uspark-hq/uspark/compare/web-v0.4.0...web-v0.5.0) (2025-09-02)
 
 
