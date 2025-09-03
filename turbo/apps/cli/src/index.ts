@@ -27,6 +27,22 @@ program
     console.log(`Architecture: ${process.arch}`);
   });
 
+const authCommand = program.command("auth").description("Authentication commands");
+
+authCommand
+  .command("login")
+  .description("Log in to uSpark")
+  .action(() => {
+    console.log(chalk.blue("🚧 Authentication not yet implemented"));
+  });
+
+authCommand
+  .command("logout")
+  .description("Log out of uSpark")
+  .action(() => {
+    console.log(chalk.blue("🚧 Logout not yet implemented"));
+  });
+
 program
   .command("pull")
   .description("Pull a file from remote project")
