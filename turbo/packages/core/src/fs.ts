@@ -100,7 +100,7 @@ export class FileSystem {
         'Content-Type': 'application/octet-stream',
         'Authorization': 'Bearer test_token', // TODO: use real auth
       },
-      body: update,
+      body: Buffer.from(update),
     });
     
     if (!response.ok) {
