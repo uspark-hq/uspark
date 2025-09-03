@@ -111,7 +111,7 @@ src/
 │   ├── auth.service.ts # Authentication logic
 │   │   - getAuthToken()     # Check env var first, then stored credentials
 │   │   - requestDeviceCode()
-│   │   - pollForToken()
+│   │   - exchangeToken()
 │   │   - storeCredentials()
 │   │   - getStoredToken()
 ```
@@ -223,7 +223,7 @@ app/
 **Acceptance Criteria**:
 
 - [ ] `requestDeviceCode()` calls device API and returns code
-- [ ] `pollForToken()` polls every 5 seconds with timeout
+- [ ] `exchangeToken()` exchanges device code for access token
 - [ ] `storeToken()` saves to config file
 - [ ] `getStoredToken()` reads from config file
 - [ ] Basic retry logic for network errors

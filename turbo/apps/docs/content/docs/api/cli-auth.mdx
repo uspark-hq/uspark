@@ -13,7 +13,7 @@ This API implements a device authorization flow similar to GitHub CLI, where:
 
 1. CLI requests a device code
 2. User enters the code in their browser to authenticate
-3. CLI polls for the authentication result
+3. CLI exchanges code for token after user authentication
 4. CLI receives an access token for API calls
 
 ## Endpoints
@@ -37,8 +37,7 @@ _Note: This endpoint accepts an empty request body._
   "device_code": "WDJB-MJHT",
   "user_code": "WDJB-MJHT",
   "verification_url": "https://app.uspark.com/cli-auth",
-  "expires_in": 900,
-  "interval": 5
+  "expires_in": 900
 }
 ```
 
@@ -48,7 +47,6 @@ _Note: This endpoint accepts an empty request body._
 - **user_code**: User-friendly verification code (same as device_code)
 - **verification_url**: URL where user should enter the device code
 - **expires_in**: Code lifetime in seconds (15 minutes)
-- **interval**: Minimum polling interval in seconds (5 seconds)
 
 #### Example Request
 
@@ -60,7 +58,7 @@ curl -X POST https://app.uspark.com/api/cli/auth/device \
 
 ### POST /api/cli/auth/token
 
-Exchanges device code for access token. CLI should poll this endpoint until authentication is complete.
+Exchanges device code for access token after user has authenticated.
 
 #### Request Body
 
@@ -222,8 +220,8 @@ uspark auth login
 # 3. CLI displays instructions
 echo "Visit https://app.uspark.com/cli-auth and enter code: WDJB-MJHT"
 
-# 4. CLI polls for token
-# POST /api/cli/auth/token (every 5 seconds)
+# 4. CLI exchanges code for token
+# POST /api/cli/auth/token
 
 # 5. Store token securely
 # CLI stores token in system keychain
@@ -258,7 +256,6 @@ type DeviceAuthResponse = {
   user_code: string; // Same as device_code
   verification_url: string; // https://app.uspark.com/cli-auth
   expires_in: number; // 900 (15 minutes)
-  interval: number; // 5 (seconds)
 };
 
 // Token exchange request
@@ -352,12 +349,9 @@ async function authenticateCLI() {
     `Visit ${deviceData.verification_url} and enter: ${deviceData.device_code}`,
   );
 
-  // Step 2: Poll for token
-  while (true) {
-    await new Promise((resolve) =>
-      setTimeout(resolve, deviceData.interval * 1000),
-    );
-
+  // Step 2: Exchange token (implement your own retry logic)
+  // Note: You should implement your own retry/wait strategy
+  const exchangeToken = async () => {
     const tokenResponse = await fetch("/api/cli/auth/token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -365,16 +359,22 @@ async function authenticateCLI() {
     });
 
     const tokenData = await tokenResponse.json();
-
+    
     if (tokenData.access_token) {
       console.log("Authentication successful!");
       return tokenData.access_token;
     }
-
-    if (tokenData.error !== "authorization_pending") {
-      throw new Error(`Authentication failed: ${tokenData.error}`);
+    
+    if (tokenData.error === "authorization_pending") {
+      // User hasn't authenticated yet, retry later
+      return null;
     }
-  }
+    
+    throw new Error(`Authentication failed: ${tokenData.error}`);
+  };
+  
+  // Call exchangeToken with your own retry strategy
+  return await exchangeToken();
 }
 ```
 

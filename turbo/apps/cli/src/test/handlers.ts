@@ -11,11 +11,10 @@ export const handlers = [
       user_code: "WDJB-MJHT",
       verification_url: `${API_BASE_URL}/cli-auth`,
       expires_in: 900, // 15 minutes
-      interval: 5,
     });
   }),
 
-  // Token polling - returns pending by default
+  // Token exchange - returns pending by default
   http.post(`${API_BASE_URL}/api/cli/auth/token`, () => {
     return HttpResponse.json({
       pending: true,
