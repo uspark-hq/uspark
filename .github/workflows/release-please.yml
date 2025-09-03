@@ -19,6 +19,9 @@ jobs:
     outputs:
       release_created: ${{ steps.release.outputs.release_created }}
       cli_release_created: ${{ steps.release.outputs['turbo/apps/cli--release_created'] }}
+      web_release_created: ${{ steps.release.outputs['turbo/apps/web--release_created'] }}
+      docs_release_created: ${{ steps.release.outputs['turbo/apps/docs--release_created'] }}
+      core_release_created: ${{ steps.release.outputs['turbo/packages/core--release_created'] }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -30,7 +33,7 @@ jobs:
   # Run database migrations in production
   migrate-production:
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    if: ${{ needs.release-please.outputs.web_release_created == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -46,8 +49,8 @@ jobs:
 
   # Deploy web app to production
   deploy-web-production:
-    needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    needs: [release-please, migrate-production]
+    if: ${{ needs.release-please.outputs.web_release_created == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -72,7 +75,7 @@ jobs:
   # Deploy docs app to production
   deploy-docs-production:
     needs: release-please
-    if: ${{ needs.release-please.outputs.release_created == 'true' }}
+    if: ${{ needs.release-please.outputs.docs_release_created == 'true' }}
     runs-on: ubuntu-latest
     permissions:
       contents: read
