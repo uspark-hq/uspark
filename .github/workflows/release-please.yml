@@ -41,12 +41,7 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-
-      - name: Configure git safe directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
-      - name: Install dependencies
-        run: cd turbo && pnpm install --frozen-lockfile --strict-peer-dependencies
+      - uses: ./.github/actions/toolchain-init
 
       - name: Get Production Database URL
         id: get-db-url
@@ -75,12 +70,7 @@ jobs:
       deployments: write
     steps:
       - uses: actions/checkout@v4
-
-      - name: Configure git safe directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
-      - name: Install dependencies
-        run: cd turbo && pnpm install --frozen-lockfile --strict-peer-dependencies
+      - uses: ./.github/actions/toolchain-init
 
       - name: Get Production Database URL
         id: get-db-url
@@ -116,12 +106,7 @@ jobs:
       deployments: write
     steps:
       - uses: actions/checkout@v4
-
-      - name: Configure git safe directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
-      - name: Install dependencies
-        run: cd turbo && pnpm install --frozen-lockfile --strict-peer-dependencies
+      - uses: ./.github/actions/toolchain-init
 
       - name: Deploy Docs to Vercel Production
         uses: ./.github/actions/vercel-deploy
@@ -140,12 +125,7 @@ jobs:
       image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
     steps:
       - uses: actions/checkout@v4
-
-      - name: Configure git safe directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
-      - name: Install dependencies
-        run: cd turbo && pnpm install --frozen-lockfile --strict-peer-dependencies
+      - uses: ./.github/actions/toolchain-init
 
       - name: Build CLI
         run: cd turbo && pnpm -F @uspark/cli build

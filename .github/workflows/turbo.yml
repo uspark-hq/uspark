@@ -15,12 +15,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Configure git safe directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
-      - name: Install dependencies
-        run: cd turbo && pnpm install --frozen-lockfile --strict-peer-dependencies
+      - uses: ./.github/actions/toolchain-init
 
       - name: Lint
         run: lefthook run pre-commit --all-files
@@ -45,12 +40,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
-      - name: Configure git safe directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-
-      - name: Install dependencies
-        run: cd turbo && pnpm install --frozen-lockfile --strict-peer-dependencies
+      - uses: ./.github/actions/toolchain-init
 
       - name: Test
         run: cd turbo && pnpm test
@@ -74,18 +64,14 @@ jobs:
         with:
           fetch-depth: 2
       
-      - name: Configure git safe directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-      
       - name: Check for changes in web app
         id: check-changes
         run: |
           cd turbo/apps/web
           npx turbo-ignore web || echo "has-changes=true" >> $GITHUB_OUTPUT
-
-      - name: Install dependencies
+      
+      - uses: ./.github/actions/toolchain-init
         if: steps.check-changes.outputs.has-changes == 'true'
-        run: cd turbo && pnpm install --frozen-lockfile --strict-peer-dependencies
 
       # Step 1: Create Neon database branch
       - name: Create Neon Branch and Run Migrations
@@ -131,18 +117,14 @@ jobs:
         with:
           fetch-depth: 2
       
-      - name: Configure git safe directory
-        run: git config --global --add safe.directory "$GITHUB_WORKSPACE"
-      
       - name: Check for changes in docs app
         id: check-changes
         run: |
           cd turbo/apps/docs
           npx turbo-ignore docs || echo "has-changes=true" >> $GITHUB_OUTPUT
-
-      - name: Install dependencies
+      
+      - uses: ./.github/actions/toolchain-init
         if: steps.check-changes.outputs.has-changes == 'true'
-        run: cd turbo && pnpm install --frozen-lockfile --strict-peer-dependencies
 
       - name: Deploy Docs to Vercel
         if: steps.check-changes.outputs.has-changes == 'true'
