@@ -7,21 +7,6 @@ This development container provides a complete development environment for the U
 - **app**: Main development container based on Ubuntu 22.04
 - **db**: PostgreSQL 17 database for local development
 
-## Docker Image Pinning
-
-For improved security and reproducibility, you can pin the base image to a specific digest hash:
-
-1. Get the current digest:
-```bash
-docker pull mcr.microsoft.com/devcontainers/base:ubuntu-22.04
-docker inspect mcr.microsoft.com/devcontainers/base:ubuntu-22.04 --format='{{index .RepoDigests 0}}'
-```
-
-2. Update `docker-compose.yml` to use the digest:
-```yaml
-image: mcr.microsoft.com/devcontainers/base@sha256:<hash>
-```
-
 ## Port Configuration
 
 The devcontainer forwards the following ports:
