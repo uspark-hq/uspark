@@ -2,12 +2,12 @@ import { describe, it, expect } from "vitest";
 import { FileSystem } from "../fs";
 
 describe("YJS FileSystem", () => {
-  it("should create a file and read its content with UTF-8 encoding", () => {
+  it("should create a file and read its content with UTF-8 encoding", async () => {
     const fs = new FileSystem();
 
     // Test content with multi-byte characters
     const content = "Hello, 世界! 🚀";
-    fs.writeFile("/test.txt", content);
+    await fs.writeFile("/test.txt", content);
 
     // Reading should return the original string
     const readContent = fs.readFile("/test.txt");

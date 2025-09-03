@@ -1,5 +1,4 @@
 import * as Y from "yjs";
-import { createHash } from "crypto";
 import type { FileNode, BlobInfo, BlobStore } from "./types";
 
 export class FileSystem {
@@ -17,9 +16,9 @@ export class FileSystem {
     this.blobStore = blobStore || new MockBlobStore();
   }
 
-  writeFile(path: string, content: string): void {
+  async writeFile(path: string, content: string): Promise<void> {
     const bytes = new TextEncoder().encode(content);
-    const hash = this.computeHash(bytes);
+    const hash = await this.computeHash(bytes);
 
     // Store file metadata
     const fileNode: FileNode = {
@@ -70,8 +69,17 @@ export class FileSystem {
     return blobInfo;
   }
 
-  private computeHash(bytes: Uint8Array): string {
-    return createHash("sha256").update(bytes).digest("hex");
+  private async computeHash(bytes: Uint8Array): Promise<string> {
+    // Use Web Crypto API when available (browsers), fallback to Node.js crypto
+    if (typeof globalThis !== 'undefined' && globalThis.crypto && globalThis.crypto.subtle) {
+      const hashBuffer = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    } else {
+      // Node.js fallback
+      const { createHash } = await import('crypto');
+      return createHash("sha256").update(bytes).digest("hex");
+    }
   }
 }
 
