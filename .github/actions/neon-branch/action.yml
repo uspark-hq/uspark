@@ -82,15 +82,8 @@ runs:
       shell: bash
       env:
         DATABASE_URL: ${{ steps.branch.outputs.database-url }}
-        NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
-        CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
       run: |
-        if [ -n "$DATABASE_URL" ]; then
-          echo "Running database migrations..."
-          cd turbo && pnpm -F web db:migrate
-        else
-          echo "No database URL provided, skipping migrations"
-        fi
+        cd turbo && pnpm -F web db:migrate
 
     - name: Delete Neon Branch
       if: inputs.action == 'cleanup'
