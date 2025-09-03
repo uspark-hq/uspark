@@ -4,4 +4,4 @@ extends:
 commit-msg:
   commands:
     commitlint:
-      run: cd turbo && npx commitlint --config commitlint.config.js --edit "{1}"
+      run: npx -y commitlint --config commitlint.config.js --edit "{1}"
