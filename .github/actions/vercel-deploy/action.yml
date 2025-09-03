@@ -56,16 +56,21 @@ runs:
       shell: bash
       run: |
         # Set environment variables for build
-        if [ -n "${{ inputs.environment-variables }}" ]; then
+        ENV_VARS="${{ inputs.environment-variables }}"
+        if [ -n "$ENV_VARS" ]; then
           while IFS= read -r line; do
+            # Skip empty lines
+            line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
             if [ -n "$line" ]; then
               # Parse key=value format and export for build
-              KEY=$(echo "$line" | cut -d'=' -f1)
-              VALUE=$(echo "$line" | cut -d'=' -f2-)
-              export "$KEY=$VALUE"
-              echo "Set env: $KEY"
+              KEY="${line%%=*}"
+              VALUE="${line#*=}"
+              if [ -n "$KEY" ] && [ -n "$VALUE" ]; then
+                export "$KEY=$VALUE"
+                echo "Set env: $KEY"
+              fi
             fi
-          done <<< "${{ inputs.environment-variables }}"
+          done <<< "$ENV_VARS"
         fi
 
         # Build deployment command (build and deploy in one step)
@@ -85,16 +90,23 @@ runs:
           DEPLOY_CMD="$DEPLOY_CMD --meta pr=${{ inputs.meta-pr }}"
         fi
 
-        # Add environment variables for runtime
-        if [ -n "${{ inputs.environment-variables }}" ]; then
+        # Add environment variables for both build and runtime
+        if [ -n "$ENV_VARS" ]; then
           while IFS= read -r line; do
+            # Skip empty lines
+            line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
             if [ -n "$line" ]; then
               # Parse key=value format
-              KEY=$(echo "$line" | cut -d'=' -f1)
-              VALUE=$(echo "$line" | cut -d'=' -f2-)
-              DEPLOY_CMD="$DEPLOY_CMD --env $KEY=\"$VALUE\""
+              KEY="${line%%=*}"
+              VALUE="${line#*=}"
+              if [ -n "$KEY" ] && [ -n "$VALUE" ]; then
+                # Add as both build-env and runtime env
+                # build-env is needed for Next.js build process
+                # env is needed for runtime serverless functions
+                DEPLOY_CMD="$DEPLOY_CMD --build-env \"${KEY}=${VALUE}\" --env \"${KEY}=${VALUE}\""
+              fi
             fi
-          done <<< "${{ inputs.environment-variables }}"
+          done <<< "$ENV_VARS"
         fi
 
         # Execute deployment and capture URL
