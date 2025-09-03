@@ -1,0 +1,173 @@
+name: E2E Tests (Vercel Preview)
+
+on:
+  repository_dispatch:
+    types: ['vercel.deployment.success']
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: read
+    
+    steps:
+      # Find the PR associated with this deployment
+      - name: Find PR by SHA
+        id: find-pr
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const sha = '${{ github.event.client_payload.git.sha }}';
+            console.log(`Looking for PR with SHA: ${sha}`);
+            
+            // Find PRs associated with this commit
+            const { data: prs } = await github.rest.repos.listPullRequestsAssociatedWithCommit({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: sha
+            });
+            
+            if (prs.length === 0) {
+              console.log('No PR found for this deployment');
+              core.setOutput('found', 'false');
+              return;
+            }
+            
+            const pr = prs[0];
+            console.log(`Found PR #${pr.number}: ${pr.title}`);
+            core.setOutput('found', 'true');
+            core.setOutput('number', pr.number.toString());
+            core.setOutput('head_sha', pr.head.sha);
+            core.setOutput('head_ref', pr.head.ref);
+
+      # Create a check run to show status on the PR
+      - name: Create check run
+        if: steps.find-pr.outputs.found == 'true'
+        id: create-check
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: check } = await github.rest.checks.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: 'E2E Tests / Vercel Preview',
+              head_sha: '${{ steps.find-pr.outputs.head_sha }}',
+              status: 'in_progress',
+              started_at: new Date().toISOString(),
+              output: {
+                title: 'E2E Tests',
+                summary: 'Running E2E tests against Vercel preview deployment...'
+              }
+            });
+            core.setOutput('id', check.id);
+
+      # Checkout the code at the specific commit
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.client_payload.git.sha }}
+          submodules: recursive
+
+      # Setup Node.js environment
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      # Setup pnpm
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+          run_install: false
+
+      # Get pnpm store directory
+      - name: Get pnpm store directory
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+
+      # Setup pnpm cache
+      - name: Setup pnpm cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      # Install dependencies and build CLI
+      - name: Install dependencies
+        run: |
+          cd turbo
+          pnpm install --frozen-lockfile
+
+      - name: Build CLI
+        run: |
+          cd turbo
+          pnpm -F @uspark/cli build
+
+      # Install CLI globally
+      - name: Install CLI globally
+        run: |
+          cd turbo/apps/cli/dist
+          npm install
+          npm link
+
+      # Run E2E tests against the preview deployment
+      - name: Run E2E tests
+        id: run-tests
+        run: |
+          cd e2e
+          make test
+        env:
+          PREVIEW_URL: ${{ github.event.client_payload.url }}
+          BASE_URL: ${{ github.event.client_payload.url }}
+          API_URL: ${{ github.event.client_payload.url }}
+        continue-on-error: true
+
+      # Update check run with results
+      - name: Update check run
+        if: always() && steps.find-pr.outputs.found == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const conclusion = '${{ steps.run-tests.outcome }}' === 'success' ? 'success' : 'failure';
+            const status = conclusion === 'success' ? '✅ All tests passed' : '❌ Some tests failed';
+            
+            await github.rest.checks.update({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              check_run_id: ${{ steps.create-check.outputs.id }},
+              status: 'completed',
+              conclusion: conclusion,
+              completed_at: new Date().toISOString(),
+              output: {
+                title: `E2E Tests: ${status}`,
+                summary: `E2E tests completed against Vercel preview: ${{ github.event.client_payload.url }}`,
+                text: `
+                  ## Test Results
+                  - **Preview URL**: ${{ github.event.client_payload.url }}
+                  - **Commit SHA**: ${{ github.event.client_payload.git.sha }}
+                  - **PR**: #${{ steps.find-pr.outputs.number }}
+                  - **Status**: ${status}
+                  
+                  Tests were run against the Vercel preview deployment.
+                `
+              }
+            });
+
+      # Comment on PR with results (optional)
+      - name: Comment on PR
+        if: steps.find-pr.outputs.found == 'true' && failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: ${{ steps.find-pr.outputs.number }},
+              body: `❌ E2E tests failed for preview deployment: ${{ github.event.client_payload.url }}\n\nPlease check the [workflow run](${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}) for details.`
+            });
