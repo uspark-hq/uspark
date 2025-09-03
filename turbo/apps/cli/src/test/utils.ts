@@ -36,7 +36,7 @@ export const mockConsole = () => {
   });
   
   return {
-    getLogCalls: () => (console.log as any).mock.calls,
-    getErrorCalls: () => (console.error as any).mock.calls,
+    getLogCalls: () => (console.log as ReturnType<typeof vi.fn>).mock.calls,
+    getErrorCalls: () => (console.error as ReturnType<typeof vi.fn>).mock.calls,
   };
 };
