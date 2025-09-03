@@ -51,12 +51,25 @@ runs:
         vercel-org-id: ${{ inputs.vercel-org-id }}
         vercel-project-id: ${{ inputs.vercel-project-id }}
 
-    - name: Deploy to Vercel
+    - name: Build and Deploy to Vercel
       id: deploy
       shell: bash
       run: |
-        # Build deployment command
-        DEPLOY_CMD="vercel deploy --prebuilt --token=${{ inputs.vercel-token }}"
+        # Set environment variables for build
+        if [ -n "${{ inputs.environment-variables }}" ]; then
+          while IFS= read -r line; do
+            if [ -n "$line" ]; then
+              # Parse key=value format and export for build
+              KEY=$(echo "$line" | cut -d'=' -f1)
+              VALUE=$(echo "$line" | cut -d'=' -f2-)
+              export "$KEY=$VALUE"
+              echo "Set env: $KEY"
+            fi
+          done <<< "${{ inputs.environment-variables }}"
+        fi
+
+        # Build deployment command (build and deploy in one step)
+        DEPLOY_CMD="vercel deploy --token=${{ inputs.vercel-token }}"
 
         # Add production flag if needed
         if [ "${{ inputs.environment }}" == "production" ]; then
@@ -72,7 +85,7 @@ runs:
           DEPLOY_CMD="$DEPLOY_CMD --meta pr=${{ inputs.meta-pr }}"
         fi
 
-        # Add environment variables if provided
+        # Add environment variables for runtime
         if [ -n "${{ inputs.environment-variables }}" ]; then
           while IFS= read -r line; do
             if [ -n "$line" ]; then
