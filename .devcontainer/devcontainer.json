@@ -4,6 +4,7 @@
   "features": {
     "ghcr.io/itsmechlark/features/postgresql:1": {}
   },
+  "remoteUser": "vscode",
   "forwardPorts": [4983, 5432],
   "remoteEnv": {
     "CLAUDE_CONFIG_DIR": "/home/vscode/.config/claude",
