@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.0](https://github.com/uspark-hq/uspark/compare/web-v0.6.0...web-v0.7.0) (2025-09-03)
+
+
+### Features
+
+* add beautiful ai tool waiting list landing page for uspark ([#73](https://github.com/uspark-hq/uspark/issues/73)) ([3f4c173](https://github.com/uspark-hq/uspark/commit/3f4c173578f310f0b0fc2547fa71732e6d77c975))
+
 ## [0.6.0](https://github.com/uspark-hq/uspark/compare/web-v0.5.0...web-v0.6.0) (2025-09-03)
 
 
