@@ -12,7 +12,7 @@ export class FileSystem {
     this.ydoc = new Y.Doc();
     this.files = this.ydoc.getMap("files");
     this.blobs = this.ydoc.getMap("blobs");
-    
+
     // Mock blob store for now
     this.blobStore = blobStore || new MockBlobStore();
   }
@@ -20,21 +20,21 @@ export class FileSystem {
   writeFile(path: string, content: string): void {
     const bytes = new TextEncoder().encode(content);
     const hash = this.computeHash(bytes);
-    
+
     // Store file metadata
     const fileNode: FileNode = {
       hash,
       mtime: Date.now(),
     };
     this.files.set(path, fileNode);
-    
+
     // Store blob metadata (only if new)
     if (!this.blobs.has(hash)) {
       const blobInfo: BlobInfo = {
         size: bytes.length,
       };
       this.blobs.set(hash, blobInfo);
-      
+
       // Store actual content
       this.blobStore.set(hash, content);
     }
@@ -45,12 +45,12 @@ export class FileSystem {
     if (!fileNode) {
       throw new Error(`File not found: ${path}`);
     }
-    
+
     const content = this.blobStore.get(fileNode.hash);
     if (!content) {
       throw new Error(`Content not found for hash: ${fileNode.hash}`);
     }
-    
+
     return content;
   }
 

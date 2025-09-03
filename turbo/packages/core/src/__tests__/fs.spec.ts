@@ -21,7 +21,7 @@ describe("YJS FileSystem", () => {
 
     // Verify blob storage
     const blobInfo = fs.getBlobInfo(fileNode.hash);
-    
+
     // Size should be byte size, not character count
     const byteSize = new TextEncoder().encode(content).length;
     expect(blobInfo.size).toBe(byteSize);
