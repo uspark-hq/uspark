@@ -94,7 +94,7 @@ describe("/api/cli/auth/device", () => {
       .where(eq(DEVICE_CODES_TBL.status, "pending"));
 
     // Check that our codes are among the stored codes
-    const storedDeviceCodes = storedCodes.map(c => c.code);
+    const storedDeviceCodes = storedCodes.map((c) => c.code);
     expect(storedDeviceCodes).toContain(data1.device_code);
     expect(storedDeviceCodes).toContain(data2.device_code);
     expect(storedDeviceCodes).toContain(data3.device_code);

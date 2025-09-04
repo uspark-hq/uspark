@@ -13,23 +13,23 @@ describe("/api/projects", () => {
   beforeEach(async () => {
     // Clean up any existing test data
     initServices();
-    
+
     // Clean up all test data regardless of user to avoid interference
     // Delete all share links first
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, userId));
-      
-    // Delete projects from other test users that might reference this user  
+
+    // Delete projects from other test users that might reference this user
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, "other-user"));
-    
+
     // Then delete all projects for test users
     await globalThis.services.db
       .delete(PROJECTS_TBL)
       .where(eq(PROJECTS_TBL.userId, userId));
-      
+
     await globalThis.services.db
       .delete(PROJECTS_TBL)
       .where(eq(PROJECTS_TBL.userId, "other-user"));
