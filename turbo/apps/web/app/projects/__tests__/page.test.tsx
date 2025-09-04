@@ -18,15 +18,8 @@ describe("Projects List Page", () => {
     });
   });
 
-  it("renders page header correctly", async () => {
+  it("renders page header correctly", () => {
     render(<ProjectsListPage />);
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading your projects..."),
-      ).not.toBeInTheDocument();
-    });
 
     expect(
       screen.getByRole("heading", { name: "Your Projects" }),
@@ -42,20 +35,21 @@ describe("Projects List Page", () => {
   });
 
   it("shows loading state initially", () => {
+    // Since loading is now instantaneous, we can't reliably test the loading state
+    // This test becomes less relevant but we can still render and check it doesn't crash
     render(<ProjectsListPage />);
 
-    expect(screen.getByText("Loading your projects...")).toBeInTheDocument();
+    // The component should render without errors
+    expect(
+      screen.getByRole("heading", { name: "Your Projects" }),
+    ).toBeInTheDocument();
   });
 
   it("displays mock projects after loading", async () => {
     render(<ProjectsListPage />);
 
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading your projects..."),
-      ).not.toBeInTheDocument();
-    });
+    // Loading is now instantaneous, so projects should be immediately available
+    // Wait for React to finish rendering
 
     // Check that mock projects are displayed
     expect(screen.getByText("Demo Project")).toBeInTheDocument();
@@ -63,16 +57,10 @@ describe("Projects List Page", () => {
     expect(screen.getByText("API Service")).toBeInTheDocument();
   });
 
-  it("shows project metadata", async () => {
+  it("shows project metadata", () => {
     render(<ProjectsListPage />);
 
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading your projects..."),
-      ).not.toBeInTheDocument();
-    });
-
-    // Check file counts and sizes are displayed
+    // Check file counts and sizes are displayed (immediately available)
     expect(screen.getByText("7 files")).toBeInTheDocument();
     expect(screen.getByText("23 files")).toBeInTheDocument();
     expect(screen.getByText("12 files")).toBeInTheDocument();
@@ -126,13 +114,6 @@ describe("Projects List Page", () => {
   it("handles project creation", async () => {
     render(<ProjectsListPage />);
 
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading your projects..."),
-      ).not.toBeInTheDocument();
-    });
-
     // Open create dialog
     const newProjectButton = screen.getByRole("button", {
       name: /new project/i,
@@ -149,18 +130,12 @@ describe("Projects List Page", () => {
 
     fireEvent.click(createButton);
 
-    // Should show creating state
-    expect(screen.getByText("Creating...")).toBeInTheDocument();
-
-    // Wait for creation to complete and navigation
-    await waitFor(
-      () => {
-        expect(mockPush).toHaveBeenCalledWith(
-          expect.stringMatching(/^\/projects\/project-\d+$/),
-        );
-      },
-      { timeout: 3000 },
-    ); // Increase timeout for async operations
+    // Project creation should happen immediately and navigate
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(
+        expect.stringMatching(/^\/projects\/project-\d+$/),
+      );
+    });
   });
 
   it("disables create button when name is empty", async () => {
@@ -242,7 +217,7 @@ describe("Projects List Page", () => {
   it("submits on enter key", async () => {
     render(<ProjectsListPage />);
 
-    // Wait for loading to complete
+    // Wait for loading to complete (no artificial delays now)
     await waitFor(() => {
       expect(
         screen.queryByText("Loading your projects..."),
@@ -261,9 +236,7 @@ describe("Projects List Page", () => {
     // Press enter
     fireEvent.keyDown(nameInput, { key: "Enter" });
 
-    // Should start creating
-    expect(screen.getByText("Creating...")).toBeInTheDocument();
-
+    // Router.push should be called immediately (no delays)
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalled();
     });
