@@ -1,5 +1,6 @@
 import { Doc, encodeStateAsUpdate, applyUpdate } from "yjs";
 import type { FileNode, BlobInfo } from "@uspark/core";
+import { createHash } from "crypto";
 
 export class MockYjsServer {
   private projects = new Map<string, Doc>();
@@ -67,8 +68,8 @@ export class MockYjsServer {
   }
 
   private computeHash(content: string): string {
-    // Simple hash for testing - in real implementation would use crypto
-    return `hash_${content.length}_${content.slice(0, 10)}`;
+    // Use SHA-256 to match the real implementation
+    return createHash("sha256").update(content, "utf8").digest("hex");
   }
 }
 

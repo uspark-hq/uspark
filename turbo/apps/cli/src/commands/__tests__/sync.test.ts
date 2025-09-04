@@ -1,59 +1,12 @@
-import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { pushCommand, pullCommand } from "../sync";
 import chalk from "chalk";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { tmpdir } from "os";
-import { setupServer } from "msw/node";
 import { http, HttpResponse } from "msw";
 import { mockServer } from "../../test/mock-server";
-
-// Create MSW server to mock API responses
-const server = setupServer(
-  // Mock GET /api/projects/:projectId (returns YJS document state)
-  http.get("http://localhost:3000/api/projects/:projectId", ({ params }) => {
-    const projectId = params.projectId as string;
-    
-    if (projectId === "nonexistent") {
-      return HttpResponse.json(
-        { error: "project_not_found", error_description: "Project not found" },
-        { status: 404 }
-      );
-    }
-    
-    // Use existing mockServer
-    const ydocState = mockServer.getProject(projectId);
-    return new HttpResponse(ydocState, {
-      headers: {
-        "Content-Type": "application/octet-stream",
-        "X-Version": "0",
-      },
-    });
-  }),
-  
-  // Mock PATCH /api/projects/:projectId (accepts YJS updates)
-  http.patch("http://localhost:3000/api/projects/:projectId", () => {
-    return new HttpResponse("OK", {
-      headers: {
-        "X-Version": "1",
-      },
-    });
-  }),
-  
-  // Mock GET /api/blobs/:hash (returns file content)  
-  http.get("http://localhost:3000/api/blobs/:hash", ({ params }) => {
-    const hash = params.hash as string;
-    const content = mockServer.getBlobContent(hash);
-    if (content) {
-      return HttpResponse.text(content);
-    }
-    // Return 404 for missing blobs to match real behavior
-    return HttpResponse.json(
-      { error: "blob_not_found" },
-      { status: 404 }
-    );
-  }),
-);
+import { server } from "../../test/setup";
 
 describe("sync commands", () => {
   let tempDir: string;
@@ -70,12 +23,10 @@ describe("sync commands", () => {
     // Reset mock server
     mockServer.reset();
     
-    // Start MSW server
-    server.listen();
-    
     // Mock console methods
     console.log = vi.fn();
     console.error = vi.fn();
+    console.warn = vi.fn();
   });
 
   afterEach(async () => {
@@ -86,14 +37,7 @@ describe("sync commands", () => {
     delete process.env.USPARK_TOKEN;
     delete process.env.USPARK_API_URL;
     
-    // Reset MSW handlers
-    server.resetHandlers();
-    
     vi.restoreAllMocks();
-  });
-
-  afterAll(() => {
-    server.close();
   });
 
   describe("pushCommand", () => {
@@ -108,31 +52,18 @@ describe("sync commands", () => {
       );
     });
 
-    it("should push all files with --all flag", async () => {
-      // Create test files in current directory
-      await fs.writeFile("file1.txt", "content1");
-      await fs.writeFile("file2.js", "content2");
-      await fs.mkdir("subdir");
-      await fs.writeFile("subdir/file3.md", "content3");
-
-      await pushCommand(undefined, {
-        projectId: "proj-123",
-        all: true,
-      });
-
-      // Check that batch push was completed
-      expect(console.log).toHaveBeenCalledWith(
-        chalk.blue("Pushing all files to project proj-123..."),
-      );
-      expect(console.log).toHaveBeenCalledWith(
-        chalk.green("✓ Push completed: 3 files pushed"),
-      );
+    it("should throw error for --all flag (not supported yet)", async () => {
+      await expect(
+        pushCommand(undefined, {
+          projectId: "proj-123",
+          all: true,
+        })
+      ).rejects.toThrow("--all flag is not supported yet. Please specify individual files.");
     });
 
-    it("should fail fast on network errors during batch push", async () => {
-      // Create test files
+    it("should fail fast on network errors", async () => {
+      // Create test file
       await fs.writeFile("file1.txt", "content1");
-      await fs.writeFile("file2.txt", "content2");
 
       // Mock server to return error
       server.use(
@@ -146,17 +77,16 @@ describe("sync commands", () => {
 
       // Should throw on error (fail fast)
       await expect(
-        pushCommand(undefined, {
+        pushCommand("file1.txt", {
           projectId: "proj-123",
-          all: true,
         })
       ).rejects.toThrow("Failed to sync to remote");
     });
 
-    it("should throw error when no file path and no --all flag", async () => {
+    it("should throw error when no file path", async () => {
       await expect(
         pushCommand(undefined, { projectId: "proj-123" }),
-      ).rejects.toThrow("File path is required when not using --all flag");
+      ).rejects.toThrow("File path is required");
     });
 
     it("should handle missing file error", async () => {
@@ -213,9 +143,16 @@ describe("sync commands", () => {
     });
 
     it("should handle project not found error", async () => {
-      // Mock server to return 404 for this project
+      // Override handler for this specific test
       server.use(
-        http.get("http://localhost:3000/api/projects/nonexistent", () => {
+        http.get("http://localhost:3000/api/projects/:projectId", ({ params }) => {
+          if (params.projectId === "nonexistent") {
+            return HttpResponse.json(
+              { error: "project_not_found", error_description: "Project not found" },
+              { status: 404 }
+            );
+          }
+          // Fall back to default handler
           return HttpResponse.json(
             { error: "project_not_found", error_description: "Project not found" },
             { status: 404 }

@@ -96,7 +96,12 @@ export class ProjectSync {
         throw new Error(`Failed to get blob token: ${tokenResponse.statusText}`);
       }
 
-      const { downloadUrlPrefix, token: blobToken } = await tokenResponse.json();
+      const { downloadUrlPrefix, token: blobToken } = await tokenResponse.json() as {
+        token: string;
+        expiresAt: string;
+        uploadUrl: string;
+        downloadUrlPrefix: string;
+      };
 
       // Fetch blob directly from Vercel Blob Storage
       const blobResponse = await fetch(`${downloadUrlPrefix}/${fileNode.hash}`, {
@@ -159,7 +164,12 @@ export class ProjectSync {
         throw new Error(`Failed to get blob token: ${tokenResponse.statusText}`);
       }
 
-      const { uploadUrl, token: blobToken } = await tokenResponse.json();
+      const { uploadUrl, token: blobToken } = await tokenResponse.json() as {
+        token: string;
+        expiresAt: string;
+        uploadUrl: string;
+        downloadUrlPrefix: string;
+      };
 
       // Upload blob directly to Vercel Blob Storage
       const uploadResponse = await fetch(`${uploadUrl}/${localHash}`, {
@@ -227,7 +237,7 @@ export class ProjectSync {
     const toAdd = new Set<string>();
 
     // Find deletions (in remote but not in local)
-    for (const [path, hash] of remoteFiles) {
+    for (const [path] of remoteFiles) {
       if (!localFiles.has(path)) {
         toDelete.add(path);
       }
@@ -262,7 +272,12 @@ export class ProjectSync {
       });
 
       if (tokenResponse.ok) {
-        const { uploadUrl, token: blobToken } = await tokenResponse.json();
+        const { uploadUrl, token: blobToken } = await tokenResponse.json() as {
+        token: string;
+        expiresAt: string;
+        uploadUrl: string;
+        downloadUrlPrefix: string;
+      };
 
         // Upload all new blobs
         for (const hash of blobsToUpload) {

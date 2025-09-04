@@ -1,16 +1,26 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { GET } from "./route";
 import { initServices } from "../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { NextRequest } from "next/server";
+import { eq, like } from "drizzle-orm";
 
 describe("GET /api/projects/[projectId]/blob-token", () => {
-  beforeEach(() => {
+  const timestamp = Date.now();
+  
+  beforeEach(async () => {
     initServices();
+  });
+  
+  afterEach(async () => {
+    // Clean up test projects
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(like(PROJECTS_TBL.id, `%-${timestamp}`));
   });
 
   it("should return STS token for existing project", async () => {
-    const projectId = "test-project";
+    const projectId = `test-project-${timestamp}`;
     const userId = "test-user";
 
     // Create test project
@@ -38,7 +48,7 @@ describe("GET /api/projects/[projectId]/blob-token", () => {
   });
 
   it("should return 404 for non-existent project", async () => {
-    const projectId = "non-existent";
+    const projectId = `non-existent-${timestamp}`;
 
     const request = new NextRequest("http://localhost/api/projects/non-existent/blob-token");
     const response = await GET(request, {
@@ -51,7 +61,7 @@ describe("GET /api/projects/[projectId]/blob-token", () => {
   });
 
   it("should return 404 for project owned by different user", async () => {
-    const projectId = "other-user-project";
+    const projectId = `other-user-project-${timestamp}`;
 
     // Create project owned by different user
     await globalThis.services.db.insert(PROJECTS_TBL).values({
