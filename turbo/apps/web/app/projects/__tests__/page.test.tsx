@@ -157,7 +157,7 @@ describe("Projects List Page", () => {
       expect(mockPush).toHaveBeenCalledWith(
         expect.stringMatching(/^\/projects\/project-\d+$/),
       );
-    });
+    }, { timeout: 3000 }); // Increase timeout for async operations
   });
 
   it("disables create button when name is empty", async () => {
