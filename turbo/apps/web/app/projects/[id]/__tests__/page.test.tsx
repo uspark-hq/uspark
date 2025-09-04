@@ -105,25 +105,17 @@ describe("Project Detail Page", () => {
     expect(screen.getByText("Read-only preview")).toBeInTheDocument();
   });
 
-  it("shows loading state when loading file content", async () => {
+  it("loads file content immediately when file is selected", async () => {
     render(<ProjectDetailPage />);
 
     // Select a file
     const selectButton = screen.getByTestId("mock-file-select");
     fireEvent.click(selectButton);
 
-    // Should show loading state briefly
-    expect(screen.getByText("Loading file content...")).toBeInTheDocument();
-
-    // Wait for content to load
-    await waitFor(
-      () => {
-        expect(
-          screen.queryByText("Loading file content..."),
-        ).not.toBeInTheDocument();
-      },
-      { timeout: 1000 },
-    );
+    // Content should be available immediately (no loading delays)
+    await waitFor(() => {
+      expect(screen.getByText("📄 src/test.ts")).toBeInTheDocument();
+    });
   });
 
   it("displays mock file content based on file extension", async () => {
