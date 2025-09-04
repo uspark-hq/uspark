@@ -14,7 +14,7 @@ export default function ProjectDetailPage() {
   // Mock file content loading for now
   const loadFileContent = async (filePath: string) => {
     setLoadingContent(true);
-    
+
     // Mock content based on file extension (no artificial delay)
     const ext = filePath.split(".").pop()?.toLowerCase();
     let mockContent = "";

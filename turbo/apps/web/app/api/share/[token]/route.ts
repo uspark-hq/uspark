@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as Y from "yjs";
-import {
-  type AccessShareError,
-  type AccessShareResponse,
-} from "@uspark/core";
+import { type AccessShareError, type AccessShareResponse } from "@uspark/core";
 import { initServices } from "../../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";

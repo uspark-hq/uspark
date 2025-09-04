@@ -38,7 +38,7 @@ describe("Projects List Page", () => {
     // Since loading is now instantaneous, we can't reliably test the loading state
     // This test becomes less relevant but we can still render and check it doesn't crash
     render(<ProjectsListPage />);
-    
+
     // The component should render without errors
     expect(
       screen.getByRole("heading", { name: "Your Projects" }),
