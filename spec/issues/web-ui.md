@@ -60,14 +60,10 @@ Returns: { id, name, created_at }
 - Send button
 - Execution status indicator
 
-**API**:
-```typescript
-GET /api/projects/:id/files
-Returns: { files: Array<{ path, type, size }> }
-
-GET /api/projects/:id/file?path=<path>
-Returns: { content: string }
-```
+**Client-side File Management**:
+- File structure is parsed from YJS snapshot on client
+- File content retrieved directly from Blob Storage
+- No additional APIs needed (uses existing YJS sync endpoints)
 
 ### 3. Claude Execution
 
@@ -98,10 +94,10 @@ Returns: {
 
 #### 1. Project Management APIs
 **Acceptance Criteria**:
-- [ ] GET /api/projects - List user's projects
-- [ ] POST /api/projects - Create new project
-- [ ] GET /api/projects/:id/files - Get file tree
-- [ ] GET /api/projects/:id/file - Get file content
+- [x] GET /api/projects - List user's projects
+- [x] POST /api/projects - Create new project
+- [x] Use existing YJS sync endpoints for file data (GET/PATCH /api/projects/:id)
+- Client-side parsing of file structure from YJS snapshot
 
 #### 2. Claude Execution APIs
 **Acceptance Criteria**:
