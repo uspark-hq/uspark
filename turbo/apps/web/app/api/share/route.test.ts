@@ -31,9 +31,7 @@ describe("/api/share", () => {
       .where(eq(PROJECTS_TBL.id, projectId));
 
     // Mock successful authentication by default
-    mockAuth.mockResolvedValue({ userId } as Awaited<
-      ReturnType<typeof auth>
-    >);
+    mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
   });
 
   describe("POST /api/share", () => {
