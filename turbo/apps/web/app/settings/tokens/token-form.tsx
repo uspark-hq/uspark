@@ -8,7 +8,12 @@ interface TokenFormProps {
 }
 
 export function TokenForm({ action }: TokenFormProps) {
-  const [result, formAction, isPending] = useActionState(action, null);
+  const [result, formAction, isPending] = useActionState(
+    async (previousState: GenerateTokenResult | null, formData: FormData) => {
+      return action(formData);
+    },
+    null,
+  );
   const [copySuccess, setCopySuccess] = useState(false);
 
   const copyToClipboard = async (token: string) => {
