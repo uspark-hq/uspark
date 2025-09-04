@@ -55,6 +55,8 @@ jobs:
     container:
       image: ghcr.io/uspark-hq/uspark-toolchain:4c465ea
     if: github.event_name == 'pull_request'
+    outputs:
+      preview-url: ${{ steps.deploy.outputs.url }}
     permissions:
       contents: read
       pull-requests: write
@@ -64,11 +66,25 @@ jobs:
         with:
           fetch-depth: 2
       
-      - name: Check for changes in web app
+      - name: Check for changes affecting deployment
         id: check-changes
         run: |
+          # Check if web app has changes
           cd turbo/apps/web
-          npx turbo-ignore web || echo "has-changes=true" >> $GITHUB_OUTPUT
+          if npx turbo-ignore web; then
+            # No web changes, but check if CLI changed (for e2e testing)
+            cd ../cli
+            if npx turbo-ignore cli; then
+              echo "No changes affecting deployment"
+              echo "has-changes=false" >> $GITHUB_OUTPUT
+            else
+              echo "CLI changes detected, deploying web for e2e testing"
+              echo "has-changes=true" >> $GITHUB_OUTPUT
+            fi
+          else
+            echo "Web app changes detected"
+            echo "has-changes=true" >> $GITHUB_OUTPUT
+          fi
       
       - uses: ./.github/actions/toolchain-init
         if: steps.check-changes.outputs.has-changes == 'true'
@@ -138,3 +154,27 @@ jobs:
           deployment-env: docs
           meta-branch: ${{ github.head_ref }}
           meta-pr: ${{ github.event.pull_request.number }}
+
+  # Run E2E tests against deployed preview
+  e2e-test:
+    runs-on: ubuntu-latest
+    needs: [deploy-web]
+    if: github.event_name == 'pull_request' && needs.deploy-web.outputs.preview-url != ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive  # For BATS test framework
+      - uses: ./.github/actions/init
+
+      - name: Build CLI
+        run: cd turbo && pnpm --filter @uspark/cli build
+
+      - name: Setup CLI globally
+        run: cd turbo/apps/cli && pnpm link --global
+
+      - name: Run E2E Tests
+        run: |
+          echo "Testing against API_HOST: ${{ needs.deploy-web.outputs.preview-url }}"
+          ./e2e/run.sh
+        env:
+          API_HOST: ${{ needs.deploy-web.outputs.preview-url }}

@@ -2,8 +2,10 @@ import { FOO } from "@uspark/core";
 import { Command } from "commander";
 import chalk from "chalk";
 import { authenticate, logout, checkAuthStatus } from "./auth";
-import { getToken, getApiUrl } from "./config";
-import { ProjectSync } from "./project-sync";
+import { pullCommand, pushCommand } from "./commands/sync";
+import { watchClaudeCommand } from "./commands/watch-claude";
+
+const API_HOST = process.env.API_HOST || "https://api.uspark.com";
 
 const program = new Command();
 
@@ -28,6 +30,7 @@ program
     console.log(`Node Version: ${process.version}`);
     console.log(`Platform: ${process.platform}`);
     console.log(`Architecture: ${process.arch}`);
+    console.log(`API Host: ${API_HOST}`);
   });
 
 const authCommand = program
@@ -101,65 +104,13 @@ program
     },
   );
 
-export async function pullCommand(
-  filePath: string,
-  options: { projectId: string; output?: string },
-): Promise<void> {
-  // Check authentication
-  const token = await getToken();
-  if (!token) {
-    console.error(
-      chalk.red("✗ Not authenticated. Please run 'uspark auth login' first."),
-    );
-    throw new Error("Not authenticated");
-  }
-
-  const apiUrl = await getApiUrl();
-
-  console.log(
-    chalk.blue(`Pulling ${filePath} from project ${options.projectId}...`),
-  );
-
-  const sync = new ProjectSync();
-  await sync.pullFile(options.projectId, filePath, options.output, {
-    token,
-    apiUrl,
+program
+  .command("watch-claude")
+  .description("Watch Claude's JSON output and sync file changes in real-time")
+  .requiredOption("--project-id <projectId>", "Project ID to sync changes to")
+  .action(async (options: { projectId: string }) => {
+    await watchClaudeCommand(options);
   });
-
-  const outputPath = options.output || filePath;
-  console.log(chalk.green(`✓ Successfully pulled to ${outputPath}`));
-}
-
-export async function pushCommand(
-  filePath: string,
-  options: { projectId: string; source?: string },
-): Promise<void> {
-  // Check authentication
-  const token = await getToken();
-  if (!token) {
-    console.error(
-      chalk.red("✗ Not authenticated. Please run 'uspark auth login' first."),
-    );
-    throw new Error("Not authenticated");
-  }
-
-  const apiUrl = await getApiUrl();
-
-  const sourcePath = options.source || filePath;
-  console.log(
-    chalk.blue(
-      `Pushing ${sourcePath} to project ${options.projectId} as ${filePath}...`,
-    ),
-  );
-
-  const sync = new ProjectSync();
-  await sync.pushFile(options.projectId, filePath, options.source, {
-    token,
-    apiUrl,
-  });
-
-  console.log(chalk.green(`✓ Successfully pushed ${filePath}`));
-}
 
 // Parse arguments when run directly (not when imported for testing)
 // Check if this is the main module being run
