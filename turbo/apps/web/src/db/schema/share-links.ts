@@ -26,7 +26,7 @@ export const SHARE_LINKS_TBL = pgTable(
     return {
       shareTokenIdx: index("idx_share_token").on(table.token),
     };
-  }
+  },
 );
 
 export type ShareLink = typeof SHARE_LINKS_TBL.$inferSelect;
