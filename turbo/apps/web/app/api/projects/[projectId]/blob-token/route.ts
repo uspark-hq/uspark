@@ -40,8 +40,7 @@ export async function GET(
     token: `vercel_blob_rw_${projectId}_${Date.now()}`,
     expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
     uploadUrl:
-      env().VERCEL_BLOB_UPLOAD_URL ||
-      "https://blob.vercel-storage.com/upload",
+      env().VERCEL_BLOB_UPLOAD_URL || "https://blob.vercel-storage.com/upload",
     downloadUrlPrefix:
       env().VERCEL_BLOB_URL || "https://blob.vercel-storage.com/files",
   };
