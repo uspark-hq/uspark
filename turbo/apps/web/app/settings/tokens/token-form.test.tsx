@@ -7,7 +7,7 @@ const mockClipboard = {
   writeText: vi.fn().mockResolvedValue(undefined),
 };
 
-// @ts-ignore - We need this for testing clipboard functionality
+// @ts-expect-error - We need this for testing clipboard functionality
 global.navigator.clipboard = mockClipboard;
 
 describe("TokenForm", () => {
