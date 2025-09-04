@@ -1,4 +1,4 @@
-# YJS File System Data Structure
+# YJS File System Data Structure (MVP)
 
 ## Overview
 
@@ -57,9 +57,24 @@ interface BlobInfo {
 
 ## Client Architecture Design
 
-### Simplified FileSystem Extension Approach
+### Direct Blob Storage Access
 
-The client-side synchronization is implemented by extending the existing `FileSystem` class with remote sync capabilities, avoiding the complexity of separate coordinator classes.
+Clients (CLI and Web) directly access Vercel Blob Storage for file content, while YJS only stores metadata and file structure. This reduces server load and improves transfer performance.
+
+### Upload Flow
+```
+1. Client requests STS token from API server
+2. Client uploads file content directly to Vercel Blob Storage
+3. Client updates YJS with file metadata (hash, size)
+4. Client sends PATCH to sync YJS state
+```
+
+### Download Flow
+```
+1. Client fetches YJS state from API server
+2. Client extracts file hash from YJS metadata
+3. Client downloads file content directly from Vercel Blob Storage using STS token
+```
 
 ### Extended FileSystem Class
 
@@ -68,33 +83,60 @@ export class FileSystem {
   private ydoc: Y.Doc;
   private files: Y.Map<FileNode>;
   private blobs: Y.Map<BlobInfo>;
-  private blobStore: BlobStore;
+  private blobStore: VercelBlobClient;
 
-  // Existing methods
-  async writeFile(path: string, content: string): Promise<void>
-  readFile(path: string): string
-
-  // New sync methods
-  async syncFromRemote(projectId: string): Promise<void> {
-    // Fetch complete YDoc state from GET /api/projects/:projectId
-    // Apply remote state to local ydoc using Y.applyUpdate
-  }
-
-  async syncToRemote(projectId: string): Promise<void> {
-    // Generate incremental update using Y.encodeStateAsUpdate
-    // Send to PATCH /api/projects/:projectId
+  // Get STS token for direct blob access
+  async getBlobToken(projectId: string): Promise<BlobToken> {
+    const response = await fetch(`/api/projects/${projectId}/blob-token`);
+    return response.json(); // { token, expiresAt, uploadUrl, downloadUrlPrefix }
   }
 
   async pullFile(projectId: string, filePath: string): Promise<void> {
-    // 1. Sync from remote to get latest YDoc state
-    // 2. Read file content from ydoc using existing readFile logic
-    // 3. Write to local filesystem using fs.writeFile
+    // 1. Sync YJS state from remote
+    await this.syncFromRemote(projectId);
+    
+    // 2. Get file metadata from YJS
+    const fileNode = this.files.get(filePath);
+    if (!fileNode) throw new Error('File not found');
+    
+    // 3. Get STS token for blob access
+    const { token, downloadUrlPrefix } = await this.getBlobToken(projectId);
+    
+    // 4. Download content directly from Vercel Blob
+    const content = await fetch(`${downloadUrlPrefix}/${fileNode.hash}`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    });
+    
+    // 5. Write to local filesystem
+    await fs.writeFile(filePath, await content.text());
   }
 
   async pushFile(projectId: string, filePath: string): Promise<void> {
-    // 1. Read from local filesystem using fs.readFile
-    // 2. Update ydoc using existing writeFile method
-    // 3. Sync to remote
+    // 1. Read local file
+    const content = await fs.readFile(filePath, 'utf8');
+    const hash = calculateHash(content);
+    
+    // 2. Get STS token for blob access
+    const { token, uploadUrl } = await this.getBlobToken(projectId);
+    
+    // 3. Upload directly to Vercel Blob if not exists
+    if (!this.blobs.has(hash)) {
+      await fetch(uploadUrl, {
+        method: 'PUT',
+        headers: { 
+          'Authorization': `Bearer ${token}`,
+          'x-blob-hash': hash
+        },
+        body: content
+      });
+    }
+    
+    // 4. Update YJS with metadata
+    this.files.set(filePath, { hash, mtime: Date.now() });
+    this.blobs.set(hash, { size: content.length });
+    
+    // 5. Sync YJS state to remote
+    await this.syncToRemote(projectId);
   }
 }
 ```
@@ -103,7 +145,44 @@ export class FileSystem {
 
 ### Core Synchronization APIs
 
-The synchronization between client and server is handled through two primary endpoints that work with binary YDoc data.
+The synchronization between client and server is handled through YDoc synchronization endpoints and a blob token endpoint for direct storage access.
+
+#### GET /api/projects/:projectId/blob-token
+
+Returns temporary STS token for direct Vercel Blob Storage access.
+
+**Request:**
+```http
+GET /api/projects/:projectId/blob-token
+Authorization: Bearer <token>
+```
+
+**Response:**
+```json
+{
+  "token": "vercel_blob_rw_abc123...",
+  "expiresAt": "2024-01-01T12:30:00Z",
+  "uploadUrl": "https://blob.vercel-storage.com/upload",
+  "downloadUrlPrefix": "https://blob.vercel-storage.com/files"
+}
+```
+
+**Server Implementation:**
+```typescript
+// Generate STS token with limited lifetime (e.g., 10 minutes)
+const stsToken = await vercelBlob.generateStsToken({
+  projectId,
+  permissions: ['read', 'write'],
+  expiresIn: 600 // 10 minutes
+});
+
+return Response.json({
+  token: stsToken.token,
+  expiresAt: stsToken.expiresAt,
+  uploadUrl: process.env.VERCEL_BLOB_UPLOAD_URL,
+  downloadUrlPrefix: process.env.VERCEL_BLOB_DOWNLOAD_URL
+});
+```
 
 #### GET /api/projects/:projectId
 
@@ -237,6 +316,13 @@ CREATE TABLE projects (
 ### Blob Storage
 
 File contents are stored separately in Vercel Blob Storage, referenced by hash from the YDoc.
+**Note**: Vercel Blob storage implementation with content-addressed deduplication completed (PR #80)
+
+#### Direct Client Access
+- Clients receive STS tokens for direct blob access
+- Upload: Client → Vercel Blob → Update YJS
+- Download: YJS metadata → Vercel Blob → Client
+- Reduces server bandwidth and improves performance
 
 ## Implementation Todos - Client-First Approach
 
@@ -263,44 +349,31 @@ File contents are stored separately in Vercel Blob Storage, referenced by hash f
 
 ### Phase 2: CLI Implementation
 
-#### 3. Extend FileSystem class with sync methods
+#### 3. Blob Token API Implementation
 
-**Task**: Add remote synchronization methods to existing FileSystem class
+**Task**: Add STS token endpoint for direct blob access
 **Acceptance Criteria**:
-- [x] Add `syncFromRemote(projectId)` method to fetch and apply remote YDoc state
-- [x] Add `syncToRemote(projectId)` method to send local YDoc updates
-- [x] Add `pullFile(projectId, filePath)` method combining sync + local file write
-- [x] Add `pushFile(projectId, filePath)` method combining local file read + sync
-- [x] Use existing hash computation and blob storage logic
+- [ ] Implement GET /api/projects/:projectId/blob-token endpoint
+- [ ] Generate time-limited STS tokens (10 minutes)
+- [ ] Include upload/download URLs in response
+- [ ] Validate user has project access
 
-#### 4. Implement uspark CLI commands
+#### 4. Extend FileSystem class with direct blob access
+
+**Task**: Update FileSystem to use direct Vercel Blob access
+**Note**: FileSystem has been moved to CLI package (PR #85)
+**Acceptance Criteria**:
+- [ ] Add `getBlobToken()` method to request STS token
+- [ ] Update `pullFile()` to download directly from Vercel Blob
+- [ ] Update `pushFile()` to upload directly to Vercel Blob
+- [ ] Keep YJS sync for metadata only
+
+#### 5. Implement uspark CLI commands
 
 **Task**: Add pull/push commands using extended FileSystem
 **Acceptance Criteria**:
 - [x] Add `uspark pull <filePath> --project-id <id>` command
-- [x] Add `uspark push <filePath> --project-id <id>` command
-- [x] Instantiate FileSystem with appropriate BlobStore
-- [x] Handle basic command argument parsing
+- [ ] Add `uspark push <filePath> --project-id <id>` command
+- [ ] Add `uspark push --all --project-id <id>` command
 - [x] Integrate with existing CLI framework
 
-### Phase 3: Client Testing with Mock Server
-
-#### 5. Mock YJS Server Implementation
-
-**Task**: Create test server that uses real YJS for state management
-**Acceptance Criteria**:
-- [x] Implement MockYjsServer class with internal Y.Doc instance
-- [x] Mock GET /api/projects/:projectId returning YDoc binary data
-- [x] Mock PATCH /api/projects/:projectId applying YDoc updates with real Y.applyUpdate
-- [x] Set up MSW handlers for HTTP request interception
-- [x] Store multiple project states in mock server
-
-#### 6. FileSystem Sync Testing
-
-**Task**: Test extended FileSystem sync methods
-**Acceptance Criteria**:
-- [x] Test `pullFile()` with empty local and populated remote state
-- [ ] Test `pushFile()` with local file changes
-- [ ] Test YJS merge behavior when both sides have changes
-- [x] Test basic file content read/write to local filesystem
-- [x] Unit tests for new sync methods with mocked HTTP calls
