@@ -83,12 +83,12 @@ export async function POST(request: NextRequest) {
   const token = generateShareToken();
   const id = nanoid();
 
-  // Create share link
+  // Create share link (MVP only supports single files, so filePath is required)
   await globalThis.services.db.insert(SHARE_LINKS_TBL).values({
     id,
     token,
     projectId: project_id,
-    filePath: file_path,
+    filePath: file_path, // Required for MVP, though schema allows NULL for future expansion
     userId,
   });
 

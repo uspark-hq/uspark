@@ -31,7 +31,12 @@ describe("/api/share", () => {
       .where(eq(PROJECTS_TBL.id, projectId));
 
     // Mock successful authentication by default
-    mockAuth.mockResolvedValue({ userId });
+    mockAuth.mockResolvedValue({ 
+      userId,
+      sessionClaims: {},
+      sessionId: "session-123",
+      actor: undefined,
+    } as any);
   });
 
   describe("POST /api/share", () => {
@@ -81,13 +86,18 @@ describe("/api/share", () => {
         .where(eq(SHARE_LINKS_TBL.token, responseData.token));
 
       expect(shareLink).toBeDefined();
-      expect(shareLink.projectId).toBe(projectId);
-      expect(shareLink.filePath).toBe(testFilePath);
-      expect(shareLink.userId).toBe(userId);
+      expect(shareLink?.projectId).toBe(projectId);
+      expect(shareLink?.filePath).toBe(testFilePath);
+      expect(shareLink?.userId).toBe(userId);
     });
 
     it("should return 401 when user is not authenticated", async () => {
-      mockAuth.mockResolvedValue({ userId: null });
+      mockAuth.mockResolvedValue({ 
+        userId: null,
+        sessionClaims: null,
+        sessionId: null,
+        actor: undefined,
+      } as any);
 
       const requestBody = {
         project_id: projectId,

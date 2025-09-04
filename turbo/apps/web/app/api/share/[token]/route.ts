@@ -68,6 +68,15 @@ export async function GET(
   const filesMap = ydoc.getMap("files");
   
   // Get the file node (contains hash and mtime)
+  // For MVP, filePath is required, but schema allows NULL for future expansion
+  if (!shareLink.filePath) {
+    const errorResponse: AccessShareError = {
+      error: "file_not_found",
+      error_description: "File path not specified in share link",
+    };
+    return NextResponse.json(errorResponse, { status: 404 });
+  }
+
   const fileNode = filesMap.get(shareLink.filePath) as { hash: string; mtime: number } | undefined;
   
   if (!fileNode || !fileNode.hash) {
@@ -84,7 +93,7 @@ export async function GET(
     message: "File content retrieval requires Vercel Blob integration which is not yet implemented in the backend",
     file_info: {
       project_name: shareLink.projectId,
-      file_path: shareLink.filePath,
+      file_path: shareLink.filePath, // We've already checked it's not null above
       hash: fileNode.hash,
       mtime: fileNode.mtime,
     }
