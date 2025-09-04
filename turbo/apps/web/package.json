@@ -23,6 +23,7 @@
     "@ts-rest/serverless": "^3.52.1",
     "@uspark/core": "workspace:*",
     "@uspark/ui": "workspace:*",
+    "@vercel/blob": "^1.1.1",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.5",
     "next": "^15.5.2",
