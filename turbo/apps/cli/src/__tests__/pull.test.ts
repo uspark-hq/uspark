@@ -5,7 +5,7 @@ import { mkdtemp, readFile, rm } from "fs/promises";
 import { mockServer } from "../test/mock-server";
 
 // Import the pull command function for direct testing
-import { pullCommand } from "../index";
+import { pullCommand } from "../commands/sync";
 
 // Mock the config module
 vi.mock("../config", () => ({
