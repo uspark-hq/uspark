@@ -108,7 +108,8 @@ describe("Share Contract Schemas", () => {
       const validResponse = {
         project_name: "my-project",
         file_path: "src/index.ts",
-        content: "console.log('Hello, world!');",
+        hash: "abc123def456ghi789jkl012mno345pqr678",
+        mtime: 1234567890,
       };
 
       const result = AccessShareResponseSchema.safeParse(validResponse);

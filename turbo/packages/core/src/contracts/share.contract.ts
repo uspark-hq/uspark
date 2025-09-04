@@ -46,7 +46,8 @@ export const CreateShareErrorSchema = z.object({
 export const AccessShareResponseSchema = z.object({
   project_name: z.string().describe("Name of the shared project"),
   file_path: z.string().describe("Path of the shared file"),
-  content: z.string().describe("File content"),
+  hash: z.string().describe("File content hash for direct blob access"),
+  mtime: z.number().describe("File modification time"),
 });
 
 /**
@@ -113,7 +114,7 @@ export const shareContract = c.router({
       404: AccessShareErrorSchema,
       501: AccessShareErrorSchema,
     },
-    summary: "Access shared file content",
-    description: "Public endpoint to retrieve the content of a shared file. No authentication required.",
+    summary: "Access shared file metadata",
+    description: "Public endpoint to retrieve metadata of a shared file including content hash for direct blob access. No authentication required.",
   },
 });
