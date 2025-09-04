@@ -4,14 +4,20 @@ import { GET, POST } from "./route";
 import * as Y from "yjs";
 import { initServices } from "../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
+import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
 import { eq } from "drizzle-orm";
 
 describe("/api/projects", () => {
   const userId = "test-user";
 
   beforeEach(async () => {
-    // Clean up any existing test projects
+    // Clean up any existing test data
     initServices();
+    // Delete share links first to avoid foreign key constraint violations
+    await globalThis.services.db
+      .delete(SHARE_LINKS_TBL)
+      .where(eq(SHARE_LINKS_TBL.userId, userId));
+    // Then delete projects
     await globalThis.services.db
       .delete(PROJECTS_TBL)
       .where(eq(PROJECTS_TBL.userId, userId));
