@@ -3,7 +3,7 @@ import { GET } from "./route";
 import { initServices } from "../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { NextRequest } from "next/server";
-import { eq, like } from "drizzle-orm";
+import { like } from "drizzle-orm";
 
 describe("GET /api/projects/[projectId]/blob-token", () => {
   const timestamp = Date.now();
