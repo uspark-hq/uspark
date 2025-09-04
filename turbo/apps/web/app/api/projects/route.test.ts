@@ -57,13 +57,13 @@ describe("/api/projects", () => {
       const data = await response.json();
       expect(data).toHaveProperty("projects");
       expect(data.projects).toHaveLength(2);
-      
+
       // Check project structure
       expect(data.projects[0]).toHaveProperty("id");
       expect(data.projects[0]).toHaveProperty("name");
       expect(data.projects[0]).toHaveProperty("created_at");
       expect(data.projects[0]).toHaveProperty("updated_at");
-      
+
       // Check that we got our test projects
       const projectIds = data.projects.map((p: { id: string }) => p.id);
       expect(projectIds).toContain(project1Id);
@@ -110,7 +110,7 @@ describe("/api/projects", () => {
 
       expect(response.status).toBe(201);
       const data = await response.json();
-      
+
       expect(data).toHaveProperty("id");
       expect(data).toHaveProperty("name");
       expect(data).toHaveProperty("created_at");
@@ -186,7 +186,9 @@ describe("/api/projects", () => {
       expect(response.status).toBe(400);
       const data = await response.json();
       expect(data).toHaveProperty("error", "invalid_request");
-      expect(data.error_description).toContain("Project name must be under 100 characters");
+      expect(data.error_description).toContain(
+        "Project name must be under 100 characters",
+      );
     });
 
     it("should reject non-string name", async () => {
@@ -203,7 +205,9 @@ describe("/api/projects", () => {
       expect(response.status).toBe(400);
       const data = await response.json();
       expect(data).toHaveProperty("error", "invalid_request");
-      expect(data.error_description).toContain("expected string, received number");
+      expect(data.error_description).toContain(
+        "expected string, received number",
+      );
     });
 
     it("should handle invalid JSON", async () => {

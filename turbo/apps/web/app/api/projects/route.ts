@@ -32,7 +32,7 @@ export async function GET() {
     .where(eq(PROJECTS_TBL.userId, userId));
 
   // Convert dates to ISO strings for schema validation
-  const projects = projectsData.map(project => ({
+  const projects = projectsData.map((project) => ({
     ...project,
     created_at: project.created_at.toISOString(),
     updated_at: project.updated_at.toISOString(),
