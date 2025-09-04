@@ -11,7 +11,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
+      image: ghcr.io/uspark-hq/uspark-toolchain:4c465ea
 
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
+      image: ghcr.io/uspark-hq/uspark-toolchain:4c465ea
 
     services:
       postgres:
@@ -53,7 +53,7 @@ jobs:
   deploy-web:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
+      image: ghcr.io/uspark-hq/uspark-toolchain:4c465ea
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
@@ -106,7 +106,7 @@ jobs:
   deploy-docs:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
+      image: ghcr.io/uspark-hq/uspark-toolchain:4c465ea
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
