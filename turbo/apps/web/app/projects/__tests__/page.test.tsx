@@ -149,10 +149,7 @@ describe("Projects List Page", () => {
 
     fireEvent.click(createButton);
 
-    // Should show creating state
-    expect(screen.getByText("Creating...")).toBeInTheDocument();
-
-    // Wait for creation to complete and navigation
+    // Since we removed delays, navigation happens immediately
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith(
         expect.stringMatching(/^\/projects\/project-\d+$/),
@@ -258,9 +255,7 @@ describe("Projects List Page", () => {
     // Press enter
     fireEvent.keyDown(nameInput, { key: "Enter" });
 
-    // Should start creating
-    expect(screen.getByText("Creating...")).toBeInTheDocument();
-
+    // Since we removed delays, navigation happens immediately
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalled();
     });
