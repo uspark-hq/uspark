@@ -31,12 +31,9 @@ describe("/api/share", () => {
       .where(eq(PROJECTS_TBL.id, projectId));
 
     // Mock successful authentication by default
-    mockAuth.mockResolvedValue({
-      userId,
-      sessionClaims: {},
-      sessionId: "session-123",
-      actor: undefined,
-    });
+    mockAuth.mockResolvedValue({ userId } as Awaited<
+      ReturnType<typeof auth>
+    >);
   });
 
   describe("POST /api/share", () => {
@@ -92,12 +89,9 @@ describe("/api/share", () => {
     });
 
     it("should return 401 when user is not authenticated", async () => {
-      mockAuth.mockResolvedValue({
-        userId: null,
-        sessionClaims: null,
-        sessionId: null,
-        actor: undefined,
-      });
+      mockAuth.mockResolvedValue({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const requestBody = {
         project_id: projectId,

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as Y from "yjs";
-import { type AccessShareError } from "@uspark/core";
+import {
+  type AccessShareError,
+  type AccessShareResponse,
+} from "@uspark/core";
 import { initServices } from "../../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
@@ -85,19 +88,13 @@ export async function GET(
     return NextResponse.json(errorResponse, { status: 404 });
   }
 
-  // TODO: Implement Vercel Blob integration for production
-  // For MVP, we'll return an error indicating blob storage is not yet implemented
-  const errorResponse: AccessShareError = {
-    error: "blob_storage_not_implemented",
-    message:
-      "File content retrieval requires Vercel Blob integration which is not yet implemented in the backend",
-    file_info: {
-      project_name: shareLink.projectId,
-      file_path: shareLink.filePath, // We've already checked it's not null above
-      hash: fileNode.hash,
-      mtime: fileNode.mtime,
-    },
+  // Return hash-based metadata for direct blob access
+  const response: AccessShareResponse = {
+    project_name: shareLink.projectId,
+    file_path: shareLink.filePath, // We've already checked it's not null above
+    hash: fileNode.hash,
+    mtime: fileNode.mtime,
   };
 
-  return NextResponse.json(errorResponse, { status: 501 });
+  return NextResponse.json(response, { status: 200 });
 }

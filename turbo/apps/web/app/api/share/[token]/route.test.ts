@@ -54,7 +54,7 @@ describe("/api/share/:token", () => {
       });
     });
 
-    it("should return 501 for valid share token (blob storage not implemented)", async () => {
+    it("should return 200 with hash-based metadata for valid share token", async () => {
       const request = new NextRequest(
         `http://localhost:3000/api/share/${testToken}`,
       );
@@ -63,16 +63,12 @@ describe("/api/share/:token", () => {
       const response = await GET(request, context);
       const responseData = await response.json();
 
-      expect(response.status).toBe(501);
+      expect(response.status).toBe(200);
       expect(responseData).toMatchObject({
-        error: "blob_storage_not_implemented",
-        message: expect.any(String),
-        file_info: {
-          project_name: projectId,
-          file_path: testFilePath,
-          hash: "abc123",
-          mtime: expect.any(Number),
-        },
+        project_name: projectId,
+        file_path: testFilePath,
+        hash: "abc123",
+        mtime: expect.any(Number),
       });
     });
 
