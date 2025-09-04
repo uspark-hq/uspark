@@ -82,7 +82,7 @@ export default function ProjectsListPage() {
       // Navigate to the new project
       router.push(`/projects/${newProject.id}`);
       
-    } catch (err) {
+    } catch {
       setError('Failed to create project');
     } finally {
       setCreating(false);

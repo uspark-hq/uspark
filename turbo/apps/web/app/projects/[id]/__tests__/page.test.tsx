@@ -28,7 +28,7 @@ vi.mock("../../../components/file-explorer", () => ({
 describe("Project Detail Page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    (useParams as any).mockReturnValue({
+    (useParams as ReturnType<typeof vi.fn>).mockReturnValue({
       id: "test-project-123"
     });
   });
@@ -145,7 +145,7 @@ describe("Project Detail Page", () => {
   });
 
   it("handles different project IDs from params", () => {
-    (useParams as any).mockReturnValue({
+    (useParams as ReturnType<typeof vi.fn>).mockReturnValue({
       id: "another-project-456"
     });
     

@@ -87,8 +87,8 @@ export default function ProjectDetailPage() {
         </div>
         
         <nav style={{ display: 'flex', gap: '12px' }}>
-          <a 
-            href="/projects"
+          <button 
+            onClick={() => window.history.back()}
             style={{
               padding: '8px 16px',
               fontSize: '14px',
@@ -96,11 +96,12 @@ export default function ProjectDetailPage() {
               textDecoration: 'none',
               border: '1px solid rgba(156, 163, 175, 0.2)',
               borderRadius: '4px',
-              backgroundColor: 'transparent'
+              backgroundColor: 'transparent',
+              cursor: 'pointer'
             }}
           >
             ← Back to Projects
-          </a>
+          </button>
         </nav>
       </header>
 
@@ -289,7 +290,7 @@ export default function ProjectDetailPage() {
             alignItems: 'center',
             gap: '16px'
           }}>
-            <span>💡 Try: "Add error handling to the login function" or "Create a new React component"</span>
+            <span>💡 Try: &quot;Add error handling to the login function&quot; or &quot;Create a new React component&quot;</span>
             <div style={{
               padding: '2px 6px',
               backgroundColor: 'rgba(156, 163, 175, 0.1)',

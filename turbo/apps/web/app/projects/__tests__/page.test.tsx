@@ -13,7 +13,7 @@ describe("Projects List Page", () => {
   
   beforeEach(() => {
     vi.clearAllMocks();
-    (useRouter as any).mockReturnValue({
+    (useRouter as ReturnType<typeof vi.fn>).mockReturnValue({
       push: mockPush
     });
   });
