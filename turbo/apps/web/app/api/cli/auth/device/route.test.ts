@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { POST } from "./route";
 import { DeviceAuthResponseSchema } from "@uspark/core";
 import { DEVICE_CODES_TBL } from "../../../../../src/db/schema/device-codes";
@@ -6,6 +6,11 @@ import { eq } from "drizzle-orm";
 import { initServices } from "../../../../../src/lib/init-services";
 
 describe("/api/cli/auth/device", () => {
+  beforeEach(async () => {
+    // Clean up any existing device codes before each test
+    initServices();
+    await globalThis.services.db.delete(DEVICE_CODES_TBL);
+  });
   it("should return a valid DeviceAuthResponse with correct device_code format", async () => {
     // Call the API handler
     const response = await POST();
@@ -93,6 +98,7 @@ describe("/api/cli/auth/device", () => {
       .from(DEVICE_CODES_TBL)
       .where(eq(DEVICE_CODES_TBL.status, "pending"));
 
-    expect(storedCodes.length).toBeGreaterThanOrEqual(3);
+    // Should have exactly 3 codes (the ones we just created)
+    expect(storedCodes.length).toBe(3);
   });
 });

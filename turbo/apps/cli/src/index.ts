@@ -5,6 +5,8 @@ import { authenticate, logout } from "./auth";
 import { getToken, getApiUrl } from "./config";
 import { ProjectSync } from "./project-sync";
 
+const API_HOST = process.env.API_HOST || "https://api.uspark.com";
+
 const program = new Command();
 
 program
@@ -28,6 +30,22 @@ program
     console.log(`Node Version: ${process.version}`);
     console.log(`Platform: ${process.platform}`);
     console.log(`Architecture: ${process.arch}`);
+    console.log(`API Host: ${API_HOST}`);
+  });
+
+program
+  .command("ping")
+  .description("Ping the API server")
+  .action(async () => {
+    const response = await fetch(`${API_HOST}/api/health`);
+    if (response.ok) {
+      const data = (await response.json()) as { status?: string };
+      console.log(chalk.green("✓ API is healthy"));
+      console.log(chalk.gray(`Status: ${data.status || "OK"}`));
+    } else {
+      console.log(chalk.red(`✗ API returned ${response.status}`));
+      process.exit(1);
+    }
   });
 
 program
@@ -154,6 +172,9 @@ export async function pushCommand(
   console.log(chalk.green(`✓ Successfully pushed ${filePath}`));
 }
 
-if (require.main === module) {
+// Only parse if this is the main module being run directly
+// In ESM, we check if the file is being run directly vs imported
+// process.argv[1] is undefined when imported as a module
+if (process.argv[1]) {
   program.parse();
 }

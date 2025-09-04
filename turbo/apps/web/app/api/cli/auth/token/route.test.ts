@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { POST } from "./route";
 import { POST as createDevice } from "../device/route";
 import { NextRequest } from "next/server";
@@ -14,6 +14,11 @@ import { eq } from "drizzle-orm";
 import { initServices } from "../../../../../src/lib/init-services";
 
 describe("/api/cli/auth/token", () => {
+  beforeEach(async () => {
+    // Clean up any existing device codes before each test
+    initServices();
+    await globalThis.services.db.delete(DEVICE_CODES_TBL);
+  });
   async function createDeviceCode(): Promise<string> {
     const response = await createDevice();
     const data = await response.json();
