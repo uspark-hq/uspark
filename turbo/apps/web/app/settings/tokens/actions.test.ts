@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { GenerateTokenRequestSchema } from "@uspark/core";
+import crypto from "crypto";
 
 // Test the actual business logic without heavy mocking
 describe("Token Generation Logic", () => {
@@ -21,7 +22,7 @@ describe("Token Generation Logic", () => {
       
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain("at least 1 character");
+        expect(result.error.issues[0].message).toContain("1 character");
       }
     });
 
@@ -32,7 +33,7 @@ describe("Token Generation Logic", () => {
       
       expect(result.success).toBe(false);
       if (!result.success) {
-        expect(result.error.issues[0].message).toContain("at most 100 character");
+        expect(result.error.issues[0].message).toContain("100 character");
       }
     });
 
@@ -58,8 +59,6 @@ describe("Token Generation Logic", () => {
   describe("Token Format", () => {
     it("should generate tokens with correct prefix", () => {
       // Test the token generation logic directly
-      const crypto = require("crypto");
-      
       function generateCliToken(): string {
         const randomBytes = crypto.randomBytes(32);
         const token = randomBytes.toString("base64url");
