@@ -82,15 +82,11 @@ program
   .description("Push file(s) to remote project")
   .argument("[filePath]", "File path to push (required unless using --all)")
   .requiredOption("--project-id <projectId>", "Project ID")
-  .option(
-    "--source <sourcePath>",
-    "Local source path (defaults to same as remote path)",
-  )
   .option("--all", "Push all files in current directory")
   .action(
     async (
       filePath: string | undefined,
-      options: { projectId: string; source?: string; all?: boolean },
+      options: { projectId: string; all?: boolean },
     ) => {
       try {
         // Validate arguments

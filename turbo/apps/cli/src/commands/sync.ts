@@ -24,7 +24,7 @@ export async function pullCommand(
 
 export async function pushCommand(
   filePath: string | undefined,
-  options: { projectId: string; source?: string; all?: boolean },
+  options: { projectId: string; all?: boolean },
 ): Promise<void> {
   const { token, apiUrl, sync } = await requireAuth();
 
@@ -65,14 +65,11 @@ export async function pushCommand(
     throw new Error("File path is required when not using --all flag");
   }
 
-  const sourcePath = options.source || filePath;
   console.log(
-    chalk.blue(
-      `Pushing ${sourcePath} to project ${options.projectId} as ${filePath}...`,
-    ),
+    chalk.blue(`Pushing ${filePath} to project ${options.projectId}...`),
   );
 
-  await sync.pushFile(options.projectId, filePath, options.source, {
+  await sync.pushFile(options.projectId, filePath, filePath, {
     token,
     apiUrl,
   });
@@ -87,11 +84,6 @@ async function getAllFiles(dir: string): Promise<string[]> {
     const entries = await readdir(currentDir);
     
     for (const entry of entries) {
-      // Skip common directories that shouldn't be synced
-      if (entry === "node_modules" || entry === ".git" || entry === ".next") {
-        continue;
-      }
-      
       const fullPath = join(currentDir, entry);
       const fileStat = await stat(fullPath);
       

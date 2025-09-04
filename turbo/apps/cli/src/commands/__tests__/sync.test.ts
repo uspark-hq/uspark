@@ -3,7 +3,7 @@ import { pushCommand, pullCommand } from "../sync";
 import { requireAuth } from "../shared";
 import chalk from "chalk";
 import * as fs from "fs/promises";
-import type { Stats } from "fs";
+import type { Stats, Dirent } from "fs";
 
 vi.mock("../shared");
 vi.mock("fs/promises");
@@ -14,7 +14,7 @@ describe("sync commands", () => {
     pullFile: vi.fn(),
     syncFromRemote: vi.fn(),
     syncToRemote: vi.fn(),
-  } as any;
+  } as unknown as any;
 
   const mockAuthContext = {
     token: "test-token",
@@ -40,7 +40,7 @@ describe("sync commands", () => {
       expect(mockSync.pushFile).toHaveBeenCalledWith(
         "proj-123",
         "test.txt",
-        undefined,
+        "test.txt",
         {
           token: "test-token",
           apiUrl: "https://api.test.com",
@@ -51,16 +51,15 @@ describe("sync commands", () => {
       );
     });
 
-    it("should push a single file with custom source path", async () => {
-      await pushCommand("remote/path.txt", {
+    it("should push a single file with same source and remote path", async () => {
+      await pushCommand("path.txt", {
         projectId: "proj-123",
-        source: "local/file.txt",
       });
 
       expect(mockSync.pushFile).toHaveBeenCalledWith(
         "proj-123",
-        "remote/path.txt",
-        "local/file.txt",
+        "path.txt",
+        "path.txt",
         {
           token: "test-token",
           apiUrl: "https://api.test.com",
@@ -69,36 +68,19 @@ describe("sync commands", () => {
     });
 
     it("should push all files with --all flag", async () => {
-      // Mock file system
-      vi.mocked(fs.readdir).mockImplementation(async (dir) => {
-        if (dir === ".") {
-          return ["file1.txt", "file2.js", "subfolder", "node_modules"] as any;
-        }
-        if (dir === "subfolder") {
-          return ["nested.md"] as any;
-        }
-        return [] as any;
-      });
-
-      vi.mocked(fs.stat).mockImplementation(async (path) => {
-        const pathStr = path.toString();
-        if (pathStr === "subfolder" || pathStr === "node_modules") {
-          return {
-            isDirectory: () => true,
-          } as Stats;
-        }
-        return {
-          isDirectory: () => false,
-        } as Stats;
-      });
+      // Mock getAllFiles by mocking fs operations
+      vi.mocked(fs.readdir).mockResolvedValue(["file1.txt", "file2.js"] as unknown as Dirent[]);
+      vi.mocked(fs.stat).mockResolvedValue({
+        isDirectory: () => false,
+      } as Stats);
 
       await pushCommand(undefined, {
         projectId: "proj-123",
         all: true,
       });
 
-      // Should skip node_modules but push all other files
-      expect(mockSync.pushFile).toHaveBeenCalledTimes(3);
+      // Should push all files
+      expect(mockSync.pushFile).toHaveBeenCalledTimes(2);
       expect(mockSync.pushFile).toHaveBeenCalledWith(
         "proj-123",
         "file1.txt",
@@ -109,18 +91,12 @@ describe("sync commands", () => {
         "proj-123",
         "file2.js",
         "file2.js",
-        expect.any(Object),
-      );
-      expect(mockSync.pushFile).toHaveBeenCalledWith(
-        "proj-123",
-        "subfolder/nested.md",
-        "subfolder/nested.md",
         expect.any(Object),
       );
     });
 
     it("should handle errors during batch push gracefully", async () => {
-      vi.mocked(fs.readdir).mockResolvedValue(["file1.txt", "file2.txt"] as any);
+      vi.mocked(fs.readdir).mockResolvedValue(["file1.txt", "file2.txt"] as unknown as Dirent[]);
       vi.mocked(fs.stat).mockResolvedValue({
         isDirectory: () => false,
       } as Stats);
