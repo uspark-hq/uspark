@@ -1,6 +1,11 @@
 name: "Vercel Deploy"
 description: "Deploy to Vercel with reusable configuration"
 
+outputs:
+  url:
+    description: "The deployment URL"
+    value: ${{ steps.deploy.outputs.url }}
+
 inputs:
   vercel-token:
     description: "Vercel authentication token"
