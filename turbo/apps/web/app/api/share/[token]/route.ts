@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as Y from "yjs";
+import {
+  type AccessShareError,
+} from "@uspark/core";
 import { initServices } from "../../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
@@ -18,10 +21,11 @@ export async function GET(
   const { token } = await context.params;
 
   if (!token || typeof token !== "string") {
-    return NextResponse.json(
-      { error: "token is required and must be a string" },
-      { status: 400 },
-    );
+    const errorResponse: AccessShareError = {
+      error: "share_not_found",
+      error_description: "Invalid or missing token",
+    };
+    return NextResponse.json(errorResponse, { status: 400 });
   }
 
   // Find the share link
@@ -34,10 +38,10 @@ export async function GET(
     .where(eq(SHARE_LINKS_TBL.token, token));
 
   if (!shareLink) {
-    return NextResponse.json(
-      { error: "share_not_found" },
-      { status: 404 },
-    );
+    const errorResponse: AccessShareError = {
+      error: "share_not_found",
+    };
+    return NextResponse.json(errorResponse, { status: 404 });
   }
 
   // Get the project data
@@ -47,10 +51,11 @@ export async function GET(
     .where(eq(PROJECTS_TBL.id, shareLink.projectId));
 
   if (!project) {
-    return NextResponse.json(
-      { error: "project_not_found" },
-      { status: 404 },
-    );
+    const errorResponse: AccessShareError = {
+      error: "share_not_found",
+      error_description: "Associated project not found",
+    };
+    return NextResponse.json(errorResponse, { status: 404 });
   }
 
 
@@ -59,23 +64,22 @@ export async function GET(
   const binaryData = Buffer.from(project.ydocData, "base64");
   Y.applyUpdate(ydoc, new Uint8Array(binaryData));
 
-  // Get the files and blobs maps from YDoc
+  // Get the files map from YDoc
   const filesMap = ydoc.getMap("files");
-  const blobsMap = ydoc.getMap("blobs");
   
   // Get the file node (contains hash and mtime)
   const fileNode = filesMap.get(shareLink.filePath) as { hash: string; mtime: number } | undefined;
   
   if (!fileNode || !fileNode.hash) {
-    return NextResponse.json(
-      { error: "file_not_found" },
-      { status: 404 },
-    );
+    const errorResponse: AccessShareError = {
+      error: "file_not_found",
+    };
+    return NextResponse.json(errorResponse, { status: 404 });
   }
 
   // TODO: Implement Vercel Blob integration for production
   // For MVP, we'll return an error indicating blob storage is not yet implemented
-  return NextResponse.json({
+  const errorResponse: AccessShareError = {
     error: "blob_storage_not_implemented",
     message: "File content retrieval requires Vercel Blob integration which is not yet implemented in the backend",
     file_info: {
@@ -84,5 +88,7 @@ export async function GET(
       hash: fileNode.hash,
       mtime: fileNode.mtime,
     }
-  }, { status: 501 });
+  };
+  
+  return NextResponse.json(errorResponse, { status: 501 });
 }

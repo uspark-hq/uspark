@@ -2,6 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import crypto from "crypto";
 import { nanoid } from "nanoid";
+import { 
+  CreateShareRequestSchema,
+  type CreateShareResponse,
+  type CreateShareError,
+} from "@uspark/core";
 import { initServices } from "../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
@@ -23,7 +28,10 @@ export async function POST(request: NextRequest) {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    const errorResponse: CreateShareError = {
+      error: "unauthorized",
+    };
+    return NextResponse.json(errorResponse, { status: 401 });
   }
 
   initServices();
@@ -32,24 +40,29 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
-    return NextResponse.json({ error: "invalid_json" }, { status: 400 });
+    const errorResponse: CreateShareError = {
+      error: "invalid_request",
+      error_description: "Invalid JSON in request body",
+    };
+    return NextResponse.json(errorResponse, { status: 400 });
   }
 
-  const { project_id, file_path } = body;
+  // Validate request body using schema from core
+  const validationResult = CreateShareRequestSchema.safeParse(body);
 
-  if (!project_id || typeof project_id !== "string") {
-    return NextResponse.json(
-      { error: "project_id is required and must be a string" },
-      { status: 400 },
-    );
+  if (!validationResult.success) {
+    const errors = validationResult.error?.issues || [];
+    const firstError = errors[0];
+    const errorResponse: CreateShareError = {
+      error: "invalid_request",
+      error_description: firstError
+        ? `${firstError.path?.join(".") || "field"}: ${firstError.message}`
+        : "Invalid request format",
+    };
+    return NextResponse.json(errorResponse, { status: 400 });
   }
 
-  if (!file_path || typeof file_path !== "string") {
-    return NextResponse.json(
-      { error: "file_path is required and must be a string" },
-      { status: 400 },
-    );
-  }
+  const { project_id, file_path } = validationResult.data;
 
   // Verify that the user owns the project
   const [project] = await globalThis.services.db
@@ -60,10 +73,10 @@ export async function POST(request: NextRequest) {
     );
 
   if (!project) {
-    return NextResponse.json(
-      { error: "project_not_found" },
-      { status: 404 },
-    );
+    const errorResponse: CreateShareError = {
+      error: "project_not_found",
+    };
+    return NextResponse.json(errorResponse, { status: 404 });
   }
 
   // Generate unique token and ID
@@ -83,10 +96,12 @@ export async function POST(request: NextRequest) {
   const baseUrl = request.headers.get("origin") || "https://uspark.dev";
   const url = `${baseUrl}/share/${token}`;
 
-  return NextResponse.json({
+  const response: CreateShareResponse = {
     id,
     url,
     token,
-  }, { status: 201 });
+  };
+
+  return NextResponse.json(response, { status: 201 });
 }
 
