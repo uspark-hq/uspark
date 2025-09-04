@@ -33,7 +33,6 @@ describe("/api/cli/auth/device", () => {
         "https://app.uspark.com/cli-auth",
       );
       expect(validData.expires_in).toBe(900); // 15 minutes
-      expect(validData.interval).toBe(5); // 5 seconds
     }
   });
 

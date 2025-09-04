@@ -1,4 +1,5 @@
 import { http, HttpResponse } from "msw";
+import { mockServer } from "./mock-server";
 
 const API_BASE_URL = "http://localhost:3000";
 
@@ -11,11 +12,10 @@ export const handlers = [
       user_code: "WDJB-MJHT",
       verification_url: `${API_BASE_URL}/cli-auth`,
       expires_in: 900, // 15 minutes
-      interval: 5,
     });
   }),
 
-  // Token polling - returns pending by default
+  // Token exchange - returns pending by default
   http.post(`${API_BASE_URL}/api/cli/auth/token`, () => {
     return HttpResponse.json({
       pending: true,
@@ -27,6 +27,47 @@ export const handlers = [
     return HttpResponse.json({
       token: "cli_test_token_12345",
       expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+  }),
+
+  // GET /api/projects/:projectId - Return YDoc binary data
+  http.get(`${API_BASE_URL}/api/projects/:projectId`, ({ params }) => {
+    const { projectId } = params;
+    const ydocData = mockServer.getProject(projectId as string);
+
+    return new HttpResponse(ydocData, {
+      headers: {
+        "Content-Type": "application/octet-stream",
+      },
+    });
+  }),
+
+  // PATCH /api/projects/:projectId - Accept YDoc updates
+  http.patch(
+    `${API_BASE_URL}/api/projects/:projectId`,
+    async ({ params, request }) => {
+      const { projectId } = params;
+      const update = new Uint8Array(await request.arrayBuffer());
+
+      mockServer.patchProject(projectId as string, update);
+
+      return new HttpResponse(null, { status: 200 });
+    },
+  ),
+
+  // GET /api/blobs/:hash - Return blob content (for file content)
+  http.get(`${API_BASE_URL}/api/blobs/:hash`, ({ params }) => {
+    const { hash } = params;
+    const content = mockServer.getBlobContent(hash as string);
+
+    if (!content) {
+      return new HttpResponse("Blob not found", { status: 404 });
+    }
+
+    return new HttpResponse(content, {
+      headers: {
+        "Content-Type": "text/plain",
+      },
     });
   }),
 ];

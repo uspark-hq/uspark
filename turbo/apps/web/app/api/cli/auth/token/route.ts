@@ -12,8 +12,7 @@ import { DEVICE_CODES_TBL } from "../../../../../src/db/schema/device-codes";
 /**
  * POST /api/cli/auth/token
  *
- * Exchange a device code for an access token.
- * This endpoint should be polled by the CLI until the user completes authentication.
+ * Exchange a device code for an access token after the user has authenticated.
  *
  * @param request - Contains device_code in the body
  * @returns TokenExchangeSuccess if authenticated, TokenExchangePending if waiting, or error

@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.7.0](https://github.com/uspark-hq/uspark/compare/core-v0.6.0...core-v0.7.0) (2025-09-03)
+
+
+### Features
+
+* remove polling interval from cli auth flow ([#83](https://github.com/uspark-hq/uspark/issues/83)) ([f98a617](https://github.com/uspark-hq/uspark/commit/f98a6177a457cabd70373896ce5e8302beb7eae6))
+
+## [0.6.0](https://github.com/uspark-hq/uspark/compare/core-v0.5.0...core-v0.6.0) (2025-09-03)
+
+
+### Features
+
+* **cli:** implement yjs pull command with mock server testing ([#76](https://github.com/uspark-hq/uspark/issues/76)) ([49ac7e9](https://github.com/uspark-hq/uspark/commit/49ac7e98d6df6fec9ca65ad8880e40e4b7d0881a))
+
 ## [0.5.0](https://github.com/uspark-hq/uspark/compare/core-v0.4.0...core-v0.5.0) (2025-09-03)
 
 

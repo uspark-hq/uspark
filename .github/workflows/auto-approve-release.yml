@@ -16,7 +16,8 @@ jobs:
       github.event_name == 'schedule' || 
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && 
-       github.event.pull_request.user.login == 'release-please[bot]')
+       (github.event.pull_request.user.login == 'release-please[bot]' || 
+        github.event.pull_request.user.login == 'app/github-actions'))
     permissions:
       pull-requests: write
       contents: write
@@ -37,7 +38,7 @@ jobs:
             # Otherwise, find the release PR
             PR_NUMBER=$(gh pr list \
               --json number,author,title \
-              --jq '.[] | select(.author.login == "release-please[bot]" or (.title | startswith("chore: release")) or (.title | startswith("chore(main): release"))) | .number' \
+              --jq '.[] | select((.author.login == "release-please[bot]" or .author.login == "app/github-actions") or (.title | startswith("chore: release")) or (.title | startswith("chore(main): release"))) | .number' \
               --limit 1)
           fi
           

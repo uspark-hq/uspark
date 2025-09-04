@@ -1,5 +1,33 @@
 # Changelog
 
+## [0.9.0](https://github.com/uspark-hq/uspark/compare/web-v0.8.0...web-v0.9.0) (2025-09-03)
+
+
+### Features
+
+* remove polling interval from cli auth flow ([#83](https://github.com/uspark-hq/uspark/issues/83)) ([f98a617](https://github.com/uspark-hq/uspark/commit/f98a6177a457cabd70373896ce5e8302beb7eae6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.7.0
+
+## [0.8.0](https://github.com/uspark-hq/uspark/compare/web-v0.7.0...web-v0.8.0) (2025-09-03)
+
+
+### Features
+
+* implement ydoc-based project sync api with get/patch endpoints ([#81](https://github.com/uspark-hq/uspark/issues/81)) ([1c0cc03](https://github.com/uspark-hq/uspark/commit/1c0cc03029ff94304590d0be467b0152f0688c3e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.6.0
+
 ## [0.7.0](https://github.com/uspark-hq/uspark/compare/web-v0.6.0...web-v0.7.0) (2025-09-03)
 
 
