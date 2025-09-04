@@ -1,5 +1,30 @@
 # Changelog
 
+## [0.11.0](https://github.com/uspark-hq/uspark/compare/web-v0.10.0...web-v0.11.0) (2025-09-04)
+
+
+### Features
+
+* add agent_sessions and share_links database tables ([#102](https://github.com/uspark-hq/uspark/issues/102)) ([7799ed0](https://github.com/uspark-hq/uspark/commit/7799ed070cfbfd1834cedf3aa4f8f2109e24bc7c))
+* add cli token management page ([#103](https://github.com/uspark-hq/uspark/issues/103)) ([ca4cd76](https://github.com/uspark-hq/uspark/commit/ca4cd76b54435d6f6145c48e34ad7cad019a6178))
+* implement document sharing apis with single-file support ([#101](https://github.com/uspark-hq/uspark/issues/101)) ([8b39a74](https://github.com/uspark-hq/uspark/commit/8b39a74c78858480a09b55873fc2313c0ed27900))
+* implement file explorer component with YJS integration ([#107](https://github.com/uspark-hq/uspark/issues/107)) ([9b8f8ed](https://github.com/uspark-hq/uspark/commit/9b8f8ed515fc943d989ed66d256a096293f073e3))
+* implement project management apis with client-side file parsing ([#99](https://github.com/uspark-hq/uspark/issues/99)) ([f5aef77](https://github.com/uspark-hq/uspark/commit/f5aef7756b699ef3c4c69b422fb8fab093fa5012))
+* implement public document share viewer page ([#106](https://github.com/uspark-hq/uspark/issues/106)) ([41e4ac8](https://github.com/uspark-hq/uspark/commit/41e4ac84f76c49aa780f7b5b4ead52dc4a820e6d))
+
+
+### Bug Fixes
+
+* improve test stability by fixing cleanup and assertions ([#124](https://github.com/uspark-hq/uspark/issues/124)) ([39488b8](https://github.com/uspark-hq/uspark/commit/39488b8465a9b835485c2798cb73591fc07ff28d))
+* remove hardcoded delays from production code and tests ([#117](https://github.com/uspark-hq/uspark/issues/117)) ([a1ef57b](https://github.com/uspark-hq/uspark/commit/a1ef57befdd10f3a2006e9f136a9195938d84a1b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.9.0
+
 ## [0.10.0](https://github.com/uspark-hq/uspark/compare/web-v0.9.0...web-v0.10.0) (2025-09-04)
 
 ### Features

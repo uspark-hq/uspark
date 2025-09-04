@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/uspark-hq/uspark/compare/docs-v1.2.0...docs-v1.3.0) (2025-09-04)
+
+
+### Features
+
+* implement file explorer component with YJS integration ([#107](https://github.com/uspark-hq/uspark/issues/107)) ([9b8f8ed](https://github.com/uspark-hq/uspark/commit/9b8f8ed515fc943d989ed66d256a096293f073e3))
+
 ## [1.2.0](https://github.com/uspark-hq/uspark/compare/docs-v1.1.0...docs-v1.2.0) (2025-09-03)
 
 
