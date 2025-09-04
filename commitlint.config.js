@@ -26,6 +26,8 @@ module.exports = {
         'build',
         'revert'
       ]
-    ]
+    ],
+    'type-empty': [2, 'never'],
+    'subject-empty': [2, 'never']
   }
 };

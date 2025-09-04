@@ -278,7 +278,7 @@ File contents are stored separately in Vercel Blob Storage, referenced by hash f
 **Task**: Add pull/push commands using extended FileSystem
 **Acceptance Criteria**:
 - [x] Add `uspark pull <filePath> --project-id <id>` command
-- [ ] Add `uspark push <filePath> --project-id <id>` command
+- [x] Add `uspark push <filePath> --project-id <id>` command
 - [x] Instantiate FileSystem with appropriate BlobStore
 - [x] Handle basic command argument parsing
 - [x] Integrate with existing CLI framework

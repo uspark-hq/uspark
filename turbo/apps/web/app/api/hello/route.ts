@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { HelloRequestSchema } from "@uspark/core";
-import { z } from "zod";
 
 const greetings = {
   en: "Hello",
@@ -10,51 +9,31 @@ const greetings = {
 } as const;
 
 export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const validatedData = HelloRequestSchema.parse(body);
+  const body = await request.json();
+  const validatedData = HelloRequestSchema.parse(body);
 
-    const greeting = greetings[validatedData.language || "en"];
-    const now = new Date();
+  const greeting = greetings[validatedData.language || "en"];
+  const now = new Date();
 
-    const response = {
-      message: `${greeting}, ${validatedData.name}! Welcome to our API.`,
-      timestamp: now.toISOString(),
-      locale: validatedData.language || "en",
-      metadata: {
-        requestId: crypto.randomUUID(),
-        version: "1.0.0",
-        ...(validatedData.includeTime && {
-          serverTime: now.toLocaleTimeString("en-US", {
-            hour12: true,
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit",
-          }),
+  const response = {
+    message: `${greeting}, ${validatedData.name}! Welcome to our API.`,
+    timestamp: now.toISOString(),
+    locale: validatedData.language || "en",
+    metadata: {
+      requestId: crypto.randomUUID(),
+      version: "1.0.0",
+      ...(validatedData.includeTime && {
+        serverTime: now.toLocaleTimeString("en-US", {
+          hour12: true,
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
         }),
-      },
-    };
+      }),
+    },
+  };
 
-    return NextResponse.json(response, { status: 200 });
-  } catch (error) {
-    if (error instanceof z.ZodError) {
-      return NextResponse.json(
-        {
-          error: "Validation error",
-          details: error.issues.map((err) => ({
-            field: err.path.join("."),
-            message: err.message,
-          })),
-        },
-        { status: 400 },
-      );
-    }
-
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
-    );
-  }
+  return NextResponse.json(response, { status: 200 });
 }
 
 export async function GET(request: NextRequest) {
