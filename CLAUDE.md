@@ -196,3 +196,20 @@ const handleSubmit = async () => {
 3. Never commit code that fails any of these checks
 4. Use proper conventional commit message format
 5. These checks help maintain the high standards defined in our design principles
+
+## Git Authentication with GitHub CLI
+
+**When SSH keys are not available, use GitHub CLI for authentication:**
+
+```bash
+# Switch remote from SSH to HTTPS
+git remote set-url origin https://github.com/uspark-hq/uspark.git
+
+# Configure git to use GitHub CLI for authentication
+gh auth setup-git
+
+# Test the configuration
+git pull
+```
+
+This allows pushing/pulling without SSH keys by leveraging the GitHub CLI's authentication.

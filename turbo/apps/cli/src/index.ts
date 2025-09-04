@@ -1,7 +1,7 @@
 import { FOO } from "@uspark/core";
 import { Command } from "commander";
 import chalk from "chalk";
-import { authenticate, logout } from "./auth";
+import { authenticate, logout, checkAuthStatus } from "./auth";
 import { getToken, getApiUrl } from "./config";
 import { ProjectSync } from "./project-sync";
 
@@ -48,23 +48,30 @@ program
     }
   });
 
-program
+const authCommand = program
   .command("auth")
-  .description("Authenticate with uSpark")
-  .option("--api-url <url>", "API URL", "http://localhost:3000")
+  .description("Authentication commands");
+
+authCommand
+  .command("login")
+  .description("Log in to uSpark")
+  .option("--api-url <url>", "API URL", "https://app.uspark.com")
   .action(async (options: { apiUrl: string }) => {
-    try {
-      await authenticate(options.apiUrl);
-    } catch {
-      process.exit(1);
-    }
+    await authenticate(options.apiUrl);
   });
 
-program
+authCommand
   .command("logout")
-  .description("Logout from uSpark")
+  .description("Log out of uSpark")
   .action(async () => {
     await logout();
+  });
+
+authCommand
+  .command("status")
+  .description("Show current authentication status")
+  .action(async () => {
+    await checkAuthStatus();
   });
 
 program
@@ -120,7 +127,7 @@ export async function pullCommand(
   const token = await getToken();
   if (!token) {
     console.error(
-      chalk.red("✗ Not authenticated. Please run 'uspark auth' first."),
+      chalk.red("✗ Not authenticated. Please run 'uspark auth login' first."),
     );
     throw new Error("Not authenticated");
   }
@@ -149,7 +156,7 @@ export async function pushCommand(
   const token = await getToken();
   if (!token) {
     console.error(
-      chalk.red("✗ Not authenticated. Please run 'uspark auth' first."),
+      chalk.red("✗ Not authenticated. Please run 'uspark auth login' first."),
     );
     throw new Error("Not authenticated");
   }
@@ -172,9 +179,8 @@ export async function pushCommand(
   console.log(chalk.green(`✓ Successfully pushed ${filePath}`));
 }
 
-// Only parse if this is the main module being run directly
-// In ESM, we check if the file is being run directly vs imported
-// process.argv[1] is undefined when imported as a module
-if (process.argv[1]) {
+// Parse arguments when run directly (not when imported for testing)
+// Check if this is the main module being run
+if (import.meta.url === `file://${process.argv[1]}`) {
   program.parse();
 }
