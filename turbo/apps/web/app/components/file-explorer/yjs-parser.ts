@@ -25,47 +25,54 @@ export interface YjsFileSystemData {
  */
 export function parseYjsFileSystem(ydocData: Uint8Array): YjsFileSystemData {
   const ydoc = new Y.Doc();
-  
+
   // Apply the YJS update to reconstruct the document
   Y.applyUpdate(ydoc, ydocData);
-  
+
   // Get the files and blobs maps from YJS document
   const filesMap = ydoc.getMap<FileNode>("files");
   const blobsMap = ydoc.getMap<BlobInfo>("blobs");
-  
+
   // Extract file paths and metadata
-  const fileEntries: Array<{ path: string; metadata: FileNode; size?: number }> = [];
-  
+  const fileEntries: Array<{
+    path: string;
+    metadata: FileNode;
+    size?: number;
+  }> = [];
+
   filesMap.forEach((metadata, path) => {
     // Get size from blobs map if available
     const blobInfo = blobsMap.get(metadata.hash);
     fileEntries.push({
       path,
       metadata,
-      size: blobInfo?.size
+      size: blobInfo?.size,
     });
   });
-  
+
   // Convert to flat file list format expected by buildFileTree
-  const flatFiles = fileEntries.map(entry => ({
+  const flatFiles = fileEntries.map((entry) => ({
     path: entry.path,
-    type: 'file' as const,
+    type: "file" as const,
     size: entry.size,
     mtime: entry.metadata.mtime,
-    hash: entry.metadata.hash
+    hash: entry.metadata.hash,
   }));
-  
+
   // Build tree structure
   const fileTree = buildFileTreeFromYjs(flatFiles);
-  
+
   // Calculate totals
-  const totalSize = fileEntries.reduce((sum, entry) => sum + (entry.size || 0), 0);
+  const totalSize = fileEntries.reduce(
+    (sum, entry) => sum + (entry.size || 0),
+    0,
+  );
   const fileCount = fileEntries.length;
-  
+
   return {
     files: fileTree,
     totalSize,
-    fileCount
+    fileCount,
   };
 }
 
@@ -74,13 +81,15 @@ export function parseYjsFileSystem(ydocData: Uint8Array): YjsFileSystemData {
  * @param files Flat array of files with YJS metadata
  * @returns Hierarchical file tree
  */
-function buildFileTreeFromYjs(files: Array<{
-  path: string;
-  type: 'file';
-  size?: number;
-  mtime: number;
-  hash: string;
-}>): FileItem[] {
+function buildFileTreeFromYjs(
+  files: Array<{
+    path: string;
+    type: "file";
+    size?: number;
+    mtime: number;
+    hash: string;
+  }>,
+): FileItem[] {
   const fileMap = new Map<string, FileItem>();
   const result: FileItem[] = [];
 
@@ -88,32 +97,32 @@ function buildFileTreeFromYjs(files: Array<{
   const sortedFiles = files.sort((a, b) => a.path.localeCompare(b.path));
 
   for (const file of sortedFiles) {
-    const parts = file.path.split('/').filter(Boolean);
-    let currentPath = '';
-    
+    const parts = file.path.split("/").filter(Boolean);
+    let currentPath = "";
+
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
       if (!part) continue; // Skip if part is somehow undefined
       const parentPath = currentPath;
       currentPath = currentPath ? `${currentPath}/${part}` : part;
-      
+
       if (!fileMap.has(currentPath)) {
         const isLastPart = i === parts.length - 1;
-        
+
         const item: FileItem = {
           path: currentPath,
-          type: isLastPart ? 'file' : 'directory',
+          type: isLastPart ? "file" : "directory",
           size: isLastPart ? file.size : undefined,
           children: isLastPart ? undefined : [],
           // Add YJS-specific metadata for files
           ...(isLastPart && {
             mtime: file.mtime,
-            hash: file.hash
-          })
+            hash: file.hash,
+          }),
         };
-        
+
         fileMap.set(currentPath, item);
-        
+
         // Establish parent-child relationships
         if (parentPath) {
           const parent = fileMap.get(parentPath);
@@ -131,15 +140,15 @@ function buildFileTreeFromYjs(files: Array<{
   const sortChildren = (items: FileItem[]) => {
     items.sort((a, b) => {
       if (a.type !== b.type) {
-        return a.type === 'directory' ? -1 : 1;
+        return a.type === "directory" ? -1 : 1;
       }
       // Get file names for comparison
-      const aName = a.path.split('/').pop() || a.path;
-      const bName = b.path.split('/').pop() || b.path;
+      const aName = a.path.split("/").pop() || a.path;
+      const bName = b.path.split("/").pop() || b.path;
       return aName.localeCompare(bName);
     });
-    
-    items.forEach(item => {
+
+    items.forEach((item) => {
       if (item.children && item.children.length > 0) {
         sortChildren(item.children);
       }
@@ -154,12 +163,12 @@ function buildFileTreeFromYjs(files: Array<{
  * Formats file size in human-readable format
  */
 export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return '0 B';
-  
+  if (bytes === 0) return "0 B";
+
   const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const sizes = ["B", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
 }
 

@@ -17,22 +17,22 @@ describe("FileExplorer", () => {
             {
               path: "src/components/button.tsx",
               type: "file",
-              size: 1024
-            }
-          ]
+              size: 1024,
+            },
+          ],
         },
         {
           path: "src/index.ts",
           type: "file",
-          size: 512
-        }
-      ]
+          size: 512,
+        },
+      ],
     },
     {
       path: "package.json",
       type: "file",
-      size: 2048
-    }
+      size: 2048,
+    },
   ];
 
   it("renders without crashing", () => {
@@ -49,22 +49,22 @@ describe("FileExplorer", () => {
   it("calls onFileSelect when file is clicked", () => {
     const mockOnFileSelect = vi.fn();
     render(<FileExplorer files={mockFiles} onFileSelect={mockOnFileSelect} />);
-    
+
     fireEvent.click(screen.getByText("package.json"));
     expect(mockOnFileSelect).toHaveBeenCalledWith("package.json");
   });
 
   it("expands and collapses directories", () => {
     render(<FileExplorer files={mockFiles} />);
-    
+
     // Initially, nested files should not be visible
     expect(screen.queryByText("index.ts")).not.toBeInTheDocument();
-    
+
     // Click to expand directory
     fireEvent.click(screen.getByText("src"));
     expect(screen.getByText("index.ts")).toBeInTheDocument();
     expect(screen.getByText("components")).toBeInTheDocument();
-    
+
     // Click again to collapse
     fireEvent.click(screen.getByText("src"));
     expect(screen.queryByText("index.ts")).not.toBeInTheDocument();
@@ -82,11 +82,11 @@ describe("buildFileTree utility", () => {
     const flatFiles = [
       { path: "src/index.ts", type: "file" as const, size: 512 },
       { path: "src/components/button.tsx", type: "file" as const, size: 1024 },
-      { path: "package.json", type: "file" as const, size: 2048 }
+      { path: "package.json", type: "file" as const, size: 2048 },
     ];
 
     const tree = buildFileTree(flatFiles);
-    
+
     expect(tree).toHaveLength(2); // src directory and package.json
     expect(tree[0]?.path).toBe("src");
     expect(tree[0]?.type).toBe("directory");
@@ -99,11 +99,11 @@ describe("buildFileTree utility", () => {
     const flatFiles = [
       { path: "README.md", type: "file" as const },
       { path: "src/index.ts", type: "file" as const },
-      { path: "package.json", type: "file" as const }
+      { path: "package.json", type: "file" as const },
     ];
 
     const tree = buildFileTree(flatFiles);
-    
+
     expect(tree[0]?.path).toBe("src"); // Directory first
     expect(tree[0]?.type).toBe("directory");
     expect(tree[1]?.path).toBe("package.json"); // Files after directories, alphabetically

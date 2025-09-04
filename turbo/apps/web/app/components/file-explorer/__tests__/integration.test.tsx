@@ -5,7 +5,7 @@ import * as Y from "yjs";
 
 describe("YjsFileExplorer Integration", () => {
   const originalFetch = global.fetch;
-  
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -22,11 +22,16 @@ describe("YjsFileExplorer Integration", () => {
     // Add mock files
     const files = [
       { path: "src/index.ts", hash: "hash1", size: 100, mtime: Date.now() },
-      { path: "src/components/Button.tsx", hash: "hash2", size: 200, mtime: Date.now() },
-      { path: "package.json", hash: "hash3", size: 150, mtime: Date.now() }
+      {
+        path: "src/components/Button.tsx",
+        hash: "hash2",
+        size: 200,
+        mtime: Date.now(),
+      },
+      { path: "package.json", hash: "hash3", size: 150, mtime: Date.now() },
     ];
 
-    files.forEach(file => {
+    files.forEach((file) => {
       filesMap.set(file.path, { hash: file.hash, mtime: file.mtime });
       blobsMap.set(file.hash, { size: file.size });
     });
@@ -38,20 +43,20 @@ describe("YjsFileExplorer Integration", () => {
 
   it("loads and displays project files from YJS document", async () => {
     const mockYjsData = createMockYjsDocument();
-    
+
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      arrayBuffer: () => Promise.resolve(mockYjsData)
+      arrayBuffer: () => Promise.resolve(mockYjsData),
     });
 
     const mockOnFileSelect = vi.fn();
-    
+
     render(
       <YjsFileExplorer
         projectId="test-project"
         onFileSelect={mockOnFileSelect}
         showMetadata={true}
-      />
+      />,
     );
 
     // Should show loading initially
@@ -59,7 +64,9 @@ describe("YjsFileExplorer Integration", () => {
 
     // Wait for files to load
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     // Should fetch from correct API endpoint
@@ -76,25 +83,27 @@ describe("YjsFileExplorer Integration", () => {
 
   it("handles file selection correctly", async () => {
     const mockYjsData = createMockYjsDocument();
-    
+
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      arrayBuffer: () => Promise.resolve(mockYjsData)
+      arrayBuffer: () => Promise.resolve(mockYjsData),
     });
 
     const mockOnFileSelect = vi.fn();
-    
+
     render(
       <YjsFileExplorer
         projectId="test-project"
         onFileSelect={mockOnFileSelect}
         selectedFile="package.json"
-      />
+      />,
     );
 
     // Wait for files to load
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     // Click on package.json file
@@ -106,20 +115,18 @@ describe("YjsFileExplorer Integration", () => {
 
   it("expands and navigates directory structure", async () => {
     const mockYjsData = createMockYjsDocument();
-    
+
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      arrayBuffer: () => Promise.resolve(mockYjsData)
+      arrayBuffer: () => Promise.resolve(mockYjsData),
     });
 
-    render(
-      <YjsFileExplorer
-        projectId="test-project"
-      />
-    );
+    render(<YjsFileExplorer projectId="test-project" />);
 
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     // Initially, nested files should not be visible
@@ -132,22 +139,18 @@ describe("YjsFileExplorer Integration", () => {
 
     // Now nested files should be visible
     expect(screen.getByText("index.ts")).toBeInTheDocument();
-    
+
     // Expand components directory
     const componentsFolder = screen.getByText("components");
     fireEvent.click(componentsFolder);
-    
+
     expect(screen.getByText("Button.tsx")).toBeInTheDocument();
   });
 
   it("handles API errors gracefully", async () => {
     global.fetch = vi.fn().mockRejectedValueOnce(new Error("Network error"));
 
-    render(
-      <YjsFileExplorer
-        projectId="test-project"
-      />
-    );
+    render(<YjsFileExplorer projectId="test-project" />);
 
     // Should show loading initially
     expect(screen.getByText("Loading project files...")).toBeInTheDocument();
@@ -163,26 +166,23 @@ describe("YjsFileExplorer Integration", () => {
   it("handles empty YJS document", async () => {
     const emptyYdoc = new Y.Doc();
     const emptyUpdate = Y.encodeStateAsUpdate(emptyYdoc);
-    
+
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      arrayBuffer: () => Promise.resolve(emptyUpdate.buffer)
+      arrayBuffer: () => Promise.resolve(emptyUpdate.buffer),
     });
 
-    render(
-      <YjsFileExplorer
-        projectId="empty-project"
-        showMetadata={true}
-      />
-    );
+    render(<YjsFileExplorer projectId="empty-project" showMetadata={true} />);
 
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     // Should show empty state
     expect(screen.getByText("No files to display")).toBeInTheDocument();
-    
+
     // Metadata section should not be shown when there are no files
     expect(screen.queryByText("0 files")).not.toBeInTheDocument();
   });
@@ -190,44 +190,43 @@ describe("YjsFileExplorer Integration", () => {
   it("handles HTTP error responses", async () => {
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: false,
-      statusText: "Not Found"
+      statusText: "Not Found",
     });
 
-    render(
-      <YjsFileExplorer
-        projectId="nonexistent-project"
-      />
-    );
+    render(<YjsFileExplorer projectId="nonexistent-project" />);
 
     await waitFor(() => {
       expect(screen.getByText("Failed to load project")).toBeInTheDocument();
     });
 
-    expect(screen.getByText("Failed to load project: Not Found")).toBeInTheDocument();
+    expect(
+      screen.getByText("Failed to load project: Not Found"),
+    ).toBeInTheDocument();
   });
 
   it("updates when projectId changes", async () => {
     const mockYjsData1 = createMockYjsDocument();
     const mockYjsData2 = createMockYjsDocument();
-    
-    const mockFetch = vi.fn()
+
+    const mockFetch = vi
+      .fn()
       .mockResolvedValueOnce({
         ok: true,
-        arrayBuffer: () => Promise.resolve(mockYjsData1)
+        arrayBuffer: () => Promise.resolve(mockYjsData1),
       })
       .mockResolvedValueOnce({
         ok: true,
-        arrayBuffer: () => Promise.resolve(mockYjsData2)
+        arrayBuffer: () => Promise.resolve(mockYjsData2),
       });
-      
+
     global.fetch = mockFetch;
 
-    const { rerender } = render(
-      <YjsFileExplorer projectId="project-1" />
-    );
+    const { rerender } = render(<YjsFileExplorer projectId="project-1" />);
 
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     expect(mockFetch).toHaveBeenCalledWith("/api/projects/project-1");
@@ -239,7 +238,9 @@ describe("YjsFileExplorer Integration", () => {
     expect(screen.getByText("Loading project files...")).toBeInTheDocument();
 
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     expect(mockFetch).toHaveBeenCalledWith("/api/projects/project-2");
@@ -248,47 +249,41 @@ describe("YjsFileExplorer Integration", () => {
 
   it("displays file metadata correctly", async () => {
     const mockYjsData = createMockYjsDocument();
-    
+
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      arrayBuffer: () => Promise.resolve(mockYjsData)
+      arrayBuffer: () => Promise.resolve(mockYjsData),
     });
 
-    render(
-      <YjsFileExplorer
-        projectId="test-project"
-        showMetadata={true}
-      />
-    );
+    render(<YjsFileExplorer projectId="test-project" showMetadata={true} />);
 
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     // Should show file count
     expect(screen.getByText("3 files")).toBeInTheDocument();
-    
+
     // Should show total size (100 + 200 + 150 = 450 bytes)
     expect(screen.getByText("450 B")).toBeInTheDocument();
   });
 
   it("hides metadata when showMetadata is false", async () => {
     const mockYjsData = createMockYjsDocument();
-    
+
     global.fetch = vi.fn().mockResolvedValueOnce({
       ok: true,
-      arrayBuffer: () => Promise.resolve(mockYjsData)
+      arrayBuffer: () => Promise.resolve(mockYjsData),
     });
 
-    render(
-      <YjsFileExplorer
-        projectId="test-project"
-        showMetadata={false}
-      />
-    );
+    render(<YjsFileExplorer projectId="test-project" showMetadata={false} />);
 
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     // Should not show metadata section

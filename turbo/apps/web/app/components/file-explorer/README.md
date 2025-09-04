@@ -6,7 +6,7 @@ A tree-view file browser React component with support for YJS document parsing, 
 
 - ✅ **YJS Integration** - Parses file structures from YJS documents
 - ✅ Tree structure rendering
-- ✅ Folder expand/collapse functionality  
+- ✅ Folder expand/collapse functionality
 - ✅ File type icons based on extensions
 - ✅ Click events for file selection
 - ✅ TypeScript support with full type definitions
@@ -16,16 +16,17 @@ A tree-view file browser React component with support for YJS document parsing, 
 ## Components
 
 ### YjsFileExplorer (Recommended)
+
 Automatically fetches and parses YJS documents from your project API:
 
 ```tsx
-import { YjsFileExplorer } from './components/file-explorer';
+import { YjsFileExplorer } from "./components/file-explorer";
 
 function ProjectPage() {
   const [selectedFile, setSelectedFile] = useState<string>();
 
   return (
-    <YjsFileExplorer 
+    <YjsFileExplorer
       projectId="your-project-id"
       onFileSelect={setSelectedFile}
       selectedFile={selectedFile}
@@ -36,20 +37,23 @@ function ProjectPage() {
 ```
 
 ### FileExplorer (Lower-level)
+
 For manual file tree data:
 
 ```tsx
-import { FileExplorer, parseYjsFileSystem } from './components/file-explorer';
+import { FileExplorer, parseYjsFileSystem } from "./components/file-explorer";
 
 // Parse YJS document manually
-const yjsData = await fetch(`/api/projects/${projectId}`).then(r => r.arrayBuffer());
+const yjsData = await fetch(`/api/projects/${projectId}`).then((r) =>
+  r.arrayBuffer(),
+);
 const { files } = parseYjsFileSystem(new Uint8Array(yjsData));
 
 function App() {
   const [selectedFile, setSelectedFile] = useState<string>();
 
   return (
-    <FileExplorer 
+    <FileExplorer
       files={files}
       onFileSelect={setSelectedFile}
       selectedFile={selectedFile}
@@ -64,10 +68,10 @@ function App() {
 
 ```typescript
 interface FileExplorerProps {
-  files: FileItem[];              // Tree structure data
-  onFileSelect?: (filePath: string) => void;  // File selection callback
-  selectedFile?: string;          // Currently selected file path
-  className?: string;             // Additional CSS classes
+  files: FileItem[]; // Tree structure data
+  onFileSelect?: (filePath: string) => void; // File selection callback
+  selectedFile?: string; // Currently selected file path
+  className?: string; // Additional CSS classes
 }
 ```
 
@@ -75,10 +79,10 @@ interface FileExplorerProps {
 
 ```typescript
 interface FileItem {
-  path: string;                   // File/folder path
-  type: 'file' | 'directory';     // Type of item
-  size?: number;                  // File size (optional)
-  children?: FileItem[];          // Child items for directories
+  path: string; // File/folder path
+  type: "file" | "directory"; // Type of item
+  size?: number; // File size (optional)
+  children?: FileItem[]; // Child items for directories
 }
 ```
 
@@ -93,7 +97,7 @@ The component automatically displays different icons for:
 
 - 📁 Directories
 - 🔷 TypeScript files (.ts, .tsx)
-- 📄 JavaScript files (.js, .jsx)  
+- 📄 JavaScript files (.js, .jsx)
 - 📋 JSON files
 - 📝 Markdown files
 - 🎨 CSS files
@@ -106,13 +110,14 @@ The component automatically displays different icons for:
 The component includes comprehensive tests covering:
 
 - Basic rendering
-- Empty state handling  
+- Empty state handling
 - File selection events
 - Folder expand/collapse
 - File highlighting
 - Tree building utilities
 
 Run tests with:
+
 ```bash
 pnpm test app/components/file-explorer
 ```

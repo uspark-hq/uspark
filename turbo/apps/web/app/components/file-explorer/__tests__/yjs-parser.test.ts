@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import * as Y from "yjs";
-import { parseYjsFileSystem, formatFileSize, formatModifiedTime } from "../yjs-parser";
+import {
+  parseYjsFileSystem,
+  formatFileSize,
+  formatModifiedTime,
+} from "../yjs-parser";
 
 describe("YJS Parser", () => {
   function createTestYjsDocument(): Uint8Array {
@@ -11,13 +15,23 @@ describe("YJS Parser", () => {
     // Add test files
     const testFiles = [
       { path: "src/index.ts", hash: "hash1", size: 100, mtime: 1703123400000 },
-      { path: "src/components/Button.tsx", hash: "hash2", size: 200, mtime: 1703123500000 },
-      { path: "src/utils/helpers.ts", hash: "hash3", size: 150, mtime: 1703123600000 },
+      {
+        path: "src/components/Button.tsx",
+        hash: "hash2",
+        size: 200,
+        mtime: 1703123500000,
+      },
+      {
+        path: "src/utils/helpers.ts",
+        hash: "hash3",
+        size: 150,
+        mtime: 1703123600000,
+      },
       { path: "package.json", hash: "hash4", size: 300, mtime: 1703123700000 },
-      { path: "README.md", hash: "hash5", size: 80, mtime: 1703123800000 }
+      { path: "README.md", hash: "hash5", size: 80, mtime: 1703123800000 },
     ];
 
-    testFiles.forEach(file => {
+    testFiles.forEach((file) => {
       filesMap.set(file.path, { hash: file.hash, mtime: file.mtime });
       blobsMap.set(file.hash, { size: file.size });
     });
@@ -33,18 +47,18 @@ describe("YJS Parser", () => {
       expect(result.fileCount).toBe(5);
       expect(result.totalSize).toBe(830); // 100 + 200 + 150 + 300 + 80
       expect(result.files).toHaveLength(3); // src directory, package.json, README.md
-      
+
       // Check root level structure
-      const srcDir = result.files.find(f => f.path === "src");
-      const packageJson = result.files.find(f => f.path === "package.json");
-      const readmeMd = result.files.find(f => f.path === "README.md");
+      const srcDir = result.files.find((f) => f.path === "src");
+      const packageJson = result.files.find((f) => f.path === "package.json");
+      const readmeMd = result.files.find((f) => f.path === "README.md");
 
       expect(srcDir?.type).toBe("directory");
       expect(srcDir?.children).toHaveLength(3); // components directory, utils directory, and index.ts
-      
+
       expect(packageJson?.type).toBe("file");
       expect(packageJson?.size).toBe(300);
-      
+
       expect(readmeMd?.type).toBe("file");
       expect(readmeMd?.size).toBe(80);
     });
@@ -53,8 +67,8 @@ describe("YJS Parser", () => {
       const yjsData = createTestYjsDocument();
       const result = parseYjsFileSystem(yjsData);
 
-      const packageJson = result.files.find(f => f.path === "package.json");
-      
+      const packageJson = result.files.find((f) => f.path === "package.json");
+
       expect(packageJson?.mtime).toBe(1703123700000);
       expect(packageJson?.hash).toBe("hash4");
     });
@@ -62,9 +76,9 @@ describe("YJS Parser", () => {
     it("handles empty YJS document", () => {
       const ydoc = new Y.Doc();
       const yjsData = Y.encodeStateAsUpdate(ydoc);
-      
+
       const result = parseYjsFileSystem(yjsData);
-      
+
       expect(result.fileCount).toBe(0);
       expect(result.totalSize).toBe(0);
       expect(result.files).toHaveLength(0);
@@ -73,13 +87,13 @@ describe("YJS Parser", () => {
     it("handles files without blob size information", () => {
       const ydoc = new Y.Doc();
       const filesMap = ydoc.getMap("files");
-      
+
       // Add file without corresponding blob entry
       filesMap.set("orphan.txt", { hash: "orphan_hash", mtime: Date.now() });
-      
+
       const yjsData = Y.encodeStateAsUpdate(ydoc);
       const result = parseYjsFileSystem(yjsData);
-      
+
       expect(result.fileCount).toBe(1);
       expect(result.totalSize).toBe(0); // No size info available
       expect(result.files[0]?.size).toBeUndefined();
@@ -98,23 +112,31 @@ describe("YJS Parser", () => {
       const result = parseYjsFileSystem(yjsData);
 
       // Should create nested structure: src -> components -> ui -> buttons -> PrimaryButton.tsx
-      const srcDir = result.files.find(f => f.path === "src");
+      const srcDir = result.files.find((f) => f.path === "src");
       expect(srcDir?.type).toBe("directory");
       expect(srcDir?.children?.length).toBe(1);
 
-      const componentsDir = srcDir?.children?.find(f => f.path === "src/components");
+      const componentsDir = srcDir?.children?.find(
+        (f) => f.path === "src/components",
+      );
       expect(componentsDir?.type).toBe("directory");
       expect(componentsDir?.children?.length).toBe(1);
 
-      const uiDir = componentsDir?.children?.find(f => f.path === "src/components/ui");
+      const uiDir = componentsDir?.children?.find(
+        (f) => f.path === "src/components/ui",
+      );
       expect(uiDir?.type).toBe("directory");
       expect(uiDir?.children?.length).toBe(1);
 
-      const buttonsDir = uiDir?.children?.find(f => f.path === "src/components/ui/buttons");
+      const buttonsDir = uiDir?.children?.find(
+        (f) => f.path === "src/components/ui/buttons",
+      );
       expect(buttonsDir?.type).toBe("directory");
       expect(buttonsDir?.children?.length).toBe(1);
 
-      const primaryButton = buttonsDir?.children?.find(f => f.path === deepFile);
+      const primaryButton = buttonsDir?.children?.find(
+        (f) => f.path === deepFile,
+      );
       expect(primaryButton?.type).toBe("file");
       expect(primaryButton?.size).toBe(500);
     });
@@ -135,7 +157,7 @@ describe("YJS Parser", () => {
     it("formats timestamp correctly", () => {
       const timestamp = 1703123400000; // 2023-12-21 02:10:00 UTC
       const formatted = formatModifiedTime(timestamp);
-      
+
       // Should contain date and time (exact format depends on locale)
       expect(formatted).toContain("2023");
       expect(typeof formatted).toBe("string");

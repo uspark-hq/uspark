@@ -2,12 +2,12 @@ import { type JSX } from "react";
 
 export interface FileItem {
   path: string;
-  type: 'file' | 'directory';
+  type: "file" | "directory";
   size?: number;
   children?: FileItem[];
   // YJS-specific metadata
-  mtime?: number;  // Modification time from YJS
-  hash?: string;   // Content hash from YJS
+  mtime?: number; // Modification time from YJS
+  hash?: string; // Content hash from YJS
 }
 
 export interface FileTree {
