@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { initServices } from "../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
+import { env } from "../../../../../src/env";
 
 /**
  * GET /api/projects/:projectId/blob-token
@@ -39,10 +40,10 @@ export async function GET(
     token: `vercel_blob_rw_${projectId}_${Date.now()}`,
     expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
     uploadUrl:
-      process.env.VERCEL_BLOB_UPLOAD_URL ||
+      env().VERCEL_BLOB_UPLOAD_URL ||
       "https://blob.vercel-storage.com/upload",
     downloadUrlPrefix:
-      process.env.VERCEL_BLOB_URL || "https://blob.vercel-storage.com/files",
+      env().VERCEL_BLOB_URL || "https://blob.vercel-storage.com/files",
   };
 
   return NextResponse.json(stsToken);
