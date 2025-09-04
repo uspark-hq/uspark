@@ -4,6 +4,7 @@ import { requireAuth } from "../shared";
 import chalk from "chalk";
 import * as fs from "fs/promises";
 import type { Stats, Dirent } from "fs";
+import type { Mock } from "vitest";
 
 vi.mock("../shared");
 vi.mock("fs/promises");
@@ -14,7 +15,7 @@ describe("sync commands", () => {
     pullFile: vi.fn(),
     syncFromRemote: vi.fn(),
     syncToRemote: vi.fn(),
-  } as unknown as any;
+  } as { pushFile: Mock; pullFile: Mock; syncFromRemote: Mock; syncToRemote: Mock };
 
   const mockAuthContext = {
     token: "test-token",
