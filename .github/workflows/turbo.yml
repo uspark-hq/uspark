@@ -55,6 +55,8 @@ jobs:
     container:
       image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
     if: github.event_name == 'pull_request'
+    outputs:
+      preview-url: ${{ steps.extract-url.outputs.url }}
     permissions:
       contents: read
       pull-requests: write
@@ -102,6 +104,14 @@ jobs:
           meta-branch: ${{ github.head_ref }}
           meta-pr: ${{ github.event.pull_request.number }}
 
+      # Step 3: Extract deployment URL for E2E tests
+      - name: Extract deployment URL
+        if: steps.check-changes.outputs.has-changes == 'true'
+        id: extract-url
+        run: |
+          echo "Deployment URL from previous step: ${{ steps.deploy.outputs.url }}"
+          echo "url=${{ steps.deploy.outputs.url }}" >> $GITHUB_OUTPUT
+
   # Deploy docs application
   deploy-docs:
     runs-on: ubuntu-latest
@@ -138,3 +148,39 @@ jobs:
           deployment-env: docs
           meta-branch: ${{ github.head_ref }}
           meta-pr: ${{ github.event.pull_request.number }}
+
+  # Run E2E tests against deployed preview environment
+  e2e-test:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
+    needs: [deploy-web]
+    if: github.event_name == 'pull_request' && needs.deploy-web.outputs.preview-url
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive  # Initialize BATS submodules
+      - uses: ./.github/actions/toolchain-init
+
+      - name: Build CLI
+        run: cd turbo && pnpm --filter @uspark/cli build
+
+      - name: Setup CLI
+        run: |
+          # Verify CLI build output exists
+          ls -la turbo/apps/cli/dist/
+          
+          # Make CLI executable directly (it has shebang)
+          chmod +x turbo/apps/cli/dist/index.js
+          
+          # Create symlink to global bin
+          ln -sf "$PWD/turbo/apps/cli/dist/index.js" /usr/local/bin/uspark
+
+      - name: Run BATS E2E Tests
+        run: |
+          echo "Testing against API_HOST: ${{ needs.deploy-web.outputs.preview-url }}"
+          echo "PATH: $PATH"
+          which uspark || echo "uspark not found in PATH"
+          ./e2e/run.sh
+        env:
+          API_HOST: ${{ needs.deploy-web.outputs.preview-url }}
