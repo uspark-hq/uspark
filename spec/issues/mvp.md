@@ -75,6 +75,7 @@ This document defines the mid-term goals and user stories for the MVP release of
 ## Implementation Priorities
 
 ### Phase 1: Core Infrastructure (Prerequisites)
+
 1. ✅ YJS document synchronization API
 2. ✅ Vercel Blob storage integration
 3. ✅ Basic authentication system
@@ -82,12 +83,14 @@ This document defines the mid-term goals and user stories for the MVP release of
 5. [ ] Blob STS token API for direct access
 
 ### Phase 2: Developer Tools (Story 1)
+
 1. ⏳ Complete `uspark pull` command
 2. [ ] Implement `uspark push` command
 3. [ ] Implement `uspark push --all` command
 4. [ ] Update FileSystem class for direct blob access
 
 ### Phase 3: Web Interface Foundation (Story 2 - Part 1)
+
 1. [ ] Project management APIs (list, create, get files)
 2. [ ] Project dashboard page
 3. [ ] Document explorer component
@@ -95,6 +98,7 @@ This document defines the mid-term goals and user stories for the MVP release of
 5. [ ] File tree navigation
 
 ### Phase 4: AI Integration (Story 2 - Part 2)
+
 1. [ ] Claude execution API endpoints
 2. [ ] E2B container setup and configuration
 3. [ ] uspark watch-claude command implementation
@@ -104,6 +108,7 @@ This document defines the mid-term goals and user stories for the MVP release of
 7. [ ] Document change streaming
 
 ### Phase 5: Sharing Features (Story 3)
+
 1. [ ] Share link generation API
 2. [ ] Public document access API
 3. [ ] Share management interface
@@ -114,22 +119,26 @@ This document defines the mid-term goals and user stories for the MVP release of
 The following features are explicitly excluded from the MVP:
 
 1. **Collaboration Features**
+
    - Real-time collaborative editing
    - User comments and annotations
    - Change attribution and history
 
 2. **Advanced AI Features**
+
    - Custom AI model selection
    - Fine-tuning or training
    - AI cost tracking and limits
 
 3. **Enterprise Features**
+
    - Team workspaces
    - Role-based access control
    - SSO/SAML integration
    - Audit logs export
 
 4. **Advanced Sync Features**
+
    - Selective sync filters
    - Bandwidth throttling
    - Offline mode with queue
@@ -171,18 +180,18 @@ Post-MVP priorities (not in scope for current release):
 5. Mobile applications
 6. API for third-party integrations
 
-
 ## Dependencies
 
 ### External Dependencies
+
 - Claude API access
 - E2B platform availability
 - Vercel Blob storage
 - Clerk authentication service
 
 ### Internal Dependencies
+
 - YJS sync protocol completion
 - CLI authentication completion
 - Database schema finalization
 - UI/UX design approval
-

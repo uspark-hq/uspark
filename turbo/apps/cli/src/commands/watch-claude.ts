@@ -1,7 +1,6 @@
 import { createInterface } from "readline";
 import chalk from "chalk";
-import { getToken, getApiUrl } from "../config";
-import { ProjectSync } from "../project-sync";
+import { requireAuth, syncFile } from "./shared";
 
 interface ClaudeEvent {
   type: "system" | "assistant" | "user" | "result";
@@ -64,17 +63,7 @@ function extractFilePath(
 export async function watchClaudeCommand(options: {
   projectId: string;
 }): Promise<void> {
-  // Check authentication
-  const token = await getToken();
-  if (!token) {
-    console.error(
-      chalk.red("✗ Not authenticated. Please run 'uspark auth login' first."),
-    );
-    throw new Error("Not authenticated");
-  }
-
-  const apiUrl = await getApiUrl();
-  const sync = new ProjectSync();
+  const context = await requireAuth();
 
   // Create readline interface to process stdin line by line
   const rl = createInterface({
@@ -108,10 +97,7 @@ export async function watchClaudeCommand(options: {
               if (filePath) {
                 try {
                   // Trigger push operation in background
-                  await sync.pushFile(options.projectId, filePath, undefined, {
-                    token,
-                    apiUrl,
-                  });
+                  await syncFile(context, options.projectId, filePath);
 
                   // Log sync success (to stderr to not interfere with stdout)
                   console.error(chalk.dim(`[uspark] ✓ Synced ${filePath}`));
