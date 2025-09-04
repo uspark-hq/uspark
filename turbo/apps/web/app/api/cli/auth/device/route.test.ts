@@ -86,13 +86,17 @@ describe("/api/cli/auth/device", () => {
     const uniqueCodes = new Set(codes);
     expect(uniqueCodes.size).toBe(3);
 
-    // Verify all codes are stored in database
+    // Verify the specific codes we just created are stored in database
     initServices();
     const storedCodes = await globalThis.services.db
       .select()
       .from(DEVICE_CODES_TBL)
       .where(eq(DEVICE_CODES_TBL.status, "pending"));
 
-    expect(storedCodes.length).toBeGreaterThanOrEqual(3);
+    // Check that our codes are among the stored codes
+    const storedDeviceCodes = storedCodes.map(c => c.code);
+    expect(storedDeviceCodes).toContain(data1.device_code);
+    expect(storedDeviceCodes).toContain(data2.device_code);
+    expect(storedDeviceCodes).toContain(data3.device_code);
   });
 });
