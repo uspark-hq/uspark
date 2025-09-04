@@ -6,7 +6,8 @@
     "CLERK_SECRET_KEY",
     "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
     "BLOB_READ_WRITE_TOKEN",
-    "USPARK_API_URL"
+    "USPARK_API_URL",
+    "USPARK_TOKEN"
   ],
   "tasks": {
     "build": {
