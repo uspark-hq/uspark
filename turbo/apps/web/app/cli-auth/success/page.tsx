@@ -1,20 +1,8 @@
 "use client";
 
-import { useEffect } from "react";
 import styles from "./page.module.css";
 
 export default function CliAuthSuccessPage() {
-  useEffect(() => {
-    // Auto-close tab after 5 seconds
-    const timer = setTimeout(() => {
-      // Try to close the tab/window
-      if (window.opener) {
-        window.close();
-      }
-    }, 5000);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <div className={styles.container}>
@@ -53,9 +41,6 @@ export default function CliAuthSuccessPage() {
 
         <div className={styles.message}>
           <p>You can now close this window and return to your terminal.</p>
-          <p className={styles.hint}>
-            This window will close automatically in a few seconds...
-          </p>
         </div>
 
         <div className={styles.divider}></div>

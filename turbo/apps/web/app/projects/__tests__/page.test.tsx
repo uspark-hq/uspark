@@ -153,14 +153,11 @@ describe("Projects List Page", () => {
     expect(screen.getByText("Creating...")).toBeInTheDocument();
 
     // Wait for creation to complete and navigation
-    await waitFor(
-      () => {
-        expect(mockPush).toHaveBeenCalledWith(
-          expect.stringMatching(/^\/projects\/project-\d+$/),
-        );
-      },
-      { timeout: 3000 },
-    ); // Increase timeout for async operations
+    await waitFor(() => {
+      expect(mockPush).toHaveBeenCalledWith(
+        expect.stringMatching(/^\/projects\/project-\d+$/),
+      );
+    });
   });
 
   it("disables create button when name is empty", async () => {

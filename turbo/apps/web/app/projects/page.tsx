@@ -73,9 +73,6 @@ export default function ProjectsListPage() {
     setCreating(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
       const newProject: Project = {
         id: `project-${Date.now()}`,
         name: newProjectName.trim(),

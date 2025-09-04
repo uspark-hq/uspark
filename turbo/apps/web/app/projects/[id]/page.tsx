@@ -14,8 +14,6 @@ export default function ProjectDetailPage() {
   // Mock file content loading for now
   const loadFileContent = async (filePath: string) => {
     setLoadingContent(true);
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
 
     // Mock content based on file extension
     const ext = filePath.split(".").pop()?.toLowerCase();

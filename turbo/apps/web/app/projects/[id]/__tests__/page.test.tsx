@@ -116,14 +116,11 @@ describe("Project Detail Page", () => {
     expect(screen.getByText("Loading file content...")).toBeInTheDocument();
 
     // Wait for content to load
-    await waitFor(
-      () => {
-        expect(
-          screen.queryByText("Loading file content..."),
-        ).not.toBeInTheDocument();
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading file content..."),
+      ).not.toBeInTheDocument();
+    });
   });
 
   it("displays mock file content based on file extension", async () => {
@@ -134,14 +131,11 @@ describe("Project Detail Page", () => {
     fireEvent.click(selectButton);
 
     // Wait for content to load
-    await waitFor(
-      () => {
-        expect(
-          screen.queryByText("Loading file content..."),
-        ).not.toBeInTheDocument();
-      },
-      { timeout: 1000 },
-    );
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading file content..."),
+      ).not.toBeInTheDocument();
+    });
 
     // Should show TypeScript content
     expect(screen.getByText(/\/\/ src\/test\.ts/)).toBeInTheDocument();
