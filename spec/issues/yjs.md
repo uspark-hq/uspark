@@ -372,8 +372,54 @@ File contents are stored separately in Vercel Blob Storage, referenced by hash f
 
 **Task**: Add pull/push commands using extended FileSystem
 **Acceptance Criteria**:
-- [x] Add `uspark pull <filePath> --project-id <id>` command (✅ 已完成)
-- [ ] Add `uspark push <filePath> --project-id <id>` command (🔄 进行中 - 任务 1)
-- [ ] Add `uspark push --all --project-id <id>` command (🔄 进行中 - 任务 1)
-- [x] Integrate with existing CLI framework (✅ 已完成)
+- [x] Add `uspark pull <filePath> --project-id <id>` command
+- [x] Add `uspark push <filePath> --project-id <id>` command
+- [x] Add `uspark push --all --project-id <id>` command
+- [x] Integrate with existing CLI framework
+
+## Synchronization Algorithm
+
+### Single File Push
+
+When pushing a single file (`uspark push <file> --project-id <id>`):
+
+1. **Fetch Remote Baseline**: Download current project's YJS snapshot to understand remote state
+2. **Content Comparison**: 
+   - Calculate local file's content hash
+   - Compare with hash stored in snapshot
+   - If hashes match → Skip (no changes needed)
+   - If different → Proceed with sync
+3. **Upload Blob**: Upload file content to blob store (content-addressed storage)
+4. **Update Metadata**: Update file's hash and mtime in local YJS document
+5. **Send Diff**: Generate YJS diff and PATCH to server, updating remote file index
+
+### Directory Push (--all flag)
+
+When pushing entire directory (`uspark push --all --project-id <id>`):
+
+1. **Fetch Remote Baseline**: Download current YJS snapshot
+2. **Three-Way Comparison**:
+   - **Deletions**: Files in snapshot but not in local directory
+   - **Additions**: Files in local directory but not in snapshot
+   - **Updates**: Files in both but with different hashes
+3. **Batch Blob Upload**: Upload all new/changed file contents
+4. **Batch Metadata Update**:
+   - Remove deleted files from YJS document
+   - Add/update changed files with new hash and mtime
+5. **Single PATCH Request**: Send complete YJS diff containing all changes
+
+### Design Advantages
+
+- **Incremental Sync**: Only transfers changed content, skips identical files
+- **Content Deduplication**: Same content (same hash) stored only once
+- **Atomic Updates**: All metadata changes in single YJS patch ensures consistency
+- **Version Tracking**: YJS's built-in version vectors handle concurrent updates
+- **Efficient Network Usage**: Minimizes round trips with batch operations
+
+### Implementation Notes
+
+- Hash comparison prevents unnecessary blob uploads
+- YJS handles conflict resolution automatically through CRDTs
+- Blob cleanup is deferred (not part of MVP)
+- Similar to Git's object model: blobs store content, YJS acts as tree object
 
