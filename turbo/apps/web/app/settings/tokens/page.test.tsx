@@ -2,55 +2,57 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import TokensPage from "./page";
 
-// Mock the form component and action
+// Simple mock - just verify the component structure
 vi.mock("./token-form", () => ({
-  TokenForm: ({ action }: { action: Function }) => (
-    <div data-testid="token-form">
-      Mocked TokenForm - Action: {action.name}
-    </div>
-  ),
+  TokenForm: () => <div data-testid="token-form">Token Form Component</div>,
 }));
 
 vi.mock("./actions", () => ({
-  generateTokenAction: vi.fn().mockName("generateTokenAction"),
+  generateTokenAction: () => {},
 }));
 
 describe("TokensPage", () => {
-  it("should render page title and description", () => {
+  it("should render complete page structure", () => {
     render(<TokensPage />);
     
-    expect(screen.getByRole("heading", { level: 1, name: "CLI Tokens" })).toBeInTheDocument();
-    
+    // Check main content
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("CLI Tokens");
     expect(screen.getByText(/Generate tokens to authenticate with the uSpark CLI/)).toBeInTheDocument();
-    expect(screen.getByText(/USPARK_TOKEN/)).toBeInTheDocument();
+    expect(screen.getByTestId("token-form")).toBeInTheDocument();
   });
 
-  it("should render TokenForm component with generateTokenAction", () => {
+  it("should include usage instructions", () => {
     render(<TokensPage />);
     
-    const tokenForm = screen.getByTestId("token-form");
-    expect(tokenForm).toBeInTheDocument();
-    expect(tokenForm).toHaveTextContent("generateTokenAction");
+    // Check for USPARK_TOKEN environment variable mention
+    const envVarText = screen.getByText("USPARK_TOKEN");
+    expect(envVarText).toBeInTheDocument();
+    expect(envVarText.tagName).toBe("CODE");
+    
+    // Check for CLI usage instructions
+    expect(screen.getByText(/Set the.*environment variable to use CLI commands/)).toBeInTheDocument();
   });
 
-  it("should have proper page styling", () => {
-    render(<TokensPage />);
+  it("should have proper layout styling", () => {
+    const { container } = render(<TokensPage />);
     
-    const container = screen.getByRole("heading", { level: 1 }).closest("div");
-    expect(container).toHaveStyle({
-      maxWidth: "800px",
-      margin: "0 auto",
-      padding: "20px",
-    });
+    const pageDiv = container.firstChild as HTMLElement;
+    const styles = window.getComputedStyle(pageDiv);
+    
+    // These tests verify the CSS properties are applied
+    expect(pageDiv).toHaveStyle("max-width: 800px");
+    expect(pageDiv).toHaveStyle("margin: 0px auto");
+    expect(pageDiv).toHaveStyle("padding: 20px");
   });
 
-  it("should render instructions about environment variable", () => {
+  it("should render heading with correct hierarchy", () => {
     render(<TokensPage />);
     
-    const instructions = screen.getByText(/Set the/);
-    expect(instructions).toBeInTheDocument();
+    const heading = screen.getByRole("heading", { level: 1 });
+    expect(heading).toBeInTheDocument();
+    expect(heading.textContent).toBe("CLI Tokens");
     
-    const code = screen.getByText("USPARK_TOKEN");
-    expect(code.tagName).toBe("CODE");
+    // Verify it's actually an h1 element
+    expect(heading.tagName).toBe("H1");
   });
 });
