@@ -63,16 +63,7 @@ program
       filePath: string,
       options: { projectId: string; output?: string },
     ) => {
-      try {
-        await pullCommand(filePath, options);
-      } catch (error) {
-        console.error(
-          chalk.red(
-            `✗ Failed to pull file: ${error instanceof Error ? error.message : error}`,
-          ),
-        );
-        process.exit(1);
-      }
+      await pullCommand(filePath, options);
     },
   );
 
