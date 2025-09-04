@@ -55,7 +55,7 @@ export default function SharePage({ params }: SharePageProps) {
     async function loadShareData() {
       setLoading(true);
       const data = await fetchShareData(token!);
-      
+
       if (!data) {
         setError("Share not found");
         setLoading(false);
@@ -112,7 +112,6 @@ export default function SharePage({ params }: SharePageProps) {
   );
 }
 
-
 interface DocumentViewerProps {
   filePath: string;
   content: string;
@@ -144,7 +143,9 @@ function DocumentViewer({ filePath, content }: DocumentViewerProps) {
       {/* File header */}
       <div className="border-b p-2 sm:p-4 bg-gray-50 flex-shrink-0">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-xs sm:text-sm font-mono text-gray-600 truncate">{filePath}</h3>
+          <h3 className="text-xs sm:text-sm font-mono text-gray-600 truncate">
+            {filePath}
+          </h3>
           {!isMarkdown && (
             <button
               onClick={handleDownload}
@@ -187,4 +188,3 @@ function DocumentViewer({ filePath, content }: DocumentViewerProps) {
     </div>
   );
 }
-
