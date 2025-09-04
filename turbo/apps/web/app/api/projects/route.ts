@@ -4,6 +4,11 @@ import { initServices } from "../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import {
+  ListProjectsResponseSchema,
+  CreateProjectRequestSchema,
+  CreateProjectResponseSchema,
+} from "@uspark/core";
 
 /**
  * GET /api/projects
@@ -26,7 +31,9 @@ export async function GET() {
     .from(PROJECTS_TBL)
     .where(eq(PROJECTS_TBL.userId, userId));
 
-  return NextResponse.json({ projects });
+  // Validate response with schema
+  const response = ListProjectsResponseSchema.parse({ projects });
+  return NextResponse.json(response);
 }
 
 /**
@@ -40,14 +47,21 @@ export async function POST(request: NextRequest) {
   const userId = "test-user";
 
   const body = await request.json();
-  const { name } = body;
 
-  if (!name || typeof name !== "string") {
+  // Validate request body with schema
+  const parseResult = CreateProjectRequestSchema.safeParse(body);
+  if (!parseResult.success) {
     return NextResponse.json(
-      { error: "Name is required and must be a string" },
+      {
+        error: "invalid_request",
+        error_description:
+          parseResult.error.issues[0]?.message || "Invalid request body",
+      },
       { status: 400 },
     );
   }
+
+  const { name } = parseResult.data;
 
   // Generate project ID from name (could be improved)
   const projectId = `${name}-${randomUUID().slice(0, 8)}`;
@@ -72,5 +86,7 @@ export async function POST(request: NextRequest) {
       created_at: PROJECTS_TBL.createdAt,
     });
 
-  return NextResponse.json(newProject, { status: 201 });
+  // Validate response with schema
+  const response = CreateProjectResponseSchema.parse(newProject);
+  return NextResponse.json(response, { status: 201 });
 }
