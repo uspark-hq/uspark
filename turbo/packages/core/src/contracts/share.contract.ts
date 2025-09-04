@@ -116,7 +116,6 @@ export const shareContract = c.router({
       404: AccessShareErrorSchema,
       501: AccessShareErrorSchema,
     },
-<<<<<<< HEAD
     summary: "Access shared file content",
     description:
       "Public endpoint to retrieve the content of a shared file. No authentication required.",
