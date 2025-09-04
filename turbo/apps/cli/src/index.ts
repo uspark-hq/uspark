@@ -2,6 +2,8 @@ import { FOO } from "@uspark/core";
 import { Command } from "commander";
 import chalk from "chalk";
 
+const API_HOST = process.env.API_HOST || "https://api.uspark.com";
+
 const program = new Command();
 
 program
@@ -25,6 +27,7 @@ program
     console.log(`Node Version: ${process.version}`);
     console.log(`Platform: ${process.platform}`);
     console.log(`Architecture: ${process.arch}`);
+    console.log(`API Host: ${API_HOST}`);
   });
 
 program.parse();

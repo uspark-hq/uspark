@@ -49,6 +49,8 @@ jobs:
   deploy-web:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    outputs:
+      preview-url: ${{ steps.deploy.outputs.url }}
     permissions:
       contents: read
       pull-requests: write
@@ -130,3 +132,27 @@ jobs:
           deployment-env: docs
           meta-branch: ${{ github.head_ref }}
           meta-pr: ${{ github.event.pull_request.number }}
+
+  # Run E2E tests against deployed preview
+  e2e-test:
+    runs-on: ubuntu-latest
+    needs: [deploy-web]
+    if: github.event_name == 'pull_request' && needs.deploy-web.outputs.preview-url != ''
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive  # For BATS test framework
+      - uses: ./.github/actions/init
+
+      - name: Build CLI
+        run: cd turbo && pnpm --filter @uspark/cli build
+
+      - name: Setup CLI globally
+        run: cd turbo/apps/cli && pnpm link --global
+
+      - name: Run E2E Tests
+        run: |
+          echo "Testing against API_HOST: ${{ needs.deploy-web.outputs.preview-url }}"
+          ./e2e/run.sh
+        env:
+          API_HOST: ${{ needs.deploy-web.outputs.preview-url }}
