@@ -16,7 +16,9 @@ interface ShareMetadata {
   mtime: number;
 }
 
-async function fetchShareMetadata(token: string): Promise<ShareMetadata | null> {
+async function fetchShareMetadata(
+  token: string,
+): Promise<ShareMetadata | null> {
   try {
     const response = await fetch(`/api/share/${token}`, {
       cache: "no-store",
@@ -40,11 +42,11 @@ async function fetchFileContent(hash: string): Promise<string | null> {
   try {
     // Generate the blob URL using the hash
     const blobUrl = `${process.env.NEXT_PUBLIC_BLOB_URL || ""}/${hash}`;
-    
+
     // For now, try to fetch directly from the blob URL
     // In production, this would use proper STS tokens
     const response = await fetch(blobUrl);
-    
+
     if (!response.ok) {
       console.error("Failed to fetch from blob storage:", response.status);
       return null;
@@ -77,7 +79,7 @@ export default function SharePage({ params }: SharePageProps) {
 
     async function loadShareData() {
       setLoading(true);
-      
+
       // First, fetch the metadata
       const meta = await fetchShareMetadata(token!);
 
@@ -91,7 +93,7 @@ export default function SharePage({ params }: SharePageProps) {
 
       // Then, fetch the actual content using the hash
       const fileContent = await fetchFileContent(meta.hash);
-      
+
       if (fileContent === null) {
         // If blob fetch fails, show a message but don't error out completely
         setContent("");
@@ -99,7 +101,7 @@ export default function SharePage({ params }: SharePageProps) {
       } else {
         setContent(fileContent);
       }
-      
+
       setLoading(false);
     }
 
