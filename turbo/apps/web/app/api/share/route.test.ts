@@ -31,7 +31,7 @@ describe("/api/share", () => {
       .where(eq(PROJECTS_TBL.id, projectId));
 
     // Mock successful authentication by default
-    mockAuth.mockResolvedValue({ 
+    mockAuth.mockResolvedValue({
       userId,
       sessionClaims: {},
       sessionId: "session-123",
@@ -92,7 +92,7 @@ describe("/api/share", () => {
     });
 
     it("should return 401 when user is not authenticated", async () => {
-      mockAuth.mockResolvedValue({ 
+      mockAuth.mockResolvedValue({
         userId: null,
         sessionClaims: null,
         sessionId: null,
@@ -203,7 +203,7 @@ describe("/api/share", () => {
       // Create project owned by different user
       const otherUserId = "other-user";
       const otherProjectId = `other-project-${Date.now()}`;
-      
+
       const ydoc = new Y.Doc();
       const state = Y.encodeStateAsUpdate(ydoc);
       const base64Data = Buffer.from(state).toString("base64");

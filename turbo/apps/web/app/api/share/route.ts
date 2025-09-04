@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import crypto from "crypto";
 import { nanoid } from "nanoid";
-import { 
+import {
   CreateShareRequestSchema,
   type CreateShareResponse,
   type CreateShareError,
@@ -104,4 +104,3 @@ export async function POST(request: NextRequest) {
 
   return NextResponse.json(response, { status: 201 });
 }
-

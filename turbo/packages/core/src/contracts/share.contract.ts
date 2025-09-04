@@ -16,7 +16,10 @@ const ShareTokenSchema = z
  */
 export const CreateShareRequestSchema = z.object({
   project_id: z.string().min(1).describe("The project ID to share from"),
-  file_path: z.string().min(1).describe("The file path within the project to share"),
+  file_path: z
+    .string()
+    .min(1)
+    .describe("The file path within the project to share"),
 });
 
 /**
@@ -32,11 +35,7 @@ export const CreateShareResponseSchema = z.object({
  * Create Share Link Error Schema
  */
 export const CreateShareErrorSchema = z.object({
-  error: z.enum([
-    "unauthorized",
-    "project_not_found", 
-    "invalid_request"
-  ]),
+  error: z.enum(["unauthorized", "project_not_found", "invalid_request"]),
   error_description: z.string().optional(),
 });
 
@@ -57,16 +56,18 @@ export const AccessShareErrorSchema = z.object({
   error: z.enum([
     "share_not_found",
     "file_not_found",
-    "blob_storage_not_implemented"
+    "blob_storage_not_implemented",
   ]),
   error_description: z.string().optional(),
   message: z.string().optional(),
-  file_info: z.object({
-    project_name: z.string(),
-    file_path: z.string(),
-    hash: z.string(),
-    mtime: z.number(),
-  }).optional(),
+  file_info: z
+    .object({
+      project_name: z.string(),
+      file_path: z.string(),
+      hash: z.string(),
+      mtime: z.number(),
+    })
+    .optional(),
 });
 
 // Type exports
@@ -97,7 +98,8 @@ export const shareContract = c.router({
       404: CreateShareErrorSchema,
     },
     summary: "Create a share link for a single file",
-    description: "Generate a secure public link to share a specific file from a project. Only single files can be shared, not entire projects.",
+    description:
+      "Generate a secure public link to share a specific file from a project. Only single files can be shared, not entire projects.",
   },
 
   /**
@@ -114,7 +116,9 @@ export const shareContract = c.router({
       404: AccessShareErrorSchema,
       501: AccessShareErrorSchema,
     },
-    summary: "Access shared file metadata",
-    description: "Public endpoint to retrieve metadata of a shared file including content hash for direct blob access. No authentication required.",
+<<<<<<< HEAD
+    summary: "Access shared file content",
+    description:
+      "Public endpoint to retrieve the content of a shared file. No authentication required.",
   },
 });

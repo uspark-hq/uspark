@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as Y from "yjs";
-import {
-  type AccessShareError,
-  type AccessShareResponse,
-} from "@uspark/core";
+<<<<<<< HEAD
+import { type AccessShareError } from "@uspark/core";
 import { initServices } from "../../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
@@ -59,7 +57,6 @@ export async function GET(
     return NextResponse.json(errorResponse, { status: 404 });
   }
 
-
   // Decode YDoc data to extract file structure and content
   const ydoc = new Y.Doc();
   const binaryData = Buffer.from(project.ydocData, "base64");
@@ -67,7 +64,7 @@ export async function GET(
 
   // Get the files map from YDoc
   const filesMap = ydoc.getMap("files");
-  
+
   // Get the file node (contains hash and mtime)
   // For MVP, filePath is required, but schema allows NULL for future expansion
   if (!shareLink.filePath) {
@@ -78,8 +75,10 @@ export async function GET(
     return NextResponse.json(errorResponse, { status: 404 });
   }
 
-  const fileNode = filesMap.get(shareLink.filePath) as { hash: string; mtime: number } | undefined;
-  
+  const fileNode = filesMap.get(shareLink.filePath) as
+    | { hash: string; mtime: number }
+    | undefined;
+
   if (!fileNode || !fileNode.hash) {
     const errorResponse: AccessShareError = {
       error: "file_not_found",
@@ -87,14 +86,19 @@ export async function GET(
     return NextResponse.json(errorResponse, { status: 404 });
   }
 
-  // Return file metadata including hash for direct blob access
-  // Frontend can use this hash to fetch content directly from Vercel Blob
-  const response: AccessShareResponse = {
-    project_name: shareLink.projectId,
-    file_path: shareLink.filePath, // We've already checked it's not null above
-    hash: fileNode.hash,
-    mtime: fileNode.mtime,
+  // TODO: Implement Vercel Blob integration for production
+  // For MVP, we'll return an error indicating blob storage is not yet implemented
+  const errorResponse: AccessShareError = {
+    error: "blob_storage_not_implemented",
+    message:
+      "File content retrieval requires Vercel Blob integration which is not yet implemented in the backend",
+    file_info: {
+      project_name: shareLink.projectId,
+      file_path: shareLink.filePath, // We've already checked it's not null above
+      hash: fileNode.hash,
+      mtime: fileNode.mtime,
+    },
   };
-  
-  return NextResponse.json(response, { status: 200 });
+
+  return NextResponse.json(errorResponse, { status: 501 });
 }

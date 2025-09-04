@@ -54,25 +54,33 @@ describe("/api/share/:token", () => {
       });
     });
 
-    it("should return 200 with file metadata for valid share token", async () => {
-      const request = new NextRequest(`http://localhost:3000/api/share/${testToken}`);
+    it("should return 501 for valid share token (blob storage not implemented)", async () => {
+      const request = new NextRequest(
+        `http://localhost:3000/api/share/${testToken}`,
+      );
       const context = { params: Promise.resolve({ token: testToken }) };
 
       const response = await GET(request, context);
       const responseData = await response.json();
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(501);
       expect(responseData).toMatchObject({
-        project_name: projectId,
-        file_path: testFilePath,
-        hash: "abc123",
-        mtime: expect.any(Number),
+        error: "blob_storage_not_implemented",
+        message: expect.any(String),
+        file_info: {
+          project_name: projectId,
+          file_path: testFilePath,
+          hash: "abc123",
+          mtime: expect.any(Number),
+        },
       });
     });
 
     it("should return 404 for non-existent token", async () => {
       const invalidToken = "invalid-token-123";
-      const request = new NextRequest(`http://localhost:3000/api/share/${invalidToken}`);
+      const request = new NextRequest(
+        `http://localhost:3000/api/share/${invalidToken}`,
+      );
       const context = { params: Promise.resolve({ token: invalidToken }) };
 
       const response = await GET(request, context);
@@ -115,7 +123,9 @@ describe("/api/share/:token", () => {
         .set({ ydocData: base64Data })
         .where(eq(PROJECTS_TBL.id, projectId));
 
-      const request = new NextRequest(`http://localhost:3000/api/share/${testToken}`);
+      const request = new NextRequest(
+        `http://localhost:3000/api/share/${testToken}`,
+      );
       const context = { params: Promise.resolve({ token: testToken }) };
 
       const response = await GET(request, context);
@@ -141,7 +151,9 @@ describe("/api/share/:token", () => {
         .set({ ydocData: base64Data })
         .where(eq(PROJECTS_TBL.id, projectId));
 
-      const request = new NextRequest(`http://localhost:3000/api/share/${testToken}`);
+      const request = new NextRequest(
+        `http://localhost:3000/api/share/${testToken}`,
+      );
       const context = { params: Promise.resolve({ token: testToken }) };
 
       const response = await GET(request, context);
@@ -167,7 +179,9 @@ describe("/api/share/:token", () => {
         .set({ ydocData: base64Data })
         .where(eq(PROJECTS_TBL.id, projectId));
 
-      const request = new NextRequest(`http://localhost:3000/api/share/${testToken}`);
+      const request = new NextRequest(
+        `http://localhost:3000/api/share/${testToken}`,
+      );
       const context = { params: Promise.resolve({ token: testToken }) };
 
       const response = await GET(request, context);
