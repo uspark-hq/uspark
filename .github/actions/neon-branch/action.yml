@@ -35,6 +35,10 @@ outputs:
 runs:
   using: "composite"
   steps:
+    - name: Install Neon CLI (temporary workaround)
+      shell: bash
+      run: npm install -g neonctl@latest
+      
     - name: Start deployment
       id: deployment
       if: inputs.action == 'create'
@@ -46,9 +50,6 @@ runs:
         ref: ${{ github.head_ref || github.ref }}
         desc: Creating Neon database branch
 
-    - name: Install Neon CLI
-      shell: bash
-      run: npm install -g neonctl@latest
 
     - name: Create or Update Neon Branch
       id: branch

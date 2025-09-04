@@ -15,18 +15,10 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Install Vercel CLI
+    - name: Verify Vercel CLI
       shell: bash
       run: |
-        # Check if Vercel CLI is installed, install if not
-        if ! command -v vercel &> /dev/null; then
-          echo "Vercel CLI not found, installing..."
-          npm install -g vercel@latest
-        else
-          echo "Vercel CLI already installed"
-        fi
-
-        # Output Vercel version
+        # Output Vercel version (already installed in toolchain)
         echo "Vercel CLI version:"
         vercel --version
 

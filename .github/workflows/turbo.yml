@@ -10,16 +10,20 @@ on:
 jobs:
   lint:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
 
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/init
+      - uses: ./.github/actions/toolchain-init
 
       - name: Lint
-        run: npx -y @evilmartians/lefthook run pre-commit --all-files
+        run: lefthook run pre-commit --all-files
 
   test:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
 
     services:
       postgres:
@@ -36,18 +40,20 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/init
+      - uses: ./.github/actions/toolchain-init
 
       - name: Test
         run: cd turbo && pnpm test
         env:
-          DATABASE_URL: "postgresql://postgres:postgres@localhost:5432/postgres"
+          DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/postgres"
           CLERK_SECRET_KEY: "test_clerk_secret_key"
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "test_clerk_publishable_key"
 
   # Deploy web application with database
   deploy-web:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
@@ -64,7 +70,7 @@ jobs:
           cd turbo/apps/web
           npx turbo-ignore web || echo "has-changes=true" >> $GITHUB_OUTPUT
       
-      - uses: ./.github/actions/init
+      - uses: ./.github/actions/toolchain-init
         if: steps.check-changes.outputs.has-changes == 'true'
 
       # Step 1: Create Neon database branch
@@ -99,6 +105,8 @@ jobs:
   # Deploy docs application
   deploy-docs:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:bb0915d
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
@@ -115,7 +123,7 @@ jobs:
           cd turbo/apps/docs
           npx turbo-ignore docs || echo "has-changes=true" >> $GITHUB_OUTPUT
       
-      - uses: ./.github/actions/init
+      - uses: ./.github/actions/toolchain-init
         if: steps.check-changes.outputs.has-changes == 'true'
 
       - name: Deploy Docs to Vercel
