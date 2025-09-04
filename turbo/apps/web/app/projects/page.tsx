@@ -23,48 +23,46 @@ export default function ProjectsListPage() {
 
   // Mock projects data for now
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      const mockProjects: Project[] = [
-        {
-          id: "demo-project-123",
-          name: "Demo Project",
-          created_at: new Date(
-            Date.now() - 7 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          updated_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-          fileCount: 7,
-          totalSize: 830,
-        },
-        {
-          id: "web-app-456",
-          name: "Web Application",
-          created_at: new Date(
-            Date.now() - 14 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          updated_at: new Date(
-            Date.now() - 1 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          fileCount: 23,
-          totalSize: 1024 * 15,
-        },
-        {
-          id: "api-service-789",
-          name: "API Service",
-          created_at: new Date(
-            Date.now() - 30 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          updated_at: new Date(
-            Date.now() - 3 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          fileCount: 12,
-          totalSize: 1024 * 8,
-        },
-      ];
+    // Load mock projects immediately
+    const mockProjects: Project[] = [
+      {
+        id: "demo-project-123",
+        name: "Demo Project",
+        created_at: new Date(
+          Date.now() - 7 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
+        updated_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        fileCount: 7,
+        totalSize: 830,
+      },
+      {
+        id: "web-app-456",
+        name: "Web Application",
+        created_at: new Date(
+          Date.now() - 14 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
+        updated_at: new Date(
+          Date.now() - 1 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
+        fileCount: 23,
+        totalSize: 1024 * 15,
+      },
+      {
+        id: "api-service-789",
+        name: "API Service",
+        created_at: new Date(
+          Date.now() - 30 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
+        updated_at: new Date(
+          Date.now() - 3 * 24 * 60 * 60 * 1000,
+        ).toISOString(),
+        fileCount: 12,
+        totalSize: 1024 * 8,
+      },
+    ];
 
-      setProjects(mockProjects);
-      setLoading(false);
-    }, 800);
+    setProjects(mockProjects);
+    setLoading(false);
   }, []);
 
   const handleCreateProject = async () => {
@@ -73,9 +71,7 @@ export default function ProjectsListPage() {
     setCreating(true);
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
+      // Create project immediately (no artificial delay)
       const newProject: Project = {
         id: `project-${Date.now()}`,
         name: newProjectName.trim(),
