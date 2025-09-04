@@ -28,7 +28,9 @@ export async function pushCommand(
 
   // Handle --all flag for batch push
   if (options.all) {
-    throw new Error("--all flag is not supported yet. Please specify individual files.");
+    throw new Error(
+      "--all flag is not supported yet. Please specify individual files.",
+    );
   }
 
   // Single file push

@@ -38,8 +38,11 @@ export async function GET(
   const stsToken = {
     token: `vercel_blob_rw_${projectId}_${Date.now()}`,
     expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
-    uploadUrl: process.env.VERCEL_BLOB_UPLOAD_URL || "https://blob.vercel-storage.com/upload",
-    downloadUrlPrefix: process.env.VERCEL_BLOB_URL || "https://blob.vercel-storage.com/files",
+    uploadUrl:
+      process.env.VERCEL_BLOB_UPLOAD_URL ||
+      "https://blob.vercel-storage.com/upload",
+    downloadUrlPrefix:
+      process.env.VERCEL_BLOB_URL || "https://blob.vercel-storage.com/files",
   };
 
   return NextResponse.json(stsToken);

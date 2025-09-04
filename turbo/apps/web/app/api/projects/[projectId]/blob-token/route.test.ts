@@ -7,11 +7,11 @@ import { like } from "drizzle-orm";
 
 describe("GET /api/projects/[projectId]/blob-token", () => {
   const timestamp = Date.now();
-  
+
   beforeEach(async () => {
     initServices();
   });
-  
+
   afterEach(async () => {
     // Clean up test projects
     await globalThis.services.db
@@ -32,7 +32,9 @@ describe("GET /api/projects/[projectId]/blob-token", () => {
     });
 
     // Call the API
-    const request = new NextRequest("http://localhost/api/projects/test-project/blob-token");
+    const request = new NextRequest(
+      "http://localhost/api/projects/test-project/blob-token",
+    );
     const response = await GET(request, {
       params: Promise.resolve({ projectId }),
     });
@@ -50,7 +52,9 @@ describe("GET /api/projects/[projectId]/blob-token", () => {
   it("should return 404 for non-existent project", async () => {
     const projectId = `non-existent-${timestamp}`;
 
-    const request = new NextRequest("http://localhost/api/projects/non-existent/blob-token");
+    const request = new NextRequest(
+      "http://localhost/api/projects/non-existent/blob-token",
+    );
     const response = await GET(request, {
       params: Promise.resolve({ projectId }),
     });
@@ -71,7 +75,9 @@ describe("GET /api/projects/[projectId]/blob-token", () => {
       version: 0,
     });
 
-    const request = new NextRequest("http://localhost/api/projects/other-user-project/blob-token");
+    const request = new NextRequest(
+      "http://localhost/api/projects/other-user-project/blob-token",
+    );
     const response = await GET(request, {
       params: Promise.resolve({ projectId }),
     });

@@ -95,7 +95,7 @@ program
         );
         process.exit(1);
       }
-      
+
       await pushCommand(filePath, options);
     },
   );

@@ -28,7 +28,7 @@ export class FileSystem {
   getAllFiles(): Map<string, FileNode> {
     const result = new Map<string, FileNode>();
     this.files.forEach((node, path) => {
-      if (typeof path === 'string') {
+      if (typeof path === "string") {
         result.set(path, node);
       }
     });

@@ -86,29 +86,38 @@ export class ProjectSync {
     let content = this.fs.getBlob(fileNode.hash);
     if (!content) {
       // Get STS token for blob access
-      const tokenResponse = await fetch(`${apiUrl}/api/projects/${projectId}/blob-token`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const tokenResponse = await fetch(
+        `${apiUrl}/api/projects/${projectId}/blob-token`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (!tokenResponse.ok) {
-        throw new Error(`Failed to get blob token: ${tokenResponse.statusText}`);
+        throw new Error(
+          `Failed to get blob token: ${tokenResponse.statusText}`,
+        );
       }
 
-      const { downloadUrlPrefix, token: blobToken } = await tokenResponse.json() as {
-        token: string;
-        expiresAt: string;
-        uploadUrl: string;
-        downloadUrlPrefix: string;
-      };
+      const { downloadUrlPrefix, token: blobToken } =
+        (await tokenResponse.json()) as {
+          token: string;
+          expiresAt: string;
+          uploadUrl: string;
+          downloadUrlPrefix: string;
+        };
 
       // Fetch blob directly from Vercel Blob Storage
-      const blobResponse = await fetch(`${downloadUrlPrefix}/${fileNode.hash}`, {
-        headers: {
-          Authorization: `Bearer ${blobToken}`,
+      const blobResponse = await fetch(
+        `${downloadUrlPrefix}/${fileNode.hash}`,
+        {
+          headers: {
+            Authorization: `Bearer ${blobToken}`,
+          },
         },
-      });
+      );
 
       if (!blobResponse.ok) {
         // Fallback: blob might not be uploaded yet, use empty content
@@ -117,7 +126,7 @@ export class ProjectSync {
       } else {
         content = await blobResponse.text();
       }
-      
+
       this.fs.setBlob(fileNode.hash, content);
     }
 
@@ -154,17 +163,22 @@ export class ProjectSync {
     // 4. Upload blob if not exists
     if (!this.fs.getBlobInfo(localHash)) {
       // Get STS token for blob access
-      const tokenResponse = await fetch(`${apiUrl}/api/projects/${projectId}/blob-token`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const tokenResponse = await fetch(
+        `${apiUrl}/api/projects/${projectId}/blob-token`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (!tokenResponse.ok) {
-        throw new Error(`Failed to get blob token: ${tokenResponse.statusText}`);
+        throw new Error(
+          `Failed to get blob token: ${tokenResponse.statusText}`,
+        );
       }
 
-      const { uploadUrl, token: blobToken } = await tokenResponse.json() as {
+      const { uploadUrl, token: blobToken } = (await tokenResponse.json()) as {
         token: string;
         expiresAt: string;
         uploadUrl: string;
@@ -210,14 +224,14 @@ export class ProjectSync {
     // 2. Build local file map with hashes
     const localFiles = new Map<string, string>(); // path -> hash
     const contentMap = new Map<string, string>(); // hash -> content
-    
+
     for (const { filePath, localPath } of files) {
       const inputPath = localPath || filePath;
       const content = await readFile(inputPath, "utf8");
       const hash = await this.computeFileHash(content);
       localFiles.set(filePath, hash);
       contentMap.set(hash, content);
-      
+
       // Store content locally for later use
       if (!this.fs.getBlobInfo(hash)) {
         this.fs.setBlob(hash, content);
@@ -265,19 +279,23 @@ export class ProjectSync {
 
     if (blobsToUpload.size > 0) {
       // Get STS token for blob access
-      const tokenResponse = await fetch(`${apiUrl}/api/projects/${projectId}/blob-token`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      const tokenResponse = await fetch(
+        `${apiUrl}/api/projects/${projectId}/blob-token`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
       if (tokenResponse.ok) {
-        const { uploadUrl, token: blobToken } = await tokenResponse.json() as {
-        token: string;
-        expiresAt: string;
-        uploadUrl: string;
-        downloadUrlPrefix: string;
-      };
+        const { uploadUrl, token: blobToken } =
+          (await tokenResponse.json()) as {
+            token: string;
+            expiresAt: string;
+            uploadUrl: string;
+            downloadUrlPrefix: string;
+          };
 
         // Upload all new blobs
         for (const hash of blobsToUpload) {
@@ -316,5 +334,4 @@ export class ProjectSync {
     // 7. Sync everything to remote in one PATCH request
     await this.syncToRemote(projectId, options);
   }
-
 }
