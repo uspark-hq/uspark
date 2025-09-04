@@ -1,8 +1,7 @@
 import { FileSystem } from "./fs";
-import { writeFile, readFile, mkdir, readdir, stat } from "fs/promises";
-import { dirname, join } from "path";
+import { writeFile, readFile, mkdir } from "fs/promises";
+import { dirname } from "path";
 import { createHash } from "crypto";
-import * as Y from "yjs";
 
 export interface SyncOptions {
   token?: string;
@@ -86,18 +85,34 @@ export class ProjectSync {
     // 3. Get blob content from FileSystem or fetch from remote
     let content = this.fs.getBlob(fileNode.hash);
     if (!content) {
-      // Try to fetch from remote blob storage
-      const response = await fetch(`${apiUrl}/api/blobs/${fileNode.hash}`, {
+      // Get STS token for blob access
+      const tokenResponse = await fetch(`${apiUrl}/api/projects/${projectId}/blob-token`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch blob content: ${response.statusText}`);
+      if (!tokenResponse.ok) {
+        throw new Error(`Failed to get blob token: ${tokenResponse.statusText}`);
       }
 
-      content = await response.text();
+      const { downloadUrlPrefix, token: blobToken } = await tokenResponse.json();
+
+      // Fetch blob directly from Vercel Blob Storage
+      const blobResponse = await fetch(`${downloadUrlPrefix}/${fileNode.hash}`, {
+        headers: {
+          Authorization: `Bearer ${blobToken}`,
+        },
+      });
+
+      if (!blobResponse.ok) {
+        // Fallback: blob might not be uploaded yet, use empty content
+        console.warn(`Blob ${fileNode.hash} not found, using empty content`);
+        content = "";
+      } else {
+        content = await blobResponse.text();
+      }
+      
       this.fs.setBlob(fileNode.hash, content);
     }
 
@@ -133,8 +148,34 @@ export class ProjectSync {
 
     // 4. Upload blob if not exists
     if (!this.fs.getBlobInfo(localHash)) {
-      // TODO: Upload to blob storage when API is available
-      // For now, store locally
+      // Get STS token for blob access
+      const tokenResponse = await fetch(`${apiUrl}/api/projects/${projectId}/blob-token`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!tokenResponse.ok) {
+        throw new Error(`Failed to get blob token: ${tokenResponse.statusText}`);
+      }
+
+      const { uploadUrl, token: blobToken } = await tokenResponse.json();
+
+      // Upload blob directly to Vercel Blob Storage
+      const uploadResponse = await fetch(`${uploadUrl}/${localHash}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${blobToken}`,
+          "Content-Type": "text/plain",
+        },
+        body: content,
+      });
+
+      if (!uploadResponse.ok) {
+        console.warn(`Failed to upload blob ${localHash}, continuing anyway`);
+      }
+
+      // Store locally as well
       this.fs.setBlob(localHash, content);
     }
 
@@ -158,13 +199,16 @@ export class ProjectSync {
 
     // 2. Build local file map with hashes
     const localFiles = new Map<string, string>(); // path -> hash
+    const contentMap = new Map<string, string>(); // hash -> content
+    
     for (const { filePath, localPath } of files) {
       const inputPath = localPath || filePath;
       const content = await readFile(inputPath, "utf8");
       const hash = await this.computeFileHash(content);
       localFiles.set(filePath, hash);
+      contentMap.set(hash, content);
       
-      // Store content for later use
+      // Store content locally for later use
       if (!this.fs.getBlobInfo(hash)) {
         this.fs.setBlob(hash, content);
       }
@@ -200,7 +244,48 @@ export class ProjectSync {
       // If hashes match, skip (no change)
     }
 
-    // 5. Apply changes to FileSystem
+    // 5. Upload new/changed blobs to Vercel Blob Storage
+    const blobsToUpload = new Set<string>();
+    for (const path of [...toAdd, ...toUpdate]) {
+      const hash = localFiles.get(path)!;
+      if (!this.fs.getBlobInfo(hash)) {
+        blobsToUpload.add(hash);
+      }
+    }
+
+    if (blobsToUpload.size > 0) {
+      // Get STS token for blob access
+      const tokenResponse = await fetch(`${apiUrl}/api/projects/${projectId}/blob-token`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (tokenResponse.ok) {
+        const { uploadUrl, token: blobToken } = await tokenResponse.json();
+
+        // Upload all new blobs
+        for (const hash of blobsToUpload) {
+          const content = contentMap.get(hash);
+          if (content) {
+            const uploadResponse = await fetch(`${uploadUrl}/${hash}`, {
+              method: "PUT",
+              headers: {
+                Authorization: `Bearer ${blobToken}`,
+                "Content-Type": "text/plain",
+              },
+              body: content,
+            });
+
+            if (!uploadResponse.ok) {
+              console.warn(`Failed to upload blob ${hash}, continuing anyway`);
+            }
+          }
+        }
+      }
+    }
+
+    // 6. Apply changes to FileSystem
     // Delete files
     for (const path of toDelete) {
       this.fs.deleteFile(path);
@@ -209,45 +294,12 @@ export class ProjectSync {
     // Add/Update files
     for (const path of [...toAdd, ...toUpdate]) {
       const hash = localFiles.get(path)!;
-      const content = this.fs.getBlob(hash)!;
+      const content = contentMap.get(hash) || this.fs.getBlob(hash)!;
       await this.fs.writeFile(path, content);
     }
 
-    // 6. Sync everything to remote in one PATCH request
+    // 7. Sync everything to remote in one PATCH request
     await this.syncToRemote(projectId, options);
   }
 
-  async pushAllFiles(
-    projectId: string,
-    directory: string,
-    options?: SyncOptions,
-  ): Promise<void> {
-    // Scan directory for all files
-    const files: Array<{ filePath: string; localPath?: string }> = [];
-    
-    async function scanDir(dir: string, baseDir: string): Promise<void> {
-      const entries = await readdir(dir);
-      for (const entry of entries) {
-        const fullPath = join(dir, entry);
-        const stats = await stat(fullPath);
-        
-        if (stats.isDirectory()) {
-          // Skip common directories that shouldn't be synced
-          if (entry === '.git' || entry === 'node_modules' || entry === '.next') {
-            continue;
-          }
-          await scanDir(fullPath, baseDir);
-        } else if (stats.isFile()) {
-          // Get relative path from base directory
-          const relativePath = fullPath.substring(baseDir.length + 1);
-          files.push({ filePath: relativePath, localPath: fullPath });
-        }
-      }
-    }
-
-    await scanDir(directory, directory);
-    
-    // Use pushFiles to handle the actual sync
-    await this.pushFiles(projectId, files, options);
-  }
 }

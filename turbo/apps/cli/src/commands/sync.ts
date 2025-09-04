@@ -28,22 +28,12 @@ export async function pushCommand(
 
   // Handle --all flag for batch push
   if (options.all) {
-    console.log(
-      chalk.blue(`Pushing all files to project ${options.projectId}...`),
-    );
-    
-    // Use pushAllFiles which handles directory scanning and three-way diff
-    await sync.pushAllFiles(options.projectId, ".", { token, apiUrl });
-    
-    console.log(
-      chalk.green(`✓ Push completed`),
-    );
-    return;
+    throw new Error("--all flag is not supported yet. Please specify individual files.");
   }
 
   // Single file push
   if (!filePath) {
-    throw new Error("File path is required when not using --all flag");
+    throw new Error("File path is required");
   }
 
   console.log(
