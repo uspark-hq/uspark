@@ -29,6 +29,16 @@
 
 **Learning**: Testing should be part of initial development plan. The user values comprehensive test coverage.
 
+#### Git Workflow Awareness - "Understand Branch State"
+**User Discovery**: *"你这个提交怎么还带了很多别的文件"* / *"所以 ea65c0e 这个合并成功了吗？"*
+
+**Learning**: Always verify local branch state matches remote before creating new branches. Local divergence can cause PRs to include unintended commits.
+
+#### Pipeline Monitoring - "Trust But Verify"
+**User Questions**: *"check ppl"* / *"check pipeline"* / *"所以 main 上的 action 都正常？"*
+
+**Learning**: Continuously monitor CI/CD pipeline status even after merge. Initial failures may be resolved, but main branch stability is paramount.
+
 ### Technical Achievements
 - YJS Integration: Parse Y.Map structures to build file system trees
 - Component Architecture: Separate concerns (parser, UI, integration)
@@ -96,9 +106,11 @@
 
 ### Communication Patterns
 - **Direct & Efficient**: "对的，简化下" - minimal words, maximum clarity
+- **Command Shortcuts**: "check ppl" (pipeline), "pr link" - expects immediate action
 - **Context-Heavy**: Always provide PR numbers and architectural background
 - **Outcome-Focused**: Clear success criteria and definitions of done
 - **Quality-First**: Proactively asks about testing and monitors pipeline status
+- **Retrospective-Oriented**: Values process documentation ("总结下我今天在你写完代码后主动问了你什么问题")
 
 ---
 
@@ -161,5 +173,13 @@ Great development happens when there's:
 - Uncompromising quality standards
 
 The user's approach of **"check existing work → simplify → build → quality check → ship"** is a model worth following consistently.
+
+### Additional Insights from Extended Interaction
+
+#### Merge Confusion Resolution
+The confusion about PR #107 (local commit `ea65c0e` vs merged `9b8f8ed`) highlighted the importance of understanding git history and remote state. Always verify assumptions before acting.
+
+#### Documentation as Deliverable
+User values retrospective documentation immediately after feature completion. Not just code delivery, but also process improvement and knowledge capture. This retrospective itself became part of the deliverable.
 
 *These retrospectives capture collaborative development patterns and lessons learned for future feature implementations.*
