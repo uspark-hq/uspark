@@ -25,19 +25,23 @@ describe("TokenForm", () => {
   it("should render form with all required elements", () => {
     const mockAction = createMockAction();
     render(<TokenForm action={mockAction} />);
-    
+
     // Check form structure
     const form = document.querySelector("form");
     expect(form).toBeInTheDocument();
     expect(screen.getByLabelText("Token Name")).toBeInTheDocument();
-    expect(screen.getByPlaceholderText("e.g., My Development Token")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Generate Token" })).toBeInTheDocument();
-    
+    expect(
+      screen.getByPlaceholderText("e.g., My Development Token"),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Generate Token" }),
+    ).toBeInTheDocument();
+
     // Check form inputs
     const nameInput = screen.getByLabelText("Token Name");
     expect(nameInput).toBeRequired();
     expect(nameInput).toHaveAttribute("name", "name");
-    
+
     const hiddenInput = screen.getByDisplayValue("90");
     expect(hiddenInput).toHaveAttribute("name", "expires_in_days");
     expect(hiddenInput).toHaveAttribute("type", "hidden");
@@ -46,16 +50,16 @@ describe("TokenForm", () => {
   it("should handle form submission", () => {
     const mockAction = createMockAction();
     render(<TokenForm action={mockAction} />);
-    
+
     const nameInput = screen.getByLabelText("Token Name");
     const submitButton = screen.getByRole("button", { name: "Generate Token" });
-    
+
     // Fill form
     fireEvent.change(nameInput, { target: { value: "My Test Token" } });
-    
+
     // Submit form
     fireEvent.click(submitButton);
-    
+
     // Verify action was called
     expect(mockAction).toHaveBeenCalledTimes(1);
   });
@@ -63,10 +67,10 @@ describe("TokenForm", () => {
   it("should test clipboard functionality", async () => {
     // Test the clipboard logic in isolation
     const testToken = "usp_live_test123";
-    
+
     // Simulate clipboard write
     await navigator.clipboard.writeText(testToken);
-    
+
     expect(mockClipboard.writeText).toHaveBeenCalledWith(testToken);
   });
 });

@@ -20,12 +20,12 @@ function generateCliToken(): string {
   return `usp_live_${token}`;
 }
 
-export type GenerateTokenResult = 
+export type GenerateTokenResult =
   | { success: true; data: GenerateTokenResponse }
   | { success: false; error: GenerateTokenError };
 
 export async function generateTokenAction(
-  formData: FormData
+  formData: FormData,
 ): Promise<GenerateTokenResult> {
   const { userId } = await auth();
 
@@ -34,7 +34,8 @@ export async function generateTokenAction(
   }
 
   const name = formData.get("name") as string;
-  const expiresInDays = parseInt(formData.get("expires_in_days") as string) || 90;
+  const expiresInDays =
+    parseInt(formData.get("expires_in_days") as string) || 90;
 
   const validationResult = GenerateTokenRequestSchema.safeParse({
     name,
