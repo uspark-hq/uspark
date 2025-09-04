@@ -21,7 +21,7 @@ export async function GET() {
   // In production, this should come from auth
   const userId = "test-user";
 
-  const projects = await globalThis.services.db
+  const projectsData = await globalThis.services.db
     .select({
       id: PROJECTS_TBL.id,
       name: PROJECTS_TBL.id, // Using id as name for now, could add a name field later
@@ -30,6 +30,13 @@ export async function GET() {
     })
     .from(PROJECTS_TBL)
     .where(eq(PROJECTS_TBL.userId, userId));
+
+  // Convert dates to ISO strings for schema validation
+  const projects = projectsData.map(project => ({
+    ...project,
+    created_at: project.created_at.toISOString(),
+    updated_at: project.updated_at.toISOString(),
+  }));
 
   // Validate response with schema
   const response = ListProjectsResponseSchema.parse({ projects });
@@ -72,7 +79,7 @@ export async function POST(request: NextRequest) {
   const base64Data = Buffer.from(state).toString("base64");
 
   // Insert project into database
-  const [newProject] = await globalThis.services.db
+  const [newProjectData] = await globalThis.services.db
     .insert(PROJECTS_TBL)
     .values({
       id: projectId,
@@ -85,6 +92,16 @@ export async function POST(request: NextRequest) {
       name: PROJECTS_TBL.id, // Using id as name for now
       created_at: PROJECTS_TBL.createdAt,
     });
+
+  if (!newProjectData) {
+    throw new Error("Failed to create project");
+  }
+
+  // Convert date to ISO string for schema validation
+  const newProject = {
+    ...newProjectData,
+    created_at: newProjectData.created_at.toISOString(),
+  };
 
   // Validate response with schema
   const response = CreateProjectResponseSchema.parse(newProject);
