@@ -20,26 +20,32 @@ interface ClaudeEvent {
   };
 }
 
-function isFileModificationTool(toolName: string, toolInput: Record<string, unknown>): boolean {
-  const fileModificationTools = ['Edit', 'Write', 'MultiEdit', 'NotebookEdit'];
-  
+function isFileModificationTool(
+  toolName: string,
+  toolInput: Record<string, unknown>,
+): boolean {
+  const fileModificationTools = ["Edit", "Write", "MultiEdit", "NotebookEdit"];
+
   // Check if the tool is one of the file modification tools
   if (!fileModificationTools.includes(toolName)) {
     return false;
   }
-  
+
   // Additional check: ensure the tool has a file_path parameter
-  return 'file_path' in toolInput && typeof toolInput.file_path === 'string';
+  return "file_path" in toolInput && typeof toolInput.file_path === "string";
 }
 
-function extractFilePath(toolName: string, toolInput: Record<string, unknown>): string | null {
+function extractFilePath(
+  toolName: string,
+  toolInput: Record<string, unknown>,
+): string | null {
   // All file modification tools use 'file_path' parameter
   const filePath = toolInput.file_path;
-  
-  if (typeof filePath === 'string') {
+
+  if (typeof filePath === "string") {
     // Return relative path if it's within the current working directory
     // This ensures we only sync files within the project
-    if (filePath.startsWith('/')) {
+    if (filePath.startsWith("/")) {
       // Absolute path - check if it's within the current working directory
       const cwd = process.cwd();
       if (filePath.startsWith(cwd)) {
@@ -51,11 +57,13 @@ function extractFilePath(toolName: string, toolInput: Record<string, unknown>): 
     // Already a relative path
     return filePath;
   }
-  
+
   return null;
 }
 
-export async function watchClaudeCommand(options: { projectId: string }): Promise<void> {
+export async function watchClaudeCommand(options: {
+  projectId: string;
+}): Promise<void> {
   // Check authentication
   const token = await getToken();
   if (!token) {
@@ -81,18 +89,22 @@ export async function watchClaudeCommand(options: { projectId: string }): Promis
     // Try to parse as JSON to detect Claude events
     try {
       const event: ClaudeEvent = JSON.parse(line);
-      
+
       // Check if this is an assistant message with tool use
       if (event.type === "assistant" && event.message?.content) {
         for (const contentItem of event.message.content) {
-          if (contentItem.type === "tool_use" && contentItem.name && contentItem.input) {
+          if (
+            contentItem.type === "tool_use" &&
+            contentItem.name &&
+            contentItem.input
+          ) {
             const toolName = contentItem.name;
             const toolInput = contentItem.input;
-            
+
             // Check for file modification tools
             if (isFileModificationTool(toolName, toolInput)) {
               const filePath = extractFilePath(toolName, toolInput);
-              
+
               if (filePath) {
                 try {
                   // Trigger push operation in background
@@ -100,15 +112,15 @@ export async function watchClaudeCommand(options: { projectId: string }): Promis
                     token,
                     apiUrl,
                   });
-                  
+
                   // Log sync success (to stderr to not interfere with stdout)
                   console.error(chalk.dim(`[uspark] ✓ Synced ${filePath}`));
                 } catch (error) {
                   // Log errors to stderr but don't interrupt the main flow
                   console.error(
                     chalk.dim(
-                      `[uspark] ✗ Failed to sync ${filePath}: ${error instanceof Error ? error.message : error}`
-                    )
+                      `[uspark] ✗ Failed to sync ${filePath}: ${error instanceof Error ? error.message : error}`,
+                    ),
                   );
                 }
               }

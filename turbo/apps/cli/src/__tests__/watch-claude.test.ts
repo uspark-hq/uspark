@@ -2,21 +2,27 @@ import { describe, it, expect } from "vitest";
 
 // Extract and test the core parsing logic from watch-claude
 // These are the same functions used in the actual implementation
-function isFileModificationTool(toolName: string, toolInput: Record<string, unknown>): boolean {
-  const fileModificationTools = ['Edit', 'Write', 'MultiEdit', 'NotebookEdit'];
-  
+function isFileModificationTool(
+  toolName: string,
+  toolInput: Record<string, unknown>,
+): boolean {
+  const fileModificationTools = ["Edit", "Write", "MultiEdit", "NotebookEdit"];
+
   if (!fileModificationTools.includes(toolName)) {
     return false;
   }
-  
-  return 'file_path' in toolInput && typeof toolInput.file_path === 'string';
+
+  return "file_path" in toolInput && typeof toolInput.file_path === "string";
 }
 
-function extractFilePath(toolName: string, toolInput: Record<string, unknown>): string | null {
+function extractFilePath(
+  toolName: string,
+  toolInput: Record<string, unknown>,
+): string | null {
   const filePath = toolInput.file_path;
-  
-  if (typeof filePath === 'string') {
-    if (filePath.startsWith('/')) {
+
+  if (typeof filePath === "string") {
+    if (filePath.startsWith("/")) {
       const cwd = process.cwd();
       if (filePath.startsWith(cwd)) {
         return filePath.substring(cwd.length + 1);
@@ -25,20 +31,24 @@ function extractFilePath(toolName: string, toolInput: Record<string, unknown>): 
     }
     return filePath;
   }
-  
+
   return null;
 }
 
 function shouldSyncFile(jsonLine: string): string | null {
   try {
     const event = JSON.parse(jsonLine);
-    
+
     if (event.type === "assistant" && event.message?.content) {
       for (const contentItem of event.message.content) {
-        if (contentItem.type === "tool_use" && contentItem.name && contentItem.input) {
+        if (
+          contentItem.type === "tool_use" &&
+          contentItem.name &&
+          contentItem.input
+        ) {
           const toolName = contentItem.name;
           const toolInput = contentItem.input;
-          
+
           if (isFileModificationTool(toolName, toolInput)) {
             return extractFilePath(toolName, toolInput);
           }
@@ -48,7 +58,7 @@ function shouldSyncFile(jsonLine: string): string | null {
   } catch {
     // Not JSON or parsing failed
   }
-  
+
   return null;
 }
 
@@ -65,12 +75,17 @@ describe("watch-claude parsing logic", () => {
     });
 
     it("should return true for MultiEdit tool with file_path", () => {
-      const result = isFileModificationTool("MultiEdit", { file_path: "test.js" });
+      const result = isFileModificationTool("MultiEdit", {
+        file_path: "test.js",
+      });
       expect(result).toBe(true);
     });
 
     it("should return true for NotebookEdit tool with file_path", () => {
-      const result = isFileModificationTool("NotebookEdit", { notebook_path: "test.ipynb", file_path: "test.ipynb" });
+      const result = isFileModificationTool("NotebookEdit", {
+        notebook_path: "test.ipynb",
+        file_path: "test.ipynb",
+      });
       expect(result).toBe(true);
     });
 
@@ -85,7 +100,9 @@ describe("watch-claude parsing logic", () => {
     });
 
     it("should return false for tool without file_path", () => {
-      const result = isFileModificationTool("Edit", { content: "some content" });
+      const result = isFileModificationTool("Edit", {
+        content: "some content",
+      });
       expect(result).toBe(false);
     });
 
@@ -106,20 +123,22 @@ describe("watch-claude parsing logic", () => {
     it("should convert absolute path within cwd to relative", () => {
       const testCwd = "/workspaces/project";
       process.cwd = () => testCwd;
-      
-      const result = extractFilePath("Edit", { file_path: "/workspaces/project/src/test.js" });
+
+      const result = extractFilePath("Edit", {
+        file_path: "/workspaces/project/src/test.js",
+      });
       expect(result).toBe("src/test.js");
-      
+
       process.cwd = () => originalCwd;
     });
 
     it("should return null for absolute path outside cwd", () => {
       const testCwd = "/workspaces/project";
       process.cwd = () => testCwd;
-      
+
       const result = extractFilePath("Edit", { file_path: "/etc/passwd" });
       expect(result).toBe(null);
-      
+
       process.cwd = () => originalCwd;
     });
 
@@ -139,16 +158,18 @@ describe("watch-claude parsing logic", () => {
       const jsonLine = JSON.stringify({
         type: "assistant",
         message: {
-          content: [{
-            type: "tool_use",
-            name: "Edit", 
-            input: {
-              file_path: "src/test.js",
-              old_string: "old",
-              new_string: "new"
-            }
-          }]
-        }
+          content: [
+            {
+              type: "tool_use",
+              name: "Edit",
+              input: {
+                file_path: "src/test.js",
+                old_string: "old",
+                new_string: "new",
+              },
+            },
+          ],
+        },
       });
 
       const result = shouldSyncFile(jsonLine);
@@ -159,15 +180,17 @@ describe("watch-claude parsing logic", () => {
       const jsonLine = JSON.stringify({
         type: "assistant",
         message: {
-          content: [{
-            type: "tool_use", 
-            name: "Write",
-            input: {
-              file_path: "new-file.js",
-              content: "console.log('hello');"
-            }
-          }]
-        }
+          content: [
+            {
+              type: "tool_use",
+              name: "Write",
+              input: {
+                file_path: "new-file.js",
+                content: "console.log('hello');",
+              },
+            },
+          ],
+        },
       });
 
       const result = shouldSyncFile(jsonLine);
@@ -178,14 +201,16 @@ describe("watch-claude parsing logic", () => {
       const jsonLine = JSON.stringify({
         type: "assistant",
         message: {
-          content: [{
-            type: "tool_use",
-            name: "Read",
-            input: {
-              file_path: "src/existing.js"
-            }
-          }]
-        }
+          content: [
+            {
+              type: "tool_use",
+              name: "Read",
+              input: {
+                file_path: "src/existing.js",
+              },
+            },
+          ],
+        },
       });
 
       const result = shouldSyncFile(jsonLine);
@@ -194,13 +219,15 @@ describe("watch-claude parsing logic", () => {
 
     it("should return null for non-tool-use content", () => {
       const jsonLine = JSON.stringify({
-        type: "assistant", 
+        type: "assistant",
         message: {
-          content: [{
-            type: "text",
-            text: "I will edit the file"
-          }]
-        }
+          content: [
+            {
+              type: "text",
+              text: "I will edit the file",
+            },
+          ],
+        },
       });
 
       const result = shouldSyncFile(jsonLine);
@@ -211,7 +238,7 @@ describe("watch-claude parsing logic", () => {
       const jsonLine = JSON.stringify({
         type: "system",
         subtype: "init",
-        tools: ["Edit", "Write", "Read"]
+        tools: ["Edit", "Write", "Read"],
       });
 
       const result = shouldSyncFile(jsonLine);
@@ -235,16 +262,20 @@ describe("watch-claude parsing logic", () => {
           content: [
             {
               type: "tool_use",
-              name: "Read", 
-              input: { file_path: "config.js" }
+              name: "Read",
+              input: { file_path: "config.js" },
             },
             {
               type: "tool_use",
               name: "Edit",
-              input: { file_path: "src/main.js", old_string: "old", new_string: "new" }
-            }
-          ]
-        }
+              input: {
+                file_path: "src/main.js",
+                old_string: "old",
+                new_string: "new",
+              },
+            },
+          ],
+        },
       });
 
       const result = shouldSyncFile(jsonLine);
@@ -260,12 +291,12 @@ describe("watch-claude parsing logic", () => {
         '{"type":"assistant","message":{"content":[{"type":"text","text":"I will edit the file"}]}}',
         '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Edit","input":{"file_path":"test.js","old_string":"old","new_string":"new"}}]}}',
         '{"type":"assistant","message":{"content":[{"type":"tool_use","name":"Write","input":{"file_path":"README.md","content":"# Test"}}]}}',
-        'This is regular non-JSON output',
-        '{"type":"result","subtype":"success","result":"Done."}'
+        "This is regular non-JSON output",
+        '{"type":"result","subtype":"success","result":"Done."}',
       ];
 
       const syncedFiles: string[] = [];
-      
+
       for (const event of realEvents) {
         const filePath = shouldSyncFile(event);
         if (filePath) {
