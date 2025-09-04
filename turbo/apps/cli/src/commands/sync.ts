@@ -1,7 +1,5 @@
 import chalk from "chalk";
 import { requireAuth } from "./shared";
-import { readdir, stat } from "fs/promises";
-import { join, relative } from "path";
 
 export async function pullCommand(
   filePath: string,
@@ -34,16 +32,11 @@ export async function pushCommand(
       chalk.blue(`Pushing all files to project ${options.projectId}...`),
     );
     
-    const filePaths = await getAllFiles(".");
-    
-    // Prepare file list for batch push
-    const files = filePaths.map(path => ({ filePath: path }));
-    
-    // Batch push all files in one PATCH request
-    await sync.pushFiles(options.projectId, files, { token, apiUrl });
+    // Use pushAllFiles which handles directory scanning and three-way diff
+    await sync.pushAllFiles(options.projectId, ".", { token, apiUrl });
     
     console.log(
-      chalk.green(`✓ Push completed: ${files.length} files pushed`),
+      chalk.green(`✓ Push completed`),
     );
     return;
   }
@@ -63,28 +56,4 @@ export async function pushCommand(
   });
 
   console.log(chalk.green(`✓ Successfully pushed ${filePath}`));
-}
-
-async function getAllFiles(dir: string): Promise<string[]> {
-  const files: string[] = [];
-  
-  async function traverse(currentDir: string): Promise<void> {
-    const entries = await readdir(currentDir);
-    
-    for (const entry of entries) {
-      const fullPath = join(currentDir, entry);
-      const fileStat = await stat(fullPath);
-      
-      if (fileStat.isDirectory()) {
-        await traverse(fullPath);
-      } else {
-        // Get relative path from root directory
-        const relativePath = relative(".", fullPath);
-        files.push(relativePath);
-      }
-    }
-  }
-  
-  await traverse(dir);
-  return files;
 }

@@ -17,6 +17,28 @@ export class FileSystem {
     this.blobStore = blobStore || new MockBlobStore();
   }
 
+  getFilesMap(): Y.Map<FileNode> {
+    return this.files;
+  }
+
+  getBlobsMap(): Y.Map<BlobInfo> {
+    return this.blobs;
+  }
+
+  getAllFiles(): Map<string, FileNode> {
+    const result = new Map<string, FileNode>();
+    this.files.forEach((node, path) => {
+      if (typeof path === 'string') {
+        result.set(path, node);
+      }
+    });
+    return result;
+  }
+
+  deleteFile(path: string): void {
+    this.files.delete(path);
+  }
+
   async writeFile(path: string, content: string): Promise<void> {
     const bytes = new TextEncoder().encode(content);
     const hash = await this.computeHash(bytes);
