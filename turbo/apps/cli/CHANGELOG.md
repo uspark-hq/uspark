@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.5.0](https://github.com/uspark-hq/uspark/compare/cli-v0.4.0...cli-v0.5.0) (2025-09-04)
+
+
+### Features
+
+* add cli authentication with device flow ([#89](https://github.com/uspark-hq/uspark/issues/89)) ([2ebb970](https://github.com/uspark-hq/uspark/commit/2ebb970b11e303d45a2968839f9e7c05a0ca5e04))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.8.0
+
 ## [0.4.0](https://github.com/uspark-hq/uspark/compare/cli-v0.3.0...cli-v0.4.0) (2025-09-03)
 
 

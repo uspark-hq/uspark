@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/uspark-hq/uspark/compare/core-v0.7.0...core-v0.8.0) (2025-09-04)
+
+
+### Features
+
+* add vercel blob storage implementation with content-addressed deduplication ([#80](https://github.com/uspark-hq/uspark/issues/80)) ([e500dec](https://github.com/uspark-hq/uspark/commit/e500decc9c8c07fa8eb07aa1676e76c454e33c90))
+
 ## [0.7.0](https://github.com/uspark-hq/uspark/compare/core-v0.6.0...core-v0.7.0) (2025-09-03)
 
 

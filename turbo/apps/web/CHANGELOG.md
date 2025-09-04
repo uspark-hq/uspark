@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.10.0](https://github.com/uspark-hq/uspark/compare/web-v0.9.0...web-v0.10.0) (2025-09-04)
+
+
+### Features
+
+* add cli authentication with device flow ([#89](https://github.com/uspark-hq/uspark/issues/89)) ([2ebb970](https://github.com/uspark-hq/uspark/commit/2ebb970b11e303d45a2968839f9e7c05a0ca5e04))
+* add vercel blob storage implementation with content-addressed deduplication ([#80](https://github.com/uspark-hq/uspark/issues/80)) ([e500dec](https://github.com/uspark-hq/uspark/commit/e500decc9c8c07fa8eb07aa1676e76c454e33c90))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.8.0
+
 ## [0.9.0](https://github.com/uspark-hq/uspark/compare/web-v0.8.0...web-v0.9.0) (2025-09-03)
 
 
