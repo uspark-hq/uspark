@@ -98,7 +98,9 @@ export default function FileExplorerDemo() {
       if (url.includes(`/api/projects/${demoProjectId}`)) {
         // Return demo YJS document
         const demoData = createDemoYjsDocument();
-        return new Response(demoData.buffer, {
+        // Convert to ArrayBuffer for Response compatibility
+        const arrayBuffer = new Uint8Array(demoData).buffer;
+        return new Response(arrayBuffer, {
           status: 200,
           headers: {
             'Content-Type': 'application/octet-stream',

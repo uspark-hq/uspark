@@ -93,6 +93,7 @@ function buildFileTreeFromYjs(files: Array<{
     
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
+      if (!part) continue; // Skip if part is somehow undefined
       const parentPath = currentPath;
       currentPath = currentPath ? `${currentPath}/${part}` : part;
       

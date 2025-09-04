@@ -32,7 +32,8 @@ describe("YjsFileExplorer Integration", () => {
     });
 
     const update = Y.encodeStateAsUpdate(ydoc);
-    return update.buffer;
+    // Convert to ArrayBuffer for type safety
+    return new Uint8Array(update).buffer;
   };
 
   it("loads and displays project files from YJS document", async () => {

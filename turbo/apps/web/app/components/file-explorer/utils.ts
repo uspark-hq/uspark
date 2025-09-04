@@ -18,6 +18,7 @@ export function buildFileTree(files: Array<{ path: string; type: 'file' | 'direc
     
     for (let i = 0; i < parts.length; i++) {
       const part = parts[i];
+      if (!part) continue; // Skip if part is somehow undefined
       const parentPath = currentPath;
       currentPath = currentPath ? `${currentPath}/${part}` : part;
       
@@ -51,8 +52,8 @@ export function buildFileTree(files: Array<{ path: string; type: 'file' | 'direc
         return a.type === 'directory' ? -1 : 1;
       }
       // Get file names for comparison
-      const aName = a.path.split('/').pop() || a.path;
-      const bName = b.path.split('/').pop() || b.path;
+      const aName = a.path.split('/').pop() ?? a.path;
+      const bName = b.path.split('/').pop() ?? b.path;
       return aName.localeCompare(bName);
     });
     

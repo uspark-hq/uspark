@@ -220,12 +220,7 @@ export default function ProjectsListPage() {
                 padding: '24px',
                 backgroundColor: 'var(--background)',
                 cursor: 'pointer',
-                transition: 'all 0.2s ease',
-                ':hover': {
-                  borderColor: 'rgba(59, 130, 246, 0.4)',
-                  transform: 'translateY(-2px)',
-                  boxShadow: '0 8px 25px rgba(0, 0, 0, 0.1)'
-                }
+                transition: 'all 0.2s ease'
               }}
               onMouseEnter={(e) => {
                 e.currentTarget.style.borderColor = 'rgba(59, 130, 246, 0.4)';
