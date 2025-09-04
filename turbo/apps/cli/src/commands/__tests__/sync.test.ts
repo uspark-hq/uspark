@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, afterAll } from "vitest";
 import { pushCommand, pullCommand } from "../sync";
 import chalk from "chalk";
 import * as fs from "fs/promises";
@@ -120,57 +120,37 @@ describe("sync commands", () => {
         all: true,
       });
 
-      // Check that all files were processed (check console output)
+      // Check that batch push was completed
       expect(console.log).toHaveBeenCalledWith(
-        chalk.green("  ✓ Pushed file1.txt"),
+        chalk.blue("Pushing all files to project proj-123..."),
       );
       expect(console.log).toHaveBeenCalledWith(
-        chalk.green("  ✓ Pushed file2.js"),
-      );
-      expect(console.log).toHaveBeenCalledWith(
-        chalk.green("  ✓ Pushed subdir/file3.md"),
-      );
-      expect(console.log).toHaveBeenCalledWith(
-        chalk.green("\n✓ Push completed: 3 succeeded, 0 failed"),
+        chalk.green("✓ Push completed: 3 files pushed"),
       );
     });
 
-    it("should handle network errors during batch push gracefully", async () => {
+    it("should fail fast on network errors during batch push", async () => {
       // Create test files
       await fs.writeFile("file1.txt", "content1");
       await fs.writeFile("file2.txt", "content2");
 
-      let requestCount = 0;
-      // Mock server to return error on second request
+      // Mock server to return error
       server.use(
         http.patch("http://localhost:3000/api/projects/proj-123", () => {
-          requestCount++;
-          if (requestCount >= 2) {
-            return HttpResponse.json(
-              { error: "Server error" },
-              { status: 500 }
-            );
-          }
-          return new HttpResponse("OK", {
-            headers: {
-              "X-Version": "1",
-            },
-          });
+          return HttpResponse.json(
+            { error: "Server error" },
+            { status: 500 }
+          );
         })
       );
 
-      await pushCommand(undefined, {
-        projectId: "proj-123",
-        all: true,
-      });
-
-      expect(console.log).toHaveBeenCalledWith(
-        chalk.green("  ✓ Pushed file1.txt"),
-      );
-      // Second push should fail due to mocked server error
-      expect(console.log).toHaveBeenCalledWith(
-        expect.stringMatching(/✗ Failed to push file2\.txt:/)
-      );
+      // Should throw on error (fail fast)
+      await expect(
+        pushCommand(undefined, {
+          projectId: "proj-123",
+          all: true,
+        })
+      ).rejects.toThrow("Failed to sync to remote");
     });
 
     it("should throw error when no file path and no --all flag", async () => {

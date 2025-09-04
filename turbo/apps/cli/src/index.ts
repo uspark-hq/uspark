@@ -88,24 +88,15 @@ program
       filePath: string | undefined,
       options: { projectId: string; all?: boolean },
     ) => {
-      try {
-        // Validate arguments
-        if (!options.all && !filePath) {
-          console.error(
-            chalk.red("Error: File path is required unless using --all flag"),
-          );
-          process.exit(1);
-        }
-        
-        await pushCommand(filePath, options);
-      } catch (error) {
+      // Validate arguments
+      if (!options.all && !filePath) {
         console.error(
-          chalk.red(
-            `✗ Failed to push: ${error instanceof Error ? error.message : error}`,
-          ),
+          chalk.red("Error: File path is required unless using --all flag"),
         );
         process.exit(1);
       }
+      
+      await pushCommand(filePath, options);
     },
   );
 

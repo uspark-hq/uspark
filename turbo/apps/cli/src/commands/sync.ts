@@ -34,28 +34,16 @@ export async function pushCommand(
       chalk.blue(`Pushing all files to project ${options.projectId}...`),
     );
     
-    const files = await getAllFiles(".");
-    let successCount = 0;
-    let failedCount = 0;
+    const filePaths = await getAllFiles(".");
     
-    for (const file of files) {
-      try {
-        await sync.pushFile(options.projectId, file, file, {
-          token,
-          apiUrl,
-        });
-        console.log(chalk.green(`  ✓ Pushed ${file}`));
-        successCount++;
-      } catch (error) {
-        console.log(chalk.yellow(`  ✗ Failed to push ${file}: ${error instanceof Error ? error.message : error}`));
-        failedCount++;
-      }
-    }
+    // Prepare file list for batch push
+    const files = filePaths.map(path => ({ filePath: path }));
+    
+    // Batch push all files in one PATCH request
+    await sync.pushFiles(options.projectId, files, { token, apiUrl });
     
     console.log(
-      chalk.green(
-        `\n✓ Push completed: ${successCount} succeeded, ${failedCount} failed`,
-      ),
+      chalk.green(`✓ Push completed: ${files.length} files pushed`),
     );
     return;
   }

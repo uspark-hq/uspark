@@ -117,4 +117,20 @@ export class ProjectSync {
     // 3. Sync to remote
     await this.syncToRemote(projectId, options);
   }
+
+  async pushFiles(
+    projectId: string,
+    files: Array<{ filePath: string; localPath?: string }>,
+    options?: SyncOptions,
+  ): Promise<void> {
+    // 1. Read and update all files in FileSystem
+    for (const { filePath, localPath } of files) {
+      const inputPath = localPath || filePath;
+      const content = await readFile(inputPath, "utf8");
+      await this.fs.writeFile(filePath, content);
+    }
+
+    // 2. Sync everything to remote in one PATCH request
+    await this.syncToRemote(projectId, options);
+  }
 }
