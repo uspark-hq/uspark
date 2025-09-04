@@ -9,13 +9,14 @@ interface SharePageProps {
   }>;
 }
 
-interface ShareData {
+interface ShareMetadata {
   project_name: string;
   file_path: string;
-  content: string;
+  hash: string;
+  mtime: number;
 }
 
-async function fetchShareData(token: string): Promise<ShareData | null> {
+async function fetchShareMetadata(token: string): Promise<ShareMetadata | null> {
   try {
     const response = await fetch(`/api/share/${token}`, {
       cache: "no-store",
@@ -30,13 +31,35 @@ async function fetchShareData(token: string): Promise<ShareData | null> {
 
     return await response.json();
   } catch (error) {
-    console.error("Failed to fetch share data:", error);
+    console.error("Failed to fetch share metadata:", error);
+    return null;
+  }
+}
+
+async function fetchFileContent(hash: string): Promise<string | null> {
+  try {
+    // Generate the blob URL using the hash
+    const blobUrl = `${process.env.NEXT_PUBLIC_BLOB_URL || ""}/${hash}`;
+    
+    // For now, try to fetch directly from the blob URL
+    // In production, this would use proper STS tokens
+    const response = await fetch(blobUrl);
+    
+    if (!response.ok) {
+      console.error("Failed to fetch from blob storage:", response.status);
+      return null;
+    }
+
+    return await response.text();
+  } catch (error) {
+    console.error("Failed to fetch file content from blob:", error);
     return null;
   }
 }
 
 export default function SharePage({ params }: SharePageProps) {
-  const [shareData, setShareData] = useState<ShareData | null>(null);
+  const [metadata, setMetadata] = useState<ShareMetadata | null>(null);
+  const [content, setContent] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [token, setToken] = useState<string | null>(null);
@@ -54,15 +77,29 @@ export default function SharePage({ params }: SharePageProps) {
 
     async function loadShareData() {
       setLoading(true);
-      const data = await fetchShareData(token!);
+      
+      // First, fetch the metadata
+      const meta = await fetchShareMetadata(token!);
 
-      if (!data) {
+      if (!meta) {
         setError("Share not found");
         setLoading(false);
         return;
       }
 
-      setShareData(data);
+      setMetadata(meta);
+
+      // Then, fetch the actual content using the hash
+      const fileContent = await fetchFileContent(meta.hash);
+      
+      if (fileContent === null) {
+        // If blob fetch fails, show a message but don't error out completely
+        setContent("");
+        console.warn("Could not fetch file content from blob storage");
+      } else {
+        setContent(fileContent);
+      }
+      
       setLoading(false);
     }
 
@@ -80,7 +117,7 @@ export default function SharePage({ params }: SharePageProps) {
     );
   }
 
-  if (error || !shareData) {
+  if (error || !metadata) {
     notFound();
   }
 
@@ -89,7 +126,7 @@ export default function SharePage({ params }: SharePageProps) {
       <div className="container mx-auto p-2 sm:p-4 max-w-7xl">
         <header className="mb-4 sm:mb-6">
           <h1 className="text-lg sm:text-2xl font-bold text-gray-900 break-words">
-            {shareData.project_name}
+            {metadata.project_name}
           </h1>
           <p className="text-xs sm:text-sm text-gray-600 mt-1">
             Shared document • Read-only
@@ -100,10 +137,27 @@ export default function SharePage({ params }: SharePageProps) {
           {/* Document Viewer */}
           <main className="w-full h-full">
             <div className="bg-white rounded-lg shadow-sm border h-full min-h-[400px] overflow-hidden">
-              <DocumentViewer
-                filePath={shareData.file_path}
-                content={shareData.content}
-              />
+              {content !== null ? (
+                <DocumentViewer
+                  filePath={metadata.file_path}
+                  content={content}
+                />
+              ) : (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center p-4">
+                    <div className="text-3xl mb-4">⚠️</div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">
+                      Content Temporarily Unavailable
+                    </h3>
+                    <p className="text-gray-600">
+                      File storage integration is being configured.
+                    </p>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Hash: {metadata.hash}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </main>
         </div>
@@ -138,6 +192,26 @@ function DocumentViewer({ filePath, content }: DocumentViewerProps) {
     URL.revokeObjectURL(url);
   };
 
+  // If content is empty, show a placeholder
+  if (!content) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center p-4">
+          <div className="text-3xl mb-4">📄</div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {filePath.split("/").pop()}
+          </h3>
+          <p className="text-gray-600 mb-4">
+            File preview is not available yet.
+          </p>
+          <p className="text-xs text-gray-500">
+            The file storage system is being configured.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full flex flex-col">
       {/* File header */}
@@ -146,7 +220,7 @@ function DocumentViewer({ filePath, content }: DocumentViewerProps) {
           <h3 className="text-xs sm:text-sm font-mono text-gray-600 truncate">
             {filePath}
           </h3>
-          {!isMarkdown && (
+          {!isMarkdown && content && (
             <button
               onClick={handleDownload}
               className="text-xs bg-blue-600 text-white px-2 sm:px-3 py-1 rounded hover:bg-blue-700 flex-shrink-0"
