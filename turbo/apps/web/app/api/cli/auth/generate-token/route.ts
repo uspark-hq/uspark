@@ -53,6 +53,7 @@ export async function POST(request: NextRequest) {
   try {
     body = await request.json();
   } catch {
+    // Only catch JSON parsing errors to provide meaningful API response
     const errorResponse: GenerateTokenError = {
       error: "invalid_request",
       error_description: "Invalid JSON in request body",

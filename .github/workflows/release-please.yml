@@ -76,7 +76,7 @@ jobs:
         id: get-db-url
         run: |
           # Get the main branch database URL (production)
-          DATABASE_URL=$(neonctl connection-string main --project-id ${{ vars.NEON_PROJECT_ID }} --database-name neondb --pooled)
+          DATABASE_URL=$(neonctl connection-string production --project-id ${{ vars.NEON_PROJECT_ID }} --database-name neondb --pooled)
           echo "database-url=$DATABASE_URL" >> $GITHUB_OUTPUT
         env:
           NEON_API_KEY: ${{ secrets.NEON_API_KEY }}
