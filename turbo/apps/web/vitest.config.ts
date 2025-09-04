@@ -9,6 +9,14 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./src/test/setup.ts", "./src/test/db-setup.ts"],
     globalSetup: "./src/test/global-setup.ts",
+    environmentMatchGlobs: [
+      // Use Node environment for API route tests
+      ["app/api/**/*.test.ts", "node"],
+      ["app/api/**/*.test.tsx", "node"],
+      // Use jsdom for component tests
+      ["app/**/*.test.tsx", "jsdom"],
+      ["src/**/*.test.tsx", "jsdom"],
+    ],
   },
   resolve: {
     alias: {

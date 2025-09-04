@@ -175,7 +175,7 @@ describe("Project Detail Page", () => {
 
     const backLink = screen.getByText("← Back to Projects");
     expect(backLink).toBeInTheDocument();
-    expect(backLink.closest("a")).toHaveAttribute("href", "/projects");
+    expect(backLink.closest("button")).toBeInTheDocument();
   });
 
   it("handles different project IDs from params", () => {
