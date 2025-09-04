@@ -4,7 +4,7 @@ import { POST } from "./route";
 import { initServices } from "../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import * as Y from "yjs";
 
 // Mock Clerk authentication
@@ -36,7 +36,7 @@ describe("/api/share", () => {
       sessionClaims: {},
       sessionId: "session-123",
       actor: undefined,
-    } as any);
+    });
   });
 
   describe("POST /api/share", () => {
@@ -97,7 +97,7 @@ describe("/api/share", () => {
         sessionClaims: null,
         sessionId: null,
         actor: undefined,
-      } as any);
+      });
 
       const requestBody = {
         project_id: projectId,
