@@ -45,6 +45,20 @@
 
 **Learning**: The project maintains strict code quality standards. Fix lint issues properly rather than suppressing warnings.
 
+### 7. Git Workflow Awareness - "Understand Branch State"
+**User Discovery**: *"你这个提交怎么还带了很多别的文件"* / *"所以 ea65c0e 这个合并成功了吗？"*
+
+**What Happened**: My local main branch had diverged from remote, containing a duplicate commit that was never pushed. This caused PR #116 to initially include unrelated changes.
+
+**Learning**: Always verify local branch state matches remote before creating new branches. Use `git fetch` and check remote status to avoid carrying over unintended commits.
+
+### 8. Pipeline Monitoring - "Trust But Verify"
+**User Questions**: *"check ppl"* / *"check pipeline"* / *"所以 main 上的 action 都正常？"*
+
+**What Happened**: User consistently monitored CI/CD pipeline status even after PR was reportedly merged successfully.
+
+**Learning**: Always verify pipeline status after merge. Initial failures may be resolved by subsequent commits, but it's important to ensure main branch remains stable.
+
 ## Development Process Observations
 
 ### What Worked Well
@@ -67,14 +81,21 @@
 - Values working code over extensive discussion
 
 ### Quality-Focused
-- Proactively asks about testing
-- Insists on passing all quality checks
-- Monitors pipeline status closely
+- Proactively asks about testing ("有测试吗")
+- Insists on passing all quality checks ("fix ppl", "check pipeline")
+- Monitors pipeline status closely even after merge
+- Questions PR status to ensure clean merges
 
 ### Pragmatic
 - Questions unnecessary components ("demo 页面还有啥用吗")
 - Focuses on core functionality
 - Values clean, focused implementations
+- Expects PR links for review ("pr link")
+
+### Retrospective-Oriented
+- Values documentation of development process
+- Asks for summary of interactions ("总结下我今天在你写完代码后主动问了你什么问题")
+- Interested in improving development workflow
 
 ## Key Technical Lessons
 
@@ -100,5 +121,22 @@
 - ✅ Proper YJS integration working
 - ✅ Clean, maintainable component architecture
 - ✅ Successfully merged and deployed
+
+## Additional Lessons from Extended Interaction
+
+### Command Shortcuts as Communication Style
+- User often uses abbreviated commands: "check ppl" (pipeline), "pr link" (show PR URL)
+- Expects immediate action on these shortcuts without clarification
+- This reflects efficiency-focused workflow
+
+### Merge Confusion Resolution
+- Initial confusion about PR #107 status (local commit `ea65c0e` vs merged `9b8f8ed`)
+- Highlighted importance of understanding git history and remote state
+- Reinforces need to verify assumptions before acting
+
+### Documentation as Part of Development
+- User values retrospective documentation immediately after feature completion
+- Not just code delivery, but also process improvement and knowledge capture
+- This retrospective itself became part of the deliverable
 
 *This retrospective captures the collaborative development process and lessons learned for future feature implementations.*
