@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as Y from "yjs";
-import { type AccessShareError, type AccessShareResponse } from "@uspark/core";
+import { 
+  type AccessShareError, 
+  type AccessShareResponse, 
+  getBlobStorage,
+  BlobNotFoundError 
+} from "@uspark/core";
 import { initServices } from "../../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
@@ -83,6 +88,25 @@ export async function GET(
       error: "file_not_found",
     };
     return NextResponse.json(errorResponse, { status: 404 });
+  }
+
+  // Try to get content from Vercel Blob if available
+  // This validates that the blob storage integration is working
+  try {
+    const blobStorage = getBlobStorage();
+    const exists = await blobStorage.exists(fileNode.hash);
+    
+    if (exists) {
+      // Content is available in blob storage - could extend API to return content
+      // For now, we still return metadata but log success
+      console.log(`Blob content available for hash: ${fileNode.hash}`);
+    } else {
+      // Blob not found in storage - still return metadata
+      console.log(`Blob not found in storage for hash: ${fileNode.hash}`);
+    }
+  } catch (error) {
+    // Blob storage error - gracefully fallback to metadata
+    console.warn(`Blob storage error for hash ${fileNode.hash}:`, error);
   }
 
   // Return hash-based metadata for direct blob access

@@ -18,30 +18,27 @@ export class VercelBlobStorage implements BlobStorageProvider {
     const hash = generateContentHash(content);
 
     try {
-      // Check if blob already exists (deduplication)
-      if (await this.exists(hash)) {
-        return hash;
-      }
-
       const contentType = options.contentType ?? detectContentType(content);
 
+      let result;
       if (content.length > this.MULTIPART_THRESHOLD) {
         // Use multipart upload for large files
-        await put(hash, content, {
-          access: "public",
+        result = await put(hash, content, {
+          access: options.access ?? "public",
           multipart: true,
           contentType,
         });
       } else {
-        // Use standard upload for small files
-        await put(hash, content, {
-          access: "public",
+        // Use standard upload for small files  
+        result = await put(hash, content, {
+          access: options.access ?? "public",
           contentType,
           addRandomSuffix: options.addRandomSuffix ?? false,
         });
       }
 
-      return hash;
+      // Return the pathname which is the actual blob identifier
+      return result.pathname;
     } catch (error) {
       throw new BlobUploadError(
         `Failed to upload blob with hash ${hash}`,
@@ -50,14 +47,14 @@ export class VercelBlobStorage implements BlobStorageProvider {
     }
   }
 
-  async downloadBlob(hash: string): Promise<Buffer> {
+  async downloadBlob(blobId: string): Promise<Buffer> {
     try {
-      const url = this.getBlobUrl(hash);
+      const url = this.getBlobUrl(blobId);
       const response = await fetch(url);
 
       if (!response.ok) {
         if (response.status === 404) {
-          throw new BlobNotFoundError(hash);
+          throw new BlobNotFoundError(blobId);
         }
         throw new Error(`Failed to download blob: ${response.statusText}`);
       }
@@ -68,13 +65,13 @@ export class VercelBlobStorage implements BlobStorageProvider {
       if (error instanceof BlobNotFoundError) {
         throw error;
       }
-      throw new Error(`Failed to download blob with hash ${hash}: ${error}`);
+      throw new Error(`Failed to download blob with id ${blobId}: ${error}`);
     }
   }
 
-  async exists(hash: string): Promise<boolean> {
+  async exists(blobId: string): Promise<boolean> {
     try {
-      const url = this.getBlobUrl(hash);
+      const url = this.getBlobUrl(blobId);
       await head(url);
       return true;
     } catch {
@@ -82,12 +79,12 @@ export class VercelBlobStorage implements BlobStorageProvider {
     }
   }
 
-  async delete(hash: string): Promise<void> {
+  async delete(blobId: string): Promise<void> {
     try {
-      const url = this.getBlobUrl(hash);
+      const url = this.getBlobUrl(blobId);
       await del([url]);
     } catch (error) {
-      throw new Error(`Failed to delete blob with hash ${hash}: ${error}`);
+      throw new Error(`Failed to delete blob with id ${blobId}: ${error}`);
     }
   }
 
@@ -111,13 +108,20 @@ export class VercelBlobStorage implements BlobStorageProvider {
     }
   }
 
-  private getBlobUrl(hash: string): string {
-    // Construct Vercel Blob URL from hash
-    const baseUrl = process.env.BLOB_READ_WRITE_TOKEN?.split("_")[0];
-    if (!baseUrl) {
+  private getBlobUrl(blobId: string): string {
+    // Construct Vercel Blob URL from blob ID (pathname)
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) {
       throw new Error("BLOB_READ_WRITE_TOKEN environment variable is required");
     }
-    return `https://${baseUrl}.public.blob.vercel-storage.com/${hash}`;
+    
+    // Extract base URL from token format: vercel_blob_rw_<id>_<suffix>
+    const parts = token.split("_");
+    if (parts.length < 4) {
+      throw new Error("Invalid BLOB_READ_WRITE_TOKEN format");
+    }
+    const baseId = parts[3]; // Get the ID part
+    return `https://${baseId}.public.blob.vercel-storage.com/${blobId}`;
   }
 
   private extractHashFromUrl(url: string): string {

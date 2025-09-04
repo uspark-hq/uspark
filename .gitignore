@@ -147,3 +147,4 @@ settings.local.json
 
 .pnpm-store
 .vercel
+.env*.local
