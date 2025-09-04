@@ -38,13 +38,6 @@ export const DeviceAuthResponseSchema = z.object({
     .int()
     .positive()
     .describe("The lifetime in seconds of the device code"),
-  interval: z
-    .number()
-    .int()
-    .positive()
-    .optional()
-    .default(5)
-    .describe("The minimum polling interval in seconds"),
 });
 
 /**
@@ -161,7 +154,6 @@ export const cliAuthContract = c.router({
 
   /**
    * Exchange device code for access token
-   * This endpoint should be polled until authentication is complete
    */
   exchangeToken: {
     method: "POST",
@@ -178,7 +170,7 @@ export const cliAuthContract = c.router({
     },
     summary: "Exchange device code for access token",
     description:
-      "Polls for the result of the device authorization. Returns a token when the user has successfully authenticated, or an error if the code has expired or been denied",
+      "Exchanges a device code for an access token. Returns a token when the user has successfully authenticated, or an error if the code has expired or been denied",
   },
 
   /**

@@ -5,7 +5,10 @@
     "DATABASE_URL",
     "CLERK_SECRET_KEY",
     "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY",
-    "API_HOST"
+    "API_HOST",
+    "BLOB_READ_WRITE_TOKEN",
+    "USPARK_API_URL",
+    "USPARK_TOKEN"
   ],
   "tasks": {
     "build": {

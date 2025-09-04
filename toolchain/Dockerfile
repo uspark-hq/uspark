@@ -20,7 +20,12 @@ RUN curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
 
 RUN node --version
 
-RUN npm install -g pnpm@10.15.0 lefthook@1.12.3
+# Install jq for JSON processing
+RUN curl -sL https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-amd64 -o /usr/local/bin/jq \
+    && chmod +x /usr/local/bin/jq
+
+# Install global npm packages for CI/CD
+RUN npm install -g pnpm@10.15.0 lefthook@1.12.3 vercel@46.1.1 neonctl@2.15.0
 
 # Stage 2: Development environment with additional tools
 FROM toolchain AS development
@@ -40,9 +45,6 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && apt-get update \
     && apt-get install -y gh \
     && rm -rf /var/lib/apt/lists/*
-
-# Install Vercel CLI globally (locked version)
-RUN npm install -g vercel@46.1.1
 
 # Create vscode user with standard UID/GID for devcontainer compatibility
 RUN groupadd --gid 1000 vscode \

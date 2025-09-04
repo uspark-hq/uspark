@@ -1,6 +1,6 @@
 {
   "name": "web",
-  "version": "0.6.0",
+  "version": "0.10.0",
   "type": "module",
   "private": true,
   "scripts": {
@@ -23,6 +23,7 @@
     "@ts-rest/serverless": "^3.52.1",
     "@uspark/core": "workspace:*",
     "@uspark/ui": "workspace:*",
+    "@vercel/blob": "^1.1.1",
     "dotenv": "^17.2.1",
     "drizzle-orm": "^0.44.5",
     "next": "^15.5.2",
@@ -30,6 +31,7 @@
     "postgres": "^3.4.7",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
+    "yjs": "^13.6.27",
     "zod": "^4.1.5"
   },
   "devDependencies": {

@@ -1,5 +1,55 @@
 # Changelog
 
+## [0.10.0](https://github.com/uspark-hq/uspark/compare/web-v0.9.0...web-v0.10.0) (2025-09-04)
+
+
+### Features
+
+* add cli authentication with device flow ([#89](https://github.com/uspark-hq/uspark/issues/89)) ([2ebb970](https://github.com/uspark-hq/uspark/commit/2ebb970b11e303d45a2968839f9e7c05a0ca5e04))
+* add vercel blob storage implementation with content-addressed deduplication ([#80](https://github.com/uspark-hq/uspark/issues/80)) ([e500dec](https://github.com/uspark-hq/uspark/commit/e500decc9c8c07fa8eb07aa1676e76c454e33c90))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.8.0
+
+## [0.9.0](https://github.com/uspark-hq/uspark/compare/web-v0.8.0...web-v0.9.0) (2025-09-03)
+
+
+### Features
+
+* remove polling interval from cli auth flow ([#83](https://github.com/uspark-hq/uspark/issues/83)) ([f98a617](https://github.com/uspark-hq/uspark/commit/f98a6177a457cabd70373896ce5e8302beb7eae6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.7.0
+
+## [0.8.0](https://github.com/uspark-hq/uspark/compare/web-v0.7.0...web-v0.8.0) (2025-09-03)
+
+
+### Features
+
+* implement ydoc-based project sync api with get/patch endpoints ([#81](https://github.com/uspark-hq/uspark/issues/81)) ([1c0cc03](https://github.com/uspark-hq/uspark/commit/1c0cc03029ff94304590d0be467b0152f0688c3e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.6.0
+
+## [0.7.0](https://github.com/uspark-hq/uspark/compare/web-v0.6.0...web-v0.7.0) (2025-09-03)
+
+
+### Features
+
+* add beautiful ai tool waiting list landing page for uspark ([#73](https://github.com/uspark-hq/uspark/issues/73)) ([3f4c173](https://github.com/uspark-hq/uspark/commit/3f4c173578f310f0b0fc2547fa71732e6d77c975))
+
 ## [0.6.0](https://github.com/uspark-hq/uspark/compare/web-v0.5.0...web-v0.6.0) (2025-09-03)
 
 

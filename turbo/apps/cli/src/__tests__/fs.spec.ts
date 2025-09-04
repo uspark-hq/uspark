@@ -16,15 +16,15 @@ describe("YJS FileSystem", () => {
     // Verify internal structure
     const fileNode = fs.getFileNode("/test.txt");
     expect(fileNode).toBeDefined();
-    expect(fileNode.hash).toBeDefined();
-    expect(fileNode.mtime).toBeGreaterThan(0);
+    expect(fileNode?.hash).toBeDefined();
+    expect(fileNode?.mtime).toBeGreaterThan(0);
 
     // Verify blob storage
-    const blobInfo = fs.getBlobInfo(fileNode.hash);
+    const blobInfo = fileNode ? fs.getBlobInfo(fileNode.hash) : undefined;
 
     // Size should be byte size, not character count
     const byteSize = new TextEncoder().encode(content).length;
-    expect(blobInfo.size).toBe(byteSize);
-    expect(blobInfo.size).not.toBe(content.length); // bytes ≠ characters
+    expect(blobInfo?.size).toBe(byteSize);
+    expect(blobInfo?.size).not.toBe(content.length); // bytes ≠ characters
   });
 });

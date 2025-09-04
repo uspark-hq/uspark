@@ -1,5 +1,47 @@
 # Changelog
 
+## [0.5.0](https://github.com/uspark-hq/uspark/compare/cli-v0.4.0...cli-v0.5.0) (2025-09-04)
+
+
+### Features
+
+* add cli authentication with device flow ([#89](https://github.com/uspark-hq/uspark/issues/89)) ([2ebb970](https://github.com/uspark-hq/uspark/commit/2ebb970b11e303d45a2968839f9e7c05a0ca5e04))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.8.0
+
+## [0.4.0](https://github.com/uspark-hq/uspark/compare/cli-v0.3.0...cli-v0.4.0) (2025-09-03)
+
+
+### Features
+
+* remove polling interval from cli auth flow ([#83](https://github.com/uspark-hq/uspark/issues/83)) ([f98a617](https://github.com/uspark-hq/uspark/commit/f98a6177a457cabd70373896ce5e8302beb7eae6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.7.0
+
+## [0.3.0](https://github.com/uspark-hq/uspark/compare/cli-v0.2.0...cli-v0.3.0) (2025-09-03)
+
+
+### Features
+
+* **cli:** implement yjs pull command with mock server testing ([#76](https://github.com/uspark-hq/uspark/issues/76)) ([49ac7e9](https://github.com/uspark-hq/uspark/commit/49ac7e98d6df6fec9ca65ad8880e40e4b7d0881a))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.6.0
+
 ## [0.2.0](https://github.com/uspark-hq/uspark/compare/cli-v0.1.5...cli-v0.2.0) (2025-09-03)
 
 

@@ -1,6 +1,6 @@
 import * as Y from "yjs";
 import { createHash } from "crypto";
-import type { FileNode, BlobInfo, BlobStore } from "./types";
+import type { FileNode, BlobInfo, BlobStore } from "@uspark/core";
 
 export class FileSystem {
   private ydoc: Y.Doc;
@@ -54,39 +54,34 @@ export class FileSystem {
     return content;
   }
 
-  getFileNode(path: string): FileNode {
-    const fileNode = this.files.get(path);
-    if (!fileNode) {
-      throw new Error(`File not found: ${path}`);
-    }
-    return fileNode;
+  getFileNode(path: string): FileNode | undefined {
+    return this.files.get(path);
   }
 
-  getBlobInfo(hash: string): BlobInfo {
-    const blobInfo = this.blobs.get(hash);
-    if (!blobInfo) {
-      throw new Error(`Blob not found: ${hash}`);
-    }
-    return blobInfo;
+  getBlobInfo(hash: string): BlobInfo | undefined {
+    return this.blobs.get(hash);
+  }
+
+  getBlob(hash: string): string | undefined {
+    return this.blobStore.get(hash);
+  }
+
+  setBlob(hash: string, content: string): void {
+    this.blobStore.set(hash, content);
+  }
+
+  applyUpdate(update: Uint8Array): void {
+    Y.applyUpdate(this.ydoc, update);
+  }
+
+  getUpdate(): Uint8Array {
+    const stateVector = Y.encodeStateVector(this.ydoc);
+    return Y.encodeStateAsUpdate(this.ydoc, stateVector);
   }
 
   private async computeHash(bytes: Uint8Array): Promise<string> {
-    // Use Web Crypto API when available (browsers), fallback to Node.js crypto
-    if (
-      typeof globalThis !== "undefined" &&
-      globalThis.crypto &&
-      globalThis.crypto.subtle
-    ) {
-      const hashBuffer = await globalThis.crypto.subtle.digest(
-        "SHA-256",
-        bytes,
-      );
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-    } else {
-      // Node.js fallback using static import
-      return createHash("sha256").update(bytes).digest("hex");
-    }
+    // Always use Node.js crypto for consistency
+    return createHash("sha256").update(bytes).digest("hex");
   }
 }
 

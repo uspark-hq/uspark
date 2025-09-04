@@ -3,6 +3,7 @@ import { HttpHandler } from "msw";
 import fs from "fs/promises";
 import path from "path";
 import os from "os";
+import { beforeEach, afterEach, vi } from "vitest";
 
 // Mock config directory for testing
 export const createMockConfigDir = async () => {
