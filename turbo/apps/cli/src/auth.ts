@@ -27,7 +27,10 @@ async function requestDeviceCode(apiUrl: string): Promise<{
   }>;
 }
 
-async function exchangeToken(apiUrl: string, deviceCode: string): Promise<{
+async function exchangeToken(
+  apiUrl: string,
+  deviceCode: string,
+): Promise<{
   access_token?: string;
   refresh_token?: string;
   token_type?: string;
@@ -51,7 +54,9 @@ async function exchangeToken(apiUrl: string, deviceCode: string): Promise<{
   }>;
 }
 
-export async function authenticate(apiUrl: string = API_BASE_URL): Promise<void> {
+export async function authenticate(
+  apiUrl: string = API_BASE_URL,
+): Promise<void> {
   console.log(chalk.blue("🔐 Initiating authentication..."));
 
   // Request device code

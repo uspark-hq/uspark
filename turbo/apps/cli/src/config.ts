@@ -40,14 +40,16 @@ export async function getToken(): Promise<string | undefined> {
   if (process.env.USPARK_TOKEN) {
     return process.env.USPARK_TOKEN;
   }
-  
+
   const config = await loadConfig();
   return config.token;
 }
 
 export async function getApiUrl(): Promise<string> {
   const config = await loadConfig();
-  return config.apiUrl || process.env.USPARK_API_URL || "https://app.uspark.com";
+  return (
+    config.apiUrl || process.env.USPARK_API_URL || "https://app.uspark.com"
+  );
 }
 
 export async function clearConfig(): Promise<void> {
