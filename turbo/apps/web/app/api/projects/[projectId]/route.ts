@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import * as Y from "yjs";
 import { initServices } from "../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
@@ -12,12 +13,14 @@ export async function GET(
   _request: NextRequest,
   context: { params: Promise<{ projectId: string }> },
 ) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
   initServices();
   const { projectId } = await context.params;
-
-  // For now, we'll use a hardcoded userId (no auth check)
-  // In production, this should come from auth
-  const userId = "test-user";
 
   // Try to fetch existing project
   const [project] = await globalThis.services.db
@@ -68,11 +71,14 @@ export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ projectId: string }> },
 ) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
   initServices();
   const { projectId } = await context.params;
-
-  // For now, hardcoded userId
-  const userId = "test-user";
 
   // Get the update from request body
   const updateBuffer = await request.arrayBuffer();

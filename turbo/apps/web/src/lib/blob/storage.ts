@@ -1,4 +1,5 @@
 import { getBlobStorage, type BlobStorageProvider } from "@uspark/core";
+import { env } from "../../env";
 
 /**
  * Get the blob storage instance for the web app
@@ -6,6 +7,6 @@ import { getBlobStorage, type BlobStorageProvider } from "@uspark/core";
  */
 export function getBlobStorageInstance(): BlobStorageProvider {
   return getBlobStorage({
-    type: process.env.BLOB_READ_WRITE_TOKEN ? "vercel" : "memory",
+    type: env().BLOB_READ_WRITE_TOKEN ? "vercel" : "memory",
   });
 }

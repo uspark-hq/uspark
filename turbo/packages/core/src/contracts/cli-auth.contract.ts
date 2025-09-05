@@ -38,6 +38,12 @@ export const DeviceAuthResponseSchema = z.object({
     .int()
     .positive()
     .describe("The lifetime in seconds of the device code"),
+  interval: z
+    .number()
+    .int()
+    .positive()
+    .default(5)
+    .describe("The minimum interval in seconds between polling requests"),
 });
 
 /**
