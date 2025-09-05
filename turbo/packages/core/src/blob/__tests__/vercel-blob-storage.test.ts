@@ -177,7 +177,7 @@ describe("VercelBlobStorage", () => {
       // Mock 404 response with MSW
       server.use(
         http.get(
-          `https://test-token.public.blob.vercel-storage.com/${nonExistentHash}`,
+          `https://testid.public.blob.vercel-storage.com/${nonExistentHash}`,
           () => {
             return new HttpResponse(null, { status: 404 });
           },
@@ -195,7 +195,7 @@ describe("VercelBlobStorage", () => {
       // Mock 500 response with MSW
       server.use(
         http.get(
-          `https://test-token.public.blob.vercel-storage.com/${hash}`,
+          `https://testid.public.blob.vercel-storage.com/${hash}`,
           () => {
             return new HttpResponse(null, {
               status: 500,
