@@ -48,7 +48,9 @@ describe("/api/projects", () => {
 
   describe("GET /api/projects", () => {
     it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const response = await GET();
 
@@ -135,7 +137,9 @@ describe("/api/projects", () => {
 
   describe("POST /api/projects", () => {
     it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const mockRequest = new NextRequest("http://localhost:3000", {
         method: "POST",

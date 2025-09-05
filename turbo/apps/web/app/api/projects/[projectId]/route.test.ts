@@ -31,7 +31,9 @@ describe("/api/projects/:projectId", () => {
 
   describe("GET /api/projects/:projectId", () => {
     it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const mockRequest = new NextRequest("http://localhost:3000");
       const context = { params: Promise.resolve({ projectId }) };
@@ -113,7 +115,9 @@ describe("/api/projects/:projectId", () => {
 
   describe("PATCH /api/projects/:projectId", () => {
     it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const update = new Uint8Array([1, 2, 3]);
       const mockRequest = new NextRequest("http://localhost:3000", {
