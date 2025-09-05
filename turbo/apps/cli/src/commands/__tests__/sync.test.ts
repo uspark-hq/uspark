@@ -52,14 +52,28 @@ describe("sync commands", () => {
       );
     });
 
-    it("should throw error for --all flag (not supported yet)", async () => {
-      await expect(
-        pushCommand(undefined, {
-          projectId: "proj-123",
-          all: true,
-        }),
-      ).rejects.toThrow(
-        "--all flag is not supported yet. Please specify individual files.",
+    it("should push all files with --all flag", async () => {
+      // Create test files in different directories
+      await fs.writeFile("file1.txt", "content1");
+      await fs.mkdir("subdir");
+      await fs.writeFile("subdir/file2.txt", "content2");
+      
+      // Create some files to ignore
+      await fs.mkdir("node_modules");
+      await fs.writeFile("node_modules/test.js", "should be ignored");
+      await fs.mkdir(".git");
+      await fs.writeFile(".git/config", "should be ignored");
+
+      await pushCommand(undefined, {
+        projectId: "proj-123",
+        all: true,
+      });
+
+      expect(console.log).toHaveBeenCalledWith(
+        chalk.blue("Found 2 files to push"),
+      );
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining("✓ Push complete: 2 succeeded, 0 failed"),
       );
     });
 
