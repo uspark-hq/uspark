@@ -1,10 +1,11 @@
 import { FileSystem } from "./fs";
 import { writeFile, readFile, mkdir } from "fs/promises";
-import { dirname } from "path";
+import { dirname, join } from "path";
+import { createHash } from "crypto";
 
 export interface SyncOptions {
-  token?: string;
-  apiUrl?: string;
+  token: string;
+  apiUrl: string;
 }
 
 export class ProjectSync {
@@ -14,12 +15,13 @@ export class ProjectSync {
     this.fs = fs || new FileSystem();
   }
 
-  async syncFromRemote(
-    projectId: string,
-    options?: SyncOptions,
-  ): Promise<void> {
-    const apiUrl = options?.apiUrl || "http://localhost:3000";
-    const token = options?.token || "test_token";
+  private async computeFileHash(content: string): Promise<string> {
+    return createHash("sha256").update(content, "utf8").digest("hex");
+  }
+
+  async syncFromRemote(projectId: string, options: SyncOptions): Promise<void> {
+    const apiUrl = options.apiUrl;
+    const token = options.token;
 
     const response = await fetch(`${apiUrl}/api/projects/${projectId}`, {
       headers: {
@@ -38,9 +40,9 @@ export class ProjectSync {
     this.fs.applyUpdate(update);
   }
 
-  async syncToRemote(projectId: string, options?: SyncOptions): Promise<void> {
-    const apiUrl = options?.apiUrl || "http://localhost:3000";
-    const token = options?.token || "test_token";
+  async syncToRemote(projectId: string, options: SyncOptions): Promise<void> {
+    const apiUrl = options.apiUrl;
+    const token = options.token;
 
     // Get update from FileSystem's YDoc
     const update = this.fs.getUpdate();
@@ -62,11 +64,11 @@ export class ProjectSync {
   async pullFile(
     projectId: string,
     filePath: string,
+    options: SyncOptions,
     localPath?: string,
-    options?: SyncOptions,
   ): Promise<void> {
-    const apiUrl = options?.apiUrl || "http://localhost:3000";
-    const token = options?.token || "test_token";
+    const apiUrl = options.apiUrl;
+    const token = options.token;
 
     // 1. Sync from remote to get latest state
     await this.syncFromRemote(projectId, options);
@@ -80,18 +82,48 @@ export class ProjectSync {
     // 3. Get blob content from FileSystem or fetch from remote
     let content = this.fs.getBlob(fileNode.hash);
     if (!content) {
-      // Try to fetch from remote blob storage
-      const response = await fetch(`${apiUrl}/api/blobs/${fileNode.hash}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
+      // Get STS token for blob access
+      const tokenResponse = await fetch(
+        `${apiUrl}/api/projects/${projectId}/blob-token`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         },
-      });
+      );
 
-      if (!response.ok) {
-        throw new Error(`Failed to fetch blob content: ${response.statusText}`);
+      if (!tokenResponse.ok) {
+        throw new Error(
+          `Failed to get blob token: ${tokenResponse.statusText}`,
+        );
       }
 
-      content = await response.text();
+      const { downloadUrlPrefix, token: blobToken } =
+        (await tokenResponse.json()) as {
+          token: string;
+          expiresAt: string;
+          uploadUrl: string;
+          downloadUrlPrefix: string;
+        };
+
+      // Fetch blob directly from Vercel Blob Storage
+      const blobResponse = await fetch(
+        `${downloadUrlPrefix}/${fileNode.hash}`,
+        {
+          headers: {
+            Authorization: `Bearer ${blobToken}`,
+          },
+        },
+      );
+
+      if (!blobResponse.ok) {
+        // Fallback: blob might not be uploaded yet, use empty content
+        console.warn(`Blob ${fileNode.hash} not found, using empty content`);
+        content = "";
+      } else {
+        content = await blobResponse.text();
+      }
+
       this.fs.setBlob(fileNode.hash, content);
     }
 
@@ -104,17 +136,248 @@ export class ProjectSync {
   async pushFile(
     projectId: string,
     filePath: string,
+    options: SyncOptions,
     localPath?: string,
-    options?: SyncOptions,
   ): Promise<void> {
-    // 1. Read from local filesystem
+    const apiUrl = options.apiUrl;
+    const token = options.token;
+
+    // 1. Fetch remote baseline
+    await this.syncFromRemote(projectId, options);
+
+    // 2. Read local file and compute hash
     const inputPath = localPath || filePath;
     const content = await readFile(inputPath, "utf8");
+    const localHash = await this.computeFileHash(content);
 
-    // 2. Update FileSystem
+    // 3. Compare with remote hash
+    const remoteFileNode = this.fs.getFileNode(filePath);
+    if (remoteFileNode && remoteFileNode.hash === localHash) {
+      // File unchanged, skip
+      return;
+    }
+
+    // 4. Upload blob if not exists
+    if (!this.fs.getBlobInfo(localHash)) {
+      // Get STS token for blob access
+      const tokenResponse = await fetch(
+        `${apiUrl}/api/projects/${projectId}/blob-token`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!tokenResponse.ok) {
+        throw new Error(
+          `Failed to get blob token: ${tokenResponse.statusText}`,
+        );
+      }
+
+      const { uploadUrl, token: blobToken } = (await tokenResponse.json()) as {
+        token: string;
+        expiresAt: string;
+        uploadUrl: string;
+        downloadUrlPrefix: string;
+      };
+
+      // Upload blob directly to Vercel Blob Storage
+      const uploadResponse = await fetch(`${uploadUrl}/${localHash}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${blobToken}`,
+          "Content-Type": "text/plain",
+        },
+        body: content,
+      });
+
+      if (!uploadResponse.ok) {
+        console.warn(`Failed to upload blob ${localHash}, continuing anyway`);
+      }
+
+      // Store locally as well
+      this.fs.setBlob(localHash, content);
+    }
+
+    // 5. Update metadata in FileSystem
     await this.fs.writeFile(filePath, content);
 
-    // 3. Sync to remote
+    // 6. Sync to remote
     await this.syncToRemote(projectId, options);
+  }
+
+  async pushFiles(
+    projectId: string,
+    files: Array<{ filePath: string; localPath?: string }>,
+    options: SyncOptions,
+  ): Promise<void> {
+    const apiUrl = options.apiUrl;
+    const token = options.token;
+
+    // 1. Fetch remote baseline
+    await this.syncFromRemote(projectId, options);
+
+    // 2. Build local file map with hashes
+    const localFiles = new Map<string, string>(); // path -> hash
+    const contentMap = new Map<string, string>(); // hash -> content
+
+    for (const { filePath, localPath } of files) {
+      const inputPath = localPath || filePath;
+      const content = await readFile(inputPath, "utf8");
+      const hash = await this.computeFileHash(content);
+      localFiles.set(filePath, hash);
+      contentMap.set(hash, content);
+
+      // Store content locally for later use
+      if (!this.fs.getBlobInfo(hash)) {
+        this.fs.setBlob(hash, content);
+      }
+    }
+
+    // 3. Get remote files from YJS
+    const remoteFiles = new Map<string, string>(); // path -> hash
+    const allFiles = this.fs.getAllFiles();
+    for (const [path, fileNode] of allFiles) {
+      remoteFiles.set(path, fileNode.hash);
+    }
+
+    // 4. Three-way comparison
+    const toDelete = new Set<string>();
+    const toUpdate = new Set<string>();
+    const toAdd = new Set<string>();
+
+    // Find deletions (in remote but not in local)
+    for (const [path] of remoteFiles) {
+      if (!localFiles.has(path)) {
+        toDelete.add(path);
+      }
+    }
+
+    // Find additions and updates
+    for (const [path, localHash] of localFiles) {
+      const remoteHash = remoteFiles.get(path);
+      if (!remoteHash) {
+        toAdd.add(path);
+      } else if (remoteHash !== localHash) {
+        toUpdate.add(path);
+      }
+      // If hashes match, skip (no change)
+    }
+
+    // 5. Upload new/changed blobs to Vercel Blob Storage
+    const blobsToUpload = new Set<string>();
+    for (const path of [...toAdd, ...toUpdate]) {
+      const hash = localFiles.get(path)!;
+      if (!this.fs.getBlobInfo(hash)) {
+        blobsToUpload.add(hash);
+      }
+    }
+
+    if (blobsToUpload.size > 0) {
+      // Get STS token for blob access
+      const tokenResponse = await fetch(
+        `${apiUrl}/api/projects/${projectId}/blob-token`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (tokenResponse.ok) {
+        const { uploadUrl, token: blobToken } =
+          (await tokenResponse.json()) as {
+            token: string;
+            expiresAt: string;
+            uploadUrl: string;
+            downloadUrlPrefix: string;
+          };
+
+        // Upload all new blobs
+        for (const hash of blobsToUpload) {
+          const content = contentMap.get(hash);
+          if (content) {
+            const uploadResponse = await fetch(`${uploadUrl}/${hash}`, {
+              method: "PUT",
+              headers: {
+                Authorization: `Bearer ${blobToken}`,
+                "Content-Type": "text/plain",
+              },
+              body: content,
+            });
+
+            if (!uploadResponse.ok) {
+              console.warn(`Failed to upload blob ${hash}, continuing anyway`);
+            }
+          }
+        }
+      }
+    }
+
+    // 6. Apply changes to FileSystem
+    // Delete files
+    for (const path of toDelete) {
+      this.fs.deleteFile(path);
+    }
+
+    // Add/Update files
+    for (const path of [...toAdd, ...toUpdate]) {
+      const hash = localFiles.get(path)!;
+      const content = contentMap.get(hash) || this.fs.getBlob(hash)!;
+      await this.fs.writeFile(path, content);
+    }
+
+    // 7. Sync everything to remote in one PATCH request
+    await this.syncToRemote(projectId, options);
+  }
+
+  async pullAll(
+    projectId: string,
+    options: SyncOptions,
+    outputDir?: string,
+  ): Promise<void> {
+    const apiUrl = options.apiUrl;
+    const token = options.token;
+
+    // 1. Sync from remote to get latest state
+    await this.syncFromRemote(projectId, options);
+
+    // 2. Get all files from the YJS document
+    const allFiles = this.fs.getAllFiles();
+
+    if (allFiles.length === 0) {
+      return;
+    }
+
+    // 3. Download all files - fail fast on any error
+    for (const filePath of allFiles) {
+      const fileNode = this.fs.getFileNode(filePath);
+      if (!fileNode) {
+        throw new Error(`File metadata not found: ${filePath}`);
+      }
+
+      // Get blob content from FileSystem or fetch from remote
+      let content = this.fs.getBlob(fileNode.hash);
+      if (!content) {
+        const response = await fetch(`${apiUrl}/api/blobs/${fileNode.hash}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch blob: ${response.statusText}`);
+        }
+
+        content = await response.text();
+        this.fs.setBlob(fileNode.hash, content);
+      }
+
+      // Write to local filesystem
+      const localPath = outputDir ? join(outputDir, filePath) : filePath;
+      await mkdir(dirname(localPath), { recursive: true });
+      await writeFile(localPath, content, "utf8");
+    }
   }
 }

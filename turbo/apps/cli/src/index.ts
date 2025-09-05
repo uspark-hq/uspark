@@ -2,7 +2,7 @@ import { FOO } from "@uspark/core";
 import { Command } from "commander";
 import chalk from "chalk";
 import { authenticate, logout, checkAuthStatus } from "./auth";
-import { pullCommand, pushCommand } from "./commands/sync";
+import { pullCommand, pullAllCommand, pushCommand } from "./commands/sync";
 import { watchClaudeCommand } from "./commands/watch-claude";
 
 const API_HOST = process.env.API_HOST || "https://api.uspark.com";
@@ -61,46 +61,60 @@ authCommand
 
 program
   .command("pull")
-  .description("Pull a file from remote project")
-  .argument("<filePath>", "File path to pull")
+  .description("Pull file(s) from remote project")
+  .argument(
+    "[filePath]",
+    "File path to pull (omit with --all to pull entire project)",
+  )
   .requiredOption("--project-id <projectId>", "Project ID")
   .option(
     "--output <outputPath>",
     "Local output path (defaults to same as remote path)",
   )
+  .option("--all", "Pull all files from the project")
   .action(
     async (
-      filePath: string,
-      options: { projectId: string; output?: string },
+      filePath: string | undefined,
+      options: { projectId: string; output?: string; all?: boolean },
     ) => {
-      await pullCommand(filePath, options);
+      if (options.all) {
+        // Pull all files
+        await pullAllCommand({
+          projectId: options.projectId,
+          output: options.output,
+        });
+      } else if (filePath) {
+        // Pull single file
+        await pullCommand(filePath, options);
+      } else {
+        console.error(
+          chalk.red("Error: Either provide a file path or use --all flag"),
+        );
+        process.exit(1);
+      }
     },
   );
 
 program
   .command("push")
-  .description("Push a file to remote project")
-  .argument("<filePath>", "File path to push")
+  .description("Push file(s) to remote project")
+  .argument("[filePath]", "File path to push (required unless using --all)")
   .requiredOption("--project-id <projectId>", "Project ID")
-  .option(
-    "--source <sourcePath>",
-    "Local source path (defaults to same as remote path)",
-  )
+  .option("--all", "Push all files in current directory")
   .action(
     async (
-      filePath: string,
-      options: { projectId: string; source?: string },
+      filePath: string | undefined,
+      options: { projectId: string; all?: boolean },
     ) => {
-      try {
-        await pushCommand(filePath, options);
-      } catch (error) {
+      // Validate arguments
+      if (!options.all && !filePath) {
         console.error(
-          chalk.red(
-            `✗ Failed to push file: ${error instanceof Error ? error.message : error}`,
-          ),
+          chalk.red("Error: File path is required unless using --all flag"),
         );
         process.exit(1);
       }
+
+      await pushCommand(filePath, options);
     },
   );
 

@@ -1,6 +1,6 @@
 {
   "name": "@uspark/cli",
-  "version": "0.5.0",
+  "version": "0.6.1",
   "private": true,
   "description": "CLI application",
   "type": "module",
@@ -22,7 +22,8 @@
   "dependencies": {
     "@uspark/core": "workspace:*",
     "chalk": "^5.6.0",
-    "commander": "^14.0.0"
+    "commander": "^14.0.0",
+    "signal-timers": "^1.0.4"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",

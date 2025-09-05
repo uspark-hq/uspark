@@ -1,4 +1,5 @@
 import chalk from "chalk";
+import { delay } from "signal-timers";
 import { saveConfig, clearConfig, loadConfig } from "./config";
 
 const API_BASE_URL = "https://app.uspark.com";
@@ -8,6 +9,7 @@ async function requestDeviceCode(apiUrl: string): Promise<{
   user_code: string;
   verification_url: string;
   expires_in: number;
+  interval: number;
 }> {
   const response = await fetch(`${apiUrl}/api/cli/auth/device`, {
     method: "POST",
@@ -24,6 +26,7 @@ async function requestDeviceCode(apiUrl: string): Promise<{
     user_code: string;
     verification_url: string;
     expires_in: number;
+    interval: number;
   }>;
 }
 
@@ -80,9 +83,10 @@ export async function authenticate(
   // Poll for token
   const startTime = Date.now();
   const maxWaitTime = deviceAuth.expires_in * 1000; // Convert to milliseconds
+  const pollInterval = (deviceAuth.interval || 5) * 1000; // Use server-specified interval or default to 5 seconds
 
   while (Date.now() - startTime < maxWaitTime) {
-    await new Promise((resolve) => setTimeout(resolve, 5000)); // Wait 5 seconds
+    await delay(pollInterval); // Use dynamic polling interval
 
     const tokenResult = await exchangeToken(apiUrl, deviceAuth.device_code);
 

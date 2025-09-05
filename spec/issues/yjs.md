@@ -353,27 +353,73 @@ File contents are stored separately in Vercel Blob Storage, referenced by hash f
 
 **Task**: Add STS token endpoint for direct blob access
 **Acceptance Criteria**:
-- [ ] Implement GET /api/projects/:projectId/blob-token endpoint
-- [ ] Generate time-limited STS tokens (10 minutes)
-- [ ] Include upload/download URLs in response
-- [ ] Validate user has project access
+- [ ] Implement GET /api/projects/:projectId/blob-token endpoint (🔄 进行中 - 任务 9)
+- [ ] Generate time-limited STS tokens (10 minutes) (🔄 进行中 - 任务 9)
+- [ ] Include upload/download URLs in response (🔄 进行中 - 任务 9)
+- [ ] Validate user has project access (🔄 进行中 - 任务 9)
 
 #### 4. Extend FileSystem class with direct blob access
 
 **Task**: Update FileSystem to use direct Vercel Blob access
 **Note**: FileSystem has been moved to CLI package (PR #85)
 **Acceptance Criteria**:
-- [ ] Add `getBlobToken()` method to request STS token
-- [ ] Update `pullFile()` to download directly from Vercel Blob
-- [ ] Update `pushFile()` to upload directly to Vercel Blob
-- [ ] Keep YJS sync for metadata only
+- [ ] Add `getBlobToken()` method to request STS token (🔄 进行中 - 任务 9)
+- [ ] Update `pullFile()` to download directly from Vercel Blob (🔄 进行中 - 任务 9)
+- [ ] Update `pushFile()` to upload directly to Vercel Blob (🔄 进行中 - 任务 9)
+- [ ] Keep YJS sync for metadata only (待开始)
 
 #### 5. Implement uspark CLI commands
 
 **Task**: Add pull/push commands using extended FileSystem
 **Acceptance Criteria**:
 - [x] Add `uspark pull <filePath> --project-id <id>` command
-- [ ] Add `uspark push <filePath> --project-id <id>` command
-- [ ] Add `uspark push --all --project-id <id>` command
+- [x] Add `uspark push <filePath> --project-id <id>` command
+- [x] Add `uspark push --all --project-id <id>` command
 - [x] Integrate with existing CLI framework
+
+## Synchronization Algorithm
+
+### Single File Push
+
+When pushing a single file (`uspark push <file> --project-id <id>`):
+
+1. **Fetch Remote Baseline**: Download current project's YJS snapshot to understand remote state
+2. **Content Comparison**: 
+   - Calculate local file's content hash
+   - Compare with hash stored in snapshot
+   - If hashes match → Skip (no changes needed)
+   - If different → Proceed with sync
+3. **Upload Blob**: Upload file content to blob store (content-addressed storage)
+4. **Update Metadata**: Update file's hash and mtime in local YJS document
+5. **Send Diff**: Generate YJS diff and PATCH to server, updating remote file index
+
+### Directory Push (--all flag)
+
+When pushing entire directory (`uspark push --all --project-id <id>`):
+
+1. **Fetch Remote Baseline**: Download current YJS snapshot
+2. **Three-Way Comparison**:
+   - **Deletions**: Files in snapshot but not in local directory
+   - **Additions**: Files in local directory but not in snapshot
+   - **Updates**: Files in both but with different hashes
+3. **Batch Blob Upload**: Upload all new/changed file contents
+4. **Batch Metadata Update**:
+   - Remove deleted files from YJS document
+   - Add/update changed files with new hash and mtime
+5. **Single PATCH Request**: Send complete YJS diff containing all changes
+
+### Design Advantages
+
+- **Incremental Sync**: Only transfers changed content, skips identical files
+- **Content Deduplication**: Same content (same hash) stored only once
+- **Atomic Updates**: All metadata changes in single YJS patch ensures consistency
+- **Version Tracking**: YJS's built-in version vectors handle concurrent updates
+- **Efficient Network Usage**: Minimizes round trips with batch operations
+
+### Implementation Notes
+
+- Hash comparison prevents unnecessary blob uploads
+- YJS handles conflict resolution automatically through CRDTs
+- Blob cleanup is deferred (not part of MVP)
+- Similar to Git's object model: blobs store content, YJS acts as tree object
 

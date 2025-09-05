@@ -1,5 +1,34 @@
 # Changelog
 
+## [0.6.1](https://github.com/uspark-hq/uspark/compare/cli-v0.6.0...cli-v0.6.1) (2025-09-05)
+
+
+### Bug Fixes
+
+* replace hardcoded delay with dynamic polling interval in cli auth ([#132](https://github.com/uspark-hq/uspark/issues/132)) ([e5a6aed](https://github.com/uspark-hq/uspark/commit/e5a6aeda27cdf0678c0dc56ce4c16435621d1c47))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.9.1
+
+## [0.6.0](https://github.com/uspark-hq/uspark/compare/cli-v0.5.0...cli-v0.6.0) (2025-09-04)
+
+
+### Features
+
+* add cli api host environment variable support and e2e testing ([#98](https://github.com/uspark-hq/uspark/issues/98)) ([03baef4](https://github.com/uspark-hq/uspark/commit/03baef47a6e636086763126e93d5743cd34a3844))
+* **cli:** implement uspark watch-claude command for real-time sync ([#100](https://github.com/uspark-hq/uspark/issues/100)) ([c2cfa2a](https://github.com/uspark-hq/uspark/commit/c2cfa2a8d1991af8df22b6e38195792dde36e5c6))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.9.0
+
 ## [0.5.0](https://github.com/uspark-hq/uspark/compare/cli-v0.4.0...cli-v0.5.0) (2025-09-04)
 
 

@@ -2,11 +2,20 @@ import "@testing-library/jest-dom/vitest";
 import { server, http, HttpResponse } from "./msw-setup";
 import { handlers } from "./msw-handlers";
 
+// Polyfill URL.createObjectURL and URL.revokeObjectURL for jsdom
+// jsdom doesn't support these APIs by default
+global.URL.createObjectURL = () => "blob:mock-url";
+global.URL.revokeObjectURL = () => {};
+
 // Force override Clerk test environment variables for offline testing
 // These are mock values that ensure tests never use real API credentials
 process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY =
   "pk_test_mock_instance.clerk.accounts.dev$";
 process.env.CLERK_SECRET_KEY = "sk_test_mock_secret_key_for_testing";
+
+// Mock blob storage environment variables for testing
+process.env.BLOB_READ_WRITE_TOKEN = "dummy_token";
+process.env.NEXT_PUBLIC_BLOB_URL = "https://mock-blob-storage.test";
 
 // Verify required environment variables are set
 if (!process.env.DATABASE_URL) {

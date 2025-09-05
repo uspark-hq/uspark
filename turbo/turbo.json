@@ -8,7 +8,9 @@
     "API_HOST",
     "BLOB_READ_WRITE_TOKEN",
     "USPARK_API_URL",
-    "USPARK_TOKEN"
+    "USPARK_TOKEN",
+    "VERCEL_BLOB_UPLOAD_URL",
+    "VERCEL_BLOB_URL"
   ],
   "tasks": {
     "build": {

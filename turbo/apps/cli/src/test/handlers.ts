@@ -55,6 +55,31 @@ export const handlers = [
     },
   ),
 
+  // GET /api/projects/:projectId/blob-token - Return STS token for blob access
+  http.get(`${API_BASE_URL}/api/projects/:projectId/blob-token`, () => {
+    return HttpResponse.json({
+      token: "mock-blob-token",
+      expiresAt: new Date(Date.now() + 600000).toISOString(),
+      uploadUrl: "https://blob.mock/upload",
+      downloadUrlPrefix: "https://blob.mock/download",
+    });
+  }),
+
+  // Mock blob upload
+  http.put("https://blob.mock/upload/:hash", () => {
+    return new HttpResponse("OK", { status: 201 });
+  }),
+
+  // Mock blob download
+  http.get("https://blob.mock/download/:hash", ({ params }) => {
+    const { hash } = params;
+    const content = mockServer.getBlobContent(hash as string);
+    if (content) {
+      return HttpResponse.text(content);
+    }
+    return new HttpResponse("", { status: 404 });
+  }),
+
   // GET /api/blobs/:hash - Return blob content (for file content)
   http.get(`${API_BASE_URL}/api/blobs/:hash`, ({ params }) => {
     const { hash } = params;

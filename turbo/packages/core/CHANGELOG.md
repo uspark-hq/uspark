@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.9.1](https://github.com/uspark-hq/uspark/compare/core-v0.9.0...core-v0.9.1) (2025-09-05)
+
+
+### Bug Fixes
+
+* replace hardcoded delay with dynamic polling interval in cli auth ([#132](https://github.com/uspark-hq/uspark/issues/132)) ([e5a6aed](https://github.com/uspark-hq/uspark/commit/e5a6aeda27cdf0678c0dc56ce4c16435621d1c47))
+
+## [0.9.0](https://github.com/uspark-hq/uspark/compare/core-v0.8.0...core-v0.9.0) (2025-09-04)
+
+
+### Features
+
+* implement document sharing apis with single-file support ([#101](https://github.com/uspark-hq/uspark/issues/101)) ([8b39a74](https://github.com/uspark-hq/uspark/commit/8b39a74c78858480a09b55873fc2313c0ed27900))
+* implement project management apis with client-side file parsing ([#99](https://github.com/uspark-hq/uspark/issues/99)) ([f5aef77](https://github.com/uspark-hq/uspark/commit/f5aef7756b699ef3c4c69b422fb8fab093fa5012))
+
 ## [0.8.0](https://github.com/uspark-hq/uspark/compare/core-v0.7.0...core-v0.8.0) (2025-09-04)
 
 

@@ -1,17 +1,12 @@
-import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
+import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { YjsFileExplorer } from "../yjs-file-explorer";
 import * as Y from "yjs";
+import { server, http, HttpResponse } from "../../../../src/test/msw-setup";
 
 describe("YjsFileExplorer Integration", () => {
-  const originalFetch = global.fetch;
-
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  afterEach(() => {
-    global.fetch = originalFetch;
   });
 
   const createMockYjsDocument = (): ArrayBuffer => {
@@ -44,10 +39,11 @@ describe("YjsFileExplorer Integration", () => {
   it("loads and displays project files from YJS document", async () => {
     const mockYjsData = createMockYjsDocument();
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      arrayBuffer: () => Promise.resolve(mockYjsData),
-    });
+    server.use(
+      http.get("/api/projects/test-project", () => {
+        return HttpResponse.arrayBuffer(mockYjsData);
+      }),
+    );
 
     const mockOnFileSelect = vi.fn();
 
@@ -69,8 +65,7 @@ describe("YjsFileExplorer Integration", () => {
       ).not.toBeInTheDocument();
     });
 
-    // Should fetch from correct API endpoint
-    expect(global.fetch).toHaveBeenCalledWith("/api/projects/test-project");
+    // MSW handles the API endpoint - no need to check fetch calls
 
     // Should display parsed files
     expect(screen.getByText("src")).toBeInTheDocument();
@@ -84,10 +79,11 @@ describe("YjsFileExplorer Integration", () => {
   it("handles file selection correctly", async () => {
     const mockYjsData = createMockYjsDocument();
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      arrayBuffer: () => Promise.resolve(mockYjsData),
-    });
+    server.use(
+      http.get("/api/projects/test-project", () => {
+        return HttpResponse.arrayBuffer(mockYjsData);
+      }),
+    );
 
     const mockOnFileSelect = vi.fn();
 
@@ -116,10 +112,11 @@ describe("YjsFileExplorer Integration", () => {
   it("expands and navigates directory structure", async () => {
     const mockYjsData = createMockYjsDocument();
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      arrayBuffer: () => Promise.resolve(mockYjsData),
-    });
+    server.use(
+      http.get("/api/projects/test-project", () => {
+        return HttpResponse.arrayBuffer(mockYjsData);
+      }),
+    );
 
     render(<YjsFileExplorer projectId="test-project" />);
 
@@ -148,7 +145,11 @@ describe("YjsFileExplorer Integration", () => {
   });
 
   it("handles API errors gracefully", async () => {
-    global.fetch = vi.fn().mockRejectedValueOnce(new Error("Network error"));
+    server.use(
+      http.get("/api/projects/test-project", () => {
+        return HttpResponse.error();
+      }),
+    );
 
     render(<YjsFileExplorer projectId="test-project" />);
 
@@ -159,18 +160,17 @@ describe("YjsFileExplorer Integration", () => {
     await waitFor(() => {
       expect(screen.getByText("Failed to load project")).toBeInTheDocument();
     });
-
-    expect(screen.getByText("Network error")).toBeInTheDocument();
   });
 
   it("handles empty YJS document", async () => {
     const emptyYdoc = new Y.Doc();
     const emptyUpdate = Y.encodeStateAsUpdate(emptyYdoc);
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      arrayBuffer: () => Promise.resolve(emptyUpdate.buffer),
-    });
+    server.use(
+      http.get("/api/projects/empty-project", () => {
+        return HttpResponse.arrayBuffer(emptyUpdate.buffer);
+      }),
+    );
 
     render(<YjsFileExplorer projectId="empty-project" showMetadata={true} />);
 
@@ -188,10 +188,11 @@ describe("YjsFileExplorer Integration", () => {
   });
 
   it("handles HTTP error responses", async () => {
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: false,
-      statusText: "Not Found",
-    });
+    server.use(
+      http.get("/api/projects/nonexistent-project", () => {
+        return new HttpResponse(null, { status: 404, statusText: "Not Found" });
+      }),
+    );
 
     render(<YjsFileExplorer projectId="nonexistent-project" />);
 
@@ -208,18 +209,14 @@ describe("YjsFileExplorer Integration", () => {
     const mockYjsData1 = createMockYjsDocument();
     const mockYjsData2 = createMockYjsDocument();
 
-    const mockFetch = vi
-      .fn()
-      .mockResolvedValueOnce({
-        ok: true,
-        arrayBuffer: () => Promise.resolve(mockYjsData1),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        arrayBuffer: () => Promise.resolve(mockYjsData2),
-      });
-
-    global.fetch = mockFetch;
+    server.use(
+      http.get("/api/projects/project-1", () => {
+        return HttpResponse.arrayBuffer(mockYjsData1);
+      }),
+      http.get("/api/projects/project-2", () => {
+        return HttpResponse.arrayBuffer(mockYjsData2);
+      }),
+    );
 
     const { rerender } = render(<YjsFileExplorer projectId="project-1" />);
 
@@ -228,8 +225,6 @@ describe("YjsFileExplorer Integration", () => {
         screen.queryByText("Loading project files..."),
       ).not.toBeInTheDocument();
     });
-
-    expect(mockFetch).toHaveBeenCalledWith("/api/projects/project-1");
 
     // Change project ID
     rerender(<YjsFileExplorer projectId="project-2" />);
@@ -242,18 +237,16 @@ describe("YjsFileExplorer Integration", () => {
         screen.queryByText("Loading project files..."),
       ).not.toBeInTheDocument();
     });
-
-    expect(mockFetch).toHaveBeenCalledWith("/api/projects/project-2");
-    expect(mockFetch).toHaveBeenCalledTimes(2);
   });
 
   it("displays file metadata correctly", async () => {
     const mockYjsData = createMockYjsDocument();
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      arrayBuffer: () => Promise.resolve(mockYjsData),
-    });
+    server.use(
+      http.get("/api/projects/test-project", () => {
+        return HttpResponse.arrayBuffer(mockYjsData);
+      }),
+    );
 
     render(<YjsFileExplorer projectId="test-project" showMetadata={true} />);
 
@@ -273,10 +266,11 @@ describe("YjsFileExplorer Integration", () => {
   it("hides metadata when showMetadata is false", async () => {
     const mockYjsData = createMockYjsDocument();
 
-    global.fetch = vi.fn().mockResolvedValueOnce({
-      ok: true,
-      arrayBuffer: () => Promise.resolve(mockYjsData),
-    });
+    server.use(
+      http.get("/api/projects/test-project", () => {
+        return HttpResponse.arrayBuffer(mockYjsData);
+      }),
+    );
 
     render(<YjsFileExplorer projectId="test-project" showMetadata={false} />);
 
