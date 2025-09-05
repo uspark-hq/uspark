@@ -2,40 +2,58 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { useParams } from "next/navigation";
 import ProjectDetailPage from "../page";
+import * as Y from "yjs";
+import { server, http, HttpResponse } from "../../../../src/test/msw-setup";
 
 // Mock Next.js navigation
 vi.mock("next/navigation", () => ({
   useParams: vi.fn(),
 }));
 
-// Mock YjsFileExplorer component
-vi.mock("../../../components/file-explorer", () => ({
-  YjsFileExplorer: vi.fn(
-    ({ projectId, onFileSelect, selectedFile, showMetadata }) => (
-      <div data-testid="yjs-file-explorer">
-        <div>Project ID: {projectId}</div>
-        <div>Show Metadata: {showMetadata?.toString()}</div>
-        <div>Selected File: {selectedFile || "none"}</div>
-        <button
-          data-testid="mock-file-select"
-          onClick={() => onFileSelect?.("src/test.ts")}
-        >
-          Select src/test.ts
-        </button>
-      </div>
-    ),
-  ),
-}));
-
 describe("Project Detail Page", () => {
+  const createMockYjsDocument = (): ArrayBuffer => {
+    const ydoc = new Y.Doc();
+    const filesMap = ydoc.getMap("files");
+    const blobsMap = ydoc.getMap("blobs");
+
+    // Add mock files
+    const files = [
+      { path: "src/test.ts", hash: "hash1", size: 100, mtime: Date.now() },
+      {
+        path: "src/components/Button.tsx",
+        hash: "hash2",
+        size: 200,
+        mtime: Date.now(),
+      },
+      { path: "package.json", hash: "hash3", size: 150, mtime: Date.now() },
+      { path: "README.md", hash: "hash4", size: 300, mtime: Date.now() },
+    ];
+
+    files.forEach((file) => {
+      filesMap.set(file.path, { hash: file.hash, mtime: file.mtime });
+      blobsMap.set(file.hash, { size: file.size });
+    });
+
+    const update = Y.encodeStateAsUpdate(ydoc);
+    return new Uint8Array(update).buffer;
+  };
+
   beforeEach(() => {
     vi.clearAllMocks();
     (useParams as ReturnType<typeof vi.fn>).mockReturnValue({
       id: "test-project-123",
     });
+
+    // Set up default mock response for project API
+    const mockYjsData = createMockYjsDocument();
+    server.use(
+      http.get("/api/projects/test-project-123", () => {
+        return HttpResponse.arrayBuffer(mockYjsData);
+      }),
+    );
   });
 
-  it("renders page with correct project ID", () => {
+  it("renders page with correct project ID", async () => {
     render(<ProjectDetailPage />);
 
     expect(
@@ -44,17 +62,27 @@ describe("Project Detail Page", () => {
     expect(
       screen.getByText("Browse files and collaborate with Claude Code"),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Project ID: test-project-123"),
-    ).toBeInTheDocument();
+
+    // Wait for YjsFileExplorer to load
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
+    });
   });
 
-  it("renders main layout sections", () => {
+  it("renders main layout sections", async () => {
     render(<ProjectDetailPage />);
 
     // File Explorer section
     expect(screen.getByText("📁 Project Files")).toBeInTheDocument();
-    expect(screen.getByTestId("yjs-file-explorer")).toBeInTheDocument();
+
+    // Wait for YjsFileExplorer to load
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
+    });
 
     // Document Viewer section
     expect(screen.getByText("📄 Document Viewer")).toBeInTheDocument();
@@ -71,68 +99,108 @@ describe("Project Detail Page", () => {
     expect(screen.getByRole("button", { name: "Send" })).toBeInTheDocument();
   });
 
-  it("passes correct props to YjsFileExplorer", () => {
+  it("loads and displays project files", async () => {
     render(<ProjectDetailPage />);
 
-    expect(
-      screen.getByText("Project ID: test-project-123"),
-    ).toBeInTheDocument();
-    expect(screen.getByText("Show Metadata: true")).toBeInTheDocument();
-    expect(screen.getByText("Selected File: none")).toBeInTheDocument();
+    // Initially shows loading
+    expect(screen.getByText("Loading project files...")).toBeInTheDocument();
+
+    // Wait for files to load
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
+    });
+
+    // Should display the files from our mock data
+    expect(screen.getByText("src")).toBeInTheDocument();
+    expect(screen.getByText("package.json")).toBeInTheDocument();
+    expect(screen.getByText("README.md")).toBeInTheDocument();
+
+    // Should show metadata
+    expect(screen.getByText("4 files")).toBeInTheDocument();
+    expect(screen.getByText(/750 B/)).toBeInTheDocument(); // Total size: 100+200+150+300
   });
 
   it("handles file selection and updates document viewer", async () => {
     render(<ProjectDetailPage />);
+
+    // Wait for files to load
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
+    });
 
     // Initially no file selected
     expect(
       screen.getByText("Select a file to view its content"),
     ).toBeInTheDocument();
 
-    // Select a file
-    const selectButton = screen.getByTestId("mock-file-select");
-    fireEvent.click(selectButton);
-
-    // Should update selected file display
-    await waitFor(() => {
-      expect(
-        screen.getByText("Selected File: src/test.ts"),
-      ).toBeInTheDocument();
-    });
+    // Click on package.json file
+    const packageJson = screen.getByText("package.json");
+    fireEvent.click(packageJson);
 
     // Document viewer should show file name
-    expect(screen.getByText("📄 src/test.ts")).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText("📄 package.json")).toBeInTheDocument();
+    });
     expect(screen.getByText("Read-only preview")).toBeInTheDocument();
   });
 
-  it("loads file content immediately when file is selected", async () => {
+  it("loads file content when file is selected", async () => {
     render(<ProjectDetailPage />);
 
-    // Select a file
-    const selectButton = screen.getByTestId("mock-file-select");
-    fireEvent.click(selectButton);
+    // Wait for files to load
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
+    });
 
-    // Content should be available immediately (no loading delays)
+    // Expand src directory
+    const srcFolder = screen.getByText("src");
+    fireEvent.click(srcFolder);
+
+    // Select test.ts file
+    const testFile = screen.getByText("test.ts");
+    fireEvent.click(testFile);
+
+    // Content should be loaded
     await waitFor(() => {
       expect(screen.getByText("📄 src/test.ts")).toBeInTheDocument();
     });
   });
 
-  it("displays mock file content based on file extension", async () => {
+  it("displays file content based on file extension", async () => {
     render(<ProjectDetailPage />);
 
-    // Select a TypeScript file
-    const selectButton = screen.getByTestId("mock-file-select");
-    fireEvent.click(selectButton);
+    // Wait for files to load
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
+    });
+
+    // Expand src directory and select TypeScript file
+    const srcFolder = screen.getByText("src");
+    fireEvent.click(srcFolder);
+
+    const testFile = screen.getByText("test.ts");
+    fireEvent.click(testFile);
 
     // Wait for content to load
+    await waitFor(() => {
+      expect(screen.getByText("📄 src/test.ts")).toBeInTheDocument();
+    });
+
     await waitFor(
       () => {
         expect(
           screen.queryByText("Loading file content..."),
         ).not.toBeInTheDocument();
       },
-      { timeout: 1000 },
+      { timeout: 2000 },
     );
 
     // Should show TypeScript content
@@ -170,35 +238,50 @@ describe("Project Detail Page", () => {
     expect(backLink.closest("button")).toBeInTheDocument();
   });
 
-  it("handles different project IDs from params", () => {
+  it("handles different project IDs from params", async () => {
     (useParams as ReturnType<typeof vi.fn>).mockReturnValue({
       id: "another-project-456",
     });
+
+    // Set up mock for different project
+    const mockYjsData = createMockYjsDocument();
+    server.use(
+      http.get("/api/projects/another-project-456", () => {
+        return HttpResponse.arrayBuffer(mockYjsData);
+      }),
+    );
 
     render(<ProjectDetailPage />);
 
     expect(
       screen.getByRole("heading", { name: "Project: another-project-456" }),
     ).toBeInTheDocument();
-    expect(
-      screen.getByText("Project ID: another-project-456"),
-    ).toBeInTheDocument();
+
+    // Wait for files to load
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
+    });
   });
 
   it("shows proper content for JSON files", async () => {
     render(<ProjectDetailPage />);
 
-    // Use the existing mock to select a JSON file by changing the component behavior
-    const selectButton = screen.getByTestId("mock-file-select");
+    // Wait for files to load
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
+    });
 
-    // Simulate clicking to select a JSON file - we'll need to create a custom mock for this specific test
-    fireEvent.click(selectButton);
+    // Select package.json file
+    const packageJson = screen.getByText("package.json");
+    fireEvent.click(packageJson);
 
     // Wait for the file selection to be processed
     await waitFor(() => {
-      expect(
-        screen.getByText("Selected File: src/test.ts"),
-      ).toBeInTheDocument();
+      expect(screen.getByText("📄 package.json")).toBeInTheDocument();
     });
 
     await waitFor(
@@ -207,19 +290,32 @@ describe("Project Detail Page", () => {
           screen.queryByText("Loading file content..."),
         ).not.toBeInTheDocument();
       },
-      { timeout: 1000 },
+      { timeout: 2000 },
     );
 
-    // Should show TypeScript content (since we're selecting a .ts file)
-    expect(screen.getByText(/\/\/ src\/test\.ts/)).toBeInTheDocument();
+    // Should show JSON content
+    expect(screen.getByText(/"name":/)).toBeInTheDocument();
+    expect(screen.getByText(/"version":/)).toBeInTheDocument();
   });
 
   it("shows proper content for Markdown files", async () => {
     render(<ProjectDetailPage />);
 
-    // Use the existing mock to select a TypeScript file
-    const selectButton = screen.getByTestId("mock-file-select");
-    fireEvent.click(selectButton);
+    // Wait for files to load
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
+    });
+
+    // Select README.md file
+    const readmeFile = screen.getByText("README.md");
+    fireEvent.click(readmeFile);
+
+    // Wait for the file selection to be processed
+    await waitFor(() => {
+      expect(screen.getByText("📄 README.md")).toBeInTheDocument();
+    });
 
     await waitFor(
       () => {
@@ -227,10 +323,38 @@ describe("Project Detail Page", () => {
           screen.queryByText("Loading file content..."),
         ).not.toBeInTheDocument();
       },
-      { timeout: 1000 },
+      { timeout: 2000 },
     );
 
-    // Should show TypeScript content (from our mock)
-    expect(screen.getByText(/export function Component/)).toBeInTheDocument();
+    // Should show Markdown content (using the default mock content)
+    expect(screen.getByText(/# README.md/)).toBeInTheDocument();
+    expect(screen.getByText(/This is a markdown file/)).toBeInTheDocument();
+  });
+
+  it("expands and navigates directory structure", async () => {
+    render(<ProjectDetailPage />);
+
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
+    });
+
+    // Initially, nested files should not be visible
+    expect(screen.queryByText("test.ts")).not.toBeInTheDocument();
+    expect(screen.queryByText("Button.tsx")).not.toBeInTheDocument();
+
+    // Click to expand src directory
+    const srcFolder = screen.getByText("src");
+    fireEvent.click(srcFolder);
+
+    // Now nested file should be visible
+    expect(screen.getByText("test.ts")).toBeInTheDocument();
+
+    // Expand components directory
+    const componentsFolder = screen.getByText("components");
+    fireEvent.click(componentsFolder);
+
+    expect(screen.getByText("Button.tsx")).toBeInTheDocument();
   });
 });
