@@ -158,13 +158,21 @@ jobs:
   # Run E2E tests against deployed preview
   e2e-test:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:4c465ea
     needs: [deploy-web]
     if: github.event_name == 'pull_request' && needs.deploy-web.outputs.preview-url != ''
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive  # For BATS test framework
-      - uses: ./.github/actions/init
+      - uses: ./.github/actions/toolchain-init
+
+      - name: Setup pnpm global directory
+        run: |
+          mkdir -p $HOME/.local/share/pnpm
+          pnpm config set global-bin-dir $HOME/.local/share/pnpm
+          echo "$HOME/.local/share/pnpm" >> $GITHUB_PATH
 
       - name: Build CLI
         run: cd turbo && pnpm --filter @uspark/cli build

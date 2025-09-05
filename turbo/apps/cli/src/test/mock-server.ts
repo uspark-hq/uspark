@@ -38,7 +38,7 @@ export class MockYjsServer {
     const files = project.getMap("files");
     const blobs = project.getMap("blobs");
 
-    // Compute hash (simple for testing)
+    // Compute hash (using real SHA256 to match FileSystem)
     const hash = this.computeHash(content);
 
     // Store file metadata
@@ -68,10 +68,68 @@ export class MockYjsServer {
   }
 
   private computeHash(content: string): string {
-    // Use SHA-256 to match the real implementation
-    return createHash("sha256").update(content, "utf8").digest("hex");
+    // Use real SHA256 hash to match the FileSystem implementation
+    return createHash("sha256").update(Buffer.from(content)).digest("hex");
   }
 }
 
 // Global instance for tests
 export const mockServer = new MockYjsServer();
+
+// Mock fetch for tests
+const originalFetch =
+  global.fetch || (() => Promise.reject(new Error("Fetch not available")));
+
+global.fetch = async (url: string | URL | Request, init?: RequestInit) => {
+  const urlStr = url.toString();
+
+  // Handle project GET/PATCH requests
+  if (urlStr.includes("/api/projects/")) {
+    const match = urlStr.match(/\/api\/projects\/([^/]+)/);
+    if (match && match[1]) {
+      const projectId = match[1];
+
+      if (init?.method === "PATCH") {
+        // Handle project update
+        const body = init.body;
+        if (body instanceof Buffer) {
+          mockServer.patchProject(projectId, new Uint8Array(body));
+        } else if (body instanceof Uint8Array) {
+          mockServer.patchProject(projectId, body);
+        }
+        return new Response(null, { status: 200 });
+      } else {
+        // Handle project fetch
+        const data = mockServer.getProject(projectId);
+        return new Response(data, {
+          status: 200,
+          headers: { "Content-Type": "application/octet-stream" },
+        });
+      }
+    }
+  }
+
+  // Handle blob requests
+  if (urlStr.includes("/api/blobs/")) {
+    const match = urlStr.match(/\/api\/blobs\/([^/]+)/);
+    if (match && match[1]) {
+      const hash = match[1];
+      const content = mockServer.getBlobContent(hash);
+
+      if (content !== undefined) {
+        return new Response(content, {
+          status: 200,
+          headers: { "Content-Type": "text/plain" },
+        });
+      } else {
+        return new Response("Blob not found", {
+          status: 404,
+          statusText: "Not Found",
+        });
+      }
+    }
+  }
+
+  // Fallback to original fetch for other requests
+  return originalFetch(url, init);
+};

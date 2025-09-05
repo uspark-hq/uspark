@@ -1,6 +1,6 @@
 import { FileSystem } from "./fs";
 import { writeFile, readFile, mkdir } from "fs/promises";
-import { dirname } from "path";
+import { dirname, join } from "path";
 import { createHash } from "crypto";
 
 export interface SyncOptions {
@@ -333,5 +333,54 @@ export class ProjectSync {
 
     // 7. Sync everything to remote in one PATCH request
     await this.syncToRemote(projectId, options);
+  }
+
+  async pullAll(
+    projectId: string,
+    options: SyncOptions,
+    outputDir?: string,
+  ): Promise<void> {
+    const apiUrl = options.apiUrl;
+    const token = options.token;
+
+    // 1. Sync from remote to get latest state
+    await this.syncFromRemote(projectId, options);
+
+    // 2. Get all files from the YJS document
+    const allFiles = this.fs.getAllFiles();
+
+    if (allFiles.length === 0) {
+      return;
+    }
+
+    // 3. Download all files - fail fast on any error
+    for (const filePath of allFiles) {
+      const fileNode = this.fs.getFileNode(filePath);
+      if (!fileNode) {
+        throw new Error(`File metadata not found: ${filePath}`);
+      }
+
+      // Get blob content from FileSystem or fetch from remote
+      let content = this.fs.getBlob(fileNode.hash);
+      if (!content) {
+        const response = await fetch(`${apiUrl}/api/blobs/${fileNode.hash}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Failed to fetch blob: ${response.statusText}`);
+        }
+
+        content = await response.text();
+        this.fs.setBlob(fileNode.hash, content);
+      }
+
+      // Write to local filesystem
+      const localPath = outputDir ? join(outputDir, filePath) : filePath;
+      await mkdir(dirname(localPath), { recursive: true });
+      await writeFile(localPath, content, "utf8");
+    }
   }
 }

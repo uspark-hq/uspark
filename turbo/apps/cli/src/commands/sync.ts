@@ -20,6 +20,18 @@ export async function pullCommand(
   console.log(chalk.green(`✓ Successfully pulled to ${outputPath}`));
 }
 
+export async function pullAllCommand(options: {
+  projectId: string;
+  output?: string;
+}): Promise<void> {
+  const { token, apiUrl, sync } = await requireAuth();
+
+  await sync.pullAll(options.projectId, {
+    token,
+    apiUrl,
+  }, options.output);
+}
+
 export async function pushCommand(
   filePath: string | undefined,
   options: { projectId: string; all?: boolean },
