@@ -44,6 +44,50 @@ This document tracks technical debt items that need to be addressed in the codeb
 **Status:** ✅ Resolved on 2025-09-05
 **Resolution:** Added comprehensive test coverage for the public document share viewer page with 8 test cases covering all functionality including loading states, markdown/non-markdown file display, download functionality, and error handling.
 
+## Unused Dependencies and Code (Knip Analysis)
+**Issue:** Multiple unused dependencies, exports, and files detected by knip analysis.
+**Detection:** Run `cd turbo && pnpm knip` to see current unused code elements.
+**Status:** 🔴 Pending
+**Details:**
+- **Unused files (6):**
+  - `apps/cli/src/test/utils.ts`
+  - `apps/web/src/db/index.ts`
+  - `apps/web/src/lib/blob/index.ts`
+  - `apps/web/src/lib/blob/storage.ts`
+  - `apps/web/src/test/mocks/clerk.ts`
+  - `apps/web/src/test/per-test-db-setup.ts`
+- **Unused dependencies:**
+  - apps/web: `@ts-rest/core`, `@ts-rest/serverless`, `@uspark/ui`, `@vercel/blob`, `dotenv`
+  - packages/core: `yjs`
+  - packages/ui: `react-dom`
+- **Unused devDependencies:**
+  - apps/docs: `@uspark/typescript-config`
+  - apps/web: `@testing-library/user-event`
+  - packages/core: `@uspark/eslint-config`
+  - packages/ui: `@types/react-dom`
+
+**How to Find Issues:**
+```bash
+# Run knip analysis to see all issues
+cd turbo && pnpm knip
+
+# Run with compact reporter for cleaner output
+cd turbo && pnpm knip --reporter compact
+
+# Check specific workspace
+cd turbo && pnpm knip --workspace apps/web
+
+# Auto-fix removable issues (use with caution)
+cd turbo && pnpm knip:fix
+```
+
+**Resolution Plan:**
+1. Review each unused item to determine if it's truly unused or needed for future features
+2. Remove confirmed unused dependencies from package.json files
+3. Delete unused files or add them to knip ignore patterns if needed
+4. Clean up unused exports or mark as internal if required
+5. Update knip.json configuration to handle false positives
+
 ---
 
 *Last updated: 2025-09-05*

@@ -24,6 +24,9 @@
     "check-types": {
       "dependsOn": ["^check-types"]
     },
+    "knip": {
+      "cache": false
+    },
     "dev": {
       "cache": false,
       "persistent": true
