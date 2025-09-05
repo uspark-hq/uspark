@@ -65,6 +65,13 @@ export class VercelBlobStorage implements BlobStorageProvider {
       if (error instanceof BlobNotFoundError) {
         throw error;
       }
+      // Re-throw the original error if it's already an Error with the expected format
+      if (
+        error instanceof Error &&
+        error.message.startsWith("Failed to download blob:")
+      ) {
+        throw error;
+      }
       throw new Error(`Failed to download blob with id ${blobId}: ${error}`);
     }
   }

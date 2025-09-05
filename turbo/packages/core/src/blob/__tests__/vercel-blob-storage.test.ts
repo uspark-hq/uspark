@@ -174,7 +174,11 @@ describe("VercelBlobStorage", () => {
       const nonExistentHash = "a".repeat(64);
 
       // Mock 404 response
-      const mockResponse = { ok: false, status: 404 };
+      const mockResponse = {
+        ok: false,
+        status: 404,
+        statusText: "Not Found",
+      };
       global.fetch = vi.fn().mockResolvedValue(mockResponse);
 
       await expect(storage.downloadBlob(nonExistentHash)).rejects.toThrow(
