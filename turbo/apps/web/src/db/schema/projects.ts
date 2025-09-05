@@ -5,7 +5,7 @@ import { pgTable, text, timestamp, integer } from "drizzle-orm/pg-core";
  * Stores serialized YDoc data and metadata for file synchronization
  */
 export const PROJECTS_TBL = pgTable("projects", {
-  id: text("id").primaryKey().notNull(), // User-provided project ID
+  id: text("id").primaryKey().notNull(), // System-generated unique project ID (proj_<uuid>)
   userId: text("user_id").notNull(), // Clerk user ID or CLI token owner
   ydocData: text("ydoc_data").notNull(), // Serialized YDoc binary data (base64 encoded)
   version: integer("version").notNull().default(0), // Optimistic lock version

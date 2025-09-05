@@ -6,9 +6,17 @@ import { NextRequest } from "next/server";
 import { like } from "drizzle-orm";
 
 // Mock Clerk auth
-let mockUserId = "test-user";
+let mockUserId: string | null = "test-user";
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(() => Promise.resolve({ userId: mockUserId })),
+}));
+
+// Mock @vercel/blob client token generation
+vi.mock("@vercel/blob/client", () => ({
+  generateClientTokenFromReadWriteToken: vi.fn(async (options) => {
+    // Return a mock client token
+    return `client_token_${options.pathname.replace(/\//g, "_")}`;
+  }),
 }));
 
 describe("GET /api/projects/[projectId]/blob-token", () => {
@@ -26,7 +34,7 @@ describe("GET /api/projects/[projectId]/blob-token", () => {
       .where(like(PROJECTS_TBL.id, `%-${timestamp}`));
   });
 
-  it("should return STS token for existing project", async () => {
+  it("should return client token for existing project", async () => {
     const projectId = `test-project-${timestamp}`;
     const userId = "test-user";
 
@@ -53,7 +61,8 @@ describe("GET /api/projects/[projectId]/blob-token", () => {
     expect(data).toHaveProperty("expiresAt");
     expect(data).toHaveProperty("uploadUrl");
     expect(data).toHaveProperty("downloadUrlPrefix");
-    expect(data.token).toBe("vercel_blob_rw_test-store_secret-key"); // Test environment token
+    // Check that client token is project-scoped
+    expect(data.token).toBe(`client_token_projects_${projectId}_*`);
   });
 
   it("should return 404 for non-existent project", async () => {

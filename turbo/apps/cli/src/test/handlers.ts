@@ -65,20 +65,23 @@ export const handlers = [
     });
   }),
 
-  // Mock blob upload
-  http.put("https://blob.mock/upload/:hash", () => {
+  // Mock blob upload with project isolation
+  http.put("https://blob.mock/upload/projects/:projectId/:hash", () => {
     return new HttpResponse("OK", { status: 201 });
   }),
 
-  // Mock blob download
-  http.get("https://blob.mock/download/:hash", ({ params }) => {
-    const { hash } = params;
-    const content = mockServer.getBlobContent(hash as string);
-    if (content) {
-      return HttpResponse.text(content);
-    }
-    return new HttpResponse("", { status: 404 });
-  }),
+  // Mock blob download with project isolation
+  http.get(
+    "https://blob.mock/download/projects/:projectId/:hash",
+    ({ params }) => {
+      const { hash } = params;
+      const content = mockServer.getBlobContent(hash as string);
+      if (content) {
+        return HttpResponse.text(content);
+      }
+      return new HttpResponse("", { status: 404 });
+    },
+  ),
 
   // GET /api/blobs/:hash - Return blob content (for file content)
   http.get(`${API_BASE_URL}/api/blobs/:hash`, ({ params }) => {

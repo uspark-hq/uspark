@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import { generateClientTokenFromReadWriteToken } from "@vercel/blob/client";
 import { initServices } from "../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
@@ -7,7 +8,7 @@ import { env } from "../../../../../src/env";
 
 /**
  * GET /api/projects/:projectId/blob-token
- * Returns temporary STS token for direct Vercel Blob Storage access
+ * Returns temporary client token for direct Vercel Blob Storage access
  */
 export async function GET(
   _request: NextRequest,
@@ -37,7 +38,7 @@ export async function GET(
     );
   }
 
-  // Generate STS token for Vercel Blob access
+  // Generate client token for Vercel Blob access
   const readWriteToken = env().BLOB_READ_WRITE_TOKEN;
   if (!readWriteToken) {
     return NextResponse.json(
@@ -49,14 +50,32 @@ export async function GET(
     );
   }
 
-  // For now, return the read-write token directly with project-scoped permissions
-  // In production, this should generate a proper STS token with limited permissions
-  const stsToken = {
-    token: readWriteToken,
-    expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
-    uploadUrl: "https://blob.vercel-storage.com/upload",
-    downloadUrlPrefix: "https://blob.vercel-storage.com/files",
-  };
+  try {
+    // Generate a secure client token with project-scoped permissions
+    const clientToken = await generateClientTokenFromReadWriteToken({
+      token: readWriteToken,
+      pathname: `projects/${projectId}/*`,
+      validUntil: Date.now() + 10 * 60 * 1000, // 10 minutes
+      allowedContentTypes: ["text/*", "application/*", "image/*"],
+    });
 
-  return NextResponse.json(stsToken);
+    // Return the client token with upload/download URLs
+    const response = {
+      token: clientToken,
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
+      uploadUrl: "https://blob.vercel-storage.com/upload",
+      downloadUrlPrefix: "https://blob.vercel-storage.com/files",
+    };
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Failed to generate client token:", error);
+    return NextResponse.json(
+      {
+        error: "token_generation_failed",
+        error_description: "Failed to generate client token",
+      },
+      { status: 500 },
+    );
+  }
 }

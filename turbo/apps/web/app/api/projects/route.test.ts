@@ -175,7 +175,9 @@ describe("/api/projects", () => {
       expect(data).toHaveProperty("id");
       expect(data).toHaveProperty("name");
       expect(data).toHaveProperty("created_at");
-      expect(data.id).toContain(projectName);
+      expect(data.id).toMatch(
+        /^proj_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+      ); // UUID format
       expect(data.name).toBe(data.id); // Currently using ID as name
 
       // Verify project was created in database
@@ -313,10 +315,15 @@ describe("/api/projects", () => {
       expect(response2.status).toBe(201);
       const data2 = await response2.json();
 
-      // IDs should be different
+      // IDs should be different even with same name
       expect(data1.id).not.toBe(data2.id);
-      expect(data1.id).toContain(projectName);
-      expect(data2.id).toContain(projectName);
+      // Both should follow the proj_<uuid> format
+      expect(data1.id).toMatch(
+        /^proj_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+      );
+      expect(data2.id).toMatch(
+        /^proj_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+      );
     });
   });
 });
