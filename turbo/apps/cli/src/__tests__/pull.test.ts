@@ -131,7 +131,7 @@ describe("pull --all command", () => {
   afterEach(async () => {
     // Cleanup temporary directory
     await rm(tempDir, { recursive: true, force: true });
-    
+
     // Clear config override
     setOverrideConfig(null);
   });
