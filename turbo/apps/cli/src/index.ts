@@ -5,7 +5,7 @@ import { authenticate, logout, checkAuthStatus } from "./auth";
 import { pullCommand, pushCommand } from "./commands/sync";
 import { watchClaudeCommand } from "./commands/watch-claude";
 
-const API_HOST = process.env.USPARK_API_URL || "https://app.uspark.com";
+const API_HOST = process.env.API_HOST || "https://app.uspark.com";
 
 const program = new Command();
 
@@ -43,7 +43,7 @@ authCommand
   .option(
     "--api-url <url>",
     "API URL",
-    process.env.USPARK_API_URL || "https://app.uspark.com",
+    process.env.API_HOST || "https://app.uspark.com",
   )
   .action(async (options: { apiUrl: string }) => {
     await authenticate(options.apiUrl);

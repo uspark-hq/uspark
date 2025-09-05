@@ -21,5 +21,5 @@ export API_HOST
 
 # Helper function to run CLI with API host
 cli_with_host() {
-    USPARK_API_URL="$API_HOST" $CLI_COMMAND "$@"
+    API_HOST="$API_HOST" $CLI_COMMAND "$@"
 }
