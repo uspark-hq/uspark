@@ -68,6 +68,7 @@ jobs:
     permissions:
       contents: read
       deployments: write
+    environment: production
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/toolchain-init
