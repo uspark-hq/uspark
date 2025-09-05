@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { verifyDeviceAction } from "./actions";
 import styles from "./page.module.css";
 
 export default function CliAuthPage() {
@@ -78,22 +79,11 @@ export default function CliAuthPage() {
       // Format the device code with dash (XXXX-XXXX)
       const formattedCode = `${deviceCode.slice(0, 4)}-${deviceCode.slice(4)}`;
 
-      // Call API to verify device code and associate with user
-      const response = await fetch("/api/cli/auth/verify-device", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          device_code: formattedCode,
-        }),
-      });
+      // Call Server Action to verify device code and associate with user
+      const result = await verifyDeviceAction(formattedCode);
 
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(
-          data.error_description || "Failed to verify device code",
-        );
+      if (!result.success) {
+        throw new Error("error_description" in result ? result.error_description : "Verification failed");
       }
 
       setSuccess(true);
