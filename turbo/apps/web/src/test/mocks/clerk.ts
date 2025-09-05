@@ -17,12 +17,12 @@ export interface MockAuthOptions {
  * Creates a mock auth function with the specified options
  */
 export function createMockAuth(options: MockAuthOptions = {}) {
-  const { 
-    userId = "test-user", 
+  const {
+    userId = "test-user",
     sessionId = "test-session",
     orgId = null,
     orgRole = null,
-    orgSlug = null
+    orgSlug = null,
   } = options;
 
   return vi.fn().mockResolvedValue({
@@ -42,7 +42,7 @@ export function createMockAuth(options: MockAuthOptions = {}) {
  */
 export function setupClerkMock(options?: MockAuthOptions) {
   const mockAuth = createMockAuth(options);
-  
+
   vi.mock("@clerk/nextjs/server", () => ({
     auth: mockAuth,
     currentUser: vi.fn().mockResolvedValue({
