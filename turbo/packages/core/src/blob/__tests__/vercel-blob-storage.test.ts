@@ -34,8 +34,8 @@ describe("VercelBlobStorage", () => {
     storage = new VercelBlobStorage();
     vi.clearAllMocks();
 
-    // Mock environment variable
-    process.env.BLOB_READ_WRITE_TOKEN = "test-token_rest-of-token";
+    // Mock environment variable with proper format: vercel_blob_rw_<id>_<suffix>
+    process.env.BLOB_READ_WRITE_TOKEN = "vercel_blob_rw_testid_suffix";
 
     // Setup default mock implementations
     mockPut.mockImplementation(async (key: string) => ({
@@ -130,10 +130,11 @@ describe("VercelBlobStorage", () => {
       const hash1 = await storage.uploadBlob(content);
       expect(mockPut).toHaveBeenCalledTimes(1);
 
-      // Second upload of same content should skip upload
+      // Second upload of same content should still upload with Vercel deduplication
       const hash2 = await storage.uploadBlob(content);
       expect(hash1).toBe(hash2);
-      expect(mockPut).toHaveBeenCalledTimes(1); // Still only called once
+      // Vercel blob will handle deduplication on their side
+      expect(mockPut).toHaveBeenCalledTimes(2);
     });
 
     it("should respect custom content type", async () => {
@@ -201,11 +202,13 @@ describe("VercelBlobStorage", () => {
   describe("exists", () => {
     it("should return true for existing blob", async () => {
       const hash = "a".repeat(64);
+      const expectedUrl = "https://testid.public.blob.vercel-storage.com/" + hash;
 
-      // Mock head to succeed
+      // Clear the default implementation and set a specific one for this test
+      mockHead.mockReset();
       mockHead.mockResolvedValueOnce({
-        url: `https://test-blob.vercel-storage.com/${hash}`,
-        downloadUrl: `https://test-blob.vercel-storage.com/${hash}`,
+        url: expectedUrl,
+        downloadUrl: expectedUrl,
         pathname: hash,
         size: 100,
         uploadedAt: new Date(),
@@ -215,8 +218,10 @@ describe("VercelBlobStorage", () => {
       });
 
       const exists = await storage.exists(hash);
+      
       expect(exists).toBe(true);
-      expect(mockHead).toHaveBeenCalled();
+      expect(mockHead).toHaveBeenCalledTimes(1);
+      expect(mockHead).toHaveBeenCalledWith(expectedUrl);
     });
 
     it("should return false for non-existent blob", async () => {

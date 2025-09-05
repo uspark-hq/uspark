@@ -3,8 +3,7 @@ import * as Y from "yjs";
 import { 
   type AccessShareError, 
   type AccessShareResponse, 
-  getBlobStorage,
-  BlobNotFoundError 
+  getBlobStorage
 } from "@uspark/core";
 import { initServices } from "../../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";

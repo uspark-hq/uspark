@@ -3,7 +3,6 @@ import { NextRequest } from "next/server";
 import { GET } from "../[token]/route";
 import { POST } from "../route";
 import { initServices } from "../../../../src/lib/init-services";
-import { getBlobStorageInstance } from "../../../../src/lib/blob";
 import { getBlobStorage, resetBlobStorage } from "@uspark/core";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
@@ -272,7 +271,7 @@ export const config = {
 
       // Verify content can be retrieved from blob storage
       const retrievedContent = await blobStorage.downloadBlob(hash);
-      expect(retrievedContent.toString("utf-8")).toBe(testFileContent);
+      expect(retrievedContent.toString("utf-8")).toBe(uniqueContent);
     });
   });
 });
