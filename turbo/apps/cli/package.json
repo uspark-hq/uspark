@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "postbuild": "cp package.json dist/ && pnpm json -I -f dist/package.json -e 'delete this.private; delete this.scripts; delete this.devDependencies; delete this.dependencies[\"@uspark/core\"]; this.bin[\"uspark\"]=\"index.js\"; this.files=[\".\"]'",
+    "postbuild": "cp package.json dist/ && pnpm json -I -f dist/package.json -e 'delete this.private; delete this.scripts; delete this.devDependencies; delete this.dependencies[\"@uspark/core\"]; this.bin[\"uspark\"]=\"./index.js\"; this.files=[\".\"]'",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
