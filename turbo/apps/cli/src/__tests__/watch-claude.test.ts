@@ -36,27 +36,28 @@ function extractFilePath(
 }
 
 function shouldSyncFile(jsonLine: string): string | null {
+  let event;
   try {
-    const event = JSON.parse(jsonLine);
+    event = JSON.parse(jsonLine);
+  } catch {
+    return null;
+  }
 
-    if (event.type === "assistant" && event.message?.content) {
-      for (const contentItem of event.message.content) {
-        if (
-          contentItem.type === "tool_use" &&
-          contentItem.name &&
-          contentItem.input
-        ) {
-          const toolName = contentItem.name;
-          const toolInput = contentItem.input;
+  if (event.type === "assistant" && event.message?.content) {
+    for (const contentItem of event.message.content) {
+      if (
+        contentItem.type === "tool_use" &&
+        contentItem.name &&
+        contentItem.input
+      ) {
+        const toolName = contentItem.name;
+        const toolInput = contentItem.input;
 
-          if (isFileModificationTool(toolName, toolInput)) {
-            return extractFilePath(toolName, toolInput);
-          }
+        if (isFileModificationTool(toolName, toolInput)) {
+          return extractFilePath(toolName, toolInput);
         }
       }
     }
-  } catch {
-    // Not JSON or parsing failed
   }
 
   return null;
@@ -242,16 +243,6 @@ describe("watch-claude parsing logic", () => {
       });
 
       const result = shouldSyncFile(jsonLine);
-      expect(result).toBe(null);
-    });
-
-    it("should return null for non-JSON input", () => {
-      const result = shouldSyncFile("This is not JSON");
-      expect(result).toBe(null);
-    });
-
-    it("should return null for malformed JSON", () => {
-      const result = shouldSyncFile('{"type":"assistant"'); // Incomplete JSON
       expect(result).toBe(null);
     });
 

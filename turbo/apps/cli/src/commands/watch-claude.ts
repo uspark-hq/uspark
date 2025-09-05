@@ -76,47 +76,33 @@ export async function watchClaudeCommand(options: {
     console.log(line);
 
     // Try to parse as JSON to detect Claude events
-    try {
-      const event: ClaudeEvent = JSON.parse(line);
+    const event: ClaudeEvent = JSON.parse(line);
 
-      // Check if this is an assistant message with tool use
-      if (event.type === "assistant" && event.message?.content) {
-        for (const contentItem of event.message.content) {
-          if (
-            contentItem.type === "tool_use" &&
-            contentItem.name &&
-            contentItem.input
-          ) {
-            const toolName = contentItem.name;
-            const toolInput = contentItem.input;
+    // Check if this is an assistant message with tool use
+    if (event.type === "assistant" && event.message?.content) {
+      for (const contentItem of event.message.content) {
+        if (
+          contentItem.type === "tool_use" &&
+          contentItem.name &&
+          contentItem.input
+        ) {
+          const toolName = contentItem.name;
+          const toolInput = contentItem.input;
 
-            // Check for file modification tools
-            if (isFileModificationTool(toolName, toolInput)) {
-              const filePath = extractFilePath(toolName, toolInput);
+          // Check for file modification tools
+          if (isFileModificationTool(toolName, toolInput)) {
+            const filePath = extractFilePath(toolName, toolInput);
 
-              if (filePath) {
-                try {
-                  // Trigger push operation in background
-                  await syncFile(context, options.projectId, filePath);
+            if (filePath) {
+              // Trigger push operation in background
+              await syncFile(context, options.projectId, filePath);
 
-                  // Log sync success (to stderr to not interfere with stdout)
-                  console.error(chalk.dim(`[uspark] ✓ Synced ${filePath}`));
-                } catch (error) {
-                  // Log errors to stderr but don't interrupt the main flow
-                  console.error(
-                    chalk.dim(
-                      `[uspark] ✗ Failed to sync ${filePath}: ${error instanceof Error ? error.message : error}`,
-                    ),
-                  );
-                }
-              }
+              // Log sync success (to stderr to not interfere with stdout)
+              console.error(chalk.dim(`[uspark] ✓ Synced ${filePath}`));
             }
           }
         }
       }
-    } catch {
-      // Not JSON or parsing failed - this is normal for non-JSON output
-      // Do nothing, just continue
     }
   });
 

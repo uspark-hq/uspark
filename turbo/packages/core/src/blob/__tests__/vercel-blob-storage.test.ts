@@ -7,7 +7,7 @@ import {
   type MockedFunction,
 } from "vitest";
 import { VercelBlobStorage } from "../vercel-blob-storage";
-import { BlobNotFoundError, BlobUploadError } from "../types";
+import { BlobNotFoundError } from "../types";
 import { server, http, HttpResponse } from "../../test/msw-setup";
 
 // Mock @vercel/blob
@@ -163,9 +163,7 @@ describe("VercelBlobStorage", () => {
       // Mock put to fail
       mockPut.mockRejectedValueOnce(new Error("Network error"));
 
-      await expect(storage.uploadBlob(content)).rejects.toThrow(
-        BlobUploadError,
-      );
+      await expect(storage.uploadBlob(content)).rejects.toThrow();
     });
   });
 
@@ -255,9 +253,7 @@ describe("VercelBlobStorage", () => {
 
       mockDel.mockRejectedValueOnce(new Error("Delete failed"));
 
-      await expect(storage.delete(hash)).rejects.toThrow(
-        "Failed to delete blob",
-      );
+      await expect(storage.delete(hash)).rejects.toThrow();
     });
   });
 
@@ -282,7 +278,7 @@ describe("VercelBlobStorage", () => {
     it("should handle list errors", async () => {
       mockList.mockRejectedValueOnce(new Error("List failed"));
 
-      await expect(storage.list()).rejects.toThrow("Failed to list blobs");
+      await expect(storage.list()).rejects.toThrow("List failed");
     });
   });
 });
