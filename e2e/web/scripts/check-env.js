@@ -35,9 +35,7 @@ if (!envExists && !isCI) {
 
 // 3. 验证环境变量
 const requiredVars = [
-  'CLERK_PUBLISHABLE_KEY',
-  'E2E_CLERK_USER_USERNAME', 
-  'E2E_CLERK_USER_PASSWORD'
+  'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY'
 ];
 
 const secretKeyRequired = [
@@ -101,7 +99,7 @@ warnings.forEach(warning => console.log(warning));
 console.log('\n📋 Configuration Summary:');
 console.log(`Environment: ${isCI ? 'CI' : 'Local'}`);
 console.log(`Base URL: ${process.env.BASE_URL || 'https://app.uspark.ai'}`);
-console.log(`Test User: ${process.env.E2E_CLERK_USER_USERNAME || 'Not set'}`);
+console.log(`Testing Mode: Clerk Testing Token`);
 console.log(`Secret Key: ${process.env.CLERK_SECRET_KEY ? '✅ Set (test key)' : '❌ Not set'}`);
 
 console.log('\n✅ Environment check passed\n');

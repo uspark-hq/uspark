@@ -16,7 +16,7 @@ dotenv.config({ path: path.resolve(__dirname, '..', '.env.local') });
 async function globalSetup() {
   // 验证必需的环境变量
   const required = [
-    'CLERK_PUBLISHABLE_KEY',
+    'NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY',
     'CLERK_SECRET_KEY'
   ];
   

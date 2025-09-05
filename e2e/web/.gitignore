@@ -7,3 +7,5 @@ playwright/.clerk/
 .env.local
 auth/auth.json
 auth/*.json
+.vercel
+.env*.local

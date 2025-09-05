@@ -9,7 +9,7 @@ export default defineConfig({
   reporter: 'html',
   globalSetup: require.resolve('./playwright/global-setup.ts'),
   use: {
-    baseURL: process.env.BASE_URL || 'http://localhost:3000',
+    baseURL: process.env.BASE_URL || 'https://uspark-8fgbrlx5p-uspark.vercel.app',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     storageState: 'playwright/.clerk/auth.json',
