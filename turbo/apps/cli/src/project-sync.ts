@@ -106,9 +106,9 @@ export class ProjectSync {
           downloadUrlPrefix: string;
         };
 
-      // Fetch blob directly from Vercel Blob Storage
+      // Fetch blob directly from Vercel Blob Storage with project isolation
       const blobResponse = await fetch(
-        `${downloadUrlPrefix}/${fileNode.hash}`,
+        `${downloadUrlPrefix}/projects/${projectId}/${fileNode.hash}`,
         {
           headers: {
             Authorization: `Bearer ${blobToken}`,
@@ -182,8 +182,8 @@ export class ProjectSync {
         downloadUrlPrefix: string;
       };
 
-      // Upload blob directly to Vercel Blob Storage
-      const uploadResponse = await fetch(`${uploadUrl}/${localHash}`, {
+      // Upload blob directly to Vercel Blob Storage with project isolation
+      const uploadResponse = await fetch(`${uploadUrl}/projects/${projectId}/${localHash}`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${blobToken}`,
@@ -298,7 +298,7 @@ export class ProjectSync {
         for (const hash of blobsToUpload) {
           const content = contentMap.get(hash);
           if (content) {
-            const uploadResponse = await fetch(`${uploadUrl}/${hash}`, {
+            const uploadResponse = await fetch(`${uploadUrl}/projects/${projectId}/${hash}`, {
               method: "PUT",
               headers: {
                 Authorization: `Bearer ${blobToken}`,
@@ -346,17 +346,12 @@ export class ProjectSync {
     // 2. Get all files from the YJS document
     const allFiles = this.fs.getAllFiles();
 
-    if (allFiles.length === 0) {
+    if (allFiles.size === 0) {
       return;
     }
 
     // 3. Download all files - fail fast on any error
-    for (const filePath of allFiles) {
-      const fileNode = this.fs.getFileNode(filePath);
-      if (!fileNode) {
-        throw new Error(`File metadata not found: ${filePath}`);
-      }
-
+    for (const [filePath, fileNode] of allFiles) {
       // Get blob content from FileSystem or fetch from remote
       let content = this.fs.getBlob(fileNode.hash);
       if (!content) {

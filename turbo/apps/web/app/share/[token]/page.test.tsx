@@ -27,7 +27,7 @@ describe("SharePage", () => {
       file_path: "README.md",
       hash: "abc123",
       mtime: Date.now(),
-      blob_url: "https://test-store.public.blob.vercel-storage.com/abc123",
+      blob_url: "https://test-store.public.blob.vercel-storage.com/projects/test-project/abc123",
     };
     const mockContent = "# Test Markdown Content\n\nThis is a test.";
 
@@ -37,7 +37,7 @@ describe("SharePage", () => {
         return HttpResponse.json(mockMetadata);
       }),
       http.get(
-        "https://test-store.public.blob.vercel-storage.com/abc123",
+        "https://test-store.public.blob.vercel-storage.com/projects/test-project/abc123",
         () => {
           return HttpResponse.text(mockContent);
         },
@@ -73,7 +73,7 @@ describe("SharePage", () => {
       file_path: "data.json",
       hash: "def456",
       mtime: Date.now(),
-      blob_url: "https://test-store.public.blob.vercel-storage.com/def456",
+      blob_url: "https://test-store.public.blob.vercel-storage.com/projects/test-project/def456",
     };
     const mockContent = '{"test": "data"}';
 
@@ -82,7 +82,7 @@ describe("SharePage", () => {
         return HttpResponse.json(mockMetadata);
       }),
       http.get(
-        "https://test-store.public.blob.vercel-storage.com/def456",
+        "https://test-store.public.blob.vercel-storage.com/projects/test-project/def456",
         () => {
           return HttpResponse.text(mockContent);
         },
@@ -130,7 +130,7 @@ describe("SharePage", () => {
       hash: "missing-hash",
       mtime: Date.now(),
       blob_url:
-        "https://test-store.public.blob.vercel-storage.com/missing-hash",
+        "https://test-store.public.blob.vercel-storage.com/projects/test-project/missing-hash",
     };
 
     server.use(
@@ -138,7 +138,7 @@ describe("SharePage", () => {
         return HttpResponse.json(mockMetadata);
       }),
       http.get(
-        "https://test-store.public.blob.vercel-storage.com/missing-hash",
+        "https://test-store.public.blob.vercel-storage.com/projects/test-project/missing-hash",
         () => {
           return new HttpResponse(null, { status: 404 });
         },
@@ -172,7 +172,7 @@ describe("SharePage", () => {
       file_path: "document.txt",
       hash: "xyz789",
       mtime: Date.now(),
-      blob_url: "https://test-store.public.blob.vercel-storage.com/xyz789",
+      blob_url: "https://test-store.public.blob.vercel-storage.com/projects/test-project/xyz789",
     };
     const mockContent = "Plain text content";
 
@@ -181,7 +181,7 @@ describe("SharePage", () => {
         return HttpResponse.json(mockMetadata);
       }),
       http.get(
-        "https://test-store.public.blob.vercel-storage.com/xyz789",
+        "https://test-store.public.blob.vercel-storage.com/projects/test-project/xyz789",
         () => {
           return HttpResponse.text(mockContent);
         },

@@ -87,8 +87,8 @@ export async function GET(
     return NextResponse.json(errorResponse, { status: 404 });
   }
 
-  // Return hash-based metadata for direct blob access
-  const blobUrl = getPublicBlobUrl(fileNode.hash, env().BLOB_READ_WRITE_TOKEN);
+  // Return hash-based metadata for direct blob access with project isolation
+  const blobUrl = getPublicBlobUrl(shareLink.projectId, fileNode.hash, env().BLOB_READ_WRITE_TOKEN);
 
   const response: AccessShareResponse = {
     project_name: shareLink.projectId,
