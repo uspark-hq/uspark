@@ -8,22 +8,56 @@ This document describes the standard workflow for committing changes and creatin
 
 ## Workflow Steps
 
-### 1. Check Current Branch
-First, check which branch you're currently on:
+### 1. Check Current Branch and PR Status
+First, check which branch you're currently on and its PR status:
 ```bash
-git branch --show-current
+# Get current branch
+current_branch=$(git branch --show-current)
+echo "Current branch: $current_branch"
+
+# Check if on main branch
+if [ "$current_branch" = "main" ]; then
+    echo "⚠️ You're on main branch. A new feature branch will be created."
+    need_new_branch=true
+else
+    # Check if current branch has a PR and if it's merged
+    pr_status=$(gh pr view --json state,merged 2>/dev/null)
+    if [ $? -eq 0 ]; then
+        is_merged=$(echo "$pr_status" | jq -r '.merged')
+        pr_state=$(echo "$pr_status" | jq -r '.state')
+        
+        if [ "$is_merged" = "true" ] || [ "$pr_state" = "MERGED" ]; then
+            echo "⚠️ Current branch's PR is already merged. A new feature branch will be created."
+            need_new_branch=true
+        else
+            echo "✓ Current branch's PR is still open. You can continue on this branch."
+            need_new_branch=false
+        fi
+    else
+        echo "✓ No PR exists for this branch yet. You can continue on this branch."
+        need_new_branch=false
+    fi
+fi
 ```
 
 ### 2. Branch Strategy
-- **If on `main`**: Create a new feature branch
-- **If on feature branch**: Continue with current branch
+- **If on `main`**: Must create a new feature branch
+- **If PR is merged**: Must create a new feature branch
+- **If on feature branch with open/no PR**: Continue with current branch
 
-### 3. Create Feature Branch (if on main)
+### 3. Create Feature Branch (if needed)
 ```bash
-# Create descriptive branch name
-# Format: type/short-description
-# Examples: fix/typescript-errors, feat/add-cli-command, docs/update-readme
-git checkout -b <branch-name>
+# Only create new branch if needed (on main or PR merged)
+if [ "$need_new_branch" = "true" ]; then
+    # First ensure we're on latest main
+    git checkout main
+    git pull origin main
+    
+    # Create descriptive branch name
+    # Format: type/short-description
+    # Examples: fix/typescript-errors, feat/add-cli-command, docs/update-readme
+    git checkout -b <branch-name>
+fi
 ```
 
 ### 4. Stage, Commit and Push Changes
