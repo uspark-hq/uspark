@@ -1,0 +1,9 @@
+node_modules/
+test-results/
+playwright-report/
+playwright/.cache/
+playwright/.clerk/
+.env
+.env.local
+auth/auth.json
+auth/*.json
