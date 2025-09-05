@@ -61,18 +61,25 @@ authCommand
 
 program
   .command("pull")
-  .description("Pull a file from remote project")
-  .argument("<filePath>", "File path to pull")
+  .description("Pull file(s) from remote project")
+  .argument("[filePath]", "File path to pull (required unless using --all)")
   .requiredOption("--project-id <projectId>", "Project ID")
   .option(
     "--output <outputPath>",
     "Local output path (defaults to same as remote path)",
   )
+  .option("--all", "Pull all files from the project")
   .action(
     async (
-      filePath: string,
-      options: { projectId: string; output?: string },
+      filePath: string | undefined,
+      options: { projectId: string; output?: string; all?: boolean },
     ) => {
+      if (!options.all && !filePath) {
+        console.error(
+          chalk.red("Error: File path is required unless using --all flag"),
+        );
+        process.exit(1);
+      }
       await pullCommand(filePath, options);
     },
   );

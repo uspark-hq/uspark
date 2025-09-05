@@ -2,10 +2,31 @@ import chalk from "chalk";
 import { requireAuth } from "./shared";
 
 export async function pullCommand(
-  filePath: string,
-  options: { projectId: string; output?: string },
+  filePath: string | undefined,
+  options: { projectId: string; output?: string; all?: boolean },
 ): Promise<void> {
   const { token, apiUrl, sync } = await requireAuth();
+
+  // Handle --all flag for batch pull
+  if (options.all) {
+    console.log(
+      chalk.blue(`Pulling all files from project ${options.projectId}...`),
+    );
+
+    // Pull all files from the project
+    const fileCount = await sync.pullAllFiles(options.projectId, {
+      token,
+      apiUrl,
+    });
+
+    console.log(chalk.green(`✓ Successfully pulled ${fileCount} files`));
+    return;
+  }
+
+  // Single file pull
+  if (!filePath) {
+    throw new Error("File path is required when not using --all");
+  }
 
   console.log(
     chalk.blue(`Pulling ${filePath} from project ${options.projectId}...`),

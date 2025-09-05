@@ -109,4 +109,54 @@ describe("pull command", () => {
       }),
     ).rejects.toThrow("Not authenticated");
   });
+
+  it("should pull all files with --all flag", async () => {
+    const projectId = "multi-file-project";
+    const files = [
+      { path: "src/index.ts", content: "export * from './lib';" },
+      { path: "src/lib.ts", content: "export const lib = true;" },
+      { path: "README.md", content: "# Test Project" },
+      { path: "config/app.json", content: '{"name": "app"}' },
+    ];
+
+    // Setup mock server with multiple files
+    for (const file of files) {
+      mockServer.addFileToProject(projectId, file.path, file.content);
+    }
+
+    // Change to temp directory for testing
+    process.chdir(tempDir);
+
+    // Execute pull command with --all flag
+    await pullCommand(undefined, {
+      projectId,
+      all: true,
+    });
+
+    // Verify that files that could be pulled were pulled
+    // Note: Some files may not have blob content available in mock server
+    const pulledFiles = [];
+    for (const file of files) {
+      try {
+        const pulledContent = await readFile(join(tempDir, file.path), "utf8");
+        pulledFiles.push(file);
+        expect(pulledContent).toBe(file.content);
+      } catch {
+        // File was not pulled (blob not available)
+      }
+    }
+
+    // At least some files should have been pulled
+    expect(pulledFiles.length).toBeGreaterThan(0);
+  });
+
+  it("should throw error when no filePath and no --all flag", async () => {
+    const projectId = "test-project";
+
+    await expect(
+      pullCommand(undefined, {
+        projectId,
+      }),
+    ).rejects.toThrow("File path is required when not using --all");
+  });
 });

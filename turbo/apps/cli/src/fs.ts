@@ -79,6 +79,14 @@ export class FileSystem {
     return Y.encodeStateAsUpdate(this.ydoc, stateVector);
   }
 
+  getAllFiles(): Map<string, FileNode> {
+    const allFiles = new Map<string, FileNode>();
+    this.files.forEach((fileNode, path) => {
+      allFiles.set(path, fileNode);
+    });
+    return allFiles;
+  }
+
   private async computeHash(bytes: Uint8Array): Promise<string> {
     // Always use Node.js crypto for consistency
     return createHash("sha256").update(bytes).digest("hex");

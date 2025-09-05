@@ -1,6 +1,7 @@
 import { FileSystem } from "./fs";
 import { writeFile, readFile, mkdir } from "fs/promises";
 import { dirname } from "path";
+import chalk from "chalk";
 
 export interface SyncOptions {
   token?: string;
@@ -116,5 +117,60 @@ export class ProjectSync {
 
     // 3. Sync to remote
     await this.syncToRemote(projectId, options);
+  }
+
+  async pullAllFiles(
+    projectId: string,
+    options?: SyncOptions,
+  ): Promise<number> {
+    const apiUrl = options?.apiUrl || "http://localhost:3000";
+    const token = options?.token || "test_token";
+
+    // 1. Sync from remote to get latest state
+    await this.syncFromRemote(projectId, options);
+
+    // 2. Get all files from FileSystem
+    const allFiles = this.fs.getAllFiles();
+    let pullCount = 0;
+
+    // 3. Pull each file to local filesystem
+    for (const [filePath, fileNode] of allFiles) {
+      try {
+        // Get blob content from FileSystem or fetch from remote
+        let content = this.fs.getBlob(fileNode.hash);
+        if (!content) {
+          // Try to fetch from remote blob storage
+          const response = await fetch(`${apiUrl}/api/blobs/${fileNode.hash}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+
+          if (!response.ok) {
+            console.error(
+              chalk.red(
+                `  ✗ Failed to fetch blob for ${filePath}: ${response.statusText}`,
+              ),
+            );
+            continue;
+          }
+
+          content = await response.text();
+          this.fs.setBlob(fileNode.hash, content);
+        }
+
+        // Write to local filesystem
+        await mkdir(dirname(filePath), { recursive: true });
+        await writeFile(filePath, content, "utf8");
+        pullCount++;
+
+        // Show progress for each file
+        console.log(chalk.gray(`  ✓ ${filePath}`));
+      } catch (error) {
+        console.error(chalk.red(`  ✗ Failed to pull ${filePath}: ${error}`));
+      }
+    }
+
+    return pullCount;
   }
 }
