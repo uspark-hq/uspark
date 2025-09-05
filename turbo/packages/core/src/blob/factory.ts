@@ -17,7 +17,9 @@ export function createBlobStorage(
     switch (config.type) {
       case "vercel":
         if (!process.env.BLOB_READ_WRITE_TOKEN) {
-          throw new Error("BLOB_READ_WRITE_TOKEN environment variable is required");
+          throw new Error(
+            "BLOB_READ_WRITE_TOKEN environment variable is required",
+          );
         }
         return new VercelBlobStorage();
 
@@ -33,7 +35,7 @@ export function createBlobStorage(
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
     throw new Error("BLOB_READ_WRITE_TOKEN environment variable is required");
   }
-  
+
   return new VercelBlobStorage();
 }
 

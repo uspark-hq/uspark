@@ -31,7 +31,7 @@ describe("Blob Storage Factory", () => {
     it("should throw error when type is vercel but token missing", () => {
       delete process.env.BLOB_READ_WRITE_TOKEN;
       expect(() => createBlobStorage({ type: "vercel" })).toThrow(
-        "BLOB_READ_WRITE_TOKEN environment variable is required"
+        "BLOB_READ_WRITE_TOKEN environment variable is required",
       );
     });
 
@@ -59,7 +59,7 @@ describe("Blob Storage Factory", () => {
       delete process.env.BLOB_READ_WRITE_TOKEN;
 
       expect(() => createBlobStorage()).toThrow(
-        "BLOB_READ_WRITE_TOKEN environment variable is required"
+        "BLOB_READ_WRITE_TOKEN environment variable is required",
       );
     });
   });
