@@ -97,28 +97,24 @@ program
 
 program
   .command("push")
-  .description("Push a file to remote project")
-  .argument("<filePath>", "File path to push")
+  .description("Push file(s) to remote project")
+  .argument("[filePath]", "File path to push (required unless using --all)")
   .requiredOption("--project-id <projectId>", "Project ID")
-  .option(
-    "--source <sourcePath>",
-    "Local source path (defaults to same as remote path)",
-  )
+  .option("--all", "Push all files in current directory")
   .action(
     async (
-      filePath: string,
-      options: { projectId: string; source?: string },
+      filePath: string | undefined,
+      options: { projectId: string; all?: boolean },
     ) => {
-      try {
-        await pushCommand(filePath, options);
-      } catch (error) {
+      // Validate arguments
+      if (!options.all && !filePath) {
         console.error(
-          chalk.red(
-            `✗ Failed to push file: ${error instanceof Error ? error.message : error}`,
-          ),
+          chalk.red("Error: File path is required unless using --all flag"),
         );
         process.exit(1);
       }
+
+      await pushCommand(filePath, options);
     },
   );
 

@@ -61,7 +61,6 @@ export function YjsFileExplorer({
           loading: false,
         });
       } catch (error) {
-        console.error("Error loading project files:", error);
         setProjectData((prev) => ({
           ...prev,
           loading: false,

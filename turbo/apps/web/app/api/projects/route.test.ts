@@ -16,7 +16,7 @@ import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 
 describe("/api/projects", () => {
-  const userId = "test-user";
+  const userId = "projects-test-user";
 
   beforeEach(async () => {
     // Mock successful authentication by default
