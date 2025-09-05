@@ -353,27 +353,27 @@ File contents are stored separately in Vercel Blob Storage, referenced by hash f
 
 **Task**: Add STS token endpoint for direct blob access
 **Acceptance Criteria**:
-- [ ] Implement GET /api/projects/:projectId/blob-token endpoint
-- [ ] Generate time-limited STS tokens (10 minutes)
-- [ ] Include upload/download URLs in response
-- [ ] Validate user has project access
+- [ ] Implement GET /api/projects/:projectId/blob-token endpoint (🔄 进行中 - 任务 9)
+- [ ] Generate time-limited STS tokens (10 minutes) (🔄 进行中 - 任务 9)
+- [ ] Include upload/download URLs in response (🔄 进行中 - 任务 9)
+- [ ] Validate user has project access (🔄 进行中 - 任务 9)
 
 #### 4. Extend FileSystem class with direct blob access
 
 **Task**: Update FileSystem to use direct Vercel Blob access
 **Note**: FileSystem has been moved to CLI package (PR #85)
 **Acceptance Criteria**:
-- [ ] Add `getBlobToken()` method to request STS token
-- [ ] Update `pullFile()` to download directly from Vercel Blob
-- [ ] Update `pushFile()` to upload directly to Vercel Blob
-- [ ] Keep YJS sync for metadata only
+- [ ] Add `getBlobToken()` method to request STS token (🔄 进行中 - 任务 9)
+- [ ] Update `pullFile()` to download directly from Vercel Blob (🔄 进行中 - 任务 9)
+- [ ] Update `pushFile()` to upload directly to Vercel Blob (🔄 进行中 - 任务 9)
+- [ ] Keep YJS sync for metadata only (待开始)
 
 #### 5. Implement uspark CLI commands
 
 **Task**: Add pull/push commands using extended FileSystem
 **Acceptance Criteria**:
-- [x] Add `uspark pull <filePath> --project-id <id>` command
-- [ ] Add `uspark push <filePath> --project-id <id>` command
-- [ ] Add `uspark push --all --project-id <id>` command
-- [x] Integrate with existing CLI framework
+- [x] Add `uspark pull <filePath> --project-id <id>` command (✅ 已完成)
+- [ ] Add `uspark push <filePath> --project-id <id>` command (🔄 进行中 - 任务 1)
+- [ ] Add `uspark push --all --project-id <id>` command (🔄 进行中 - 任务 1)
+- [x] Integrate with existing CLI framework (✅ 已完成)
 

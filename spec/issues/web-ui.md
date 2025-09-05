@@ -94,10 +94,10 @@ Returns: {
 
 #### 1. Project Management APIs
 **Acceptance Criteria**:
-- [x] GET /api/projects - List user's projects
-- [x] POST /api/projects - Create new project
-- [x] Use existing YJS sync endpoints for file data (GET/PATCH /api/projects/:id)
-- Client-side parsing of file structure from YJS snapshot
+- [x] GET /api/projects - List user's projects (✅ PR #99)
+- [x] POST /api/projects - Create new project (✅ PR #99)
+- [x] Use existing YJS sync endpoints for file data (GET/PATCH /api/projects/:id) (✅ 已实现)
+- [x] Client-side parsing of file structure from YJS snapshot (✅ 已实现)
 
 #### 2. Claude Execution APIs
 **Acceptance Criteria**:
@@ -109,16 +109,16 @@ Returns: {
 
 #### 3. Project List Page
 **Acceptance Criteria**:
-- [ ] Display projects grid/list
-- [ ] Create project dialog
-- [ ] Navigation to project detail
+- [x] Display projects grid/list (✅ PR #107)
+- [x] Create project dialog (✅ 实现)
+- [x] Navigation to project detail (✅ 实现)
 
 #### 4. Project Detail Page
 **Acceptance Criteria**:
-- [ ] File explorer component
-- [ ] Document viewer with syntax highlighting
-- [ ] Chat input component
-- [ ] Real-time update display
+- [x] File explorer component (✅ PR #107)
+- [x] Document viewer with syntax highlighting (✅ PR #106)
+- [ ] Chat input component (待实现)
+- [ ] Real-time update display (待实现)
 
 #### 5. Real-time Integration
 **Acceptance Criteria**:
