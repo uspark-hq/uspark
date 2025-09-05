@@ -1,5 +1,4 @@
 import { defineConfig } from "vitest/config";
-import { resolve } from "path";
 
 export default defineConfig({
   test: {
@@ -25,6 +24,11 @@ export default defineConfig({
 
     reporters: process.env.CI ? ["default", "github-actions"] : ["default"],
 
-    projects: ["packages/*", "apps/*"],
+    // Using the modern projects field instead of deprecated workspace file
+    projects: [
+      "./apps/cli/vitest.config.ts",
+      "./apps/web/vitest.config.ts",
+      "./packages/core/vitest.config.ts",
+    ],
   },
 });
