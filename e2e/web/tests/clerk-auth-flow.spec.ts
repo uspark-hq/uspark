@@ -12,14 +12,7 @@ test.describe('Clerk Authentication Flow', () => {
     
     // Use Clerk testing helpers to sign in
     // This bypasses the actual login UI and uses the testing token
-    await clerk.signIn({
-      page,
-      signInParams: {
-        strategy: 'password',
-        identifier: 'test+clerk_test@example.com',
-        password: 'clerk_test_password'
-      }
-    });
+    await clerk.signIn({ page });
     
     console.log('✅ Signed in using Clerk testing token');
     
@@ -53,14 +46,7 @@ test.describe('Clerk Authentication Flow', () => {
     console.log('🔐 Testing session persistence');
     
     // Sign in with testing token
-    await clerk.signIn({
-      page,
-      signInParams: {
-        strategy: 'password',
-        identifier: 'test+clerk_test@example.com',
-        password: 'clerk_test_password'
-      }
-    });
+    await clerk.signIn({ page });
     
     // Navigate to different pages and verify session persists
     const protectedRoutes = [
@@ -94,14 +80,7 @@ test.describe('Clerk Authentication Flow', () => {
     console.log('🔐 Testing protected API endpoints');
     
     // Sign in first
-    await clerk.signIn({
-      page,
-      signInParams: {
-        strategy: 'password',
-        identifier: 'test+clerk_test@example.com',
-        password: 'clerk_test_password'
-      }
-    });
+    await clerk.signIn({ page });
     
     // Get cookies from the page context
     const cookies = await page.context().cookies();

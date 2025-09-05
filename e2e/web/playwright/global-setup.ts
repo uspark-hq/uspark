@@ -28,13 +28,6 @@ async function globalSetup() {
     process.exit(1);
   }
   
-  // 可选的用户凭证，用于某些需要真实登录的测试
-  if (process.env.E2E_CLERK_USER_USERNAME && process.env.E2E_CLERK_USER_PASSWORD) {
-    console.log('📧 Test user credentials provided for UI-based login tests');
-  } else {
-    console.log('ℹ️ No test user credentials provided - some tests may be skipped');
-  }
-  
   console.log('🔐 Setting up Clerk testing environment...');
   
   try {

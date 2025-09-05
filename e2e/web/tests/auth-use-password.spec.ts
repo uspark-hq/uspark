@@ -3,14 +3,8 @@ import { clerk } from '@clerk/testing/playwright';
 
 test('sign in using clerk testing token', async ({ page }) => {
   // Use Clerk testing token to bypass authentication
-  await clerk.signIn({
-    page,
-    signInParams: {
-      strategy: 'password',
-      identifier: 'test+clerk_test@example.com',
-      password: 'clerk_test_password'
-    }
-  });
+  // When using testing token, no credentials are needed
+  await clerk.signIn({ page });
   
   console.log('✅ Signed in using Clerk testing token');
   
