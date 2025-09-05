@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.1](https://github.com/uspark-hq/uspark/compare/core-v0.9.0...core-v0.9.1) (2025-09-05)
+
+
+### Bug Fixes
+
+* replace hardcoded delay with dynamic polling interval in cli auth ([#132](https://github.com/uspark-hq/uspark/issues/132)) ([e5a6aed](https://github.com/uspark-hq/uspark/commit/e5a6aeda27cdf0678c0dc56ce4c16435621d1c47))
+
 ## [0.9.0](https://github.com/uspark-hq/uspark/compare/core-v0.8.0...core-v0.9.0) (2025-09-04)
 
 
