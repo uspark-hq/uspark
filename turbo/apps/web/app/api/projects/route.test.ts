@@ -16,36 +16,34 @@ import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 
 describe("/api/projects", () => {
-  // Generate unique userId for each test to ensure complete isolation
-  let userId: string;
+  const userId = "projects-test-user";
 
   beforeEach(async () => {
-    // Create a unique user ID for this specific test
-    userId = `projects-test-user-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-
-    // Mock successful authentication with the unique userId
+    // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
 
-    // Initialize services
+    // Clean up any existing test data
     initServices();
 
-    // No need to clean up since each test uses a unique userId
-    // This ensures complete test isolation
-  });
+    // Clean up all test data regardless of user to avoid interference
+    // Delete all share links first
+    await globalThis.services.db
+      .delete(SHARE_LINKS_TBL)
+      .where(eq(SHARE_LINKS_TBL.userId, userId));
 
-  afterEach(async () => {
-    // Clean up data created by this specific test
-    if (userId && globalThis.services?.db) {
-      // Delete all share links for this test's user
-      await globalThis.services.db
-        .delete(SHARE_LINKS_TBL)
-        .where(eq(SHARE_LINKS_TBL.userId, userId));
+    // Delete projects from other test users that might reference this user
+    await globalThis.services.db
+      .delete(SHARE_LINKS_TBL)
+      .where(eq(SHARE_LINKS_TBL.userId, "other-user"));
 
-      // Delete all projects for this test's user
-      await globalThis.services.db
-        .delete(PROJECTS_TBL)
-        .where(eq(PROJECTS_TBL.userId, userId));
-    }
+    // Then delete all projects for test users
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.userId, userId));
+
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.userId, "other-user"));
   });
 
   describe("GET /api/projects", () => {
@@ -114,8 +112,8 @@ describe("/api/projects", () => {
     });
 
     it("should only return projects for the correct user", async () => {
-      // Create project for different user with unique ID
-      const otherUserId = `other-user-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+      // Create project for different user
+      const otherUserId = "other-user";
       const otherProjectId = `other-project-${Date.now()}`;
 
       const ydoc = new Y.Doc();
@@ -134,11 +132,6 @@ describe("/api/projects", () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.projects).toEqual([]);
-
-      // Clean up the other user's project
-      await globalThis.services.db
-        .delete(PROJECTS_TBL)
-        .where(eq(PROJECTS_TBL.userId, otherUserId));
     });
   });
 
