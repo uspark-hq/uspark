@@ -83,7 +83,11 @@ export default function CliAuthPage() {
       const result = await verifyDeviceAction(formattedCode);
 
       if (!result.success) {
-        throw new Error("error_description" in result ? result.error_description : "Verification failed");
+        throw new Error(
+          "error_description" in result
+            ? result.error_description
+            : "Verification failed",
+        );
       }
 
       setSuccess(true);
