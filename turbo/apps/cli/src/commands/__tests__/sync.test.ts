@@ -57,7 +57,7 @@ describe("sync commands", () => {
       await fs.writeFile("file1.txt", "content1");
       await fs.mkdir("subdir");
       await fs.writeFile("subdir/file2.txt", "content2");
-      
+
       // Create some files to ignore
       await fs.mkdir("node_modules");
       await fs.writeFile("node_modules/test.js", "should be ignored");

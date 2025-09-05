@@ -35,41 +35,47 @@ export async function pushCommand(
     // Get all files in current directory recursively
     const { readdir } = await import("fs/promises");
     const { join } = await import("path");
-    
+
     const getAllFiles = async (dir: string): Promise<string[]> => {
       const files: string[] = [];
       const entries = await readdir(dir, { withFileTypes: true });
-      
+
       for (const entry of entries) {
         const fullPath = join(dir, entry.name);
-        
+
         // Skip common directories to exclude
         if (entry.isDirectory()) {
-          if (["node_modules", ".git", ".next", "dist", ".turbo"].includes(entry.name)) {
+          if (
+            ["node_modules", ".git", ".next", "dist", ".turbo"].includes(
+              entry.name,
+            )
+          ) {
             continue;
           }
-          files.push(...await getAllFiles(fullPath));
+          files.push(...(await getAllFiles(fullPath)));
         } else {
           // Get relative path from current directory
-          const relativePath = fullPath.startsWith("./") ? fullPath.slice(2) : fullPath;
+          const relativePath = fullPath.startsWith("./")
+            ? fullPath.slice(2)
+            : fullPath;
           files.push(relativePath);
         }
       }
-      
+
       return files;
     };
 
     const files = await getAllFiles(".");
-    
+
     if (files.length === 0) {
       console.log(chalk.yellow("No files found to push"));
       return;
     }
 
     console.log(chalk.blue(`Found ${files.length} files to push`));
-    
+
     // Convert to format expected by pushFiles
-    const filesToPush = files.map(filePath => ({
+    const filesToPush = files.map((filePath) => ({
       filePath,
       localPath: filePath,
     }));
@@ -87,7 +93,9 @@ export async function pushCommand(
         });
         successCount++;
       } catch (error) {
-        console.error(chalk.red(`  ✗ Failed to push ${file.filePath}: ${error}`));
+        console.error(
+          chalk.red(`  ✗ Failed to push ${file.filePath}: ${error}`),
+        );
         failCount++;
       }
     }
