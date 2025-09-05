@@ -1,15 +1,22 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { GET } from "./route";
 import { initServices } from "../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { NextRequest } from "next/server";
 import { like } from "drizzle-orm";
 
+// Mock Clerk auth
+let mockUserId = "test-user";
+vi.mock("@clerk/nextjs/server", () => ({
+  auth: vi.fn(() => Promise.resolve({ userId: mockUserId })),
+}));
+
 describe("GET /api/projects/[projectId]/blob-token", () => {
   const timestamp = Date.now();
 
   beforeEach(async () => {
     initServices();
+    mockUserId = "test-user"; // Reset to default user
   });
 
   afterEach(async () => {
@@ -85,5 +92,20 @@ describe("GET /api/projects/[projectId]/blob-token", () => {
     expect(response.status).toBe(404);
     const data = await response.json();
     expect(data.error).toBe("project_not_found");
+  });
+
+  it("should return 401 for unauthorized user", async () => {
+    mockUserId = null; // Simulate no authenticated user
+
+    const request = new NextRequest(
+      "http://localhost/api/projects/test-project/blob-token",
+    );
+    const response = await GET(request, {
+      params: Promise.resolve({ projectId: "test-project" }),
+    });
+
+    expect(response.status).toBe(401);
+    const data = await response.json();
+    expect(data.error).toBe("unauthorized");
   });
 });

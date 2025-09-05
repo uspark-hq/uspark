@@ -11,10 +11,15 @@ export async function pullCommand(
     chalk.blue(`Pulling ${filePath} from project ${options.projectId}...`),
   );
 
-  await sync.pullFile(options.projectId, filePath, {
-    token,
-    apiUrl,
-  }, options.output);
+  await sync.pullFile(
+    options.projectId,
+    filePath,
+    {
+      token,
+      apiUrl,
+    },
+    options.output,
+  );
 
   const outputPath = options.output || filePath;
   console.log(chalk.green(`✓ Successfully pulled to ${outputPath}`));
@@ -26,10 +31,14 @@ export async function pullAllCommand(options: {
 }): Promise<void> {
   const { token, apiUrl, sync } = await requireAuth();
 
-  await sync.pullAll(options.projectId, {
-    token,
-    apiUrl,
-  }, options.output);
+  await sync.pullAll(
+    options.projectId,
+    {
+      token,
+      apiUrl,
+    },
+    options.output,
+  );
 }
 
 export async function pushCommand(
@@ -112,10 +121,15 @@ export async function pushCommand(
     chalk.blue(`Pushing ${filePath} to project ${options.projectId}...`),
   );
 
-  await sync.pushFile(options.projectId, filePath, {
-    token,
-    apiUrl,
-  }, filePath);
+  await sync.pushFile(
+    options.projectId,
+    filePath,
+    {
+      token,
+      apiUrl,
+    },
+    filePath,
+  );
 
   console.log(chalk.green(`✓ Successfully pushed ${filePath}`));
 }

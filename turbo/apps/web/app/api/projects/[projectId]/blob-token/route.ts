@@ -41,7 +41,10 @@ export async function GET(
   const readWriteToken = env().BLOB_READ_WRITE_TOKEN;
   if (!readWriteToken) {
     return NextResponse.json(
-      { error: "blob_storage_not_configured", error_description: "Blob storage is not configured" },
+      {
+        error: "blob_storage_not_configured",
+        error_description: "Blob storage is not configured",
+      },
       { status: 500 },
     );
   }

@@ -19,10 +19,7 @@ export class ProjectSync {
     return createHash("sha256").update(content, "utf8").digest("hex");
   }
 
-  async syncFromRemote(
-    projectId: string,
-    options: SyncOptions,
-  ): Promise<void> {
+  async syncFromRemote(projectId: string, options: SyncOptions): Promise<void> {
     const apiUrl = options.apiUrl;
     const token = options.token;
 

@@ -29,8 +29,13 @@ export async function syncFile(
   filePath: string,
   sourcePath?: string,
 ): Promise<void> {
-  await context.sync.pushFile(projectId, filePath, {
-    token: context.token,
-    apiUrl: context.apiUrl,
-  }, sourcePath);
+  await context.sync.pushFile(
+    projectId,
+    filePath,
+    {
+      token: context.token,
+      apiUrl: context.apiUrl,
+    },
+    sourcePath,
+  );
 }
