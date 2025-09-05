@@ -117,7 +117,7 @@ describe("pull --all command", () => {
 
     // Reset mock server state
     mockServer.reset();
-    
+
     // Reset config mocks
     vi.clearAllMocks();
   });
