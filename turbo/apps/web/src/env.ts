@@ -6,11 +6,11 @@ function initEnv() {
     server: {
       DATABASE_URL: z.string().min(1),
       CLERK_SECRET_KEY: z.string().min(1),
-      BLOB_READ_WRITE_TOKEN: z.string().min(1),
+      BLOB_READ_WRITE_TOKEN: z.string().optional().default(""),
     },
     client: {
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
-      NEXT_PUBLIC_BLOB_URL: z.string().min(1),
+      NEXT_PUBLIC_BLOB_URL: z.string().optional().default(""),
     },
     runtimeEnv: {
       DATABASE_URL: process.env.DATABASE_URL,
