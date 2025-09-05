@@ -27,7 +27,8 @@ describe("SharePage", () => {
       file_path: "README.md",
       hash: "abc123",
       mtime: Date.now(),
-      blob_url: "https://test-store.public.blob.vercel-storage.com/projects/test-project/abc123",
+      blob_url:
+        "https://test-store.public.blob.vercel-storage.com/projects/test-project/abc123",
     };
     const mockContent = "# Test Markdown Content\n\nThis is a test.";
 
@@ -73,7 +74,8 @@ describe("SharePage", () => {
       file_path: "data.json",
       hash: "def456",
       mtime: Date.now(),
-      blob_url: "https://test-store.public.blob.vercel-storage.com/projects/test-project/def456",
+      blob_url:
+        "https://test-store.public.blob.vercel-storage.com/projects/test-project/def456",
     };
     const mockContent = '{"test": "data"}';
 
@@ -172,7 +174,8 @@ describe("SharePage", () => {
       file_path: "document.txt",
       hash: "xyz789",
       mtime: Date.now(),
-      blob_url: "https://test-store.public.blob.vercel-storage.com/projects/test-project/xyz789",
+      blob_url:
+        "https://test-store.public.blob.vercel-storage.com/projects/test-project/xyz789",
     };
     const mockContent = "Plain text content";
 

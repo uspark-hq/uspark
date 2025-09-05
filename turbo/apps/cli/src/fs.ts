@@ -92,7 +92,6 @@ export class FileSystem {
     this.blobStore.set(hash, content);
   }
 
-
   applyUpdate(update: Uint8Array): void {
     Y.applyUpdate(this.ydoc, update);
   }

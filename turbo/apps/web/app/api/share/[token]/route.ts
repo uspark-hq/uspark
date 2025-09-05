@@ -88,7 +88,11 @@ export async function GET(
   }
 
   // Return hash-based metadata for direct blob access with project isolation
-  const blobUrl = getPublicBlobUrl(shareLink.projectId, fileNode.hash, env().BLOB_READ_WRITE_TOKEN);
+  const blobUrl = getPublicBlobUrl(
+    shareLink.projectId,
+    fileNode.hash,
+    env().BLOB_READ_WRITE_TOKEN,
+  );
 
   const response: AccessShareResponse = {
     project_name: shareLink.projectId,

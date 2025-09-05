@@ -71,14 +71,17 @@ export const handlers = [
   }),
 
   // Mock blob download with project isolation
-  http.get("https://blob.mock/download/projects/:projectId/:hash", ({ params }) => {
-    const { hash } = params;
-    const content = mockServer.getBlobContent(hash as string);
-    if (content) {
-      return HttpResponse.text(content);
-    }
-    return new HttpResponse("", { status: 404 });
-  }),
+  http.get(
+    "https://blob.mock/download/projects/:projectId/:hash",
+    ({ params }) => {
+      const { hash } = params;
+      const content = mockServer.getBlobContent(hash as string);
+      if (content) {
+        return HttpResponse.text(content);
+      }
+      return new HttpResponse("", { status: 404 });
+    },
+  ),
 
   // GET /api/blobs/:hash - Return blob content (for file content)
   http.get(`${API_BASE_URL}/api/blobs/:hash`, ({ params }) => {

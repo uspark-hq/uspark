@@ -183,14 +183,17 @@ export class ProjectSync {
       };
 
       // Upload blob directly to Vercel Blob Storage with project isolation
-      const uploadResponse = await fetch(`${uploadUrl}/projects/${projectId}/${localHash}`, {
-        method: "PUT",
-        headers: {
-          Authorization: `Bearer ${blobToken}`,
-          "Content-Type": "text/plain",
+      const uploadResponse = await fetch(
+        `${uploadUrl}/projects/${projectId}/${localHash}`,
+        {
+          method: "PUT",
+          headers: {
+            Authorization: `Bearer ${blobToken}`,
+            "Content-Type": "text/plain",
+          },
+          body: content,
         },
-        body: content,
-      });
+      );
 
       if (!uploadResponse.ok) {
         console.warn(`Failed to upload blob ${localHash}, continuing anyway`);
@@ -298,14 +301,17 @@ export class ProjectSync {
         for (const hash of blobsToUpload) {
           const content = contentMap.get(hash);
           if (content) {
-            const uploadResponse = await fetch(`${uploadUrl}/projects/${projectId}/${hash}`, {
-              method: "PUT",
-              headers: {
-                Authorization: `Bearer ${blobToken}`,
-                "Content-Type": "text/plain",
+            const uploadResponse = await fetch(
+              `${uploadUrl}/projects/${projectId}/${hash}`,
+              {
+                method: "PUT",
+                headers: {
+                  Authorization: `Bearer ${blobToken}`,
+                  "Content-Type": "text/plain",
+                },
+                body: content,
               },
-              body: content,
-            });
+            );
 
             if (!uploadResponse.ok) {
               console.warn(`Failed to upload blob ${hash}, continuing anyway`);

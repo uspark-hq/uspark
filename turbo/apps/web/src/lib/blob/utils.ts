@@ -18,7 +18,11 @@ export function getStoreIdFromToken(token: string): string {
  * Construct a public Blob URL from a project ID and hash
  * This URL can be accessed without authentication
  */
-export function getPublicBlobUrl(projectId: string, hash: string, token: string): string {
+export function getPublicBlobUrl(
+  projectId: string,
+  hash: string,
+  token: string,
+): string {
   const storeId = getStoreIdFromToken(token);
   return `https://${storeId}.public.blob.vercel-storage.com/projects/${projectId}/${hash}`;
 }
