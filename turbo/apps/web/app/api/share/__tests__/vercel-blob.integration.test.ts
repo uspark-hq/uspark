@@ -1,12 +1,4 @@
-import {
-  describe,
-  it,
-  expect,
-  beforeEach,
-  beforeAll,
-  afterAll,
-  vi,
-} from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { GET } from "../[token]/route";
 import { POST } from "../route";
@@ -19,11 +11,8 @@ import * as Y from "yjs";
 import { nanoid } from "nanoid";
 import crypto from "crypto";
 
-const TEST_TOKEN =
-  "vercel_blob_rw_YhpThrd333QWN58N_rtEXpwvXzSNXORK2INmDAXcZfdN3im";
-
 // Skip this entire test suite if BLOB_READ_WRITE_TOKEN is not available
-const hasVercelBlobToken = process.env.BLOB_READ_WRITE_TOKEN === TEST_TOKEN;
+const hasVercelBlobToken = !!process.env.BLOB_READ_WRITE_TOKEN;
 
 describe.skipIf(!hasVercelBlobToken)("Vercel Blob Integration Tests", () => {
   const projectId = `test-blob-project-${Date.now()}`;
@@ -41,18 +30,6 @@ export const config = {
 `;
   const testToken = crypto.randomBytes(32).toString("base64url");
   const shareId = nanoid();
-
-  beforeAll(() => {
-    // Ensure we're using the test token
-    process.env.BLOB_READ_WRITE_TOKEN = TEST_TOKEN;
-  });
-
-  afterAll(() => {
-    // Clean up environment
-    if (!hasVercelBlobToken) {
-      delete process.env.BLOB_READ_WRITE_TOKEN;
-    }
-  });
 
   beforeEach(async () => {
     initServices();
