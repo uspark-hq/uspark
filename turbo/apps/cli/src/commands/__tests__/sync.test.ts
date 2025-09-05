@@ -73,7 +73,7 @@ describe("sync commands", () => {
         chalk.blue("Found 2 files to push"),
       );
       expect(console.log).toHaveBeenCalledWith(
-        expect.stringContaining("✓ Push complete: 2 succeeded, 0 failed"),
+        chalk.green("✓ Successfully pushed 2 files"),
       );
     });
 
@@ -92,6 +92,27 @@ describe("sync commands", () => {
       await expect(
         pushCommand("file1.txt", {
           projectId: "proj-123",
+        }),
+      ).rejects.toThrow("Failed to sync to remote");
+    });
+
+    it("should fail fast on batch push with network error", async () => {
+      // Create test files
+      await fs.writeFile("file1.txt", "content1");
+      await fs.writeFile("file2.txt", "content2");
+
+      // Mock server to return error on PATCH
+      server.use(
+        http.patch("http://localhost:3000/api/projects/proj-123", () => {
+          return HttpResponse.json({ error: "Server error" }, { status: 500 });
+        }),
+      );
+
+      // Should throw on error (fail fast for batch)
+      await expect(
+        pushCommand(undefined, {
+          projectId: "proj-123",
+          all: true,
         }),
       ).rejects.toThrow("Failed to sync to remote");
     });

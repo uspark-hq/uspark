@@ -80,31 +80,14 @@ export async function pushCommand(
       localPath: filePath,
     }));
 
-    let successCount = 0;
-    let failCount = 0;
+    // Use batch push with fail-fast - all files in one operation
+    // This will throw on first error, ensuring atomic operation
+    await sync.pushFiles(options.projectId, filesToPush, {
+      token,
+      apiUrl,
+    });
 
-    // Process files one by one to show progress
-    for (const file of filesToPush) {
-      try {
-        console.log(chalk.gray(`  Pushing ${file.filePath}...`));
-        await sync.pushFile(options.projectId, file.filePath, file.localPath, {
-          token,
-          apiUrl,
-        });
-        successCount++;
-      } catch (error) {
-        console.error(
-          chalk.red(`  ✗ Failed to push ${file.filePath}: ${error}`),
-        );
-        failCount++;
-      }
-    }
-
-    console.log(
-      chalk.green(
-        `✓ Push complete: ${successCount} succeeded, ${failCount} failed`,
-      ),
-    );
+    console.log(chalk.green(`✓ Successfully pushed ${files.length} files`));
     return;
   }
 
