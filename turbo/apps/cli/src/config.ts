@@ -15,7 +15,17 @@ export interface CliConfig {
 const CONFIG_DIR = join(homedir(), ".uspark");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
 
+// Override configuration for testing
+let overrideConfig: CliConfig | null = null;
+
+export function setOverrideConfig(config: CliConfig | null): void {
+  overrideConfig = config;
+}
+
 export async function loadConfig(): Promise<CliConfig> {
+  if (overrideConfig !== null) {
+    return overrideConfig;
+  }
   if (!existsSync(CONFIG_FILE)) {
     return {};
   }
@@ -24,6 +34,12 @@ export async function loadConfig(): Promise<CliConfig> {
 }
 
 export async function saveConfig(config: CliConfig): Promise<void> {
+  if (overrideConfig !== null) {
+    // In test mode, just update the override
+    overrideConfig = { ...overrideConfig, ...config };
+    return;
+  }
+
   // Ensure config directory exists
   await mkdir(CONFIG_DIR, { recursive: true });
 
@@ -36,6 +52,11 @@ export async function saveConfig(config: CliConfig): Promise<void> {
 }
 
 export async function getToken(): Promise<string | undefined> {
+  // Check override first for testing
+  if (overrideConfig !== null) {
+    return overrideConfig.token || process.env.USPARK_TOKEN;
+  }
+
   // Check environment variable first
   if (process.env.USPARK_TOKEN) {
     return process.env.USPARK_TOKEN;
@@ -46,6 +67,14 @@ export async function getToken(): Promise<string | undefined> {
 }
 
 export async function getApiUrl(): Promise<string> {
+  if (overrideConfig !== null) {
+    return (
+      overrideConfig.apiUrl ||
+      process.env.USPARK_API_URL ||
+      "https://app.uspark.com"
+    );
+  }
+
   const config = await loadConfig();
   return (
     config.apiUrl || process.env.USPARK_API_URL || "https://app.uspark.com"
@@ -53,6 +82,11 @@ export async function getApiUrl(): Promise<string> {
 }
 
 export async function clearConfig(): Promise<void> {
+  if (overrideConfig !== null) {
+    overrideConfig = {};
+    return;
+  }
+
   if (existsSync(CONFIG_FILE)) {
     await unlink(CONFIG_FILE);
   }

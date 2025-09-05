@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { tmpdir } from "os";
 import { join } from "path";
 import { mkdtemp, readFile, rm } from "fs/promises";
@@ -7,17 +7,8 @@ import { mockServer } from "../test/mock-server";
 // Import the pull command function for direct testing
 import { pullCommand } from "../commands/sync";
 
-// Mock the config module
-vi.mock("../config", () => ({
-  getToken: vi.fn().mockResolvedValue("test_token"),
-  getApiUrl: vi.fn().mockResolvedValue("http://localhost:3000"),
-  loadConfig: vi.fn().mockResolvedValue({
-    token: "test_token",
-    apiUrl: "http://localhost:3000",
-  }),
-  saveConfig: vi.fn().mockResolvedValue(undefined),
-  clearConfig: vi.fn().mockResolvedValue(undefined),
-}));
+// Import config module with override capability
+import { setOverrideConfig } from "../config";
 
 describe("pull command", () => {
   let tempDir: string;
@@ -28,11 +19,20 @@ describe("pull command", () => {
 
     // Reset mock server state
     mockServer.reset();
+
+    // Set up config override for testing
+    setOverrideConfig({
+      token: "test_token",
+      apiUrl: "http://localhost:3000",
+    });
   });
 
   afterEach(async () => {
     // Cleanup temporary directory
     await rm(tempDir, { recursive: true, force: true });
+
+    // Clear config override
+    setOverrideConfig(null);
   });
 
   it("should pull a file from mock server to local filesystem", async () => {
@@ -92,8 +92,11 @@ describe("pull command", () => {
   });
 
   it("should throw error when not authenticated", async () => {
-    const { getToken } = await import("../config");
-    vi.mocked(getToken).mockResolvedValueOnce(undefined);
+    // Override config to simulate no authentication
+    setOverrideConfig({
+      token: undefined,
+      apiUrl: "http://localhost:3000",
+    });
 
     const projectId = "test-project";
     const filePath = "test.txt";
