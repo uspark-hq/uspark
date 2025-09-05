@@ -38,12 +38,22 @@ async function fetchShareMetadata(
   }
 }
 
-async function fetchFileContent(): Promise<string | null> {
-  // TODO: Implement server-side blob content fetching with hash parameter
-  // For MVP, the share page shows metadata only
-  // Actual file content requires implementing a secure API endpoint
-  console.warn("Direct blob content fetching not implemented for MVP");
-  return null;
+async function fetchFileContent(token: string): Promise<string | null> {
+  try {
+    const response = await fetch(`/api/share/${token}/content`, {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      console.error("Failed to fetch file content:", response.status);
+      return null;
+    }
+
+    return await response.text();
+  } catch (error) {
+    console.error("Failed to fetch file content:", error);
+    return null;
+  }
 }
 
 export default function SharePage({ params }: SharePageProps) {
@@ -78,8 +88,8 @@ export default function SharePage({ params }: SharePageProps) {
 
       setMetadata(meta);
 
-      // Then, fetch the actual content (hash would be used in full implementation)
-      const fileContent = await fetchFileContent();
+      // Then, fetch the actual content using the token
+      const fileContent = await fetchFileContent(token!);
 
       if (fileContent === null) {
         // If blob fetch fails, show a message but don't error out completely
