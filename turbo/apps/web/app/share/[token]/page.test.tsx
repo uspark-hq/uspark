@@ -35,7 +35,7 @@ describe("SharePage", () => {
       http.get("/api/share/test-token", () => {
         return HttpResponse.json(mockMetadata);
       }),
-      http.get(`${process.env.NEXT_PUBLIC_BLOB_URL || ""}/abc123`, () => {
+      http.get("/api/share/test-token/content", () => {
         return HttpResponse.text(mockContent);
       }),
     );
@@ -76,7 +76,7 @@ describe("SharePage", () => {
       http.get("/api/share/test-token", () => {
         return HttpResponse.json(mockMetadata);
       }),
-      http.get(`${process.env.NEXT_PUBLIC_BLOB_URL || ""}/def456`, () => {
+      http.get("/api/share/test-token/content", () => {
         return HttpResponse.text(mockContent);
       }),
     );
@@ -127,7 +127,7 @@ describe("SharePage", () => {
       http.get("/api/share/test-token", () => {
         return HttpResponse.json(mockMetadata);
       }),
-      http.get(`${process.env.NEXT_PUBLIC_BLOB_URL || ""}/missing-hash`, () => {
+      http.get("/api/share/test-token/content", () => {
         return new HttpResponse(null, { status: 404 });
       }),
     );
@@ -166,7 +166,7 @@ describe("SharePage", () => {
       http.get("/api/share/test-token", () => {
         return HttpResponse.json(mockMetadata);
       }),
-      http.get(`${process.env.NEXT_PUBLIC_BLOB_URL || ""}/xyz789`, () => {
+      http.get("/api/share/test-token/content", () => {
         return HttpResponse.text(mockContent);
       }),
     );
