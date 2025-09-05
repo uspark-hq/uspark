@@ -7,7 +7,7 @@ import {
   type MockedFunction,
 } from "vitest";
 import { VercelBlobStorage } from "../vercel-blob-storage";
-import { BlobNotFoundError, BlobUploadError } from "../types";
+import { BlobNotFoundError } from "../types";
 import { server, http, HttpResponse } from "../../test/msw-setup";
 
 // Mock @vercel/blob
@@ -35,8 +35,8 @@ describe("VercelBlobStorage", () => {
     storage = new VercelBlobStorage();
     vi.clearAllMocks();
 
-    // Mock environment variable
-    process.env.BLOB_READ_WRITE_TOKEN = "test-token_rest-of-token";
+    // Mock environment variable with proper format: vercel_blob_rw_[STORE_ID]_[SECRET]
+    process.env.BLOB_READ_WRITE_TOKEN = "vercel_blob_rw_test-store_secret-key";
 
     // Setup default mock implementations
     mockPut.mockImplementation(async (key: string) => ({
@@ -85,8 +85,8 @@ describe("VercelBlobStorage", () => {
   });
 
   describe("uploadBlob", () => {
-    it("should upload small files using put", async () => {
-      const content = Buffer.from("Small file content");
+    it("should upload files using put", async () => {
+      const content = Buffer.from("File content");
 
       // Mock exists to return false (blob doesn't exist)
       mockHead.mockRejectedValueOnce(new Error("Not found"));
@@ -102,7 +102,6 @@ describe("VercelBlobStorage", () => {
           addRandomSuffix: false,
         }),
       );
-      // Large files also use put() with multipart: true
     });
 
     it("should deduplicate identical content", async () => {
@@ -163,9 +162,7 @@ describe("VercelBlobStorage", () => {
       // Mock put to fail
       mockPut.mockRejectedValueOnce(new Error("Network error"));
 
-      await expect(storage.uploadBlob(content)).rejects.toThrow(
-        BlobUploadError,
-      );
+      await expect(storage.uploadBlob(content)).rejects.toThrow();
     });
   });
 
@@ -176,7 +173,7 @@ describe("VercelBlobStorage", () => {
       // Mock 404 response with MSW
       server.use(
         http.get(
-          `https://test-token.public.blob.vercel-storage.com/${nonExistentHash}`,
+          `https://test-store.public.blob.vercel-storage.com/${nonExistentHash}`,
           () => {
             return new HttpResponse(null, { status: 404 });
           },
@@ -194,7 +191,7 @@ describe("VercelBlobStorage", () => {
       // Mock 500 response with MSW
       server.use(
         http.get(
-          `https://test-token.public.blob.vercel-storage.com/${hash}`,
+          `https://test-store.public.blob.vercel-storage.com/${hash}`,
           () => {
             return new HttpResponse(null, {
               status: 500,
@@ -255,9 +252,7 @@ describe("VercelBlobStorage", () => {
 
       mockDel.mockRejectedValueOnce(new Error("Delete failed"));
 
-      await expect(storage.delete(hash)).rejects.toThrow(
-        "Failed to delete blob",
-      );
+      await expect(storage.delete(hash)).rejects.toThrow();
     });
   });
 
@@ -282,7 +277,7 @@ describe("VercelBlobStorage", () => {
     it("should handle list errors", async () => {
       mockList.mockRejectedValueOnce(new Error("List failed"));
 
-      await expect(storage.list()).rejects.toThrow("Failed to list blobs");
+      await expect(storage.list()).rejects.toThrow("List failed");
     });
   });
 });

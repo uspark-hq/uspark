@@ -47,6 +47,11 @@ export const AccessShareResponseSchema = z.object({
   file_path: z.string().describe("Path of the shared file"),
   hash: z.string().describe("File content hash for direct blob access"),
   mtime: z.number().describe("File modification time"),
+  blob_url: z
+    .string()
+    .url()
+    .optional()
+    .describe("Public URL to access the blob content"),
 });
 
 /**

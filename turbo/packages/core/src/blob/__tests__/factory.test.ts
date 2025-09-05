@@ -22,9 +22,17 @@ describe("Blob Storage Factory", () => {
   });
 
   describe("createBlobStorage", () => {
-    it("should create VercelBlobStorage when type is vercel", () => {
+    it("should create VercelBlobStorage when type is vercel and token exists", () => {
+      process.env.BLOB_READ_WRITE_TOKEN = "test-token";
       const storage = createBlobStorage({ type: "vercel" });
       expect(storage).toBeInstanceOf(VercelBlobStorage);
+    });
+
+    it("should throw error when type is vercel but token missing", () => {
+      delete process.env.BLOB_READ_WRITE_TOKEN;
+      expect(() => createBlobStorage({ type: "vercel" })).toThrow(
+        "BLOB_READ_WRITE_TOKEN environment variable is required",
+      );
     });
 
     it("should create MemoryBlobStorage when type is memory", () => {
@@ -47,18 +55,19 @@ describe("Blob Storage Factory", () => {
       expect(storage).toBeInstanceOf(VercelBlobStorage);
     });
 
-    it("should default to MemoryBlobStorage when no token", () => {
+    it("should throw error when no token is available", () => {
       delete process.env.BLOB_READ_WRITE_TOKEN;
 
-      const storage = createBlobStorage();
-      expect(storage).toBeInstanceOf(MemoryBlobStorage);
+      expect(() => createBlobStorage()).toThrow(
+        "BLOB_READ_WRITE_TOKEN environment variable is required",
+      );
     });
   });
 
   describe("getBlobStorage singleton", () => {
     it("should return same instance on multiple calls", () => {
       const storage1 = getBlobStorage({ type: "memory" });
-      const storage2 = getBlobStorage({ type: "vercel" }); // Config ignored on second call
+      const storage2 = getBlobStorage({ type: "memory" }); // Config ignored on second call
 
       expect(storage1).toBe(storage2);
       expect(storage1).toBeInstanceOf(MemoryBlobStorage);
@@ -67,6 +76,7 @@ describe("Blob Storage Factory", () => {
     it("should create new instance after reset", () => {
       const storage1 = getBlobStorage({ type: "memory" });
       resetBlobStorage();
+      process.env.BLOB_READ_WRITE_TOKEN = "test-token";
       const storage2 = getBlobStorage({ type: "vercel" });
 
       expect(storage1).not.toBe(storage2);

@@ -53,7 +53,7 @@ describe("GET /api/projects/[projectId]/blob-token", () => {
     expect(data).toHaveProperty("expiresAt");
     expect(data).toHaveProperty("uploadUrl");
     expect(data).toHaveProperty("downloadUrlPrefix");
-    expect(data.token).toBe("dummy_token"); // Test environment token
+    expect(data.token).toBe("vercel_blob_rw_test-store_secret-key"); // Test environment token
   });
 
   it("should return 404 for non-existent project", async () => {

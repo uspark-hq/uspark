@@ -21,7 +21,7 @@ describe("/api/projects", () => {
 
   beforeEach(async () => {
     // Create a unique user ID for this specific test
-    userId = `test-user-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    userId = `projects-test-user-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     
     // Mock successful authentication with the unique userId
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);

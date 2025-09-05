@@ -180,6 +180,25 @@ const handleSubmit = async () => {
 - ❌ `added user auth` (missing type, wrong tense)
 - ❌ `feat: Add user authentication system with OAuth2 integration, JWT tokens, refresh mechanism, and comprehensive error handling` (too long)
 
+## Local Development
+
+### Running the Web Application
+
+**Use Vercel CLI for local development of the web application:**
+
+```bash
+# In the turbo directory
+vercel dev
+```
+
+**Why use `vercel dev` instead of `pnpm dev`:**
+- Automatically loads environment variables from Vercel project settings
+- Provides required Blob storage token (`BLOB_READ_WRITE_TOKEN`)
+- Simulates production environment more accurately
+- No manual environment configuration needed
+
+**Note:** The web application requires Vercel Blob storage token to function properly. This is automatically provided when using `vercel dev`.
+
 ## Pre-Commit Checks
 
 **All code must pass these checks before committing.** Run these commands from the `/turbo` directory to ensure code quality:

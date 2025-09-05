@@ -5,71 +5,45 @@ import type {
   UploadOptions,
   ListOptions,
 } from "./types";
-import { BlobNotFoundError, BlobUploadError } from "./types";
+import { BlobNotFoundError } from "./types";
 import { generateContentHash, detectContentType } from "./utils";
 
 export class VercelBlobStorage implements BlobStorageProvider {
-  private readonly MULTIPART_THRESHOLD = 4.5 * 1024 * 1024; // 4.5MB
-
   async uploadBlob(
     content: Buffer,
     options: UploadOptions = {},
   ): Promise<string> {
     const hash = generateContentHash(content);
 
-    try {
-      // Check if blob already exists (deduplication)
-      if (await this.exists(hash)) {
-        return hash;
-      }
-
-      const contentType = options.contentType ?? detectContentType(content);
-
-      if (content.length > this.MULTIPART_THRESHOLD) {
-        // Use multipart upload for large files
-        await put(hash, content, {
-          access: "public",
-          multipart: true,
-          contentType,
-        });
-      } else {
-        // Use standard upload for small files
-        await put(hash, content, {
-          access: "public",
-          contentType,
-          addRandomSuffix: options.addRandomSuffix ?? false,
-        });
-      }
-
+    // Check if blob already exists (deduplication)
+    if (await this.exists(hash)) {
       return hash;
-    } catch (error) {
-      throw new BlobUploadError(
-        `Failed to upload blob with hash ${hash}`,
-        error instanceof Error ? error : undefined,
-      );
     }
+
+    const contentType = options.contentType ?? detectContentType(content);
+
+    await put(hash, content, {
+      access: "public",
+      contentType,
+      addRandomSuffix: options.addRandomSuffix ?? false,
+    });
+
+    return hash;
   }
 
   async downloadBlob(hash: string): Promise<Buffer> {
-    try {
-      const url = this.getBlobUrl(hash);
-      const response = await fetch(url);
+    const url = this.getBlobUrl(hash);
+    const response = await fetch(url);
 
-      if (!response.ok) {
-        if (response.status === 404) {
-          throw new BlobNotFoundError(hash);
-        }
-        throw new Error(`Failed to download blob: ${response.statusText}`);
+    if (!response.ok) {
+      if (response.status === 404) {
+        throw new BlobNotFoundError(hash);
       }
-
-      const arrayBuffer = await response.arrayBuffer();
-      return Buffer.from(arrayBuffer);
-    } catch (error) {
-      if (error instanceof BlobNotFoundError) {
-        throw error;
-      }
-      throw new Error(`Failed to download blob with hash ${hash}: ${error}`);
+      throw new Error(`Failed to download blob: ${response.statusText}`);
     }
+
+    const arrayBuffer = await response.arrayBuffer();
+    return Buffer.from(arrayBuffer);
   }
 
   async exists(hash: string): Promise<boolean> {
@@ -83,41 +57,41 @@ export class VercelBlobStorage implements BlobStorageProvider {
   }
 
   async delete(hash: string): Promise<void> {
-    try {
-      const url = this.getBlobUrl(hash);
-      await del([url]);
-    } catch (error) {
-      throw new Error(`Failed to delete blob with hash ${hash}: ${error}`);
-    }
+    const url = this.getBlobUrl(hash);
+    await del([url]);
   }
 
   async list(options: ListOptions = {}): Promise<BlobMetadata[]> {
-    try {
-      const result = await list({
-        prefix: options.prefix,
-        limit: options.limit,
-        cursor: options.cursor,
-      });
+    const result = await list({
+      prefix: options.prefix,
+      limit: options.limit,
+      cursor: options.cursor,
+    });
 
-      return result.blobs.map((blob) => ({
-        hash: this.extractHashFromUrl(blob.url),
-        size: blob.size,
-        contentType: "application/octet-stream", // Default content type
-        uploadedAt: blob.uploadedAt,
-        url: blob.url,
-      }));
-    } catch (error) {
-      throw new Error(`Failed to list blobs: ${error}`);
-    }
+    return result.blobs.map((blob) => ({
+      hash: this.extractHashFromUrl(blob.url),
+      size: blob.size,
+      contentType: "application/octet-stream", // Default content type
+      uploadedAt: blob.uploadedAt,
+      url: blob.url,
+    }));
   }
 
   private getBlobUrl(hash: string): string {
     // Construct Vercel Blob URL from hash
-    const baseUrl = process.env.BLOB_READ_WRITE_TOKEN?.split("_")[0];
-    if (!baseUrl) {
+    // Token format: vercel_blob_rw_[STORE_ID]_[SECRET]
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) {
       throw new Error("BLOB_READ_WRITE_TOKEN environment variable is required");
     }
-    return `https://${baseUrl}.public.blob.vercel-storage.com/${hash}`;
+
+    const parts = token.split("_");
+    if (parts.length < 4 || !parts[3]) {
+      throw new Error("Invalid BLOB_READ_WRITE_TOKEN format");
+    }
+
+    const storeId = parts[3]; // The store ID is the 4th part
+    return `https://${storeId}.public.blob.vercel-storage.com/${hash}`;
   }
 
   private extractHashFromUrl(url: string): string {

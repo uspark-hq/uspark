@@ -17,13 +17,9 @@ export function TokenForm({ action }: TokenFormProps) {
   const [copySuccess, setCopySuccess] = useState(false);
 
   const copyToClipboard = async (token: string) => {
-    try {
-      await navigator.clipboard.writeText(token);
-      setCopySuccess(true);
-      setTimeout(() => setCopySuccess(false), 2000);
-    } catch {
-      console.error("Failed to copy token to clipboard");
-    }
+    await navigator.clipboard.writeText(token);
+    setCopySuccess(true);
+    setTimeout(() => setCopySuccess(false), 2000);
   };
 
   const token = result?.success ? result.data.token : null;

@@ -27,6 +27,7 @@ describe("SharePage", () => {
       file_path: "README.md",
       hash: "abc123",
       mtime: Date.now(),
+      blob_url: "https://test-store.public.blob.vercel-storage.com/abc123",
     };
     const mockContent = "# Test Markdown Content\n\nThis is a test.";
 
@@ -35,9 +36,12 @@ describe("SharePage", () => {
       http.get("/api/share/test-token", () => {
         return HttpResponse.json(mockMetadata);
       }),
-      http.get(`${process.env.NEXT_PUBLIC_BLOB_URL || ""}/abc123`, () => {
-        return HttpResponse.text(mockContent);
-      }),
+      http.get(
+        "https://test-store.public.blob.vercel-storage.com/abc123",
+        () => {
+          return HttpResponse.text(mockContent);
+        },
+      ),
     );
 
     const params = Promise.resolve({ token: "test-token" });
@@ -69,6 +73,7 @@ describe("SharePage", () => {
       file_path: "data.json",
       hash: "def456",
       mtime: Date.now(),
+      blob_url: "https://test-store.public.blob.vercel-storage.com/def456",
     };
     const mockContent = '{"test": "data"}';
 
@@ -76,9 +81,12 @@ describe("SharePage", () => {
       http.get("/api/share/test-token", () => {
         return HttpResponse.json(mockMetadata);
       }),
-      http.get(`${process.env.NEXT_PUBLIC_BLOB_URL || ""}/def456`, () => {
-        return HttpResponse.text(mockContent);
-      }),
+      http.get(
+        "https://test-store.public.blob.vercel-storage.com/def456",
+        () => {
+          return HttpResponse.text(mockContent);
+        },
+      ),
     );
 
     const params = Promise.resolve({ token: "test-token" });
@@ -121,15 +129,20 @@ describe("SharePage", () => {
       file_path: "test.md",
       hash: "missing-hash",
       mtime: Date.now(),
+      blob_url:
+        "https://test-store.public.blob.vercel-storage.com/missing-hash",
     };
 
     server.use(
       http.get("/api/share/test-token", () => {
         return HttpResponse.json(mockMetadata);
       }),
-      http.get(`${process.env.NEXT_PUBLIC_BLOB_URL || ""}/missing-hash`, () => {
-        return new HttpResponse(null, { status: 404 });
-      }),
+      http.get(
+        "https://test-store.public.blob.vercel-storage.com/missing-hash",
+        () => {
+          return new HttpResponse(null, { status: 404 });
+        },
+      ),
     );
 
     const consoleWarnSpy = vi
@@ -159,6 +172,7 @@ describe("SharePage", () => {
       file_path: "document.txt",
       hash: "xyz789",
       mtime: Date.now(),
+      blob_url: "https://test-store.public.blob.vercel-storage.com/xyz789",
     };
     const mockContent = "Plain text content";
 
@@ -166,9 +180,12 @@ describe("SharePage", () => {
       http.get("/api/share/test-token", () => {
         return HttpResponse.json(mockMetadata);
       }),
-      http.get(`${process.env.NEXT_PUBLIC_BLOB_URL || ""}/xyz789`, () => {
-        return HttpResponse.text(mockContent);
-      }),
+      http.get(
+        "https://test-store.public.blob.vercel-storage.com/xyz789",
+        () => {
+          return HttpResponse.text(mockContent);
+        },
+      ),
     );
 
     const params = Promise.resolve({ token: "test-token" });

@@ -54,10 +54,8 @@ export async function GET(
   const stsToken = {
     token: readWriteToken,
     expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
-    uploadUrl:
-      env().VERCEL_BLOB_UPLOAD_URL || "https://blob.vercel-storage.com/upload",
-    downloadUrlPrefix:
-      env().VERCEL_BLOB_URL || "https://blob.vercel-storage.com/files",
+    uploadUrl: "https://blob.vercel-storage.com/upload",
+    downloadUrlPrefix: "https://blob.vercel-storage.com/files",
   };
 
   return NextResponse.json(stsToken);

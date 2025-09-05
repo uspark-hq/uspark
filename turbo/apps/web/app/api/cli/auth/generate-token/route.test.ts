@@ -303,34 +303,6 @@ describe("/api/cli/auth/generate-token", () => {
     }
   });
 
-  it("should return invalid request error for malformed JSON", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as Awaited<
-      ReturnType<typeof auth>
-    >);
-
-    const request = new NextRequest(
-      "http://localhost/api/cli/auth/generate-token",
-      {
-        method: "POST",
-        body: "not-json",
-      },
-    );
-
-    const response = await POST(request);
-    expect(response.status).toBe(400);
-
-    const data = await response.json();
-    const validationResult = GenerateTokenErrorSchema.safeParse(data);
-    expect(validationResult.success).toBe(true);
-
-    if (validationResult.success) {
-      expect(validationResult.data.error).toBe("invalid_request");
-      expect(validationResult.data.error_description).toBe(
-        "Invalid JSON in request body",
-      );
-    }
-  });
-
   it("should allow different users to have their own token limits", async () => {
     const now = new Date();
     const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);

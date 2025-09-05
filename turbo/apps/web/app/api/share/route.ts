@@ -36,16 +36,7 @@ export async function POST(request: NextRequest) {
 
   initServices();
 
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    const errorResponse: CreateShareError = {
-      error: "invalid_request",
-      error_description: "Invalid JSON in request body",
-    };
-    return NextResponse.json(errorResponse, { status: 400 });
-  }
+  const body = await request.json();
 
   // Validate request body using schema from core
   const validationResult = CreateShareRequestSchema.safeParse(body);
