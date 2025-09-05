@@ -13,6 +13,10 @@ process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY =
   "pk_test_mock_instance.clerk.accounts.dev$";
 process.env.CLERK_SECRET_KEY = "sk_test_mock_secret_key_for_testing";
 
+// Mock blob storage environment variables for testing
+process.env.BLOB_READ_WRITE_TOKEN = "dummy_token";
+process.env.NEXT_PUBLIC_BLOB_URL = "https://mock-blob-storage.test";
+
 // Verify required environment variables are set
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL environment variable is required for tests");
