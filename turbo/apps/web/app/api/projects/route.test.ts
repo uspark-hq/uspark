@@ -22,7 +22,7 @@ describe("/api/projects", () => {
   beforeEach(async () => {
     // Create a unique user ID for this specific test
     userId = `projects-test-user-${Date.now()}-${Math.random().toString(36).substring(7)}`;
-    
+
     // Mock successful authentication with the unique userId
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
 
@@ -134,7 +134,7 @@ describe("/api/projects", () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.projects).toEqual([]);
-      
+
       // Clean up the other user's project
       await globalThis.services.db
         .delete(PROJECTS_TBL)
