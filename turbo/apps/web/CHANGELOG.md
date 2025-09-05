@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/uspark-hq/uspark/compare/web-v0.11.1...web-v0.12.0) (2025-09-05)
+
+
+### Features
+
+* **cli:** enhance push command with batch upload support ([#113](https://github.com/uspark-hq/uspark/issues/113)) ([be8f842](https://github.com/uspark-hq/uspark/commit/be8f842929d1c2f8cd45073083f92a159ec8be88))
+
 ## [0.11.1](https://github.com/uspark-hq/uspark/compare/web-v0.11.0...web-v0.11.1) (2025-09-05)
 
 
