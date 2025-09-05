@@ -2,6 +2,7 @@
 
 import { notFound } from "next/navigation";
 import { useState, useEffect } from "react";
+import { env } from "../../../src/env";
 
 interface SharePageProps {
   params: Promise<{
@@ -41,7 +42,7 @@ async function fetchShareMetadata(
 async function fetchFileContent(hash: string): Promise<string | null> {
   try {
     // Generate the blob URL using the hash
-    const blobUrl = `${process.env.NEXT_PUBLIC_BLOB_URL || ""}/${hash}`;
+    const blobUrl = `${env().NEXT_PUBLIC_BLOB_URL}/${hash}`;
 
     // For now, try to fetch directly from the blob URL
     // In production, this would use proper STS tokens
