@@ -11,10 +11,10 @@ export async function pullCommand(
     chalk.blue(`Pulling ${filePath} from project ${options.projectId}...`),
   );
 
-  await sync.pullFile(options.projectId, filePath, options.output, {
+  await sync.pullFile(options.projectId, filePath, {
     token,
     apiUrl,
-  });
+  }, options.output);
 
   const outputPath = options.output || filePath;
   console.log(chalk.green(`✓ Successfully pulled to ${outputPath}`));
@@ -100,10 +100,10 @@ export async function pushCommand(
     chalk.blue(`Pushing ${filePath} to project ${options.projectId}...`),
   );
 
-  await sync.pushFile(options.projectId, filePath, filePath, {
+  await sync.pushFile(options.projectId, filePath, {
     token,
     apiUrl,
-  });
+  }, filePath);
 
   console.log(chalk.green(`✓ Successfully pushed ${filePath}`));
 }

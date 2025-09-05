@@ -4,8 +4,8 @@ import { dirname } from "path";
 import { createHash } from "crypto";
 
 export interface SyncOptions {
-  token?: string;
-  apiUrl?: string;
+  token: string;
+  apiUrl: string;
 }
 
 export class ProjectSync {
@@ -21,10 +21,10 @@ export class ProjectSync {
 
   async syncFromRemote(
     projectId: string,
-    options?: SyncOptions,
+    options: SyncOptions,
   ): Promise<void> {
-    const apiUrl = options?.apiUrl || "http://localhost:3000";
-    const token = options?.token || "test_token";
+    const apiUrl = options.apiUrl;
+    const token = options.token;
 
     const response = await fetch(`${apiUrl}/api/projects/${projectId}`, {
       headers: {
@@ -43,9 +43,9 @@ export class ProjectSync {
     this.fs.applyUpdate(update);
   }
 
-  async syncToRemote(projectId: string, options?: SyncOptions): Promise<void> {
-    const apiUrl = options?.apiUrl || "http://localhost:3000";
-    const token = options?.token || "test_token";
+  async syncToRemote(projectId: string, options: SyncOptions): Promise<void> {
+    const apiUrl = options.apiUrl;
+    const token = options.token;
 
     // Get update from FileSystem's YDoc
     const update = this.fs.getUpdate();
@@ -67,11 +67,11 @@ export class ProjectSync {
   async pullFile(
     projectId: string,
     filePath: string,
+    options: SyncOptions,
     localPath?: string,
-    options?: SyncOptions,
   ): Promise<void> {
-    const apiUrl = options?.apiUrl || "http://localhost:3000";
-    const token = options?.token || "test_token";
+    const apiUrl = options.apiUrl;
+    const token = options.token;
 
     // 1. Sync from remote to get latest state
     await this.syncFromRemote(projectId, options);
@@ -139,11 +139,11 @@ export class ProjectSync {
   async pushFile(
     projectId: string,
     filePath: string,
+    options: SyncOptions,
     localPath?: string,
-    options?: SyncOptions,
   ): Promise<void> {
-    const apiUrl = options?.apiUrl || "http://localhost:3000";
-    const token = options?.token || "test_token";
+    const apiUrl = options.apiUrl;
+    const token = options.token;
 
     // 1. Fetch remote baseline
     await this.syncFromRemote(projectId, options);
@@ -213,10 +213,10 @@ export class ProjectSync {
   async pushFiles(
     projectId: string,
     files: Array<{ filePath: string; localPath?: string }>,
-    options?: SyncOptions,
+    options: SyncOptions,
   ): Promise<void> {
-    const apiUrl = options?.apiUrl || "http://localhost:3000";
-    const token = options?.token || "test_token";
+    const apiUrl = options.apiUrl;
+    const token = options.token;
 
     // 1. Fetch remote baseline
     await this.syncFromRemote(projectId, options);
