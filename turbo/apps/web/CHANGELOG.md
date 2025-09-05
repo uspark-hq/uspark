@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.11.1](https://github.com/uspark-hq/uspark/compare/web-v0.11.0...web-v0.11.1) (2025-09-05)
+
+
+### Bug Fixes
+
+* replace hardcoded delay with dynamic polling interval in cli auth ([#132](https://github.com/uspark-hq/uspark/issues/132)) ([e5a6aed](https://github.com/uspark-hq/uspark/commit/e5a6aeda27cdf0678c0dc56ce4c16435621d1c47))
+* replace hardcoded userId with Clerk authentication in project API ([#131](https://github.com/uspark-hq/uspark/issues/131)) ([12dcb26](https://github.com/uspark-hq/uspark/commit/12dcb261180fc424afbf67c6c0efcc77da4c45bd))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.9.1
+
 ## [0.11.0](https://github.com/uspark-hq/uspark/compare/web-v0.10.0...web-v0.11.0) (2025-09-04)
 
 
