@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.8.0](https://github.com/uspark-hq/uspark/compare/cli-v0.7.0...cli-v0.8.0) (2025-09-05)
+
+
+### Features
+
+* implement blob storage security with project isolation ([#159](https://github.com/uspark-hq/uspark/issues/159)) ([ea6c094](https://github.com/uspark-hq/uspark/commit/ea6c0945c39b908666a176c8d3385e6b76b580ef))
+
+
+### Bug Fixes
+
+* **cli:** correct npm bin path for npx execution ([#155](https://github.com/uspark-hq/uspark/issues/155)) ([25ef8af](https://github.com/uspark-hq/uspark/commit/25ef8af8221b87bdd1a7b67d23fab1ef86e1b0ea))
+
 ## [0.7.0](https://github.com/uspark-hq/uspark/compare/cli-v0.6.1...cli-v0.7.0) (2025-09-05)
 
 

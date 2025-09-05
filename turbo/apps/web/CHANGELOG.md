@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/uspark-hq/uspark/compare/web-v0.12.0...web-v0.13.0) (2025-09-05)
+
+
+### Features
+
+* implement blob storage security with project isolation ([#159](https://github.com/uspark-hq/uspark/issues/159)) ([ea6c094](https://github.com/uspark-hq/uspark/commit/ea6c0945c39b908666a176c8d3385e6b76b580ef))
+
 ## [0.12.0](https://github.com/uspark-hq/uspark/compare/web-v0.11.1...web-v0.12.0) (2025-09-05)
 
 
