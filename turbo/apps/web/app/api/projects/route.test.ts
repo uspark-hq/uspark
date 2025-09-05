@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { GET, POST } from "./route";
 import * as Y from "yjs";
@@ -7,10 +7,21 @@ import { PROJECTS_TBL } from "../../../src/db/schema/projects";
 import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
 import { eq } from "drizzle-orm";
 
+// Mock Clerk authentication
+vi.mock("@clerk/nextjs/server", () => ({
+  auth: vi.fn(),
+}));
+
+import { auth } from "@clerk/nextjs/server";
+const mockAuth = vi.mocked(auth);
+
 describe("/api/projects", () => {
   const userId = "test-user";
 
   beforeEach(async () => {
+    // Mock successful authentication by default
+    mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+
     // Clean up any existing test data
     initServices();
 
@@ -36,6 +47,16 @@ describe("/api/projects", () => {
   });
 
   describe("GET /api/projects", () => {
+    it("should return 401 when not authenticated", async () => {
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
+
+      const response = await GET();
+
+      expect(response.status).toBe(401);
+      const data = await response.json();
+      expect(data).toHaveProperty("error", "unauthorized");
+    });
+
     it("should return empty list when user has no projects", async () => {
       const response = await GET();
 
@@ -113,6 +134,24 @@ describe("/api/projects", () => {
   });
 
   describe("POST /api/projects", () => {
+    it("should return 401 when not authenticated", async () => {
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
+
+      const mockRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: "test-project" }),
+      });
+
+      const response = await POST(mockRequest);
+
+      expect(response.status).toBe(401);
+      const data = await response.json();
+      expect(data).toHaveProperty("error", "unauthorized");
+    });
+
     it("should create a new project successfully", async () => {
       const projectName = `test-project-${Date.now()}`;
 
