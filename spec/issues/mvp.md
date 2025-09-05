@@ -80,39 +80,39 @@ This document defines the mid-term goals and user stories for the MVP release of
 2. ✅ Vercel Blob storage integration
 3. ✅ Basic authentication system
 4. ✅ CLI environment variable authentication
-5. [ ] Blob STS token API for direct access
+5. ✅ Blob STS token API for direct access
 
 ### Phase 2: Developer Tools (Story 1)
 
-1. ⏳ Complete `uspark pull` command
-2. [ ] Implement `uspark push` command
-3. [ ] Implement `uspark push --all` command
-4. [ ] Update FileSystem class for direct blob access
+1. ✅ Complete `uspark pull` command
+2. ✅ Implement `uspark push` command
+3. ✅ Implement `uspark push --all` command
+4. ✅ Update FileSystem class for direct blob access
 
 ### Phase 3: Web Interface Foundation (Story 2 - Part 1)
 
-1. [ ] Project management APIs (list, create, get files)
-2. [ ] Project dashboard page
-3. [ ] Document explorer component
-4. [ ] Basic document viewer
-5. [ ] File tree navigation
+1. ✅ Project management APIs (list, create, get files)
+2. ✅ Project dashboard page
+3. ✅ Document explorer component
+4. ✅ Basic document viewer
+5. ✅ File tree navigation
 
 ### Phase 4: AI Integration (Story 2 - Part 2)
 
 1. [ ] Claude execution API endpoints
 2. [ ] E2B container setup and configuration
-3. [ ] uspark watch-claude command implementation
+3. ✅ uspark watch-claude command implementation
 4. [ ] Claude Code runtime integration
-5. [ ] Chat interface component
+5. ⏳ Chat interface component (UI only, no backend)
 6. [ ] WebSocket/SSE for real-time updates
 7. [ ] Document change streaming
 
 ### Phase 5: Sharing Features (Story 3)
 
-1. [ ] Share link generation API
-2. [ ] Public document access API
+1. ✅ Share link generation API
+2. ✅ Public document access API
 3. [ ] Share management interface
-4. [ ] Public document viewer page
+4. ✅ Public document viewer page
 
 ## Out of Scope for MVP
 
