@@ -31,7 +31,7 @@ export function createBlobStorage(
 
   // Vercel Blob is required - no fallback
   if (!process.env.BLOB_READ_WRITE_TOKEN) {
-    throw new Error("BLOB_READ_WRITE_TOKEN environment variable is required. Run 'vercel pull' to get the token.");
+    throw new Error("BLOB_READ_WRITE_TOKEN environment variable is required. Run 'vercel dev' for local development.");
   }
   
   return new VercelBlobStorage();

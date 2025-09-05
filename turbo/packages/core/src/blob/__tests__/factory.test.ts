@@ -59,7 +59,7 @@ describe("Blob Storage Factory", () => {
       delete process.env.BLOB_READ_WRITE_TOKEN;
 
       expect(() => createBlobStorage()).toThrow(
-        "BLOB_READ_WRITE_TOKEN environment variable is required. Run 'vercel pull' to get the token."
+        "BLOB_READ_WRITE_TOKEN environment variable is required. Run 'vercel dev' for local development."
       );
     });
   });
