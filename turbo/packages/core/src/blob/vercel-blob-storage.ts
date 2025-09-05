@@ -84,12 +84,12 @@ export class VercelBlobStorage implements BlobStorageProvider {
     if (!token) {
       throw new Error("BLOB_READ_WRITE_TOKEN environment variable is required");
     }
-    
+
     const parts = token.split("_");
     if (parts.length < 4 || !parts[3]) {
       throw new Error("Invalid BLOB_READ_WRITE_TOKEN format");
     }
-    
+
     const storeId = parts[3]; // The store ID is the 4th part
     return `https://${storeId}.public.blob.vercel-storage.com/${hash}`;
   }

@@ -36,9 +36,12 @@ describe("SharePage", () => {
       http.get("/api/share/test-token", () => {
         return HttpResponse.json(mockMetadata);
       }),
-      http.get("https://test-store.public.blob.vercel-storage.com/abc123", () => {
-        return HttpResponse.text(mockContent);
-      }),
+      http.get(
+        "https://test-store.public.blob.vercel-storage.com/abc123",
+        () => {
+          return HttpResponse.text(mockContent);
+        },
+      ),
     );
 
     const params = Promise.resolve({ token: "test-token" });
@@ -78,9 +81,12 @@ describe("SharePage", () => {
       http.get("/api/share/test-token", () => {
         return HttpResponse.json(mockMetadata);
       }),
-      http.get("https://test-store.public.blob.vercel-storage.com/def456", () => {
-        return HttpResponse.text(mockContent);
-      }),
+      http.get(
+        "https://test-store.public.blob.vercel-storage.com/def456",
+        () => {
+          return HttpResponse.text(mockContent);
+        },
+      ),
     );
 
     const params = Promise.resolve({ token: "test-token" });
@@ -123,16 +129,20 @@ describe("SharePage", () => {
       file_path: "test.md",
       hash: "missing-hash",
       mtime: Date.now(),
-      blob_url: "https://test-store.public.blob.vercel-storage.com/missing-hash",
+      blob_url:
+        "https://test-store.public.blob.vercel-storage.com/missing-hash",
     };
 
     server.use(
       http.get("/api/share/test-token", () => {
         return HttpResponse.json(mockMetadata);
       }),
-      http.get("https://test-store.public.blob.vercel-storage.com/missing-hash", () => {
-        return new HttpResponse(null, { status: 404 });
-      }),
+      http.get(
+        "https://test-store.public.blob.vercel-storage.com/missing-hash",
+        () => {
+          return new HttpResponse(null, { status: 404 });
+        },
+      ),
     );
 
     const consoleWarnSpy = vi
@@ -170,9 +180,12 @@ describe("SharePage", () => {
       http.get("/api/share/test-token", () => {
         return HttpResponse.json(mockMetadata);
       }),
-      http.get("https://test-store.public.blob.vercel-storage.com/xyz789", () => {
-        return HttpResponse.text(mockContent);
-      }),
+      http.get(
+        "https://test-store.public.blob.vercel-storage.com/xyz789",
+        () => {
+          return HttpResponse.text(mockContent);
+        },
+      ),
     );
 
     const params = Promise.resolve({ token: "test-token" });

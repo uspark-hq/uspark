@@ -39,7 +39,9 @@ async function fetchShareMetadata(
   }
 }
 
-async function fetchFileContent(metadata: ShareMetadata): Promise<string | null> {
+async function fetchFileContent(
+  metadata: ShareMetadata,
+): Promise<string | null> {
   try {
     // If we have a blob_url, fetch directly from it
     if (metadata.blob_url) {
@@ -54,7 +56,7 @@ async function fetchFileContent(metadata: ShareMetadata): Promise<string | null>
 
       return await response.text();
     }
-    
+
     // Fallback: blob_url not available
     console.warn("Blob URL not available");
     return null;
