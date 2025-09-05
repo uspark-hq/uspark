@@ -84,8 +84,8 @@ describe("VercelBlobStorage", () => {
   });
 
   describe("uploadBlob", () => {
-    it("should upload small files using put", async () => {
-      const content = Buffer.from("Small file content");
+    it("should upload files using put", async () => {
+      const content = Buffer.from("File content");
 
       // Mock exists to return false (blob doesn't exist)
       mockHead.mockRejectedValueOnce(new Error("Not found"));
@@ -101,7 +101,6 @@ describe("VercelBlobStorage", () => {
           addRandomSuffix: false,
         }),
       );
-      // Large files also use put() with multipart: true
     });
 
     it("should deduplicate identical content", async () => {

@@ -9,8 +9,6 @@ import { BlobNotFoundError, BlobUploadError } from "./types";
 import { generateContentHash, detectContentType } from "./utils";
 
 export class VercelBlobStorage implements BlobStorageProvider {
-  private readonly MULTIPART_THRESHOLD = 4.5 * 1024 * 1024; // 4.5MB
-
   async uploadBlob(
     content: Buffer,
     options: UploadOptions = {},
@@ -25,21 +23,11 @@ export class VercelBlobStorage implements BlobStorageProvider {
 
       const contentType = options.contentType ?? detectContentType(content);
 
-      if (content.length > this.MULTIPART_THRESHOLD) {
-        // Use multipart upload for large files
-        await put(hash, content, {
-          access: "public",
-          multipart: true,
-          contentType,
-        });
-      } else {
-        // Use standard upload for small files
-        await put(hash, content, {
-          access: "public",
-          contentType,
-          addRandomSuffix: options.addRandomSuffix ?? false,
-        });
-      }
+      await put(hash, content, {
+        access: "public",
+        contentType,
+        addRandomSuffix: options.addRandomSuffix ?? false,
+      });
 
       return hash;
     } catch (error) {

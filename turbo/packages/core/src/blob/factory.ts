@@ -16,6 +16,9 @@ export function createBlobStorage(
   if (config) {
     switch (config.type) {
       case "vercel":
+        if (!process.env.BLOB_READ_WRITE_TOKEN) {
+          throw new Error("BLOB_READ_WRITE_TOKEN environment variable is required for Vercel Blob storage");
+        }
         return new VercelBlobStorage();
 
       case "memory":
@@ -26,14 +29,12 @@ export function createBlobStorage(
     }
   }
 
-  // Auto-detect based on available configuration
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
-    return new VercelBlobStorage();
+  // Vercel Blob is required - no fallback
+  if (!process.env.BLOB_READ_WRITE_TOKEN) {
+    throw new Error("BLOB_READ_WRITE_TOKEN environment variable is required. Run 'vercel pull' to get the token.");
   }
-
-  // Default to memory storage if no Vercel token available
-  // This allows development without Vercel configuration
-  return new MemoryBlobStorage();
+  
+  return new VercelBlobStorage();
 }
 
 // Singleton instance
