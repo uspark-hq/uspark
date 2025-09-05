@@ -19,7 +19,12 @@ describe("Project Detail Page", () => {
     // Add mock files
     const files = [
       { path: "src/test.ts", hash: "hash1", size: 100, mtime: Date.now() },
-      { path: "src/components/Button.tsx", hash: "hash2", size: 200, mtime: Date.now() },
+      {
+        path: "src/components/Button.tsx",
+        hash: "hash2",
+        size: 200,
+        mtime: Date.now(),
+      },
       { path: "package.json", hash: "hash3", size: 150, mtime: Date.now() },
       { path: "README.md", hash: "hash4", size: 300, mtime: Date.now() },
     ];
@@ -60,7 +65,9 @@ describe("Project Detail Page", () => {
 
     // Wait for YjsFileExplorer to load
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -72,7 +79,9 @@ describe("Project Detail Page", () => {
 
     // Wait for YjsFileExplorer to load
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     // Document Viewer section
@@ -98,7 +107,9 @@ describe("Project Detail Page", () => {
 
     // Wait for files to load
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     // Should display the files from our mock data
@@ -116,7 +127,9 @@ describe("Project Detail Page", () => {
 
     // Wait for files to load
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     // Initially no file selected
@@ -140,7 +153,9 @@ describe("Project Detail Page", () => {
 
     // Wait for files to load
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     // Expand src directory
@@ -162,13 +177,15 @@ describe("Project Detail Page", () => {
 
     // Wait for files to load
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     // Expand src directory and select TypeScript file
     const srcFolder = screen.getByText("src");
     fireEvent.click(srcFolder);
-    
+
     const testFile = screen.getByText("test.ts");
     fireEvent.click(testFile);
 
@@ -242,7 +259,9 @@ describe("Project Detail Page", () => {
 
     // Wait for files to load
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
   });
 
@@ -251,7 +270,9 @@ describe("Project Detail Page", () => {
 
     // Wait for files to load
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     // Select package.json file
@@ -282,7 +303,9 @@ describe("Project Detail Page", () => {
 
     // Wait for files to load
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     // Select README.md file
@@ -312,7 +335,9 @@ describe("Project Detail Page", () => {
     render(<ProjectDetailPage />);
 
     await waitFor(() => {
-      expect(screen.queryByText("Loading project files...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading project files..."),
+      ).not.toBeInTheDocument();
     });
 
     // Initially, nested files should not be visible
