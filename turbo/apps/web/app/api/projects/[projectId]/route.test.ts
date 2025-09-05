@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { GET, PATCH } from "./route";
 import * as Y from "yjs";
@@ -6,11 +6,22 @@ import { initServices } from "../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
 
+// Mock Clerk authentication
+vi.mock("@clerk/nextjs/server", () => ({
+  auth: vi.fn(),
+}));
+
+import { auth } from "@clerk/nextjs/server";
+const mockAuth = vi.mocked(auth);
+
 describe("/api/projects/:projectId", () => {
   const projectId = `test-project-${Date.now()}`;
   const userId = "test-user";
 
   beforeEach(async () => {
+    // Mock successful authentication by default
+    mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+
     // Clean up any existing test project
     initServices();
     await globalThis.services.db
@@ -19,6 +30,21 @@ describe("/api/projects/:projectId", () => {
   });
 
   describe("GET /api/projects/:projectId", () => {
+    it("should return 401 when not authenticated", async () => {
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
+
+      const mockRequest = new NextRequest("http://localhost:3000");
+      const context = { params: Promise.resolve({ projectId }) };
+
+      const response = await GET(mockRequest, context);
+
+      expect(response.status).toBe(401);
+      const data = await response.json();
+      expect(data).toHaveProperty("error", "unauthorized");
+    });
+
     it("should create new project with empty YDoc when project doesn't exist", async () => {
       const mockRequest = new NextRequest("http://localhost:3000");
       const context = { params: Promise.resolve({ projectId }) };
@@ -88,6 +114,25 @@ describe("/api/projects/:projectId", () => {
   });
 
   describe("PATCH /api/projects/:projectId", () => {
+    it("should return 401 when not authenticated", async () => {
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
+
+      const update = new Uint8Array([1, 2, 3]);
+      const mockRequest = new NextRequest("http://localhost:3000", {
+        method: "PATCH",
+        body: update,
+      });
+      const context = { params: Promise.resolve({ projectId }) };
+
+      const response = await PATCH(mockRequest, context);
+
+      expect(response.status).toBe(401);
+      const data = await response.json();
+      expect(data).toHaveProperty("error", "unauthorized");
+    });
+
     it("should apply YDoc updates to existing project", async () => {
       // Create initial project
       const ydoc = new Y.Doc();

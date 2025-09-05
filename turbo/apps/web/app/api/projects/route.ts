@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import * as Y from "yjs";
 import { initServices } from "../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
@@ -15,11 +16,13 @@ import {
  * Returns list of user's projects
  */
 export async function GET() {
-  initServices();
+  const { userId } = await auth();
 
-  // For now, we'll use a hardcoded userId (no auth check)
-  // In production, this should come from auth
-  const userId = "test-user";
+  if (!userId) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  initServices();
 
   const projectsData = await globalThis.services.db
     .select({
@@ -48,10 +51,13 @@ export async function GET() {
  * Creates a new project
  */
 export async function POST(request: NextRequest) {
-  initServices();
+  const { userId } = await auth();
 
-  // For now, hardcoded userId
-  const userId = "test-user";
+  if (!userId) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  initServices();
 
   const body = await request.json();
 
