@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.6.1](https://github.com/uspark-hq/uspark/compare/cli-v0.6.0...cli-v0.6.1) (2025-09-05)
+
+
+### Bug Fixes
+
+* replace hardcoded delay with dynamic polling interval in cli auth ([#132](https://github.com/uspark-hq/uspark/issues/132)) ([e5a6aed](https://github.com/uspark-hq/uspark/commit/e5a6aeda27cdf0678c0dc56ce4c16435621d1c47))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.9.1
+
 ## [0.6.0](https://github.com/uspark-hq/uspark/compare/cli-v0.5.0...cli-v0.6.0) (2025-09-04)
 
 

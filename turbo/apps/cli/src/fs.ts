@@ -70,6 +70,14 @@ export class FileSystem {
     this.blobStore.set(hash, content);
   }
 
+  getAllFiles(): string[] {
+    const files: string[] = [];
+    this.files.forEach((_fileNode, path) => {
+      files.push(path);
+    });
+    return files.sort(); // Sort for consistent ordering
+  }
+
   applyUpdate(update: Uint8Array): void {
     Y.applyUpdate(this.ydoc, update);
   }
