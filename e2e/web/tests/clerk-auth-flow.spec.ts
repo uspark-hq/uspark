@@ -1,157 +1,140 @@
 import { test, expect } from '@playwright/test';
+import { clerk } from '@clerk/testing/playwright';
 
 /**
  * Clerk 认证流程测试
- * 测试完整的登录流程
+ * 使用 Clerk Testing Token 测试认证流程
  */
 
 test.describe('Clerk Authentication Flow', () => {
-  test('complete sign-in flow with test user', async ({ page }) => {
-    console.log('🔐 Starting Clerk sign-in flow test');
+  test('complete sign-in flow using testing token', async ({ page }) => {
+    console.log('🔐 Starting Clerk authentication test with testing token');
     
-    // 1. 访问登录页
-    await page.goto('/sign-in');
-    await page.waitForTimeout(2000);
-    
-    // 2. 输入邮箱
-    const emailInput = page.locator('input[name="identifier"]');
-    await expect(emailInput).toBeVisible();
-    await emailInput.fill(process.env.E2E_CLERK_USER_USERNAME || 'test@example.com');
-    console.log('✅ Entered email address');
-    
-    // 3. 点击继续按钮
-    const continueButton = page.locator('button').filter({ hasText: 'Continue' });
-    await continueButton.click();
-    console.log('✅ Clicked continue button');
-    
-    // 4. 等待密码输入框出现
-    await page.waitForTimeout(2000);
-    const passwordInput = page.locator('input[type="password"]');
-    
-    if (await passwordInput.count() > 0) {
-      await passwordInput.fill(process.env.E2E_CLERK_USER_PASSWORD || 'TestPassword123!');
-      console.log('✅ Entered password');
-      
-      // 5. 提交密码
-      const submitButton = page.locator('button').filter({ hasText: /continue|sign in/i }).first();
-      await submitButton.click();
-      console.log('✅ Submitted credentials');
-      
-      // 6. 等待登录完成和重定向
-      await page.waitForTimeout(3000);
-      
-      // 7. 验证登录成功
-      if (!page.url().includes('sign-in')) {
-        console.log('✅ Successfully signed in and redirected');
-        console.log('Current URL:', page.url());
-        
-        // 8. 尝试访问受保护的页面
-        await page.goto('/settings/tokens');
-        await page.waitForTimeout(2000);
-        
-        if (!page.url().includes('sign-in')) {
-          console.log('✅ Successfully accessed protected page');
-          
-          // 查找页面内容
-          const pageTitle = await page.title();
-          console.log('Page title:', pageTitle);
-          
-          // 查找 Token 管理相关元素
-          const tokenHeader = page.locator('h1, h2').filter({ hasText: /token/i }).first();
-          if (await tokenHeader.count() > 0) {
-            const headerText = await tokenHeader.textContent();
-            console.log('✅ Token page header:', headerText);
-          }
-          
-          // 查找创建 token 的输入框
-          const tokenNameInput = page.locator('input[placeholder*="token" i], input[placeholder*="name" i]').first();
-          if (await tokenNameInput.count() > 0) {
-            console.log('✅ Found token name input field');
-            
-            // 尝试创建一个 token
-            const tokenName = `e2e-test-${Date.now()}`;
-            await tokenNameInput.fill(tokenName);
-            
-            // 查找生成按钮
-            const generateButton = page.locator('button').filter({ hasText: /generate|create/i }).first();
-            if (await generateButton.count() > 0) {
-              await generateButton.click();
-              console.log('✅ Clicked generate token button');
-              
-              // 等待 token 生成
-              await page.waitForTimeout(3000);
-              
-              // 查找生成的 token
-              const tokenValue = page.locator('input[value*="uspark_"], code:has-text("uspark_")').first();
-              if (await tokenValue.count() > 0) {
-                const token = await tokenValue.inputValue().catch(() => tokenValue.textContent());
-                console.log('✅ Token generated successfully:', token?.substring(0, 20) + '...');
-              }
-            }
-          }
-        } else {
-          console.log('❌ Failed to access protected page after sign-in');
-        }
-      } else {
-        console.log('❌ Sign-in failed or still on sign-in page');
-        console.log('Current URL:', page.url());
-        
-        // 查看是否有错误消息
-        const errorMessage = page.locator('[role="alert"], .error, [class*="error"]').first();
-        if (await errorMessage.count() > 0) {
-          const error = await errorMessage.textContent();
-          console.log('Error message:', error);
-        }
+    // Use Clerk testing helpers to sign in
+    // This bypasses the actual login UI and uses the testing token
+    await clerk.signIn({
+      page,
+      signInParams: {
+        strategy: 'password',
+        identifier: 'test+clerk_test@example.com',
+        password: 'clerk_test_password'
       }
-    } else {
-      console.log('❌ Password input field not found');
-      console.log('Page might be using different authentication method');
+    });
+    
+    console.log('✅ Signed in using Clerk testing token');
+    
+    // Verify we're authenticated by accessing a protected page
+    await page.goto('/settings/tokens');
+    await page.waitForLoadState('networkidle');
+    
+    // Should not be redirected to sign-in
+    await expect(page).not.toHaveURL(/sign-in/);
+    console.log('✅ Successfully accessed protected route');
+    
+    // Verify page content loads
+    const pageContent = page.locator('main, [role="main"], #main-content').first();
+    await expect(pageContent).toBeVisible({ timeout: 10000 });
+    console.log('✅ Protected page content loaded');
+    
+    // Test sign out functionality
+    await clerk.signOut({ page });
+    console.log('✅ Signed out successfully');
+    
+    // Verify we're signed out by trying to access protected page again
+    await page.goto('/settings/tokens');
+    await page.waitForLoadState('networkidle');
+    
+    // Should be redirected to sign-in
+    await expect(page).toHaveURL(/sign-in/);
+    console.log('✅ Correctly redirected to sign-in after logout');
+  });
+
+  test('test user session persistence', async ({ page, context }) => {
+    console.log('🔐 Testing session persistence');
+    
+    // Sign in with testing token
+    await clerk.signIn({
+      page,
+      signInParams: {
+        strategy: 'password',
+        identifier: 'test+clerk_test@example.com',
+        password: 'clerk_test_password'
+      }
+    });
+    
+    // Navigate to different pages and verify session persists
+    const protectedRoutes = [
+      '/settings/tokens',
+      '/projects',
+      '/'
+    ];
+    
+    for (const route of protectedRoutes) {
+      await page.goto(route);
+      await page.waitForLoadState('networkidle');
+      
+      // Should not be redirected to sign-in
+      await expect(page).not.toHaveURL(/sign-in/);
+      console.log(`✅ Session persisted for route: ${route}`);
     }
+    
+    // Open a new page in the same context
+    const newPage = await context.newPage();
+    await newPage.goto('/settings/tokens');
+    await newPage.waitForLoadState('networkidle');
+    
+    // Session should persist across pages in same context
+    await expect(newPage).not.toHaveURL(/sign-in/);
+    console.log('✅ Session persisted across browser tabs');
+    
+    await newPage.close();
   });
   
-  test('sign out flow', async ({ page }) => {
-    // 首先登录
-    await page.goto('/sign-in');
-    await page.waitForTimeout(2000);
+  test('test protected API endpoints with auth', async ({ page, request }) => {
+    console.log('🔐 Testing protected API endpoints');
     
-    const emailInput = page.locator('input[name="identifier"]');
-    await emailInput.fill(process.env.E2E_CLERK_USER_USERNAME || 'test@example.com');
-    
-    const continueButton = page.locator('button').filter({ hasText: 'Continue' });
-    await continueButton.click();
-    
-    await page.waitForTimeout(2000);
-    const passwordInput = page.locator('input[type="password"]');
-    
-    if (await passwordInput.count() > 0) {
-      await passwordInput.fill(process.env.E2E_CLERK_USER_PASSWORD || 'TestPassword123!');
-      const submitButton = page.locator('button').filter({ hasText: /continue|sign in/i }).first();
-      await submitButton.click();
-      await page.waitForTimeout(3000);
-      
-      if (!page.url().includes('sign-in')) {
-        console.log('✅ Signed in successfully');
-        
-        // 查找登出按钮
-        const signOutButton = page.locator('button, a').filter({ hasText: /sign out|logout/i }).first();
-        if (await signOutButton.count() > 0) {
-          await signOutButton.click();
-          console.log('✅ Clicked sign out button');
-          await page.waitForTimeout(2000);
-          
-          // 验证已登出
-          await page.goto('/settings/tokens');
-          await page.waitForTimeout(2000);
-          
-          if (page.url().includes('sign-in')) {
-            console.log('✅ Successfully signed out - redirected to sign-in');
-          } else {
-            console.log('⚠️ May still be signed in');
-          }
-        } else {
-          console.log('⚠️ Sign out button not found');
-        }
+    // Sign in first
+    await clerk.signIn({
+      page,
+      signInParams: {
+        strategy: 'password',
+        identifier: 'test+clerk_test@example.com',
+        password: 'clerk_test_password'
       }
-    }
+    });
+    
+    // Get cookies from the page context
+    const cookies = await page.context().cookies();
+    
+    // Test protected API endpoint
+    const response = await request.post('/api/cli/auth/generate-token', {
+      headers: {
+        'Cookie': cookies.map(c => `${c.name}=${c.value}`).join('; ')
+      },
+      data: {
+        name: 'Test Token from E2E'
+      }
+    });
+    
+    // Should get successful response when authenticated
+    expect(response.status()).toBeLessThan(400);
+    console.log(`✅ Protected API returned status: ${response.status()}`);
+    
+    // Sign out and try again
+    await clerk.signOut({ page });
+    
+    // Clear cookies for clean test
+    await page.context().clearCookies();
+    
+    // Try the same API without auth
+    const unauthResponse = await request.post('/api/cli/auth/generate-token', {
+      data: {
+        name: 'Test Token from E2E'
+      }
+    });
+    
+    // Should get 401 or redirect when not authenticated
+    expect(unauthResponse.status()).toBeGreaterThanOrEqual(400);
+    console.log(`✅ Protected API correctly rejected unauthenticated request: ${unauthResponse.status()}`);
   });
 });
