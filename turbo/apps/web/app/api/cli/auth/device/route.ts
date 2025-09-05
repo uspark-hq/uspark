@@ -44,6 +44,7 @@ export async function POST() {
   // Generate a unique device code
   const deviceCode = generateDeviceCode();
   const expiresIn = 900; // 15 minutes in seconds
+  const interval = 5; // 5 seconds polling interval
 
   // Store device code in database with TTL
   await globalThis.services.db.insert(DEVICE_CODES_TBL).values({
@@ -60,6 +61,7 @@ export async function POST() {
     user_code: deviceCode, // Same as device_code for simplicity
     verification_url: "https://app.uspark.com/cli-auth",
     expires_in: expiresIn,
+    interval: interval,
   };
 
   // TODO: Implement rate limiting
