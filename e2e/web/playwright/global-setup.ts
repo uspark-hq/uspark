@@ -17,9 +17,7 @@ async function globalSetup() {
   // 验证必需的环境变量
   const required = [
     'CLERK_PUBLISHABLE_KEY',
-    'CLERK_SECRET_KEY', 
-    'E2E_CLERK_USER_USERNAME',
-    'E2E_CLERK_USER_PASSWORD'
+    'CLERK_SECRET_KEY'
   ];
   
   const missing = required.filter(key => !process.env[key]);
@@ -28,6 +26,13 @@ async function globalSetup() {
     console.log('Please create .env.local with the required variables');
     console.log('See .env.example.full for reference');
     process.exit(1);
+  }
+  
+  // 可选的用户凭证，用于某些需要真实登录的测试
+  if (process.env.E2E_CLERK_USER_USERNAME && process.env.E2E_CLERK_USER_PASSWORD) {
+    console.log('📧 Test user credentials provided for UI-based login tests');
+  } else {
+    console.log('ℹ️ No test user credentials provided - some tests may be skipped');
   }
   
   console.log('🔐 Setting up Clerk testing environment...');
