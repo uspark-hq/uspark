@@ -17,7 +17,7 @@ describe("SharePage", () => {
   it("should display loading state initially", async () => {
     const params = Promise.resolve({ token: "test-token" });
     render(<SharePage params={params} />);
-    
+
     expect(screen.getByText("Loading shared content...")).toBeInTheDocument();
   });
 
@@ -37,7 +37,7 @@ describe("SharePage", () => {
       }),
       http.get(`${process.env.NEXT_PUBLIC_BLOB_URL || ""}/abc123`, () => {
         return HttpResponse.text(mockContent);
-      })
+      }),
     );
 
     const params = Promise.resolve({ token: "test-token" });
@@ -53,10 +53,13 @@ describe("SharePage", () => {
 
     // Check for markdown content in the pre element
     const preElement = screen.getByText((content, element) => {
-      return element?.tagName === 'PRE' && content.includes('# Test Markdown Content');
+      return (
+        element?.tagName === "PRE" &&
+        content.includes("# Test Markdown Content")
+      );
     });
     expect(preElement).toBeInTheDocument();
-    
+
     expect(screen.getByText("Shared document • Read-only")).toBeInTheDocument();
   });
 
@@ -75,7 +78,7 @@ describe("SharePage", () => {
       }),
       http.get(`${process.env.NEXT_PUBLIC_BLOB_URL || ""}/def456`, () => {
         return HttpResponse.text(mockContent);
-      })
+      }),
     );
 
     const params = Promise.resolve({ token: "test-token" });
@@ -92,14 +95,16 @@ describe("SharePage", () => {
     });
 
     expect(screen.getByText("Download File")).toBeInTheDocument();
-    expect(screen.getByText("This file type cannot be displayed in the browser.")).toBeInTheDocument();
+    expect(
+      screen.getByText("This file type cannot be displayed in the browser."),
+    ).toBeInTheDocument();
   });
 
   it("should call notFound() when share metadata fetch returns 404", async () => {
     server.use(
       http.get("/api/share/invalid-token", () => {
         return new HttpResponse(null, { status: 404 });
-      })
+      }),
     );
 
     const params = Promise.resolve({ token: "invalid-token" });
@@ -124,10 +129,12 @@ describe("SharePage", () => {
       }),
       http.get(`${process.env.NEXT_PUBLIC_BLOB_URL || ""}/missing-hash`, () => {
         return new HttpResponse(null, { status: 404 });
-      })
+      }),
     );
 
-    const consoleWarnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const consoleWarnSpy = vi
+      .spyOn(console, "warn")
+      .mockImplementation(() => {});
 
     const params = Promise.resolve({ token: "test-token" });
     render(<SharePage params={params} />);
@@ -136,8 +143,12 @@ describe("SharePage", () => {
       expect(screen.getByText("Test Project")).toBeInTheDocument();
     });
 
-    expect(consoleWarnSpy).toHaveBeenCalledWith("Could not fetch file content from blob storage");
-    expect(screen.getByText("File preview is not available yet.")).toBeInTheDocument();
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      "Could not fetch file content from blob storage",
+    );
+    expect(
+      screen.getByText("File preview is not available yet."),
+    ).toBeInTheDocument();
 
     consoleWarnSpy.mockRestore();
   });
@@ -157,7 +168,7 @@ describe("SharePage", () => {
       }),
       http.get(`${process.env.NEXT_PUBLIC_BLOB_URL || ""}/xyz789`, () => {
         return HttpResponse.text(mockContent);
-      })
+      }),
     );
 
     const params = Promise.resolve({ token: "test-token" });
@@ -173,7 +184,7 @@ describe("SharePage", () => {
     // The download functionality uses native browser APIs which work in jsdom
     // Just verify the button is clickable
     downloadButtons[0]?.click();
-    
+
     // The download will trigger but jsdom doesn't actually download files
     // We're mainly testing that the button exists and is clickable
   });
@@ -182,10 +193,12 @@ describe("SharePage", () => {
     server.use(
       http.get("/api/share/test-token", () => {
         return new HttpResponse(null, { status: 500 });
-      })
+      }),
     );
 
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     const params = Promise.resolve({ token: "test-token" });
     render(<SharePage params={params} />);
@@ -196,7 +209,7 @@ describe("SharePage", () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       "Failed to fetch share metadata:",
-      expect.any(Error)
+      expect.any(Error),
     );
 
     consoleErrorSpy.mockRestore();
@@ -206,10 +219,12 @@ describe("SharePage", () => {
     server.use(
       http.get("/api/share/test-token", () => {
         return HttpResponse.error();
-      })
+      }),
     );
 
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => {});
 
     const params = Promise.resolve({ token: "test-token" });
     render(<SharePage params={params} />);
@@ -220,7 +235,7 @@ describe("SharePage", () => {
 
     expect(consoleErrorSpy).toHaveBeenCalledWith(
       "Failed to fetch share metadata:",
-      expect.any(Error)
+      expect.any(Error),
     );
 
     consoleErrorSpy.mockRestore();

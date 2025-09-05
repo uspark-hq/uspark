@@ -175,9 +175,12 @@ describe("VercelBlobStorage", () => {
 
       // Mock 404 response with MSW
       server.use(
-        http.get(`https://test-token.public.blob.vercel-storage.com/${nonExistentHash}`, () => {
-          return new HttpResponse(null, { status: 404 });
-        })
+        http.get(
+          `https://test-token.public.blob.vercel-storage.com/${nonExistentHash}`,
+          () => {
+            return new HttpResponse(null, { status: 404 });
+          },
+        ),
       );
 
       await expect(storage.downloadBlob(nonExistentHash)).rejects.toThrow(
@@ -190,12 +193,15 @@ describe("VercelBlobStorage", () => {
 
       // Mock 500 response with MSW
       server.use(
-        http.get(`https://test-token.public.blob.vercel-storage.com/${hash}`, () => {
-          return new HttpResponse(null, { 
-            status: 500, 
-            statusText: "Internal Server Error" 
-          });
-        })
+        http.get(
+          `https://test-token.public.blob.vercel-storage.com/${hash}`,
+          () => {
+            return new HttpResponse(null, {
+              status: 500,
+              statusText: "Internal Server Error",
+            });
+          },
+        ),
       );
 
       await expect(storage.downloadBlob(hash)).rejects.toThrow(

@@ -121,6 +121,7 @@ export default function SharePage({ params }: SharePageProps) {
 
   if (error || !metadata) {
     notFound();
+    return null; // Prevent rendering with null metadata
   }
 
   return (
