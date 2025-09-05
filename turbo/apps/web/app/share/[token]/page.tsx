@@ -14,6 +14,7 @@ interface ShareMetadata {
   file_path: string;
   hash: string;
   mtime: number;
+  blob_url?: string;
 }
 
 async function fetchShareMetadata(
@@ -38,18 +39,25 @@ async function fetchShareMetadata(
   }
 }
 
-async function fetchFileContent(token: string): Promise<string | null> {
+async function fetchFileContent(metadata: ShareMetadata): Promise<string | null> {
   try {
-    const response = await fetch(`/api/share/${token}/content`, {
-      cache: "no-store",
-    });
+    // If we have a blob_url, fetch directly from it
+    if (metadata.blob_url) {
+      const response = await fetch(metadata.blob_url, {
+        cache: "no-store",
+      });
 
-    if (!response.ok) {
-      console.error("Failed to fetch file content:", response.status);
-      return null;
+      if (!response.ok) {
+        console.error("Failed to fetch from blob storage:", response.status);
+        return null;
+      }
+
+      return await response.text();
     }
-
-    return await response.text();
+    
+    // Fallback: blob_url not available
+    console.warn("Blob URL not available");
+    return null;
   } catch (error) {
     console.error("Failed to fetch file content:", error);
     return null;
@@ -88,8 +96,8 @@ export default function SharePage({ params }: SharePageProps) {
 
       setMetadata(meta);
 
-      // Then, fetch the actual content using the token
-      const fileContent = await fetchFileContent(token!);
+      // Then, fetch the actual content using the metadata (which includes blob_url)
+      const fileContent = await fetchFileContent(meta);
 
       if (fileContent === null) {
         // If blob fetch fails, show a message but don't error out completely
