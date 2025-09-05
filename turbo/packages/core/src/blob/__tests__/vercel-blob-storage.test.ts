@@ -8,6 +8,7 @@ import {
 } from "vitest";
 import { VercelBlobStorage } from "../vercel-blob-storage";
 import { BlobNotFoundError, BlobUploadError } from "../types";
+import { server, http, HttpResponse } from "../../test/msw-setup";
 
 // Mock @vercel/blob
 vi.mock("@vercel/blob", () => {
@@ -172,9 +173,12 @@ describe("VercelBlobStorage", () => {
     it("should throw BlobNotFoundError for 404 responses", async () => {
       const nonExistentHash = "a".repeat(64);
 
-      // Mock 404 response
-      const mockResponse = { ok: false, status: 404 };
-      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+      // Mock 404 response with MSW
+      server.use(
+        http.get(`https://test-token.public.blob.vercel-storage.com/${nonExistentHash}`, () => {
+          return new HttpResponse(null, { status: 404 });
+        })
+      );
 
       await expect(storage.downloadBlob(nonExistentHash)).rejects.toThrow(
         BlobNotFoundError,
@@ -184,13 +188,15 @@ describe("VercelBlobStorage", () => {
     it("should throw error for other HTTP errors", async () => {
       const hash = "b".repeat(64);
 
-      // Mock 500 response
-      const mockResponse = {
-        ok: false,
-        status: 500,
-        statusText: "Internal Server Error",
-      };
-      global.fetch = vi.fn().mockResolvedValue(mockResponse);
+      // Mock 500 response with MSW
+      server.use(
+        http.get(`https://test-token.public.blob.vercel-storage.com/${hash}`, () => {
+          return new HttpResponse(null, { 
+            status: 500, 
+            statusText: "Internal Server Error" 
+          });
+        })
+      );
 
       await expect(storage.downloadBlob(hash)).rejects.toThrow(
         "Failed to download blob: Internal Server Error",
