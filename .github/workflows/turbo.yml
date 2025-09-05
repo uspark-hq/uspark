@@ -169,7 +169,10 @@ jobs:
       - uses: ./.github/actions/toolchain-init
 
       - name: Setup pnpm global directory
-        run: pnpm setup
+        run: |
+          mkdir -p $HOME/.local/share/pnpm
+          pnpm config set global-bin-dir $HOME/.local/share/pnpm
+          echo "$HOME/.local/share/pnpm" >> $GITHUB_PATH
 
       - name: Build CLI
         run: cd turbo && pnpm --filter @uspark/cli build
