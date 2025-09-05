@@ -89,23 +89,14 @@ export async function GET(
     return NextResponse.json(errorResponse, { status: 404 });
   }
 
-  // Try to get content from Vercel Blob if available
-  // This validates that the blob storage integration is working
-  try {
-    const blobStorage = getBlobStorage();
-    const exists = await blobStorage.exists(fileNode.hash);
+  // Check if content exists in Vercel Blob storage
+  const blobStorage = getBlobStorage();
+  const exists = await blobStorage.exists(fileNode.hash);
 
-    if (exists) {
-      // Content is available in blob storage - could extend API to return content
-      // For now, we still return metadata but log success
-      console.log(`Blob content available for hash: ${fileNode.hash}`);
-    } else {
-      // Blob not found in storage - still return metadata
-      console.log(`Blob not found in storage for hash: ${fileNode.hash}`);
-    }
-  } catch (error) {
-    // Blob storage error - gracefully fallback to metadata
-    console.warn(`Blob storage error for hash ${fileNode.hash}:`, error);
+  if (exists) {
+    console.log(`Blob content available for hash: ${fileNode.hash}`);
+  } else {
+    console.log(`Blob not found in storage for hash: ${fileNode.hash}`);
   }
 
   // Return hash-based metadata for direct blob access
