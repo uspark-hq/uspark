@@ -123,8 +123,6 @@ Features:
 **Acceptance Criteria**:
 - [x] POST /api/share - Generate share link (✅ PR #101)
 - [x] GET /api/share/:token - Retrieve shared content (✅ PR #101, ⚠️ 需要 Blob 集成)
-- [ ] GET /api/share - List user's shares (延期到下个迭代)
-- [ ] DELETE /api/share/:id - Revoke share link (延期到下个迭代)
 
 #### 2. Database Setup
 **Acceptance Criteria**:
@@ -135,7 +133,6 @@ Features:
 **Acceptance Criteria**:
 - [x] Share button in document viewer (✅ PR #106)
 - [x] Share modal with copy functionality (✅ PR #106)
-- [ ] Share management page at /settings/shares (延期到下个迭代)
 
 #### 4. Public View Page
 **Acceptance Criteria**:
