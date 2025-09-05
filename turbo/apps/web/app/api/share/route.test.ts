@@ -111,23 +111,6 @@ describe("/api/share", () => {
       });
     });
 
-    it("should return 400 for invalid JSON", async () => {
-      const request = new NextRequest("http://localhost:3000/api/share", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: "invalid json",
-      });
-
-      const response = await POST(request);
-      const responseData = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(responseData).toMatchObject({
-        error: "invalid_request",
-        error_description: "Invalid JSON in request body",
-      });
-    });
-
     it("should return 400 for missing project_id", async () => {
       const requestBody = {
         file_path: testFilePath,

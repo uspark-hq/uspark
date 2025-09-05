@@ -49,17 +49,7 @@ export async function POST(request: NextRequest) {
   initServices();
 
   // Parse and validate the request body
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    // Only catch JSON parsing errors to provide meaningful API response
-    const errorResponse: GenerateTokenError = {
-      error: "invalid_request",
-      error_description: "Invalid JSON in request body",
-    };
-    return NextResponse.json(errorResponse, { status: 400 });
-  }
+  const body = await request.json();
 
   const validationResult = GenerateTokenRequestSchema.safeParse(body);
 

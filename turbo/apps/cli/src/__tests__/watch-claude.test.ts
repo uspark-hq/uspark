@@ -36,27 +36,23 @@ function extractFilePath(
 }
 
 function shouldSyncFile(jsonLine: string): string | null {
-  try {
-    const event = JSON.parse(jsonLine);
+  const event = JSON.parse(jsonLine);
 
-    if (event.type === "assistant" && event.message?.content) {
-      for (const contentItem of event.message.content) {
-        if (
-          contentItem.type === "tool_use" &&
-          contentItem.name &&
-          contentItem.input
-        ) {
-          const toolName = contentItem.name;
-          const toolInput = contentItem.input;
+  if (event.type === "assistant" && event.message?.content) {
+    for (const contentItem of event.message.content) {
+      if (
+        contentItem.type === "tool_use" &&
+        contentItem.name &&
+        contentItem.input
+      ) {
+        const toolName = contentItem.name;
+        const toolInput = contentItem.input;
 
-          if (isFileModificationTool(toolName, toolInput)) {
-            return extractFilePath(toolName, toolInput);
-          }
+        if (isFileModificationTool(toolName, toolInput)) {
+          return extractFilePath(toolName, toolInput);
         }
       }
     }
-  } catch {
-    // Not JSON or parsing failed
   }
 
   return null;
