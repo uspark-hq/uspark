@@ -1,4 +1,12 @@
-import { describe, it, expect, beforeEach, beforeAll, afterAll, vi } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  beforeAll,
+  afterAll,
+  vi,
+} from "vitest";
 import { NextRequest } from "next/server";
 import { GET } from "../[token]/route";
 import { POST } from "../route";
@@ -11,7 +19,8 @@ import * as Y from "yjs";
 import { nanoid } from "nanoid";
 import crypto from "crypto";
 
-const TEST_TOKEN = "vercel_blob_rw_YhpThrd333QWN58N_rtEXpwvXzSNXORK2INmDAXcZfdN3im";
+const TEST_TOKEN =
+  "vercel_blob_rw_YhpThrd333QWN58N_rtEXpwvXzSNXORK2INmDAXcZfdN3im";
 
 // Skip this entire test suite if BLOB_READ_WRITE_TOKEN is not available
 const hasVercelBlobToken = process.env.BLOB_READ_WRITE_TOKEN === TEST_TOKEN;
@@ -47,7 +56,7 @@ export const config = {
 
   beforeEach(async () => {
     initServices();
-    
+
     // Clean up any existing test data
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
@@ -69,11 +78,11 @@ export const config = {
 
     it("should store and retrieve file content via hash", async () => {
       const blobStorage = getBlobStorage({ type: "vercel" });
-      
+
       // Upload the content with random suffix to avoid conflicts
       const hash = await blobStorage.uploadBlob(Buffer.from(testFileContent), {
         contentType: "text/plain",
-        addRandomSuffix: true
+        addRandomSuffix: true,
       });
       expect(hash).toBeDefined();
 
@@ -97,17 +106,20 @@ export const config = {
       const ydoc = new Y.Doc();
       const files = ydoc.getMap("files");
       const blobs = ydoc.getMap("blobs");
-      
+
       // Store content in blob storage first to get the hash
       const blobStorage = getBlobStorage({ type: "vercel" });
-      const hash = await blobStorage.uploadBlob(Buffer.from(testFileContent + Date.now()), {
-        contentType: "text/plain",
-        addRandomSuffix: true
-      });
-      
+      const hash = await blobStorage.uploadBlob(
+        Buffer.from(testFileContent + Date.now()),
+        {
+          contentType: "text/plain",
+          addRandomSuffix: true,
+        },
+      );
+
       // Set file metadata
       files.set(testFilePath, { hash, mtime: Date.now() });
-      
+
       // Also store in YDoc blobs map for compatibility
       blobs.set(hash, testFileContent);
 
@@ -210,15 +222,15 @@ export const config = {
       const ydoc = new Y.Doc();
       const files = ydoc.getMap("files");
       const blobs = ydoc.getMap("blobs");
-      
-      // Store in blob storage first to get the hash  
+
+      // Store in blob storage first to get the hash
       const blobStorage = getBlobStorage({ type: "vercel" });
       const uniqueContent = testFileContent + Date.now();
       const hash = await blobStorage.uploadBlob(Buffer.from(uniqueContent), {
         contentType: "text/plain",
-        addRandomSuffix: true
+        addRandomSuffix: true,
       });
-      
+
       files.set(testFilePath, { hash, mtime: Date.now() });
       blobs.set(hash, testFileContent);
 
@@ -234,22 +246,19 @@ export const config = {
 
       // Mock authentication
       const mockAuth = await import("@clerk/nextjs/server");
-      vi.mocked(mockAuth.auth).mockResolvedValue({ 
-        userId 
+      vi.mocked(mockAuth.auth).mockResolvedValue({
+        userId,
       } as Awaited<ReturnType<typeof mockAuth.auth>>);
 
       // Create share request
-      const shareRequest = new NextRequest(
-        "http://localhost:3000/api/share",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            project_id: projectId,
-            file_path: testFilePath,
-          }),
-        }
-      );
+      const shareRequest = new NextRequest("http://localhost:3000/api/share", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          project_id: projectId,
+          file_path: testFilePath,
+        }),
+      });
 
       const shareResponse = await POST(shareRequest);
       expect(shareResponse.status).toBe(200);
@@ -261,7 +270,9 @@ export const config = {
       const accessRequest = new NextRequest(
         `http://localhost:3000/api/share/${shareData.token}`,
       );
-      const accessContext = { params: Promise.resolve({ token: shareData.token }) };
+      const accessContext = {
+        params: Promise.resolve({ token: shareData.token }),
+      };
 
       const accessResponse = await GET(accessRequest, accessContext);
       expect(accessResponse.status).toBe(200);

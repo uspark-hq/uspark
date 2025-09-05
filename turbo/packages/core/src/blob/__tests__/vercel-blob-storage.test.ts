@@ -202,7 +202,8 @@ describe("VercelBlobStorage", () => {
   describe("exists", () => {
     it("should return true for existing blob", async () => {
       const hash = "a".repeat(64);
-      const expectedUrl = "https://testid.public.blob.vercel-storage.com/" + hash;
+      const expectedUrl =
+        "https://testid.public.blob.vercel-storage.com/" + hash;
 
       // Clear the default implementation and set a specific one for this test
       mockHead.mockReset();
@@ -218,7 +219,7 @@ describe("VercelBlobStorage", () => {
       });
 
       const exists = await storage.exists(hash);
-      
+
       expect(exists).toBe(true);
       expect(mockHead).toHaveBeenCalledTimes(1);
       expect(mockHead).toHaveBeenCalledWith(expectedUrl);

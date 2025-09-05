@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as Y from "yjs";
-import { 
-  type AccessShareError, 
-  type AccessShareResponse, 
-  getBlobStorage
+import {
+  type AccessShareError,
+  type AccessShareResponse,
+  getBlobStorage,
 } from "@uspark/core";
 import { initServices } from "../../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
@@ -94,7 +94,7 @@ export async function GET(
   try {
     const blobStorage = getBlobStorage();
     const exists = await blobStorage.exists(fileNode.hash);
-    
+
     if (exists) {
       // Content is available in blob storage - could extend API to return content
       // For now, we still return metadata but log success

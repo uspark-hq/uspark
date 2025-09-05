@@ -24,14 +24,14 @@ export class VercelBlobStorage implements BlobStorageProvider {
       if (content.length > this.MULTIPART_THRESHOLD) {
         // Use multipart upload for large files
         result = await put(hash, content, {
-          access: options.access ?? "public",
+          access: "public",
           multipart: true,
           contentType,
         });
       } else {
-        // Use standard upload for small files  
+        // Use standard upload for small files
         result = await put(hash, content, {
-          access: options.access ?? "public",
+          access: "public",
           contentType,
           addRandomSuffix: options.addRandomSuffix ?? false,
         });
@@ -114,7 +114,7 @@ export class VercelBlobStorage implements BlobStorageProvider {
     if (!token) {
       throw new Error("BLOB_READ_WRITE_TOKEN environment variable is required");
     }
-    
+
     // Extract base URL from token format: vercel_blob_rw_<id>_<suffix>
     const parts = token.split("_");
     if (parts.length < 4) {
