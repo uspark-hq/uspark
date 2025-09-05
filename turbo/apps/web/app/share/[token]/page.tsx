@@ -2,7 +2,6 @@
 
 import { notFound } from "next/navigation";
 import { useState, useEffect } from "react";
-import { env } from "../../../src/env";
 
 interface SharePageProps {
   params: Promise<{
@@ -39,26 +38,12 @@ async function fetchShareMetadata(
   }
 }
 
-async function fetchFileContent(hash: string): Promise<string | null> {
-  try {
-    // Generate the blob URL using the hash
-    const blobBaseUrl = env().NEXT_PUBLIC_BLOB_URL;
-    const blobUrl = `${blobBaseUrl}/${hash}`;
-
-    // For now, try to fetch directly from the blob URL
-    // In production, this would use proper STS tokens
-    const response = await fetch(blobUrl);
-
-    if (!response.ok) {
-      console.error("Failed to fetch from blob storage:", response.status);
-      return null;
-    }
-
-    return await response.text();
-  } catch (error) {
-    console.error("Failed to fetch file content from blob:", error);
-    return null;
-  }
+async function fetchFileContent(): Promise<string | null> {
+  // TODO: Implement server-side blob content fetching with hash parameter
+  // For MVP, the share page shows metadata only
+  // Actual file content requires implementing a secure API endpoint
+  console.warn("Direct blob content fetching not implemented for MVP");
+  return null;
 }
 
 export default function SharePage({ params }: SharePageProps) {
@@ -93,8 +78,8 @@ export default function SharePage({ params }: SharePageProps) {
 
       setMetadata(meta);
 
-      // Then, fetch the actual content using the hash
-      const fileContent = await fetchFileContent(meta.hash);
+      // Then, fetch the actual content (hash would be used in full implementation)
+      const fileContent = await fetchFileContent();
 
       if (fileContent === null) {
         // If blob fetch fails, show a message but don't error out completely

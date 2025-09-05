@@ -193,11 +193,11 @@ vercel dev
 
 **Why use `vercel dev` instead of `pnpm dev`:**
 - Automatically loads environment variables from Vercel project settings
-- Provides required Blob storage tokens (`BLOB_READ_WRITE_TOKEN`, `NEXT_PUBLIC_BLOB_URL`)
+- Provides required Blob storage token (`BLOB_READ_WRITE_TOKEN`)
 - Simulates production environment more accurately
 - No manual environment configuration needed
 
-**Note:** The web application requires Vercel Blob storage tokens to function properly. These are automatically provided when using `vercel dev`.
+**Note:** The web application requires Vercel Blob storage token to function properly. This is automatically provided when using `vercel dev`.
 
 ## Pre-Commit Checks
 
