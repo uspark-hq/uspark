@@ -81,13 +81,13 @@ const originalFetch = global.fetch;
 
 global.fetch = async (url: string | URL | Request, init?: RequestInit) => {
   const urlStr = url.toString();
-  
+
   // Handle project GET/PATCH requests
   if (urlStr.includes("/api/projects/")) {
     const match = urlStr.match(/\/api\/projects\/([^/]+)/);
     if (match && match[1]) {
       const projectId = match[1];
-      
+
       if (init?.method === "PATCH") {
         // Handle project update
         const body = init.body;
@@ -102,30 +102,33 @@ global.fetch = async (url: string | URL | Request, init?: RequestInit) => {
         const data = mockServer.getProject(projectId);
         return new Response(data, {
           status: 200,
-          headers: { "Content-Type": "application/octet-stream" }
+          headers: { "Content-Type": "application/octet-stream" },
         });
       }
     }
   }
-  
+
   // Handle blob requests
   if (urlStr.includes("/api/blobs/")) {
     const match = urlStr.match(/\/api\/blobs\/([^/]+)/);
     if (match && match[1]) {
       const hash = match[1];
       const content = mockServer.getBlobContent(hash);
-      
+
       if (content !== undefined) {
         return new Response(content, {
           status: 200,
-          headers: { "Content-Type": "text/plain" }
+          headers: { "Content-Type": "text/plain" },
         });
       } else {
-        return new Response("Blob not found", { status: 404, statusText: "Not Found" });
+        return new Response("Blob not found", {
+          status: 404,
+          statusText: "Not Found",
+        });
       }
     }
   }
-  
+
   // Fallback to original fetch for other requests
   return originalFetch(url, init);
 };

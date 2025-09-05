@@ -126,7 +126,7 @@ describe("pull --all command", () => {
 
   it("should pull all files from a project", async () => {
     const projectId = "multi-file-project";
-    
+
     // Setup mock server with multiple test files
     const files = {
       "src/index.ts": "export const main = () => console.log('main');",
@@ -155,15 +155,15 @@ describe("pull --all command", () => {
 
   it("should handle empty project gracefully", async () => {
     const projectId = "empty-project";
-    
+
     // Don't add any files to the project
-    
+
     // Execute pull --all command - should not throw
     await pullAllCommand({
       projectId,
       output: tempDir,
     });
-    
+
     // Verify no files were created
     const { readdirSync } = await import("fs");
     const files = readdirSync(tempDir);

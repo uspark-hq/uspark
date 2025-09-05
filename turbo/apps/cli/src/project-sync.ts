@@ -125,24 +125,24 @@ export class ProjectSync {
   ): Promise<void> {
     const apiUrl = options?.apiUrl || "http://localhost:3000";
     const token = options?.token || "test_token";
-    
+
     // 1. Sync from remote to get latest state
     await this.syncFromRemote(projectId, options);
-    
+
     // 2. Get all files from the YJS document
     const allFiles = this.fs.getAllFiles();
-    
+
     if (allFiles.length === 0) {
       return;
     }
-    
+
     // 3. Download all files - fail fast on any error
     for (const filePath of allFiles) {
       const fileNode = this.fs.getFileNode(filePath);
       if (!fileNode) {
         throw new Error(`File metadata not found: ${filePath}`);
       }
-      
+
       // Get blob content from FileSystem or fetch from remote
       let content = this.fs.getBlob(fileNode.hash);
       if (!content) {
@@ -151,15 +151,15 @@ export class ProjectSync {
             Authorization: `Bearer ${token}`,
           },
         });
-        
+
         if (!response.ok) {
           throw new Error(`Failed to fetch blob: ${response.statusText}`);
         }
-        
+
         content = await response.text();
         this.fs.setBlob(fileNode.hash, content);
       }
-      
+
       // Write to local filesystem
       const localPath = outputDir ? join(outputDir, filePath) : filePath;
       await mkdir(dirname(localPath), { recursive: true });

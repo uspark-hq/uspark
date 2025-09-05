@@ -62,7 +62,10 @@ authCommand
 program
   .command("pull")
   .description("Pull file(s) from remote project")
-  .argument("[filePath]", "File path to pull (omit with --all to pull entire project)")
+  .argument(
+    "[filePath]",
+    "File path to pull (omit with --all to pull entire project)",
+  )
   .requiredOption("--project-id <projectId>", "Project ID")
   .option(
     "--output <outputPath>",
@@ -76,12 +79,17 @@ program
     ) => {
       if (options.all) {
         // Pull all files
-        await pullAllCommand({ projectId: options.projectId, output: options.output });
+        await pullAllCommand({
+          projectId: options.projectId,
+          output: options.output,
+        });
       } else if (filePath) {
         // Pull single file
         await pullCommand(filePath, options);
       } else {
-        console.error(chalk.red("Error: Either provide a file path or use --all flag"));
+        console.error(
+          chalk.red("Error: Either provide a file path or use --all flag"),
+        );
         process.exit(1);
       }
     },
