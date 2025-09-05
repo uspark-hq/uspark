@@ -28,6 +28,12 @@ describe("pull command", () => {
 
     // Reset mock server state
     mockServer.reset();
+
+    // Reset config mocks and ensure they return valid values
+    vi.clearAllMocks();
+    const { getToken, getApiUrl } = await import("../config");
+    vi.mocked(getToken).mockResolvedValue("test_token");
+    vi.mocked(getApiUrl).mockResolvedValue("http://localhost:3000");
   });
 
   afterEach(async () => {
@@ -118,8 +124,11 @@ describe("pull --all command", () => {
     // Reset mock server state
     mockServer.reset();
 
-    // Reset config mocks
+    // Reset config mocks and ensure they return valid values
     vi.clearAllMocks();
+    const { getToken, getApiUrl } = await import("../config");
+    vi.mocked(getToken).mockResolvedValue("test_token");
+    vi.mocked(getApiUrl).mockResolvedValue("http://localhost:3000");
   });
 
   afterEach(async () => {
