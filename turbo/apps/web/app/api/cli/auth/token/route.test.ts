@@ -54,6 +54,9 @@ describe("/api/cli/auth/token", () => {
 
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         device_code: deviceCode,
       }),
@@ -80,6 +83,9 @@ describe("/api/cli/auth/token", () => {
 
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         device_code: deviceCode,
       }),
@@ -114,6 +120,9 @@ describe("/api/cli/auth/token", () => {
 
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         device_code: deviceCode,
       }),
@@ -138,6 +147,9 @@ describe("/api/cli/auth/token", () => {
 
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         device_code: deviceCode,
       }),
@@ -159,6 +171,9 @@ describe("/api/cli/auth/token", () => {
   it("should return invalid request error for malformed device code", async () => {
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         device_code: "invalid-code-format",
       }),
@@ -180,6 +195,9 @@ describe("/api/cli/auth/token", () => {
   it("should return invalid request error for missing device code", async () => {
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({}),
     });
 
@@ -201,6 +219,9 @@ describe("/api/cli/auth/token", () => {
 
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         device_code: deviceCode,
       }),
@@ -222,6 +243,9 @@ describe("/api/cli/auth/token", () => {
   it("should return invalid request error for non-existent device code", async () => {
     const request = new NextRequest("http://localhost/api/cli/auth/token", {
       method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
       body: JSON.stringify({
         device_code: "NONE-XIST",
       }),
