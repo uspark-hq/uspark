@@ -74,10 +74,12 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { name } = parseResult.data;
+  // Note: We validate the name but don't use it in the ID generation
+  // The project ID is system-generated to ensure uniqueness
 
-  // Generate project ID from name (could be improved)
-  const projectId = `${name}-${randomUUID().slice(0, 8)}`;
+  // Generate a secure, unique project ID
+  // Format: proj_<random-uuid> for better identification and uniqueness
+  const projectId = `proj_${randomUUID()}`;
 
   // Create new empty YDoc for this project
   const ydoc = new Y.Doc();
