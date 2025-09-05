@@ -213,19 +213,19 @@ async function syncFile(projectId: string, filePath: string) {
 
 **Acceptance Criteria**:
 
-- [ ] Create E2B container template with required dependencies
-- [ ] Implement container initialization script
-- [ ] Configure authentication and environment variables
-- [ ] Test basic container startup and teardown
+- [ ] Create E2B container template with required dependencies (待开始)
+- [ ] Implement container initialization script (待开始)
+- [ ] Configure authentication and environment variables (待开始)
+- [ ] Test basic container startup and teardown (待开始)
 
 #### 2. uspark watch-claude Implementation
 
 **Acceptance Criteria**:
 
-- [ ] Create watch-claude command parsing Claude's JSON output
-- [ ] Implement real-time file change detection from JSON events
-- [ ] Trigger immediate sync push for each file write
-- [ ] Ensure transparent stdout passthrough
+- [x] Create watch-claude command parsing Claude's JSON output (✅ PR #100)
+- [x] Implement real-time file change detection from JSON events (✅ PR #100)
+- [x] Trigger immediate sync push for each file write (✅ PR #100)
+- [x] Ensure transparent stdout passthrough (✅ PR #100)
 
 ### Phase 2: Claude Code CLI Integration
 

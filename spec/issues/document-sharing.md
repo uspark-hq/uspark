@@ -121,28 +121,28 @@ Features:
 
 #### 1. Backend APIs
 **Acceptance Criteria**:
-- [ ] POST /api/share - Generate share link
-- [ ] GET /api/share/:token - Retrieve shared content
-- [ ] GET /api/share - List user's shares
-- [ ] DELETE /api/share/:id - Revoke share link
+- [x] POST /api/share - Generate share link (✅ PR #101)
+- [x] GET /api/share/:token - Retrieve shared content (✅ PR #101, ⚠️ 需要 Blob 集成)
+- [ ] GET /api/share - List user's shares (延期到下个迭代)
+- [ ] DELETE /api/share/:id - Revoke share link (延期到下个迭代)
 
 #### 2. Database Setup
 **Acceptance Criteria**:
-- [ ] Create share_links table
-- [ ] Add indexes for performance
+- [x] Create share_links table (✅ PR #102)
+- [x] Add indexes for performance (✅ PR #102)
 
 #### 3. Frontend Share Feature
 **Acceptance Criteria**:
-- [ ] Share button in document viewer
-- [ ] Share modal with copy functionality
-- [ ] Share management page at /settings/shares
+- [x] Share button in document viewer (✅ PR #106)
+- [x] Share modal with copy functionality (✅ PR #106)
+- [ ] Share management page at /settings/shares (延期到下个迭代)
 
 #### 4. Public View Page
 **Acceptance Criteria**:
-- [ ] Public route at /share/:token
-- [ ] Read-only document viewer
-- [ ] No authentication required
-- [ ] Mobile responsive layout
+- [x] Public route at /share/:token (✅ PR #106)
+- [x] Read-only document viewer (✅ PR #106)
+- [x] No authentication required (✅ PR #106)
+- [x] Mobile responsive layout (✅ PR #106)
 
 ## Security Considerations (MVP)
 
