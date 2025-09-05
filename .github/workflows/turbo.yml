@@ -168,6 +168,9 @@ jobs:
           submodules: recursive  # For BATS test framework
       - uses: ./.github/actions/toolchain-init
 
+      - name: Setup pnpm global directory
+        run: pnpm setup
+
       - name: Build CLI
         run: cd turbo && pnpm --filter @uspark/cli build
 
