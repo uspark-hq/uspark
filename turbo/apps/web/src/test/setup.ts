@@ -14,8 +14,8 @@ process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY =
 process.env.CLERK_SECRET_KEY = "sk_test_mock_secret_key_for_testing";
 
 // Mock blob storage environment variables for testing
-process.env.BLOB_READ_WRITE_TOKEN = "dummy_token";
-process.env.NEXT_PUBLIC_BLOB_URL = "https://mock-blob-storage.test";
+// Format: vercel_blob_rw_[STORE_ID]_[SECRET]
+process.env.BLOB_READ_WRITE_TOKEN = "vercel_blob_rw_test-store_secret-key";
 
 // Verify required environment variables are set
 if (!process.env.DATABASE_URL) {

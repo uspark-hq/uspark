@@ -9,8 +9,6 @@ import { BlobNotFoundError } from "./types";
 import { generateContentHash, detectContentType } from "./utils";
 
 export class VercelBlobStorage implements BlobStorageProvider {
-  private readonly MULTIPART_THRESHOLD = 4.5 * 1024 * 1024; // 4.5MB
-
   async uploadBlob(
     content: Buffer,
     options: UploadOptions = {},
@@ -24,21 +22,11 @@ export class VercelBlobStorage implements BlobStorageProvider {
 
     const contentType = options.contentType ?? detectContentType(content);
 
-    if (content.length > this.MULTIPART_THRESHOLD) {
-      // Use multipart upload for large files
-      await put(hash, content, {
-        access: "public",
-        multipart: true,
-        contentType,
-      });
-    } else {
-      // Use standard upload for small files
-      await put(hash, content, {
-        access: "public",
-        contentType,
-        addRandomSuffix: options.addRandomSuffix ?? false,
-      });
-    }
+    await put(hash, content, {
+      access: "public",
+      contentType,
+      addRandomSuffix: options.addRandomSuffix ?? false,
+    });
 
     return hash;
   }
@@ -91,11 +79,19 @@ export class VercelBlobStorage implements BlobStorageProvider {
 
   private getBlobUrl(hash: string): string {
     // Construct Vercel Blob URL from hash
-    const baseUrl = process.env.BLOB_READ_WRITE_TOKEN?.split("_")[0];
-    if (!baseUrl) {
+    // Token format: vercel_blob_rw_[STORE_ID]_[SECRET]
+    const token = process.env.BLOB_READ_WRITE_TOKEN;
+    if (!token) {
       throw new Error("BLOB_READ_WRITE_TOKEN environment variable is required");
     }
-    return `https://${baseUrl}.public.blob.vercel-storage.com/${hash}`;
+
+    const parts = token.split("_");
+    if (parts.length < 4 || !parts[3]) {
+      throw new Error("Invalid BLOB_READ_WRITE_TOKEN format");
+    }
+
+    const storeId = parts[3]; // The store ID is the 4th part
+    return `https://${storeId}.public.blob.vercel-storage.com/${hash}`;
   }
 
   private extractHashFromUrl(url: string): string {

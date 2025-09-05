@@ -1,12 +1,12 @@
 import { getBlobStorage, type BlobStorageProvider } from "@uspark/core";
-import { env } from "../../env";
 
 /**
  * Get the blob storage instance for the web app
- * Uses environment variables to determine the storage provider
+ * Always uses Vercel Blob storage (required for MVP)
  */
 export function getBlobStorageInstance(): BlobStorageProvider {
+  // Vercel Blob is required - env validation ensures token exists
   return getBlobStorage({
-    type: env().BLOB_READ_WRITE_TOKEN ? "vercel" : "memory",
+    type: "vercel",
   });
 }

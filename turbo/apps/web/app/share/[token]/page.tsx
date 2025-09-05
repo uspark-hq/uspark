@@ -2,7 +2,6 @@
 
 import { notFound } from "next/navigation";
 import { useState, useEffect } from "react";
-import { env } from "../../../src/env";
 
 interface SharePageProps {
   params: Promise<{
@@ -15,6 +14,7 @@ interface ShareMetadata {
   file_path: string;
   hash: string;
   mtime: number;
+  blob_url?: string;
 }
 
 async function fetchShareMetadata(
@@ -39,25 +39,31 @@ async function fetchShareMetadata(
   }
 }
 
-async function fetchFileContent(hash: string): Promise<string | null> {
-  // Generate the blob URL using the hash
-  const blobBaseUrl = env().NEXT_PUBLIC_BLOB_URL;
-  if (!blobBaseUrl) {
-    console.warn("NEXT_PUBLIC_BLOB_URL not configured");
+async function fetchFileContent(
+  metadata: ShareMetadata,
+): Promise<string | null> {
+  try {
+    // If we have a blob_url, fetch directly from it
+    if (metadata.blob_url) {
+      const response = await fetch(metadata.blob_url, {
+        cache: "no-store",
+      });
+
+      if (!response.ok) {
+        console.error("Failed to fetch from blob storage:", response.status);
+        return null;
+      }
+
+      return await response.text();
+    }
+
+    // Fallback: blob_url not available
+    console.warn("Blob URL not available");
+    return null;
+  } catch (error) {
+    console.error("Failed to fetch file content:", error);
     return null;
   }
-  const blobUrl = `${blobBaseUrl}/${hash}`;
-
-  // For now, try to fetch directly from the blob URL
-  // In production, this would use proper STS tokens
-  const response = await fetch(blobUrl);
-
-  if (!response.ok) {
-    console.error("Failed to fetch from blob storage:", response.status);
-    return null;
-  }
-
-  return await response.text();
 }
 
 export default function SharePage({ params }: SharePageProps) {
@@ -92,8 +98,8 @@ export default function SharePage({ params }: SharePageProps) {
 
       setMetadata(meta);
 
-      // Then, fetch the actual content using the hash
-      const fileContent = await fetchFileContent(meta.hash);
+      // Then, fetch the actual content using the metadata (which includes blob_url)
+      const fileContent = await fetchFileContent(meta);
 
       if (fileContent === null) {
         // If blob fetch fails, show a message but don't error out completely
