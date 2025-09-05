@@ -77,7 +77,7 @@ export class MockYjsServer {
 export const mockServer = new MockYjsServer();
 
 // Mock fetch for tests
-const originalFetch = global.fetch;
+const originalFetch = global.fetch || (() => Promise.reject(new Error("Fetch not available")));
 
 global.fetch = async (url: string | URL | Request, init?: RequestInit) => {
   const urlStr = url.toString();
