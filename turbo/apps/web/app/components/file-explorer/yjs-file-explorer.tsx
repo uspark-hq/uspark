@@ -5,7 +5,7 @@ import { FileExplorer } from "./file-explorer";
 import { parseYjsFileSystem, formatFileSize } from "./yjs-parser";
 import { type FileItem } from "./types";
 
-export interface YjsFileExplorerProps {
+interface YjsFileExplorerProps {
   projectId: string;
   onFileSelect?: (filePath: string) => void;
   selectedFile?: string;

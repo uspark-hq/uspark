@@ -3,7 +3,7 @@ import { join } from "path";
 import { readFile, writeFile, mkdir, unlink } from "fs/promises";
 import { existsSync } from "fs";
 
-export interface CliConfig {
+interface CliConfig {
   token?: string;
   apiUrl?: string;
   user?: {
@@ -76,9 +76,13 @@ export async function getApiUrl(): Promise<string> {
   }
 
   const config = await loadConfig();
-  return (
-    config.apiUrl || process.env.USPARK_API_URL || "https://app.uspark.com"
-  );
+  // Support both API_HOST (preferred) and USPARK_API_URL (legacy)
+  const apiHost = process.env.API_HOST || process.env.USPARK_API_URL;
+  if (apiHost) {
+    // Add protocol if missing
+    return apiHost.startsWith("http") ? apiHost : `https://${apiHost}`;
+  }
+  return config.apiUrl || "https://app.uspark.com";
 }
 
 export async function clearConfig(): Promise<void> {

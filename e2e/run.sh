@@ -31,6 +31,15 @@ echo -e "${YELLOW}Building @uspark/cli...${NC}"
 echo -e "${YELLOW}Linking CLI globally...${NC}"
 (cd "$SCRIPT_DIR/../turbo/apps/cli" && pnpm link --global)
 
+# API Host configuration
+if [[ -n "$API_HOST" ]]; then
+    echo -e "${YELLOW}Using API_HOST: ${API_HOST}${NC}"
+    export API_HOST
+else
+    echo -e "${YELLOW}Using default API_HOST: https://app.uspark.ai${NC}"
+    export API_HOST="https://app.uspark.ai"
+fi
+
 # Run tests
 echo -e "${GREEN}Running BATS tests...${NC}"
 
