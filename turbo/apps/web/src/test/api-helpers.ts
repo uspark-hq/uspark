@@ -13,14 +13,14 @@ export async function apiCall(
   body: unknown = null,
 ) {
   const url = new URL("http://localhost:3000");
-  const options: RequestInit = { method };
 
-  if (body !== null) {
-    options.body = JSON.stringify(body);
-    options.headers = { "Content-Type": "application/json" };
-  }
-
-  const request = new NextRequest(url, options);
+  const request = body !== null
+    ? new NextRequest(url, {
+        method,
+        body: JSON.stringify(body),
+        headers: { "Content-Type": "application/json" },
+      })
+    : new NextRequest(url, { method });
   const context = { params: Promise.resolve(params) };
   const response = await handler(request, context);
 
