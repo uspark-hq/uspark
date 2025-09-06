@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { DELETE } from "./route";
 import { initServices } from "../../../../src/lib/init-services";
@@ -22,20 +22,45 @@ describe("DELETE /api/shares/[id]", () => {
   beforeEach(async () => {
     initServices();
 
-    // Clean up ALL test data for both users
+    // Clean up ALL test data for both users - delete shares first due to FK constraints
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, userId));
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
+    
+    // Also clean up projects created in previous test runs
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.userId, userId));
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.userId, otherUserId));
 
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
   });
+  
+  afterEach(async () => {
+    // Clean up after each test - delete shares first due to FK constraints
+    await globalThis.services.db
+      .delete(SHARE_LINKS_TBL)
+      .where(eq(SHARE_LINKS_TBL.userId, userId));
+    await globalThis.services.db
+      .delete(SHARE_LINKS_TBL)
+      .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
+    
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.userId, userId));
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.userId, otherUserId));
+  });
 
   it("should successfully delete user's own share", async () => {
-    const shareId = "test-share-id";
+    const shareId = `test-share-id-${Date.now()}`;
 
     // Create project first
     const projectId = `test-project-${Date.now()}`;
@@ -105,7 +130,7 @@ describe("DELETE /api/shares/[id]", () => {
   });
 
   it("should return 404 when trying to delete another user's share", async () => {
-    const shareId = "test-share-id-other";
+    const shareId = `test-share-id-other-${Date.now()}`;
 
     // Create project for other user
     const projectId = `other-project-${Date.now()}`;
@@ -193,24 +218,25 @@ describe("DELETE /api/shares/[id]", () => {
     ]);
 
     // Create multiple shares for the same user
+    const timestamp = Date.now();
     const shares = [
       {
-        id: "share-1",
-        token: "token-1",
+        id: `share-1-${timestamp}`,
+        token: `token-1-${timestamp}`,
         projectId: project1,
         filePath: "file1.ts",
         userId,
       },
       {
-        id: "share-2",
-        token: "token-2",
+        id: `share-2-${timestamp}`,
+        token: `token-2-${timestamp}`,
         projectId: project2,
         filePath: "file2.ts",
         userId,
       },
       {
-        id: "share-3",
-        token: "token-3",
+        id: `share-3-${timestamp}`,
+        token: `token-3-${timestamp}`,
         projectId: project3,
         filePath: "file3.ts",
         userId,
@@ -220,9 +246,10 @@ describe("DELETE /api/shares/[id]", () => {
     await globalThis.services.db.insert(SHARE_LINKS_TBL).values(shares);
 
     // Delete share-2
-    const request = new NextRequest("http://localhost:3000/api/shares/share-2");
+    const shareToDelete = `share-2-${timestamp}`;
+    const request = new NextRequest(`http://localhost:3000/api/shares/${shareToDelete}`);
     const response = await DELETE(request, {
-      params: Promise.resolve({ id: "share-2" }),
+      params: Promise.resolve({ id: shareToDelete }),
     });
 
     expect(response.status).toBe(200);
@@ -235,8 +262,8 @@ describe("DELETE /api/shares/[id]", () => {
 
     expect(remainingShares).toHaveLength(2);
     expect(remainingShares.map((s) => s.id).sort()).toEqual([
-      "share-1",
-      "share-3",
+      `share-1-${timestamp}`,
+      `share-3-${timestamp}`,
     ]);
 
     // Clean up

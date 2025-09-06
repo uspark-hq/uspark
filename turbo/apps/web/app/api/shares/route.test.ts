@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { GET } from "./route";
 import { initServices } from "../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
@@ -21,16 +21,41 @@ describe("GET /api/shares", () => {
   beforeEach(async () => {
     initServices();
 
-    // Clean up test data
+    // Clean up test data - delete shares first due to FK constraints
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, userId));
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
+    
+    // Also clean up projects created in previous test runs
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.userId, userId));
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.userId, otherUserId));
 
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+  });
+  
+  afterEach(async () => {
+    // Clean up after each test - delete shares first due to FK constraints
+    await globalThis.services.db
+      .delete(SHARE_LINKS_TBL)
+      .where(eq(SHARE_LINKS_TBL.userId, userId));
+    await globalThis.services.db
+      .delete(SHARE_LINKS_TBL)
+      .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
+    
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.userId, userId));
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.userId, otherUserId));
   });
 
   it("should return empty array when user has no shares", async () => {
@@ -58,10 +83,11 @@ describe("GET /api/shares", () => {
       version: 0,
     });
 
-    // Create test shares
+    // Create test shares with unique IDs
+    const timestamp = Date.now();
     const share1 = {
-      id: "share-1",
-      token: "token-1",
+      id: `share-1-${timestamp}`,
+      token: `token-1-${timestamp}`,
       projectId,
       filePath: "src/file1.ts",
       userId,
@@ -70,8 +96,8 @@ describe("GET /api/shares", () => {
     };
 
     const share2 = {
-      id: "share-2",
-      token: "token-2",
+      id: `share-2-${timestamp}`,
+      token: `token-2-${timestamp}`,
       projectId,
       filePath: "src/file2.ts",
       userId,
@@ -91,20 +117,20 @@ describe("GET /api/shares", () => {
 
     // Should be ordered by createdAt desc (newest first)
     expect(data.shares[0]).toMatchObject({
-      id: "share-2",
-      token: "token-2",
+      id: `share-2-${timestamp}`,
+      token: `token-2-${timestamp}`,
       projectId,
       filePath: "src/file2.ts",
-      url: expect.stringMatching(/\/share\/token-2$/),
+      url: expect.stringMatching(new RegExp(`/share/token-2-${timestamp}$`)),
       accessedCount: 0,
     });
 
     expect(data.shares[1]).toMatchObject({
-      id: "share-1",
-      token: "token-1",
+      id: `share-1-${timestamp}`,
+      token: `token-1-${timestamp}`,
       projectId,
       filePath: "src/file1.ts",
-      url: expect.stringMatching(/\/share\/token-1$/),
+      url: expect.stringMatching(new RegExp(`/share/token-1-${timestamp}$`)),
       accessedCount: 5,
     });
 
@@ -143,17 +169,18 @@ describe("GET /api/shares", () => {
     ]);
 
     // Create shares for both users
+    const timestamp = Date.now();
     await globalThis.services.db.insert(SHARE_LINKS_TBL).values([
       {
-        id: "my-share",
-        token: "my-token",
+        id: `my-share-${timestamp}`,
+        token: `my-token-${timestamp}`,
         projectId: myProjectId,
         filePath: "my-file.ts",
         userId,
       },
       {
-        id: "other-share",
-        token: "other-token",
+        id: `other-share-${timestamp}`,
+        token: `other-token-${timestamp}`,
         projectId: otherProjectId,
         filePath: "other-file.ts",
         userId: otherUserId,
@@ -165,7 +192,7 @@ describe("GET /api/shares", () => {
 
     expect(response.status).toBe(200);
     expect(data.shares).toHaveLength(1);
-    expect(data.shares[0].id).toBe("my-share");
+    expect(data.shares[0].id).toBe(`my-share-${timestamp}`);
 
     // Clean up - delete shares first, then projects
     await globalThis.services.db
@@ -211,26 +238,27 @@ describe("GET /api/shares", () => {
     ]);
 
     const now = Date.now();
+    const timestamp = now;
     const shares = [
       {
-        id: "old-share",
-        token: "old-token",
+        id: `old-share-${timestamp}`,
+        token: `old-token-${timestamp}`,
         projectId: project1,
         filePath: "old.ts",
         userId,
         createdAt: new Date(now - 3600000), // 1 hour ago
       },
       {
-        id: "new-share",
-        token: "new-token",
+        id: `new-share-${timestamp}`,
+        token: `new-token-${timestamp}`,
         projectId: project2,
         filePath: "new.ts",
         userId,
         createdAt: new Date(now), // now
       },
       {
-        id: "middle-share",
-        token: "middle-token",
+        id: `middle-share-${timestamp}`,
+        token: `middle-token-${timestamp}`,
         projectId: project3,
         filePath: "middle.ts",
         userId,
@@ -245,9 +273,9 @@ describe("GET /api/shares", () => {
 
     expect(response.status).toBe(200);
     expect(data.shares).toHaveLength(3);
-    expect(data.shares[0].id).toBe("new-share");
-    expect(data.shares[1].id).toBe("middle-share");
-    expect(data.shares[2].id).toBe("old-share");
+    expect(data.shares[0].id).toBe(`new-share-${timestamp}`);
+    expect(data.shares[1].id).toBe(`middle-share-${timestamp}`);
+    expect(data.shares[2].id).toBe(`old-share-${timestamp}`);
 
     // Clean up
     await globalThis.services.db
