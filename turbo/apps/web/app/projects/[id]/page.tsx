@@ -17,6 +17,8 @@ export default function ProjectDetailPage() {
   const [selectedFile, setSelectedFile] = useState<string>();
   const [fileContent, setFileContent] = useState<string>();
   const [loadingContent, setLoadingContent] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [showShareSuccess, setShowShareSuccess] = useState(false);
 
   // Chat state
   const [turns, setTurns] = useState<Turn[]>(mockTurns);
@@ -67,6 +69,41 @@ export default function ProjectDetailPage() {
       setFileContent(undefined);
     }
   }, [selectedFile]);
+
+  const handleShare = async () => {
+    if (!selectedFile) return;
+
+    setIsSharing(true);
+    try {
+      const response = await fetch("/api/share", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          project_id: projectId,
+          file_path: selectedFile,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setShowShareSuccess(true);
+
+        // Copy to clipboard
+        await navigator.clipboard.writeText(data.url);
+
+        // Hide success message after 3 seconds
+        setTimeout(() => setShowShareSuccess(false), 3000);
+      } else {
+        console.error("Failed to create share link");
+      }
+    } catch (error) {
+      console.error("Error creating share link:", error);
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   return (
     <div
@@ -194,14 +231,56 @@ export default function ProjectDetailPage() {
               {selectedFile ? `📄 ${selectedFile}` : "📄 Document Viewer"}
             </span>
             {selectedFile && (
-              <span
-                style={{
-                  fontSize: "12px",
-                  color: "rgba(156, 163, 175, 0.6)",
-                }}
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "12px" }}
               >
-                Read-only preview
-              </span>
+                {showShareSuccess && (
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "#10b981",
+                      animation: "fadeIn 0.3s ease-in",
+                    }}
+                  >
+                    ✓ Link copied to clipboard!
+                  </span>
+                )}
+                <button
+                  onClick={handleShare}
+                  disabled={isSharing}
+                  style={{
+                    padding: "4px 12px",
+                    fontSize: "12px",
+                    color: "#3b82f6",
+                    backgroundColor: "transparent",
+                    border: "1px solid #3b82f6",
+                    borderRadius: "4px",
+                    cursor: isSharing ? "not-allowed" : "pointer",
+                    opacity: isSharing ? 0.5 : 1,
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseOver={(e) => {
+                    if (!isSharing) {
+                      e.currentTarget.style.backgroundColor = "#3b82f6";
+                      e.currentTarget.style.color = "white";
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "#3b82f6";
+                  }}
+                >
+                  {isSharing ? "Sharing..." : "Share"}
+                </button>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    color: "rgba(156, 163, 175, 0.6)",
+                  }}
+                >
+                  Read-only preview
+                </span>
+              </div>
             )}
           </div>
 
