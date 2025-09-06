@@ -22,7 +22,7 @@ export function ChatComponentsDemo() {
 
   const getScenarioTurns = (): TurnWithBlocks[] => {
     switch (scenario) {
-      case "running":
+      case "running": {
         const runningTurn = mockTurns[2] || mockTurns[0];
         return [
           ...mockTurns.slice(0, 2),
@@ -31,6 +31,7 @@ export function ChatComponentsDemo() {
             status: "running" as const,
           } as TurnWithBlocks,
         ];
+      }
       case "failed":
         return mockTurns.map((t) => ({
           ...t,
