@@ -3,6 +3,13 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { YjsFileExplorer } from "../../components/file-explorer";
+import {
+  SessionDisplay,
+  ChatStatus,
+  mockTurns,
+  mockSession,
+  type Turn,
+} from "../../../src/components/chat";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -10,6 +17,13 @@ export default function ProjectDetailPage() {
   const [selectedFile, setSelectedFile] = useState<string>();
   const [fileContent, setFileContent] = useState<string>();
   const [loadingContent, setLoadingContent] = useState(false);
+
+  // Chat state
+  const [turns, setTurns] = useState<Turn[]>(mockTurns);
+  const [currentTurn, setCurrentTurn] = useState<Turn | undefined>(
+    mockTurns.find((t) => t.status === "running"),
+  );
+  const [showChat, setShowChat] = useState(false);
 
   // Mock file content loading for now
   const loadFileContent = async (filePath: string) => {
@@ -120,7 +134,7 @@ export default function ProjectDetailPage() {
         style={{
           flex: 1,
           display: "grid",
-          gridTemplateColumns: "300px 1fr",
+          gridTemplateColumns: showChat ? "300px 1fr 400px" : "300px 1fr",
           gridTemplateRows: "1fr auto",
           gap: "1px",
           backgroundColor: "rgba(156, 163, 175, 0.1)",
@@ -161,6 +175,7 @@ export default function ProjectDetailPage() {
             overflow: "auto",
             display: "flex",
             flexDirection: "column",
+            gridColumn: showChat ? "span 1" : "span 1",
           }}
         >
           <div
@@ -251,12 +266,84 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
+        {/* Chat Panel */}
+        {showChat && (
+          <div
+            style={{
+              backgroundColor: "var(--background)",
+              overflow: "hidden",
+              display: "flex",
+              flexDirection: "column",
+              gridRow: "span 2",
+            }}
+          >
+            <div
+              style={{
+                padding: "12px 16px",
+                borderBottom: "1px solid rgba(156, 163, 175, 0.1)",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: "var(--foreground)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
+              <span>💬 Chat with Claude</span>
+              <button
+                onClick={() => setShowChat(false)}
+                style={{
+                  padding: "4px 8px",
+                  fontSize: "12px",
+                  border: "none",
+                  background: "transparent",
+                  color: "rgba(156, 163, 175, 0.8)",
+                  cursor: "pointer",
+                }}
+              >
+                ✕
+              </button>
+            </div>
+
+            <div style={{ padding: "12px 16px" }}>
+              <ChatStatus
+                currentTurn={currentTurn}
+                sessionId={mockSession.id}
+                onInterrupt={() => {
+                  if (currentTurn) {
+                    setCurrentTurn({ ...currentTurn, status: "failed" });
+                    setTurns(
+                      turns.map((t) =>
+                        t.id === currentTurn.id
+                          ? { ...t, status: "failed" }
+                          : t,
+                      ),
+                    );
+                  }
+                }}
+              />
+            </div>
+
+            <div style={{ flex: 1, overflow: "auto" }}>
+              <SessionDisplay
+                turns={turns}
+                currentTurnId={currentTurn?.id}
+                onTurnClick={(turnId) => {
+                  const turn = turns.find((t) => t.id === turnId);
+                  setCurrentTurn(turn);
+                }}
+              />
+            </div>
+          </div>
+        )}
+
         {/* Chat Input */}
         <div
           style={{
             backgroundColor: "var(--background)",
             borderTop: "1px solid rgba(156, 163, 175, 0.1)",
             padding: "16px",
+            gridColumn: showChat ? "2" : "span 1",
           }}
         >
           <div
@@ -295,27 +382,101 @@ export default function ProjectDetailPage() {
                 }}
               />
             </div>
-            <button
-              style={{
-                padding: "12px 24px",
-                backgroundColor: "#3b82f6",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                fontSize: "14px",
-                fontWeight: "500",
-                cursor: "pointer",
-                alignSelf: "flex-end",
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = "#2563eb";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = "#3b82f6";
-              }}
-            >
-              Send
-            </button>
+            <div style={{ display: "flex", gap: "8px", alignSelf: "flex-end" }}>
+              {!showChat && (
+                <button
+                  onClick={() => setShowChat(true)}
+                  style={{
+                    padding: "12px 20px",
+                    backgroundColor: "transparent",
+                    color: "#3b82f6",
+                    border: "2px solid #3b82f6",
+                    borderRadius: "6px",
+                    fontSize: "14px",
+                    fontWeight: "500",
+                    cursor: "pointer",
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = "#eff6ff";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                  }}
+                >
+                  Show Chat
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  // Simulate sending a message
+                  const textarea = document.querySelector(
+                    "textarea",
+                  ) as HTMLTextAreaElement;
+                  if (textarea?.value) {
+                    const newTurn: Turn = {
+                      id: `turn-new-${Date.now()}`,
+                      session_id: mockSession.id,
+                      user_prompt: textarea.value,
+                      status: "running",
+                      started_at: new Date().toISOString(),
+                      created_at: new Date().toISOString(),
+                      blocks: [],
+                      block_count: 0,
+                    };
+                    setTurns([...turns, newTurn]);
+                    setCurrentTurn(newTurn);
+                    setShowChat(true);
+                    textarea.value = "";
+
+                    // Simulate response after 2 seconds
+                    setTimeout(() => {
+                      setCurrentTurn(undefined);
+                      setTurns((prev) =>
+                        prev.map((t) =>
+                          t.id === newTurn.id
+                            ? {
+                                ...t,
+                                status: "completed",
+                                completed_at: new Date().toISOString(),
+                                blocks: [
+                                  {
+                                    id: `block-${Date.now()}`,
+                                    turn_id: newTurn.id,
+                                    type: "content",
+                                    content: {
+                                      text: "This is a simulated response from Claude.",
+                                    },
+                                    sequence_number: 0,
+                                  },
+                                ],
+                                block_count: 1,
+                              }
+                            : t,
+                        ),
+                      );
+                    }, 2000);
+                  }
+                }}
+                style={{
+                  padding: "12px 24px",
+                  backgroundColor: "#3b82f6",
+                  color: "white",
+                  border: "none",
+                  borderRadius: "6px",
+                  fontSize: "14px",
+                  fontWeight: "500",
+                  cursor: "pointer",
+                }}
+                onMouseOver={(e) => {
+                  e.currentTarget.style.backgroundColor = "#2563eb";
+                }}
+                onMouseOut={(e) => {
+                  e.currentTarget.style.backgroundColor = "#3b82f6";
+                }}
+              >
+                Send
+              </button>
+            </div>
           </div>
 
           <div
