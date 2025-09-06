@@ -248,4 +248,3 @@ describe("DELETE /api/shares/[id]", () => {
       .where(eq(PROJECTS_TBL.userId, userId));
   });
 });
-

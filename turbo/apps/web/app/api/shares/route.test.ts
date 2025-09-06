@@ -258,4 +258,3 @@ describe("GET /api/shares", () => {
       .where(eq(PROJECTS_TBL.userId, userId));
   });
 });
-

@@ -222,4 +222,3 @@ describe("SharesPage", () => {
     consoleSpy.mockRestore();
   });
 });
-
