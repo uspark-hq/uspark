@@ -1,7 +1,7 @@
 import { http, HttpResponse } from "msw";
 
 // Clerk API endpoints handlers
-export const clerkHandlers = [
+const clerkHandlers = [
   // Mock users list endpoint
   http.get("https://api.clerk.com/v1/users", () => {
     return HttpResponse.json([

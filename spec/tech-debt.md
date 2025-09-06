@@ -47,24 +47,30 @@ This document tracks technical debt items that need to be addressed in the codeb
 ## Unused Dependencies and Code (Knip Analysis)
 **Issue:** Multiple unused dependencies, exports, and files detected by knip analysis.
 **Detection:** Run `cd turbo && pnpm knip` to see current unused code elements.
-**Status:** 🔴 Pending
-**Details:**
-- **Unused files (6):**
-  - `apps/cli/src/test/utils.ts`
-  - `apps/web/src/db/index.ts`
-  - `apps/web/src/lib/blob/index.ts`
-  - `apps/web/src/lib/blob/storage.ts`
-  - `apps/web/src/test/mocks/clerk.ts`
-  - `apps/web/src/test/per-test-db-setup.ts`
-- **Unused dependencies:**
-  - apps/web: `@ts-rest/core`, `@ts-rest/serverless`, `@uspark/ui`, `@vercel/blob`, `dotenv`
-  - packages/core: `yjs`
-  - packages/ui: `react-dom`
-- **Unused devDependencies:**
-  - apps/docs: `@uspark/typescript-config`
-  - apps/web: `@testing-library/user-event`
-  - packages/core: `@uspark/eslint-config`
-  - packages/ui: `@types/react-dom`
+**Status:** 🟡 In Progress (2025-09-06)
+**Progress:**
+- ✅ Cleaned up unused function exports (reduced from 16 to 2)
+  - Removed 3 unused mock test handlers in CLI
+  - Made MockYjsServer class private (internal use only)
+  - Removed unused docs export from source.config.ts
+  - Removed 11 unused file-explorer exports
+  - Made getStoreIdFromToken private in blob utils
+  - Removed unused test exports (clerkHandlers, bypass)
+- 🔴 **Still pending:**
+  - **Unused files:** 6 files listed in previous knip run (verify if still exist)
+  - **Unused dependencies (6):**
+    - apps/web: `@ts-rest/core`, `@ts-rest/serverless`, `@uspark/ui`, `dotenv`
+    - packages/core: `yjs`
+    - packages/ui: `react-dom`
+  - **Unused devDependencies (4):**
+    - apps/docs: `@uspark/typescript-config`
+    - apps/web: `@testing-library/user-event`
+    - packages/core: `@uspark/eslint-config`
+    - packages/ui: `@types/react-dom`
+  - **Remaining unused exports (2):**
+    - `default` in apps/docs/source.config.ts
+    - `FileExplorer` in apps/web/app/components/file-explorer/index.ts
+  - **Unused type exports (9):** Various interfaces and types across the codebase
 
 **How to Find Issues:**
 ```bash
@@ -90,4 +96,4 @@ cd turbo && pnpm knip:fix
 
 ---
 
-*Last updated: 2025-09-05*
+*Last updated: 2025-09-06*

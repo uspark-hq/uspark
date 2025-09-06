@@ -2,7 +2,7 @@ import { Doc, encodeStateAsUpdate, applyUpdate } from "yjs";
 import type { FileNode, BlobInfo } from "@uspark/core";
 import { createHash } from "crypto";
 
-export class MockYjsServer {
+class MockYjsServer {
   private projects = new Map<string, Doc>();
   private blobStorage = new Map<string, string>();
 

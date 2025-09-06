@@ -16,10 +16,7 @@
         "middleware.{ts,tsx}",
         "scripts/*.ts"
       ],
-      "project": [
-        "**/*.{ts,tsx}",
-        "scripts/**/*.ts"
-      ],
+      "project": ["**/*.{ts,tsx}", "scripts/**/*.ts"],
       "next": {
         "entry": ["next.config.{js,ts,mjs}"]
       }
@@ -33,8 +30,9 @@
       "ignoreBinaries": ["eslint"]
     },
     "apps/docs": {
-      "entry": [],
-      "project": ["**/*.{ts,tsx,mdx,js,mjs}"]
+      "entry": ["source.config.ts"],
+      "project": ["**/*.{ts,tsx,mdx,js,mjs}"],
+      "ignoreDependencies": ["fumadocs-mdx"]
     },
     "packages/core": {
       "entry": [],
@@ -55,12 +53,6 @@
       "ignoreUnresolved": ["next"]
     }
   },
-  "ignore": [
-    "**/*.d.ts",
-    ".next/**",
-    "dist/**",
-    "build/**",
-    "coverage/**"
-  ],
+  "ignore": ["**/*.d.ts", ".next/**", "dist/**", "build/**", "coverage/**"],
   "ignoreWorkspaces": []
 }
