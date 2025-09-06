@@ -10,6 +10,8 @@ export default function ProjectDetailPage() {
   const [selectedFile, setSelectedFile] = useState<string>();
   const [fileContent, setFileContent] = useState<string>();
   const [loadingContent, setLoadingContent] = useState(false);
+  const [sharing, setSharing] = useState(false);
+  const [copySuccess, setCopySuccess] = useState(false);
 
   // Mock file content loading for now
   const loadFileContent = async (filePath: string) => {
@@ -53,6 +55,37 @@ export default function ProjectDetailPage() {
       setFileContent(undefined);
     }
   }, [selectedFile]);
+
+  const handleShare = async () => {
+    if (!selectedFile) return;
+
+    setSharing(true);
+    try {
+      const response = await fetch("/api/share", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          project_id: projectId,
+          file_path: selectedFile,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        navigator.clipboard.writeText(data.url);
+        setCopySuccess(true);
+        setTimeout(() => setCopySuccess(false), 3000);
+      } else {
+        console.error("Failed to create share link");
+      }
+    } catch (error) {
+      console.error("Error creating share link:", error);
+    } finally {
+      setSharing(false);
+    }
+  };
 
   return (
     <div
@@ -179,14 +212,42 @@ export default function ProjectDetailPage() {
               {selectedFile ? `📄 ${selectedFile}` : "📄 Document Viewer"}
             </span>
             {selectedFile && (
-              <span
-                style={{
-                  fontSize: "12px",
-                  color: "rgba(156, 163, 175, 0.6)",
-                }}
+              <div
+                style={{ display: "flex", alignItems: "center", gap: "12px" }}
               >
-                Read-only preview
-              </span>
+                <button
+                  onClick={handleShare}
+                  disabled={sharing}
+                  style={{
+                    padding: "4px 12px",
+                    fontSize: "12px",
+                    color: sharing ? "rgba(156, 163, 175, 0.4)" : "#3b82f6",
+                    backgroundColor: "transparent",
+                    border: `1px solid ${sharing ? "rgba(156, 163, 175, 0.2)" : "#3b82f6"}`,
+                    borderRadius: "4px",
+                    cursor: sharing ? "not-allowed" : "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                  }}
+                >
+                  {sharing ? (
+                    "Creating..."
+                  ) : copySuccess ? (
+                    <>✓ Copied!</>
+                  ) : (
+                    <>🔗 Share</>
+                  )}
+                </button>
+                <span
+                  style={{
+                    fontSize: "12px",
+                    color: "rgba(156, 163, 175, 0.6)",
+                  }}
+                >
+                  Read-only preview
+                </span>
+              </div>
             )}
           </div>
 
