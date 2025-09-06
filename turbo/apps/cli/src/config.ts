@@ -3,7 +3,7 @@ import { join } from "path";
 import { readFile, writeFile, mkdir, unlink } from "fs/promises";
 import { existsSync } from "fs";
 
-export interface CliConfig {
+interface CliConfig {
   token?: string;
   apiUrl?: string;
   user?: {
