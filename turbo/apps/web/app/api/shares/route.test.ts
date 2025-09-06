@@ -16,8 +16,8 @@ import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 
 describe("GET /api/shares", () => {
-  const userId = "test-user-123";
-  const otherUserId = "other-user-456";
+  const userId = "test-user-shares-route";
+  const otherUserId = "other-user-shares-route";
 
   beforeEach(async () => {
     initServices();

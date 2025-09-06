@@ -459,7 +459,7 @@ describe("Project Detail Page", () => {
 
       // Verify clipboard was updated
       expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-        "http://localhost:3000/share/token-abc"
+        "http://localhost:3000/share/token-abc",
       );
 
       // Success message should disappear after 3 seconds
@@ -468,12 +468,14 @@ describe("Project Detail Page", () => {
           expect(screen.queryByText("✓ Copied!")).not.toBeInTheDocument();
           expect(screen.getByText("🔗 Share")).toBeInTheDocument();
         },
-        { timeout: 4000 }
+        { timeout: 4000 },
       );
     });
 
     it("handles share API errors gracefully", async () => {
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
         ok: false,
@@ -512,16 +514,20 @@ describe("Project Detail Page", () => {
       expect(screen.queryByText("✓ Copied!")).not.toBeInTheDocument();
 
       // Verify error was logged
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Failed to create share link");
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Failed to create share link",
+      );
 
       consoleErrorSpy.mockRestore();
     });
 
     it("handles network errors during share", async () => {
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
-        new Error("Network error")
+        new Error("Network error"),
       );
 
       render(<ProjectDetailPage />);
@@ -558,7 +564,7 @@ describe("Project Detail Page", () => {
       // Verify error was logged
       expect(consoleErrorSpy).toHaveBeenCalledWith(
         "Error creating share link:",
-        expect.any(Error)
+        expect.any(Error),
       );
 
       consoleErrorSpy.mockRestore();
@@ -566,13 +572,13 @@ describe("Project Detail Page", () => {
 
     it("disables share button while creating share", async () => {
       // Create a promise we can control
-      let resolvePromise: (value: any) => void;
+      let resolvePromise: (value: unknown) => void;
       const controlledPromise = new Promise((resolve) => {
         resolvePromise = resolve;
       });
 
       (global.fetch as ReturnType<typeof vi.fn>).mockReturnValueOnce(
-        controlledPromise
+        controlledPromise,
       );
 
       render(<ProjectDetailPage />);
@@ -597,7 +603,7 @@ describe("Project Detail Page", () => {
 
       // Button should be disabled during loading
       expect(screen.getByText("Creating...").closest("button")).toHaveAttribute(
-        "disabled"
+        "disabled",
       );
 
       // Resolve the promise
@@ -612,9 +618,9 @@ describe("Project Detail Page", () => {
 
       // Wait for button to be enabled again
       await waitFor(() => {
-        expect(screen.getByText("✓ Copied!").closest("button")).not.toHaveAttribute(
-          "disabled"
-        );
+        expect(
+          screen.getByText("✓ Copied!").closest("button"),
+        ).not.toHaveAttribute("disabled");
       });
     });
   });
