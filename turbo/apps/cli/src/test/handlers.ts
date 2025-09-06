@@ -99,34 +99,3 @@ export const handlers = [
     });
   }),
 ];
-
-// Helper function to mock successful token exchange
-export const mockSuccessfulTokenExchange = () => {
-  return http.post(`${API_BASE_URL}/api/cli/auth/token`, () => {
-    return HttpResponse.json({
-      access_token: "test_access_token",
-      refresh_token: "test_refresh_token",
-      expires_in: 3600,
-    });
-  });
-};
-
-// Helper function to mock expired device code
-export const mockExpiredDeviceCode = () => {
-  return http.post(`${API_BASE_URL}/api/cli/auth/token`, () => {
-    return HttpResponse.json(
-      { error: "expired_device_code", message: "The device code has expired" },
-      { status: 400 },
-    );
-  });
-};
-
-// Helper function to mock invalid device code
-export const mockInvalidDeviceCode = () => {
-  return http.post(`${API_BASE_URL}/api/cli/auth/device`, () => {
-    return HttpResponse.json(
-      { error: "invalid_request", message: "Invalid request parameters" },
-      { status: 400 },
-    );
-  });
-};
