@@ -2,9 +2,11 @@
  * @vitest-environment jsdom
  */
 
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, beforeAll } from "vitest";
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import SharesPage from "./page";
+import { server } from "../../../src/test/msw-setup";
+import { http, HttpResponse } from "msw";
 
 // Mock Next.js Link component
 vi.mock("next/link", () => ({
@@ -17,82 +19,51 @@ vi.mock("next/link", () => ({
   }) => <a href={href}>{children}</a>,
 }));
 
-// Helper to create proper Response mock
-const createMockResponse = (data: unknown, ok = true) => {
-  const response = {
-    ok,
-    json: async () => data,
-    clone: function () {
-      return this;
-    },
-    text: async () => JSON.stringify(data),
-    headers: new Headers(),
-    status: ok ? 200 : 400,
-    statusText: ok ? "OK" : "Bad Request",
-  };
-  return Promise.resolve(response as Response);
-};
-
-// Mock fetch for API calls
-const mockFetch = vi.fn();
-global.fetch = mockFetch as typeof fetch;
-
 describe("SharesPage", () => {
+  beforeAll(() => {
+    // MSW server is already started in msw-setup.ts
+  });
+
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("should render loading state initially", () => {
-    mockFetch.mockImplementation(
-      () => new Promise(() => {}), // Never resolves to keep loading
+    // Override handler to never resolve
+    server.use(
+      http.get("*/api/shares", () => {
+        return new Promise(() => {}); // Never resolves
+      }),
     );
 
     render(<SharesPage />);
     expect(screen.getByText("Loading shares...")).toBeInTheDocument();
   });
 
-  it.skip("should render empty state when no shares", async () => {
-    mockFetch.mockReturnValueOnce(createMockResponse({ shares: [] }));
+  it("should render empty state when no shares", async () => {
+    // Override handler for empty shares
+    server.use(
+      http.get("*/api/shares", () => {
+        return HttpResponse.json({ shares: [] });
+      }),
+    );
 
     render(<SharesPage />);
 
-    // Wait for loading to disappear first
+    // Wait for loading to disappear
     await waitFor(() => {
       expect(screen.queryByText("Loading shares...")).not.toBeInTheDocument();
     });
 
-    // Then check for empty state
+    // Check for empty state
     expect(screen.getByText("No shared links yet")).toBeInTheDocument();
     expect(
       screen.getByText(/Share files from your projects/),
     ).toBeInTheDocument();
   });
 
-  it.skip("should render shares list when data is available", async () => {
-    const mockShares = [
-      {
-        id: "share-1",
-        token: "token-1",
-        projectId: "project-1",
-        filePath: "src/test.ts",
-        url: "https://uspark.dev/share/token-1",
-        createdAt: "2024-01-01T10:00:00Z",
-        accessedCount: 5,
-        lastAccessedAt: "2024-01-02T15:00:00Z",
-      },
-      {
-        id: "share-2",
-        token: "token-2",
-        projectId: "project-2",
-        filePath: "README.md",
-        url: "https://uspark.dev/share/token-2",
-        createdAt: "2024-01-03T10:00:00Z",
-        accessedCount: 0,
-        lastAccessedAt: null,
-      },
-    ];
-
-    mockFetch.mockReturnValueOnce(createMockResponse({ shares: mockShares }));
+  it("should render shares list when data is available", async () => {
+    // Use default handler from msw-handlers.ts which returns mock shares
 
     render(<SharesPage />);
 
@@ -112,24 +83,7 @@ describe("SharesPage", () => {
     expect(screen.getByText("Accessed: 0 times")).toBeInTheDocument();
   });
 
-  it.skip("should handle delete share", async () => {
-    const mockShares = [
-      {
-        id: "share-1",
-        token: "token-1",
-        projectId: "project-1",
-        filePath: "test.ts",
-        url: "https://uspark.dev/share/token-1",
-        createdAt: "2024-01-01T10:00:00Z",
-        accessedCount: 0,
-        lastAccessedAt: null,
-      },
-    ];
-
-    mockFetch
-      .mockReturnValueOnce(createMockResponse({ shares: mockShares }))
-      .mockReturnValueOnce(createMockResponse({ success: true }));
-
+  it("should handle delete share", async () => {
     // Mock window.confirm
     const originalConfirm = window.confirm;
     window.confirm = vi.fn(() => true);
@@ -141,17 +95,16 @@ describe("SharesPage", () => {
       expect(screen.queryByText("Loading shares...")).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText("📄 test.ts")).toBeInTheDocument();
+    expect(screen.getByText("📄 src/test.ts")).toBeInTheDocument();
 
-    // Click revoke button
-    const revokeButton = screen.getByText("Revoke");
-    fireEvent.click(revokeButton);
+    // Click revoke button (first one)
+    const revokeButtons = screen.getAllByText("Revoke");
+    fireEvent.click(revokeButtons[0]);
 
+    // Wait for the share to be removed from UI
     await waitFor(() => {
-      // Verify delete API was called
-      expect(mockFetch).toHaveBeenCalledWith("/api/shares/share-1", {
-        method: "DELETE",
-      });
+      // The component should filter out the deleted share
+      expect(screen.queryByText("📄 src/test.ts")).not.toBeInTheDocument();
     });
 
     // Restore confirm
@@ -159,25 +112,10 @@ describe("SharesPage", () => {
   });
 
   it("should handle copy link", async () => {
-    const mockShares = [
-      {
-        id: "share-1",
-        token: "token-1",
-        projectId: "project-1",
-        filePath: "test.ts",
-        url: "https://uspark.dev/share/token-1",
-        createdAt: "2024-01-01T10:00:00Z",
-        accessedCount: 0,
-        lastAccessedAt: null,
-      },
-    ];
-
-    mockFetch.mockReturnValueOnce(createMockResponse({ shares: mockShares }));
-
     // Mock clipboard API
     Object.assign(navigator, {
       clipboard: {
-        writeText: vi.fn(),
+        writeText: vi.fn().mockResolvedValue(undefined),
       },
     });
 
@@ -188,11 +126,11 @@ describe("SharesPage", () => {
       expect(screen.queryByText("Loading shares...")).not.toBeInTheDocument();
     });
 
-    expect(screen.getByText("📄 test.ts")).toBeInTheDocument();
+    expect(screen.getByText("📄 src/test.ts")).toBeInTheDocument();
 
-    // Click copy button
-    const copyButton = screen.getByText("Copy Link");
-    fireEvent.click(copyButton);
+    // Click copy button (first one)
+    const copyButtons = screen.getAllByText("Copy Link");
+    fireEvent.click(copyButtons[0]);
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
       "https://uspark.dev/share/token-1",
@@ -200,8 +138,6 @@ describe("SharesPage", () => {
   });
 
   it("should display correct heading and back link", () => {
-    mockFetch.mockReturnValueOnce(createMockResponse({ shares: [] }));
-
     render(<SharesPage />);
 
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
@@ -216,12 +152,17 @@ describe("SharesPage", () => {
   it("should handle API error gracefully", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
-    mockFetch.mockRejectedValueOnce(new Error("Network error"));
+    // Override handler to return error
+    server.use(
+      http.get("*/api/shares", () => {
+        return HttpResponse.error();
+      }),
+    );
 
     render(<SharesPage />);
 
     await waitFor(() => {
-      // Should still hide loading after error
+      // Should hide loading after error
       expect(screen.queryByText("Loading shares...")).not.toBeInTheDocument();
     });
 
