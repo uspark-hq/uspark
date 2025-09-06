@@ -1,0 +1,54 @@
+name: E2E Tests with Clerk
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  e2e-test:
+    runs-on: ubuntu-latest
+    environment: e2e-testing  # 使用独立的测试环境
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          
+      - name: Install dependencies
+        working-directory: ./e2e/web
+        run: npm ci
+        
+      - name: Install Playwright Browsers
+        working-directory: ./e2e/web
+        run: npx playwright install --with-deps chromium
+        
+      - name: Run E2E Tests
+        working-directory: ./e2e/web
+        env:
+          # 从 GitHub Secrets 获取（安全存储）
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.CLERK_TEST_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_TEST_SECRET_KEY }}
+          BASE_URL: ${{ vars.E2E_BASE_URL }}
+          CI: true
+        run: npm run test:secret
+        
+      - name: Upload Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: e2e/web/playwright-report/
+          retention-days: 7
+          
+      - name: Upload Test Videos
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-videos
+          path: e2e/web/test-results/
+          retention-days: 3

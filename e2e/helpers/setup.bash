@@ -9,3 +9,17 @@ load "${TEST_ROOT}/test/libs/bats-assert/load"
 
 # Path to the CLI
 export CLI_COMMAND="uspark"
+
+# API Host configuration (must be provided via environment variable for E2E tests)
+# This ensures we always test against the deployed preview URL
+if [ -z "$API_HOST" ]; then
+    echo "ERROR: API_HOST environment variable must be set for E2E tests"
+    echo "This should be automatically set by GitHub Actions to the deployed preview URL"
+    exit 1
+fi
+export API_HOST
+
+# Helper function to run CLI with API host
+cli_with_host() {
+    API_HOST="$API_HOST" $CLI_COMMAND "$@"
+}
