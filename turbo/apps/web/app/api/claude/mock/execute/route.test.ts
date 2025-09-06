@@ -105,6 +105,7 @@ describe("Mock Executor with Real Database", () => {
       const [session] = await db
         .insert(SESSIONS_TBL)
         .values({
+          id: `sess_${crypto.randomUUID()}`,
           projectId: testProjectId,
           title: "Test session",
         })
@@ -214,6 +215,7 @@ describe("Mock Executor with Real Database", () => {
       const [session] = await db
         .insert(SESSIONS_TBL)
         .values({
+          id: `sess_${crypto.randomUUID()}`,
           projectId: testProjectId,
           title: "Test session",
         })
@@ -223,6 +225,7 @@ describe("Mock Executor with Real Database", () => {
       const [turn1] = await db
         .insert(TURNS_TBL)
         .values({
+          id: `turn_${crypto.randomUUID()}`,
           sessionId: session.id,
           userPrompt: "First message",
           status: "completed",
@@ -232,6 +235,7 @@ describe("Mock Executor with Real Database", () => {
       const [turn2] = await db
         .insert(TURNS_TBL)
         .values({
+          id: `turn_${crypto.randomUUID()}`,
           sessionId: session.id,
           userPrompt: "Second message",
           status: "running",
@@ -258,6 +262,7 @@ describe("Mock Executor with Real Database", () => {
       const [session] = await db
         .insert(SESSIONS_TBL)
         .values({
+          id: `sess_${crypto.randomUUID()}`,
           projectId: testProjectId,
           title: "Test session",
         })
@@ -267,6 +272,7 @@ describe("Mock Executor with Real Database", () => {
       const [turn] = await db
         .insert(TURNS_TBL)
         .values({
+          id: `turn_${crypto.randomUUID()}`,
           sessionId: session.id,
           userPrompt: "Test message",
           status: "completed",
@@ -276,15 +282,17 @@ describe("Mock Executor with Real Database", () => {
       // Create blocks
       await db.insert(BLOCKS_TBL).values([
         {
+          id: `block_${crypto.randomUUID()}`,
           turnId: turn.id,
           type: "thinking",
-          content: { text: "Thinking..." },
+          content: JSON.stringify({ text: "Thinking..." }),
           sequenceNumber: 0,
         },
         {
+          id: `block_${crypto.randomUUID()}`,
           turnId: turn.id,
           type: "content",
-          content: { text: "Response content" },
+          content: JSON.stringify({ text: "Response content" }),
           sequenceNumber: 1,
         },
       ]);
@@ -310,6 +318,7 @@ describe("Mock Executor with Real Database", () => {
       const [session] = await db
         .insert(SESSIONS_TBL)
         .values({
+          id: `sess_${crypto.randomUUID()}`,
           projectId: testProjectId,
           title: "Test session",
         })

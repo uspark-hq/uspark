@@ -1,59 +1,51 @@
-import { pgTable, text, timestamp, integer, jsonb } from "drizzle-orm/pg-core";
-import { PROJECTS_TBL } from "./projects";
+import { pgTable, text, timestamp, integer } from "drizzle-orm/pg-core";
 
 /**
- * Sessions table - stores Claude conversation sessions for projects
+ * Schema for Claude sessions management
+ * Implements the three-layer structure: sessions -> turns -> blocks
  */
+
+// Sessions table - top level conversation containers
 export const SESSIONS_TBL = pgTable("sessions", {
-  id: text("id")
-    .primaryKey()
-    .notNull()
-    .$defaultFn(() => `session_${crypto.randomUUID()}`),
+  id: text("id").primaryKey().notNull(), // sess_<uuid>
   projectId: text("project_id")
     .notNull()
     .references(() => PROJECTS_TBL.id),
-  title: text("title"),
+  title: text("title"), // Optional session title
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
-/**
- * Turns table - stores individual conversation turns within sessions
- */
+// Turns table - individual user/assistant interaction pairs
 export const TURNS_TBL = pgTable("turns", {
-  id: text("id")
-    .primaryKey()
-    .notNull()
-    .$defaultFn(() => `turn_${crypto.randomUUID()}`),
+  id: text("id").primaryKey().notNull(), // turn_<uuid>
   sessionId: text("session_id")
     .notNull()
     .references(() => SESSIONS_TBL.id, { onDelete: "cascade" }),
-  userPrompt: text("user_prompt").notNull(),
+  userPrompt: text("user_prompt").notNull(), // User's input message
   status: text("status").notNull().default("pending"), // pending, running, completed, failed
-  errorMessage: text("error_message"),
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
+  errorMessage: text("error_message"), // Error details if status is failed
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-/**
- * Blocks table - stores individual content blocks within turns
- */
+// Blocks table - individual response blocks from Claude
 export const BLOCKS_TBL = pgTable("blocks", {
-  id: text("id")
-    .primaryKey()
-    .notNull()
-    .$defaultFn(() => `block_${crypto.randomUUID()}`),
+  id: text("id").primaryKey().notNull(), // block_<uuid>
   turnId: text("turn_id")
     .notNull()
     .references(() => TURNS_TBL.id, { onDelete: "cascade" }),
   type: text("type").notNull(), // thinking, content, tool_use, tool_result
-  content: jsonb("content").notNull(),
-  sequenceNumber: integer("sequence_number").notNull(),
+  content: text("content").notNull(), // JSON stringified content
+  sequenceNumber: integer("sequence_number").notNull(), // Order of blocks within a turn
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// Type exports for TypeScript
+// Import projects table for reference
+import { PROJECTS_TBL } from "./projects";
+
+// Type exports
 export type Session = typeof SESSIONS_TBL.$inferSelect;
 export type NewSession = typeof SESSIONS_TBL.$inferInsert;
 
@@ -83,3 +75,9 @@ export interface ToolResultBlockContent {
   result: string;
   error?: string | null;
 }
+
+export type BlockContent =
+  | { type: "thinking"; content: ThinkingBlockContent }
+  | { type: "content"; content: ContentBlockContent }
+  | { type: "tool_use"; content: ToolUseBlockContent }
+  | { type: "tool_result"; content: ToolResultBlockContent };

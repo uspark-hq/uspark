@@ -88,9 +88,10 @@ async function createMockBlocks(turnId: string): Promise<void> {
     text: "I'm analyzing your request and planning the approach...",
   };
   blocks.push({
+    id: `block_${crypto.randomUUID()}`,
     turnId,
     type: "thinking",
-    content: thinkingContent,
+    content: JSON.stringify(thinkingContent),
     sequenceNumber: sequenceNumber++,
   });
 
@@ -100,9 +101,10 @@ async function createMockBlocks(turnId: string): Promise<void> {
     text: "I'll help you with that. Let me start by examining the codebase.",
   };
   blocks.push({
+    id: `block_${crypto.randomUUID()}`,
     turnId,
     type: "content",
-    content: contentBlock,
+    content: JSON.stringify(contentBlock),
     sequenceNumber: sequenceNumber++,
   });
 
@@ -114,9 +116,10 @@ async function createMockBlocks(turnId: string): Promise<void> {
     tool_use_id: `tool_use_${Date.now()}_1`,
   };
   blocks.push({
+    id: `block_${crypto.randomUUID()}`,
     turnId,
     type: "tool_use",
-    content: toolUseContent,
+    content: JSON.stringify(toolUseContent),
     sequenceNumber: sequenceNumber++,
   });
 
@@ -128,9 +131,10 @@ async function createMockBlocks(turnId: string): Promise<void> {
     error: null,
   };
   blocks.push({
+    id: `block_${crypto.randomUUID()}`,
     turnId,
     type: "tool_result",
-    content: toolResultContent,
+    content: JSON.stringify(toolResultContent),
     sequenceNumber: sequenceNumber++,
   });
 
@@ -146,9 +150,10 @@ function exampleCode() {
 \`\`\``,
   };
   blocks.push({
+    id: `block_${crypto.randomUUID()}`,
     turnId,
     type: "content",
-    content: codeContent,
+    content: JSON.stringify(codeContent),
     sequenceNumber: sequenceNumber++,
   });
 
@@ -158,9 +163,10 @@ function exampleCode() {
     text: "I've completed the requested changes. The code has been updated with the new functionality.",
   };
   blocks.push({
+    id: `block_${crypto.randomUUID()}`,
     turnId,
     type: "content",
-    content: finalContent,
+    content: JSON.stringify(finalContent),
     sequenceNumber: sequenceNumber++,
   });
 
@@ -187,6 +193,7 @@ export async function POST(request: NextRequest) {
     // Create or get session
     if (!sessionId) {
       const newSession: NewSession = {
+        id: `sess_${crypto.randomUUID()}`,
         projectId,
         title: `Mock session ${new Date().toISOString()}`,
       };
@@ -213,6 +220,7 @@ export async function POST(request: NextRequest) {
 
     // Create new turn
     const newTurn: NewTurn = {
+      id: `turn_${crypto.randomUUID()}`,
       sessionId,
       userPrompt: message,
       status: "running",

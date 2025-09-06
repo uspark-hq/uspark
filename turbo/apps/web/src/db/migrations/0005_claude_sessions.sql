@@ -11,9 +11,9 @@ CREATE TABLE IF NOT EXISTS "turns" (
 	"session_id" text NOT NULL,
 	"user_prompt" text NOT NULL,
 	"status" text DEFAULT 'pending' NOT NULL,
-	"error_message" text,
 	"started_at" timestamp,
 	"completed_at" timestamp,
+	"error_message" text,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS "blocks" (
 	"id" text PRIMARY KEY NOT NULL,
 	"turn_id" text NOT NULL,
 	"type" text NOT NULL,
-	"content" jsonb NOT NULL,
+	"content" text NOT NULL,
 	"sequence_number" integer NOT NULL,
 	"created_at" timestamp DEFAULT now() NOT NULL
 );
@@ -43,3 +43,13 @@ DO $$ BEGIN
 EXCEPTION
  WHEN duplicate_object THEN null;
 END $$;
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_sessions_project" ON "sessions" USING btree ("project_id");
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_turns_session" ON "turns" USING btree ("session_id");
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_turns_status" ON "turns" USING btree ("status");
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_blocks_turn" ON "blocks" USING btree ("turn_id");
+--> statement-breakpoint
+CREATE INDEX IF NOT EXISTS "idx_blocks_sequence" ON "blocks" USING btree ("turn_id","sequence_number");

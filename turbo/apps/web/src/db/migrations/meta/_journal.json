@@ -40,8 +40,8 @@
     {
       "idx": 5,
       "version": "7",
-      "when": 1757000000000,
-      "tag": "0005_sessions_turns_blocks",
+      "when": 1756894000000,
+      "tag": "0005_claude_sessions",
       "breakpoints": true
     }
   ]
