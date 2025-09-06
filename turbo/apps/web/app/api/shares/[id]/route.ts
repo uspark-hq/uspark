@@ -4,74 +4,37 @@ import { initServices } from "../../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
 import { eq, and } from "drizzle-orm";
 
-interface ShareError {
-  error: string;
-  error_description?: string;
-}
-
-interface DeleteShareResponse {
-  success: boolean;
-  message: string;
-}
-
 /**
- * DELETE /api/shares/[id]
- * Revoke a share link by its ID
+ * DELETE /api/shares/:id
+ * Revoke a share link
  */
 export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } },
+  _request: NextRequest,
+  context: { params: Promise<{ id: string }> },
 ) {
   const { userId } = await auth();
 
   if (!userId) {
-    const errorResponse: ShareError = {
-      error: "unauthorized",
-    };
-    return NextResponse.json(errorResponse, { status: 401 });
-  }
-
-  const shareId = params.id;
-
-  if (!shareId) {
-    const errorResponse: ShareError = {
-      error: "invalid_request",
-      error_description: "Share ID is required",
-    };
-    return NextResponse.json(errorResponse, { status: 400 });
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   initServices();
+  const { id } = await context.params;
 
-  // First, check if the share exists and belongs to the user
-  const [existingShare] = await globalThis.services.db
+  // Check if the share exists and belongs to the user
+  const [shareLink] = await globalThis.services.db
     .select()
     .from(SHARE_LINKS_TBL)
-    .where(
-      and(eq(SHARE_LINKS_TBL.id, shareId), eq(SHARE_LINKS_TBL.userId, userId)),
-    );
+    .where(and(eq(SHARE_LINKS_TBL.id, id), eq(SHARE_LINKS_TBL.userId, userId)));
 
-  if (!existingShare) {
-    const errorResponse: ShareError = {
-      error: "share_not_found",
-      error_description:
-        "Share not found or you don't have permission to delete it",
-    };
-    return NextResponse.json(errorResponse, { status: 404 });
+  if (!shareLink) {
+    return NextResponse.json({ error: "share_not_found" }, { status: 404 });
   }
 
   // Delete the share link
   await globalThis.services.db
     .delete(SHARE_LINKS_TBL)
-    .where(
-      and(eq(SHARE_LINKS_TBL.id, shareId), eq(SHARE_LINKS_TBL.userId, userId)),
-    );
+    .where(and(eq(SHARE_LINKS_TBL.id, id), eq(SHARE_LINKS_TBL.userId, userId)));
 
-  const response: DeleteShareResponse = {
-    success: true,
-    message: "Share link revoked successfully",
-  };
-
-  return NextResponse.json(response);
+  return NextResponse.json({ success: true });
 }
-

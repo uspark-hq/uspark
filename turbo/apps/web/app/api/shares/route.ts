@@ -1,72 +1,43 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
 import { eq, desc } from "drizzle-orm";
 
-interface ShareListItem {
-  id: string;
-  url: string;
-  token: string;
-  project_id: string;
-  file_path: string | null;
-  created_at: string;
-  accessed_count: number;
-  last_accessed_at: string | null;
-}
-
-interface ListSharesResponse {
-  shares: ShareListItem[];
-}
-
-interface ShareError {
-  error: string;
-  error_description?: string;
-}
-
 /**
  * GET /api/shares
- * List all share links created by the current user
+ * List all share links for the authenticated user
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   const { userId } = await auth();
 
   if (!userId) {
-    const errorResponse: ShareError = {
-      error: "unauthorized",
-    };
-    return NextResponse.json(errorResponse, { status: 401 });
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   initServices();
 
   // Get all shares for the current user
   const shares = await globalThis.services.db
-    .select()
+    .select({
+      id: SHARE_LINKS_TBL.id,
+      token: SHARE_LINKS_TBL.token,
+      projectId: SHARE_LINKS_TBL.projectId,
+      filePath: SHARE_LINKS_TBL.filePath,
+      createdAt: SHARE_LINKS_TBL.createdAt,
+      accessedCount: SHARE_LINKS_TBL.accessedCount,
+      lastAccessedAt: SHARE_LINKS_TBL.lastAccessedAt,
+    })
     .from(SHARE_LINKS_TBL)
     .where(eq(SHARE_LINKS_TBL.userId, userId))
     .orderBy(desc(SHARE_LINKS_TBL.createdAt));
 
-  // Construct the base URL
-  const baseUrl = request.headers.get("origin") || "https://uspark.dev";
-
-  const shareList: ShareListItem[] = shares.map((share) => ({
-    id: share.id,
+  // Transform to include full URLs
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://uspark.dev";
+  const sharesWithUrls = shares.map((share) => ({
+    ...share,
     url: `${baseUrl}/share/${share.token}`,
-    token: share.token,
-    project_id: share.projectId,
-    file_path: share.filePath,
-    created_at: share.createdAt.toISOString(),
-    accessed_count: share.accessedCount,
-    last_accessed_at: share.lastAccessedAt
-      ? share.lastAccessedAt.toISOString()
-      : null,
   }));
 
-  const response: ListSharesResponse = {
-    shares: shareList,
-  };
-
-  return NextResponse.json(response);
+  return NextResponse.json({ shares: sharesWithUrls });
 }
-

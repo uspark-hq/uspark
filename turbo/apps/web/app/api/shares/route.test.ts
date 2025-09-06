@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { NextRequest } from "next/server";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { GET } from "./route";
 import { initServices } from "../../../src/lib/init-services";
+import { apiCall } from "../../../src/test/api-helpers";
 import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
 import { eq } from "drizzle-orm";
@@ -15,33 +15,64 @@ vi.mock("@clerk/nextjs/server", () => ({
 import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 
-describe("/api/shares", () => {
-  const userId = "test-user-shares-list";
-  const otherUserId = "other-user-shares-list";
-  const projectId = `test-project-shares-${Date.now()}`;
-  const testFilePath = "src/test.ts";
+describe("GET /api/shares", () => {
+  const userId = "test-user-123";
+  const otherUserId = "other-user-456";
 
   beforeEach(async () => {
-    // Clean up any existing test data
     initServices();
-    
-    // Clean up ALL share links for test users (including any leftover from other tests)
+
+    // Clean up test data - delete shares first due to FK constraints
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, userId));
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
-    
-    // Clean up test project
+
+    // Also clean up projects created in previous test runs
     await globalThis.services.db
       .delete(PROJECTS_TBL)
-      .where(eq(PROJECTS_TBL.id, projectId));
+      .where(eq(PROJECTS_TBL.userId, userId));
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.userId, otherUserId));
 
+    // Mock successful authentication by default
+    mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+  });
+
+  afterEach(async () => {
+    // Clean up after each test - delete shares first due to FK constraints
+    await globalThis.services.db
+      .delete(SHARE_LINKS_TBL)
+      .where(eq(SHARE_LINKS_TBL.userId, userId));
+    await globalThis.services.db
+      .delete(SHARE_LINKS_TBL)
+      .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
+
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.userId, userId));
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.userId, otherUserId));
+  });
+
+  it("should return empty array when user has no shares", async () => {
+    const response = await apiCall(GET, "GET");
+
+    expect(response.status).toBe(200);
+    expect(response.data).toEqual({ shares: [] });
+  });
+
+  it("should return user's shares with correct structure", async () => {
     // Create test project
+    const projectId = `test-project-${Date.now()}`;
     const ydoc = new Y.Doc();
     const files = ydoc.getMap("files");
-    files.set(testFilePath, { hash: "abc123", mtime: Date.now() });
+    files.set("test.ts", { hash: "abc123", mtime: Date.now() });
+
     const state = Y.encodeStateAsUpdate(ydoc);
     const base64Data = Buffer.from(state).toString("base64");
 
@@ -52,203 +83,202 @@ describe("/api/shares", () => {
       version: 0,
     });
 
-    // Mock successful authentication by default
-    mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+    // Create test shares with unique IDs
+    const timestamp = Date.now();
+    const share1 = {
+      id: `share-1-${timestamp}`,
+      token: `token-1-${timestamp}`,
+      projectId,
+      filePath: "src/file1.ts",
+      userId,
+      accessedCount: 5,
+      createdAt: new Date("2024-01-01"),
+    };
+
+    const share2 = {
+      id: `share-2-${timestamp}`,
+      token: `token-2-${timestamp}`,
+      projectId,
+      filePath: "src/file2.ts",
+      userId,
+      accessedCount: 0,
+      createdAt: new Date("2024-01-02"),
+    };
+
+    await globalThis.services.db
+      .insert(SHARE_LINKS_TBL)
+      .values([share1, share2]);
+
+    const response = await apiCall(GET, "GET");
+
+    expect(response.status).toBe(200);
+    expect(response.data.shares).toHaveLength(2);
+
+    // Should be ordered by createdAt desc (newest first)
+    expect(response.data.shares[0]).toMatchObject({
+      id: `share-2-${timestamp}`,
+      token: `token-2-${timestamp}`,
+      projectId,
+      filePath: "src/file2.ts",
+      url: expect.stringMatching(new RegExp(`/share/token-2-${timestamp}$`)),
+      accessedCount: 0,
+    });
+
+    expect(response.data.shares[1]).toMatchObject({
+      id: `share-1-${timestamp}`,
+      token: `token-1-${timestamp}`,
+      projectId,
+      filePath: "src/file1.ts",
+      url: expect.stringMatching(new RegExp(`/share/token-1-${timestamp}$`)),
+      accessedCount: 5,
+    });
+
+    // Clean up - delete shares first due to foreign key constraint
+    await globalThis.services.db
+      .delete(SHARE_LINKS_TBL)
+      .where(eq(SHARE_LINKS_TBL.projectId, projectId));
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.id, projectId));
   });
 
-  afterEach(async () => {
-    // Clean up any created share links after each test
+  it("should not return shares from other users", async () => {
+    // Create projects for different users
+    const myProjectId = `my-project-${Date.now()}`;
+    const otherProjectId = `other-project-${Date.now()}`;
+
+    const ydoc = new Y.Doc();
+    const state = Y.encodeStateAsUpdate(ydoc);
+    const base64Data = Buffer.from(state).toString("base64");
+
+    // Create both projects
+    await globalThis.services.db.insert(PROJECTS_TBL).values([
+      {
+        id: myProjectId,
+        userId,
+        ydocData: base64Data,
+        version: 0,
+      },
+      {
+        id: otherProjectId,
+        userId: otherUserId,
+        ydocData: base64Data,
+        version: 0,
+      },
+    ]);
+
+    // Create shares for both users
+    const timestamp = Date.now();
+    await globalThis.services.db.insert(SHARE_LINKS_TBL).values([
+      {
+        id: `my-share-${timestamp}`,
+        token: `my-token-${timestamp}`,
+        projectId: myProjectId,
+        filePath: "my-file.ts",
+        userId,
+      },
+      {
+        id: `other-share-${timestamp}`,
+        token: `other-token-${timestamp}`,
+        projectId: otherProjectId,
+        filePath: "other-file.ts",
+        userId: otherUserId,
+      },
+    ]);
+
+    const response = await apiCall(GET, "GET");
+
+    expect(response.status).toBe(200);
+    expect(response.data.shares).toHaveLength(1);
+    expect(response.data.shares[0].id).toBe(`my-share-${timestamp}`);
+
+    // Clean up - delete shares first, then projects
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, userId));
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.id, myProjectId));
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.id, otherProjectId));
   });
 
-  describe("GET /api/shares", () => {
-    it("should return 401 when user is not authenticated", async () => {
-      mockAuth.mockResolvedValue({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
+  it("should return 401 when not authenticated", async () => {
+    mockAuth.mockResolvedValue({ userId: null } as Awaited<
+      ReturnType<typeof auth>
+    >);
 
-      const request = new NextRequest("http://localhost:3000/api/shares");
-      const response = await GET(request);
-      const responseData = await response.json();
+    const response = await apiCall(GET, "GET");
 
-      expect(response.status).toBe(401);
-      expect(responseData).toMatchObject({
-        error: "unauthorized",
-      });
-    });
+    expect(response.status).toBe(401);
+    expect(response.data).toEqual({ error: "unauthorized" });
+  });
 
-    it("should return empty array when user has no shares", async () => {
-      const request = new NextRequest("http://localhost:3000/api/shares");
-      const response = await GET(request);
-      const responseData = await response.json();
+  it("should order shares by creation date descending", async () => {
+    // Create projects for the shares
+    const project1 = `project-1-${Date.now()}`;
+    const project2 = `project-2-${Date.now()}`;
+    const project3 = `project-3-${Date.now()}`;
 
-      expect(response.status).toBe(200);
-      expect(responseData).toMatchObject({
-        shares: [],
-      });
-    });
+    const ydoc = new Y.Doc();
+    const state = Y.encodeStateAsUpdate(ydoc);
+    const base64Data = Buffer.from(state).toString("base64");
 
-    it("should return list of user's shares", async () => {
-      // Create test share links
-      const shareId1 = `share-${Date.now()}-1`;
-      const shareId2 = `share-${Date.now()}-2`;
-      const token1 = `token-${Date.now()}-1`;
-      const token2 = `token-${Date.now()}-2`;
+    await globalThis.services.db.insert(PROJECTS_TBL).values([
+      { id: project1, userId, ydocData: base64Data, version: 0 },
+      { id: project2, userId, ydocData: base64Data, version: 0 },
+      { id: project3, userId, ydocData: base64Data, version: 0 },
+    ]);
 
-      await globalThis.services.db.insert(SHARE_LINKS_TBL).values([
-        {
-          id: shareId1,
-          token: token1,
-          projectId,
-          filePath: "src/file1.ts",
-          userId,
-          accessedCount: 5,
-          lastAccessedAt: new Date("2024-01-01"),
-        },
-        {
-          id: shareId2,
-          token: token2,
-          projectId,
-          filePath: "src/file2.ts",
-          userId,
-          accessedCount: 0,
-        },
-      ]);
-
-      const request = new NextRequest("http://localhost:3000/api/shares", {
-        headers: {
-          origin: "http://localhost:3000",
-        },
-      });
-      const response = await GET(request);
-      const responseData = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(responseData.shares).toHaveLength(2);
-      
-      // Check first share
-      const share1 = responseData.shares.find((s: any) => s.id === shareId1);
-      expect(share1).toMatchObject({
-        id: shareId1,
-        url: `http://localhost:3000/share/${token1}`,
-        token: token1,
-        project_id: projectId,
-        file_path: "src/file1.ts",
-        accessed_count: 5,
-        created_at: expect.any(String),
-        last_accessed_at: expect.any(String),
-      });
-
-      // Check second share
-      const share2 = responseData.shares.find((s: any) => s.id === shareId2);
-      expect(share2).toMatchObject({
-        id: shareId2,
-        url: `http://localhost:3000/share/${token2}`,
-        token: token2,
-        project_id: projectId,
-        file_path: "src/file2.ts",
-        accessed_count: 0,
-        created_at: expect.any(String),
-        last_accessed_at: null,
-      });
-    });
-
-    it("should only return shares for authenticated user", async () => {
-      // Create shares for different users
-      const shareId1 = `share-${Date.now()}-1`;
-      const shareId2 = `share-${Date.now()}-2`;
-      const token1 = `token-${Date.now()}-1`;
-      const token2 = `token-${Date.now()}-2`;
-
-      await globalThis.services.db.insert(SHARE_LINKS_TBL).values([
-        {
-          id: shareId1,
-          token: token1,
-          projectId,
-          filePath: "src/file1.ts",
-          userId,
-        },
-        {
-          id: shareId2,
-          token: token2,
-          projectId,
-          filePath: "src/file2.ts",
-          userId: otherUserId, // Different user
-        },
-      ]);
-
-      const request = new NextRequest("http://localhost:3000/api/shares");
-      const response = await GET(request);
-      const responseData = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(responseData.shares).toHaveLength(1);
-      expect(responseData.shares[0].id).toBe(shareId1);
-    });
-
-    it("should order shares by creation date (newest first)", async () => {
-      // Create shares with different creation times
-      const oldDate = new Date("2024-01-01");
-      const newDate = new Date("2024-01-10");
-      
-      const shareId1 = `share-old-${Date.now()}`;
-      const shareId2 = `share-new-${Date.now()}`;
-
-      // Insert older share first
-      await globalThis.services.db.insert(SHARE_LINKS_TBL).values({
-        id: shareId1,
-        token: `token-old-${Date.now()}`,
-        projectId,
+    const now = Date.now();
+    const timestamp = now;
+    const shares = [
+      {
+        id: `old-share-${timestamp}`,
+        token: `old-token-${timestamp}`,
+        projectId: project1,
         filePath: "old.ts",
         userId,
-        createdAt: oldDate,
-      });
-
-      // Insert newer share
-      await globalThis.services.db.insert(SHARE_LINKS_TBL).values({
-        id: shareId2,
-        token: `token-new-${Date.now()}`,
-        projectId,
+        createdAt: new Date(now - 3600000), // 1 hour ago
+      },
+      {
+        id: `new-share-${timestamp}`,
+        token: `new-token-${timestamp}`,
+        projectId: project2,
         filePath: "new.ts",
         userId,
-        createdAt: newDate,
-      });
-
-      const request = new NextRequest("http://localhost:3000/api/shares");
-      const response = await GET(request);
-      const responseData = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(responseData.shares).toHaveLength(2);
-      expect(responseData.shares[0].id).toBe(shareId2); // Newer first
-      expect(responseData.shares[1].id).toBe(shareId1); // Older second
-    });
-
-    it("should handle missing origin header gracefully", async () => {
-      const shareId = `share-${Date.now()}`;
-      const token = `token-${Date.now()}`;
-
-      await globalThis.services.db.insert(SHARE_LINKS_TBL).values({
-        id: shareId,
-        token,
-        projectId,
-        filePath: "test.ts",
+        createdAt: new Date(now), // now
+      },
+      {
+        id: `middle-share-${timestamp}`,
+        token: `middle-token-${timestamp}`,
+        projectId: project3,
+        filePath: "middle.ts",
         userId,
-      });
+        createdAt: new Date(now - 1800000), // 30 min ago
+      },
+    ];
 
-      // Request without origin header
-      const request = new NextRequest("http://localhost:3000/api/shares");
-      const response = await GET(request);
-      const responseData = await response.json();
+    await globalThis.services.db.insert(SHARE_LINKS_TBL).values(shares);
 
-      expect(response.status).toBe(200);
-      expect(responseData.shares).toHaveLength(1);
-      expect(responseData.shares[0].url).toBe(`https://uspark.dev/share/${token}`);
-    });
+    const response = await apiCall(GET, "GET");
+
+    expect(response.status).toBe(200);
+    expect(response.data.shares).toHaveLength(3);
+    expect(response.data.shares[0].id).toBe(`new-share-${timestamp}`);
+    expect(response.data.shares[1].id).toBe(`middle-share-${timestamp}`);
+    expect(response.data.shares[2].id).toBe(`old-share-${timestamp}`);
+
+    // Clean up
+    await globalThis.services.db
+      .delete(SHARE_LINKS_TBL)
+      .where(eq(SHARE_LINKS_TBL.userId, userId));
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.userId, userId));
   });
 });
