@@ -5,8 +5,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
-  reporter: 'html',
+  workers: process.env.CI ? 4 : undefined,  // Use 4 parallel workers in CI
+  reporter: process.env.CI ? 'list' : 'html',  // Use list reporter in CI for better output
   timeout: 5000, // 5 seconds per test
   globalSetup: require.resolve('./playwright/global-setup.ts'),
   use: {
