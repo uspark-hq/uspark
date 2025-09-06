@@ -1,33 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import type { Turn } from "./types";
 
 interface ChatStatusProps {
   currentTurn?: Turn;
   sessionId?: string;
   onInterrupt?: () => void;
+  elapsedSeconds?: number; // Elapsed time in seconds, provided by parent
 }
 
 export function ChatStatus({
   currentTurn,
   sessionId,
   onInterrupt,
+  elapsedSeconds = 0,
 }: ChatStatusProps) {
-  const [elapsedTime, setElapsedTime] = useState(0);
-
-  useEffect(() => {
-    if (currentTurn?.status === "running" && currentTurn.started_at) {
-      const interval = setInterval(() => {
-        const startTime = new Date(currentTurn.started_at!).getTime();
-        const now = Date.now();
-        setElapsedTime(Math.floor((now - startTime) / 1000));
-      }, 1000);
-
-      return () => clearInterval(interval);
-    } else {
-      setElapsedTime(0);
-    }
-  }, [currentTurn]);
-
   const formatTime = (seconds: number) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
@@ -129,7 +115,7 @@ export function ChatStatus({
                 ></div>
               </div>
               <span className="text-sm font-mono">
-                {formatTime(elapsedTime)}
+                {formatTime(elapsedSeconds)}
               </span>
             </div>
             {onInterrupt && (

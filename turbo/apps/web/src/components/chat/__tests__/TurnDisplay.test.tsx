@@ -43,8 +43,8 @@ describe("TurnDisplay", () => {
   });
 
   it("shows duration for completed turns", () => {
-    render(<TurnDisplay turn={mockTurn} turnNumber={1} />);
-    expect(screen.getByText(/30s/)).toBeInTheDocument();
+    render(<TurnDisplay turn={mockTurn} turnNumber={1} durationText="30s" />);
+    expect(screen.getByText("30s")).toBeInTheDocument();
   });
 
   it("shows processing indicator for running turns", () => {

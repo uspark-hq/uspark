@@ -7,6 +7,7 @@ interface TurnDisplayProps {
   turnNumber: number;
   isActive?: boolean;
   onClick?: () => void;
+  durationText?: string; // Pre-calculated duration text from parent
 }
 
 export function TurnDisplay({
@@ -14,6 +15,7 @@ export function TurnDisplay({
   turnNumber,
   isActive = false,
   onClick,
+  durationText,
 }: TurnDisplayProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
@@ -47,22 +49,6 @@ export function TurnDisplay({
     }
   };
 
-  const getDuration = () => {
-    if (turn.started_at && turn.completed_at) {
-      const start = new Date(turn.started_at);
-      const end = new Date(turn.completed_at);
-      const durationMs = end.getTime() - start.getTime();
-      const seconds = Math.floor(durationMs / 1000);
-      const minutes = Math.floor(seconds / 60);
-
-      if (minutes > 0) {
-        return `${minutes}m ${seconds % 60}s`;
-      }
-      return `${seconds}s`;
-    }
-    return null;
-  };
-
   return (
     <div
       className={`border rounded-lg p-4 transition-all ${
@@ -94,8 +80,8 @@ export function TurnDisplay({
           )}
         </div>
         <div className="flex items-center gap-2">
-          {getDuration() && (
-            <span className="text-xs text-gray-500">{getDuration()}</span>
+          {durationText && (
+            <span className="text-xs text-gray-500">{durationText}</span>
           )}
           <button
             onClick={(e) => {

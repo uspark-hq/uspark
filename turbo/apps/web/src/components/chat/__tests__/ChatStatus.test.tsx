@@ -1,17 +1,10 @@
 import React from "react";
-import { render, screen, fireEvent, act } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { render, screen, fireEvent } from "@testing-library/react";
+import { describe, it, expect, vi } from "vitest";
 import { ChatStatus } from "../ChatStatus";
 import type { Turn } from "../types";
 
 describe("ChatStatus", () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
 
   it("shows ready state when no current turn", () => {
     render(<ChatStatus />);
@@ -41,25 +34,18 @@ describe("ChatStatus", () => {
       session_id: "session-1",
       user_prompt: "Test",
       status: "running",
-      started_at: new Date().toISOString(), // Start from now
+      started_at: new Date().toISOString(),
       created_at: new Date().toISOString(),
       blocks: [],
       block_count: 0,
     };
 
-    render(<ChatStatus currentTurn={turn} />);
+    render(<ChatStatus currentTurn={turn} elapsedSeconds={15} />);
     expect(screen.getByText("Claude is thinking...")).toBeInTheDocument();
     expect(screen.getByText("🔄")).toBeInTheDocument();
     
-    // Check initial elapsed time
-    expect(screen.getByText("0s")).toBeInTheDocument();
-    
-    // Advance timer and check update
-    act(() => {
-      vi.advanceTimersByTime(5000);
-    });
-    
-    expect(screen.getByText("5s")).toBeInTheDocument();
+    // Check elapsed time display
+    expect(screen.getByText("15s")).toBeInTheDocument();
   });
 
   it("shows completed state with duration", () => {
@@ -157,13 +143,9 @@ describe("ChatStatus", () => {
       block_count: 0,
     };
 
-    render(<ChatStatus currentTurn={turn} />);
+    render(<ChatStatus currentTurn={turn} elapsedSeconds={75} />);
     
-    // Advance timer to 75 seconds
-    act(() => {
-      vi.advanceTimersByTime(75000);
-    });
-    
+    // Check that 75 seconds is formatted as 1m 15s
     expect(screen.getByText("1m 15s")).toBeInTheDocument();
   });
 
