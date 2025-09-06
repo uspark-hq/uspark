@@ -1,6 +1,6 @@
 import { beforeAll, afterEach, afterAll } from "vitest";
 import { setupServer } from "msw/node";
-import { http, HttpResponse, bypass } from "msw";
+import { http, HttpResponse } from "msw";
 
 // Create MSW server instance - handlers will be added in setup.ts
 export const server = setupServer();
@@ -27,4 +27,4 @@ afterAll(() => {
 });
 
 // Export utilities for adding handlers in tests
-export { http, HttpResponse, bypass };
+export { http, HttpResponse };
