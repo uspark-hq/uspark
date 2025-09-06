@@ -2,25 +2,31 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { SessionDisplay } from "../SessionDisplay";
-import type { Turn } from "../types";
+import type { TurnWithBlocks } from "../types";
 
 describe("SessionDisplay", () => {
-  const mockTurns: Turn[] = [
+  const mockTurns: TurnWithBlocks[] = [
     {
-      id: "turn-1",
-      session_id: "session-1",
-      user_prompt: "Test prompt 1",
+      id: "turn_1",
+      sessionId: "sess_1",
+      userPrompt: "Test prompt 1",
       status: "completed",
-      created_at: new Date().toISOString(),
+      startedAt: null,
+      completedAt: null,
+      errorMessage: null,
+      createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
     },
     {
-      id: "turn-2",
-      session_id: "session-1",
-      user_prompt: "Test prompt 2",
+      id: "turn_2",
+      sessionId: "sess_1",
+      userPrompt: "Test prompt 2",
       status: "running",
-      created_at: new Date().toISOString(),
+      startedAt: new Date().toISOString(),
+      completedAt: null,
+      errorMessage: null,
+      createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
     },
@@ -46,7 +52,7 @@ describe("SessionDisplay", () => {
 
   it("highlights active turn", () => {
     const { container } = render(
-      <SessionDisplay turns={mockTurns} currentTurnId="turn-2" />
+      <SessionDisplay turns={mockTurns} currentTurnId="turn_2" />
     );
     const activeTurn = container.querySelector(".border-blue-500");
     expect(activeTurn).toBeInTheDocument();
@@ -61,7 +67,7 @@ describe("SessionDisplay", () => {
     const firstTurn = screen.getByText("Test prompt 1").closest('[role="button"]');
     fireEvent.click(firstTurn!);
     
-    expect(handleClick).toHaveBeenCalledWith("turn-1");
+    expect(handleClick).toHaveBeenCalledWith("turn_1");
   });
 
   it("applies custom className", () => {

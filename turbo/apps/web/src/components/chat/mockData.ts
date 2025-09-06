@@ -1,28 +1,27 @@
-import type { Session, Turn, Block } from "./types";
+import type { SessionWithTurns, TurnWithBlocks, BlockWithParsedContent } from "./types";
 
-export const mockSession: Session = {
-  id: "session-mock-001",
-  project_id: "project-123",
+export const mockSession: SessionWithTurns = {
+  id: "sess_mock-001",
+  projectId: "proj_123",
   title: "Mock Development Session",
-  created_at: new Date(Date.now() - 3600000).toISOString(),
-  updated_at: new Date().toISOString(),
-  turn_ids: ["turn-001", "turn-002", "turn-003"],
+  createdAt: new Date(Date.now() - 3600000).toISOString(),
+  updatedAt: new Date().toISOString(),
 };
 
-export const mockBlocks: Block[] = [
+export const mockBlocks: BlockWithParsedContent[] = [
   {
-    id: "block-001",
-    turn_id: "turn-001",
+    id: "block_001",
+    turnId: "turn_001",
     type: "thinking",
     content: {
       text: "I need to analyze the user's request for adding error handling. Let me first check the existing code structure and identify where error handling should be implemented...",
     },
-    sequence_number: 0,
-    created_at: new Date(Date.now() - 3000000).toISOString(),
+    sequenceNumber: 0,
+    createdAt: new Date(Date.now() - 3000000).toISOString(),
   },
   {
-    id: "block-002",
-    turn_id: "turn-001",
+    id: "block_002",
+    turnId: "turn_001",
     type: "tool_use",
     content: {
       tool_name: "read_file",
@@ -31,12 +30,12 @@ export const mockBlocks: Block[] = [
       },
       tool_use_id: "tool-use-001",
     },
-    sequence_number: 1,
-    created_at: new Date(Date.now() - 2950000).toISOString(),
+    sequenceNumber: 1,
+    createdAt: new Date(Date.now() - 2950000).toISOString(),
   },
   {
-    id: "block-003",
-    turn_id: "turn-001",
+    id: "block_003",
+    turnId: "turn_001",
     type: "tool_result",
     content: {
       tool_use_id: "tool-use-001",
@@ -44,22 +43,22 @@ export const mockBlocks: Block[] = [
         "export async function login(username: string, password: string) {\n  const response = await fetch('/api/auth/login', {\n    method: 'POST',\n    body: JSON.stringify({ username, password })\n  });\n  return response.json();\n}",
       error: null,
     },
-    sequence_number: 2,
-    created_at: new Date(Date.now() - 2900000).toISOString(),
+    sequenceNumber: 2,
+    createdAt: new Date(Date.now() - 2900000).toISOString(),
   },
   {
-    id: "block-004",
-    turn_id: "turn-001",
+    id: "block_004",
+    turnId: "turn_001",
     type: "content",
     content: {
       text: "I've reviewed your login function and I can see it lacks proper error handling. Let me add comprehensive error handling to make it more robust.",
     },
-    sequence_number: 3,
-    created_at: new Date(Date.now() - 2850000).toISOString(),
+    sequenceNumber: 3,
+    createdAt: new Date(Date.now() - 2850000).toISOString(),
   },
   {
-    id: "block-005",
-    turn_id: "turn-001",
+    id: "block_005",
+    turnId: "turn_001",
     type: "tool_use",
     content: {
       tool_name: "edit_file",
@@ -70,67 +69,69 @@ export const mockBlocks: Block[] = [
       },
       tool_use_id: "tool-use-002",
     },
-    sequence_number: 4,
-    created_at: new Date(Date.now() - 2800000).toISOString(),
+    sequenceNumber: 4,
+    createdAt: new Date(Date.now() - 2800000).toISOString(),
   },
   {
-    id: "block-006",
-    turn_id: "turn-001",
+    id: "block_006",
+    turnId: "turn_001",
     type: "tool_result",
     content: {
       tool_use_id: "tool-use-002",
       result: "File successfully updated",
       error: null,
     },
-    sequence_number: 5,
-    created_at: new Date(Date.now() - 2750000).toISOString(),
+    sequenceNumber: 5,
+    createdAt: new Date(Date.now() - 2750000).toISOString(),
   },
   {
-    id: "block-007",
-    turn_id: "turn-001",
+    id: "block_007",
+    turnId: "turn_001",
     type: "content",
     content: {
       text: "I've successfully added comprehensive error handling to your login function. The improvements include:\n\n1. Wrapped the entire function in a try-catch block\n2. Added proper headers to the fetch request\n3. Checking if the response is successful before parsing\n4. Returning a consistent result object with success/error status\n5. Proper error logging\n\nThe function now handles network errors, server errors, and JSON parsing errors gracefully.",
     },
-    sequence_number: 6,
-    created_at: new Date(Date.now() - 2700000).toISOString(),
+    sequenceNumber: 6,
+    createdAt: new Date(Date.now() - 2700000).toISOString(),
   },
 ];
 
-export const mockTurns: Turn[] = [
+export const mockTurns: TurnWithBlocks[] = [
   {
-    id: "turn-001",
-    session_id: "session-mock-001",
-    user_prompt: "Add error handling to the login function",
+    id: "turn_001",
+    sessionId: "sess_mock-001",
+    userPrompt: "Add error handling to the login function",
     status: "completed",
-    started_at: new Date(Date.now() - 3000000).toISOString(),
-    completed_at: new Date(Date.now() - 2700000).toISOString(),
-    created_at: new Date(Date.now() - 3000000).toISOString(),
+    startedAt: new Date(Date.now() - 3000000).toISOString(),
+    completedAt: new Date(Date.now() - 2700000).toISOString(),
+    errorMessage: null,
+    createdAt: new Date(Date.now() - 3000000).toISOString(),
     blocks: mockBlocks,
     block_count: 7,
   },
   {
-    id: "turn-002",
-    session_id: "session-mock-001",
-    user_prompt: "Create a new React component for user profile",
+    id: "turn_002",
+    sessionId: "sess_mock-001",
+    userPrompt: "Create a new React component for user profile",
     status: "completed",
-    started_at: new Date(Date.now() - 2000000).toISOString(),
-    completed_at: new Date(Date.now() - 1800000).toISOString(),
-    created_at: new Date(Date.now() - 2000000).toISOString(),
+    startedAt: new Date(Date.now() - 2000000).toISOString(),
+    completedAt: new Date(Date.now() - 1800000).toISOString(),
+    errorMessage: null,
+    createdAt: new Date(Date.now() - 2000000).toISOString(),
     blocks: [
       {
-        id: "block-008",
-        turn_id: "turn-002",
+        id: "block_008",
+        turnId: "turn_002",
         type: "content",
         content: {
           text: "I'll create a new React component for the user profile. This will include the user's avatar, name, bio, and basic information.",
         },
-        sequence_number: 0,
-        created_at: new Date(Date.now() - 1950000).toISOString(),
+        sequenceNumber: 0,
+        createdAt: new Date(Date.now() - 1950000).toISOString(),
       },
       {
-        id: "block-009",
-        turn_id: "turn-002",
+        id: "block_009",
+        turnId: "turn_002",
         type: "tool_use",
         content: {
           tool_name: "create_file",
@@ -141,45 +142,47 @@ export const mockTurns: Turn[] = [
           },
           tool_use_id: "tool-use-003",
         },
-        sequence_number: 1,
-        created_at: new Date(Date.now() - 1900000).toISOString(),
+        sequenceNumber: 1,
+        createdAt: new Date(Date.now() - 1900000).toISOString(),
       },
       {
-        id: "block-010",
-        turn_id: "turn-002",
+        id: "block_010",
+        turnId: "turn_002",
         type: "tool_result",
         content: {
           tool_use_id: "tool-use-003",
           result: "File created successfully",
           error: null,
         },
-        sequence_number: 2,
-        created_at: new Date(Date.now() - 1850000).toISOString(),
+        sequenceNumber: 2,
+        createdAt: new Date(Date.now() - 1850000).toISOString(),
       },
     ],
     block_count: 3,
   },
   {
-    id: "turn-003",
-    session_id: "session-mock-001",
-    user_prompt: "Run tests and fix any issues",
+    id: "turn_003",
+    sessionId: "sess_mock-001",
+    userPrompt: "Run tests and fix any issues",
     status: "running",
-    started_at: new Date(Date.now() - 30000).toISOString(),
-    created_at: new Date(Date.now() - 30000).toISOString(),
+    startedAt: new Date(Date.now() - 30000).toISOString(),
+    completedAt: null,
+    errorMessage: null,
+    createdAt: new Date(Date.now() - 30000).toISOString(),
     blocks: [
       {
-        id: "block-011",
-        turn_id: "turn-003",
+        id: "block_011",
+        turnId: "turn_003",
         type: "thinking",
         content: {
           text: "I need to run the test suite and check for any failures. Let me start by running the tests...",
         },
-        sequence_number: 0,
-        created_at: new Date(Date.now() - 25000).toISOString(),
+        sequenceNumber: 0,
+        createdAt: new Date(Date.now() - 25000).toISOString(),
       },
       {
-        id: "block-012",
-        turn_id: "turn-003",
+        id: "block_012",
+        turnId: "turn_003",
         type: "tool_use",
         content: {
           tool_name: "run_command",
@@ -188,24 +191,25 @@ export const mockTurns: Turn[] = [
           },
           tool_use_id: "tool-use-004",
         },
-        sequence_number: 1,
-        created_at: new Date(Date.now() - 20000).toISOString(),
+        sequenceNumber: 1,
+        createdAt: new Date(Date.now() - 20000).toISOString(),
       },
     ],
     block_count: 2,
   },
   {
-    id: "turn-004",
-    session_id: "session-mock-001",
-    user_prompt: "Deploy to production",
+    id: "turn_004",
+    sessionId: "sess_mock-001",
+    userPrompt: "Deploy to production",
     status: "failed",
-    started_at: new Date(Date.now() - 1000000).toISOString(),
-    completed_at: new Date(Date.now() - 950000).toISOString(),
-    created_at: new Date(Date.now() - 1000000).toISOString(),
+    startedAt: new Date(Date.now() - 1000000).toISOString(),
+    completedAt: new Date(Date.now() - 950000).toISOString(),
+    errorMessage: "Deployment failed - Missing environment variables",
+    createdAt: new Date(Date.now() - 1000000).toISOString(),
     blocks: [
       {
-        id: "block-013",
-        turn_id: "turn-004",
+        id: "block_013",
+        turnId: "turn_004",
         type: "tool_use",
         content: {
           tool_name: "run_command",
@@ -214,12 +218,12 @@ export const mockTurns: Turn[] = [
           },
           tool_use_id: "tool-use-005",
         },
-        sequence_number: 0,
-        created_at: new Date(Date.now() - 980000).toISOString(),
+        sequenceNumber: 0,
+        createdAt: new Date(Date.now() - 980000).toISOString(),
       },
       {
-        id: "block-014",
-        turn_id: "turn-004",
+        id: "block_014",
+        turnId: "turn_004",
         type: "tool_result",
         content: {
           tool_use_id: "tool-use-005",
@@ -227,26 +231,29 @@ export const mockTurns: Turn[] = [
           error:
             "Error: Deployment failed - Missing environment variables: API_KEY, DATABASE_URL",
         },
-        sequence_number: 1,
-        created_at: new Date(Date.now() - 960000).toISOString(),
+        sequenceNumber: 1,
+        createdAt: new Date(Date.now() - 960000).toISOString(),
       },
     ],
     block_count: 2,
   },
   {
-    id: "turn-005",
-    session_id: "session-mock-001",
-    user_prompt: "Check the build status",
+    id: "turn_005",
+    sessionId: "sess_mock-001",
+    userPrompt: "Check the build status",
     status: "pending",
-    created_at: new Date(Date.now() - 5000).toISOString(),
+    startedAt: null,
+    completedAt: null,
+    errorMessage: null,
+    createdAt: new Date(Date.now() - 5000).toISOString(),
     blocks: [],
     block_count: 0,
   },
 ];
 
-export function getMockTurnsWithVariableBlocks(turnCount: number = 5): Turn[] {
-  const turns: Turn[] = [];
-  const statuses: Turn["status"][] = [
+export function getMockTurnsWithVariableBlocks(turnCount: number = 5): TurnWithBlocks[] {
+  const turns: TurnWithBlocks[] = [];
+  const statuses: Array<TurnWithBlocks["status"]> = [
     "completed",
     "running",
     "failed",
@@ -254,24 +261,24 @@ export function getMockTurnsWithVariableBlocks(turnCount: number = 5): Turn[] {
   ];
 
   for (let i = 0; i < turnCount; i++) {
-    const status: Turn["status"] = statuses[i % statuses.length] || "pending";
-    const turnId = `turn-${i + 1}`;
-    const blocks: Block[] = [];
+    const status: TurnWithBlocks["status"] = statuses[i % statuses.length] || "pending";
+    const turnId = `turn_${i + 1}`;
+    const blocks: BlockWithParsedContent[] = [];
 
     if (status !== "pending") {
       const blockCount = Math.floor(Math.random() * 5) + 1;
       for (let j = 0; j < blockCount; j++) {
-        const blockTypes: Block["type"][] = [
+        const blockTypes: Array<BlockWithParsedContent["type"]> = [
           "thinking",
           "content",
           "tool_use",
           "tool_result",
         ];
-        const blockType: Block["type"] =
+        const blockType: BlockWithParsedContent["type"] =
           blockTypes[Math.floor(Math.random() * blockTypes.length)] ||
           "content";
 
-        let content: Block["content"];
+        let content: BlockWithParsedContent["content"];
         switch (blockType) {
           case "thinking":
             content = {
@@ -303,12 +310,12 @@ export function getMockTurnsWithVariableBlocks(turnCount: number = 5): Turn[] {
         }
 
         blocks.push({
-          id: `block-${i}-${j}`,
-          turn_id: turnId,
+          id: `block_${i}_${j}`,
+          turnId: turnId,
           type: blockType,
           content,
-          sequence_number: j,
-          created_at: new Date(
+          sequenceNumber: j,
+          createdAt: new Date(
             Date.now() - (1000000 - i * 100000 - j * 10000),
           ).toISOString(),
         });
@@ -323,13 +330,14 @@ export function getMockTurnsWithVariableBlocks(turnCount: number = 5): Turn[] {
 
     turns.push({
       id: turnId,
-      session_id: "session-mock-dynamic",
-      user_prompt: `User request number ${i + 1}`,
+      sessionId: "sess_mock-dynamic",
+      userPrompt: `User request number ${i + 1}`,
       status,
-      started_at:
-        status !== "pending" ? new Date(startTime).toISOString() : undefined,
-      completed_at: endTime ? new Date(endTime).toISOString() : undefined,
-      created_at: new Date(startTime).toISOString(),
+      startedAt:
+        status !== "pending" ? new Date(startTime).toISOString() : null,
+      completedAt: endTime ? new Date(endTime).toISOString() : null,
+      errorMessage: status === "failed" ? "Simulated error" : null,
+      createdAt: new Date(startTime).toISOString(),
       blocks,
       block_count: blocks.length,
     });

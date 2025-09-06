@@ -2,24 +2,25 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { TurnDisplay } from "../TurnDisplay";
-import type { Turn } from "../types";
+import type { TurnWithBlocks } from "../types";
 
 describe("TurnDisplay", () => {
-  const mockTurn: Turn = {
-    id: "turn-1",
-    session_id: "session-1",
-    user_prompt: "Test user prompt",
+  const mockTurn: TurnWithBlocks = {
+    id: "turn_1",
+    sessionId: "sess_1",
+    userPrompt: "Test user prompt",
     status: "completed",
-    started_at: new Date(Date.now() - 30000).toISOString(),
-    completed_at: new Date().toISOString(),
-    created_at: new Date(Date.now() - 30000).toISOString(),
+    startedAt: new Date(Date.now() - 30000).toISOString(),
+    completedAt: new Date().toISOString(),
+    errorMessage: null,
+    createdAt: new Date(Date.now() - 30000).toISOString(),
     blocks: [
       {
-        id: "block-1",
-        turn_id: "turn-1",
+        id: "block_1",
+        turnId: "turn_1",
         type: "content",
         content: { text: "Test response" },
-        sequence_number: 0,
+        sequenceNumber: 0,
       },
     ],
     block_count: 1,
@@ -32,7 +33,7 @@ describe("TurnDisplay", () => {
   });
 
   it("displays correct status icon for each status", () => {
-    const statuses: Array<Turn["status"]> = ["pending", "running", "completed", "failed"];
+    const statuses: Array<TurnWithBlocks["status"]> = ["pending", "running", "completed", "failed"];
     const expectedIcons = ["⏳", "🔄", "✅", "❌"];
 
     statuses.forEach((status, index) => {

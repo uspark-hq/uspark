@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import type { Turn } from "./types";
+import type { TurnWithBlocks } from "./types";
 import { BlockDisplay } from "./BlockDisplay";
 
 interface TurnDisplayProps {
-  turn: Turn;
+  turn: TurnWithBlocks;
   turnNumber: number;
   isActive?: boolean;
   onClick?: () => void;
@@ -101,7 +101,7 @@ export function TurnDisplay({
           <span className="text-blue-600 text-sm mt-0.5">👤</span>
           <div className="flex-1">
             <p className="text-sm text-gray-800 line-clamp-2">
-              {turn.user_prompt}
+              {turn.userPrompt}
             </p>
           </div>
         </div>

@@ -1,8 +1,8 @@
 import React from "react";
-import type { Turn } from "./types";
+import type { TurnWithBlocks } from "./types";
 
 interface ChatStatusProps {
-  currentTurn?: Turn;
+  currentTurn?: TurnWithBlocks;
   sessionId?: string;
   onInterrupt?: () => void;
   elapsedSeconds?: number; // Elapsed time in seconds, provided by parent
@@ -130,14 +130,14 @@ export function ChatStatus({
         )}
 
         {currentTurn?.status === "completed" &&
-          currentTurn.started_at &&
-          currentTurn.completed_at && (
+          currentTurn.startedAt &&
+          currentTurn.completedAt && (
             <span className="text-sm">
               Completed in{" "}
               {formatTime(
                 Math.floor(
-                  (new Date(currentTurn.completed_at).getTime() -
-                    new Date(currentTurn.started_at).getTime()) /
+                  (new Date(currentTurn.completedAt).getTime() -
+                    new Date(currentTurn.startedAt).getTime()) /
                     1000,
                 ),
               )}

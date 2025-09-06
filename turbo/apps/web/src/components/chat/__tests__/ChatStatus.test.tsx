@@ -2,7 +2,7 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { ChatStatus } from "../ChatStatus";
-import type { Turn } from "../types";
+import type { TurnWithBlocks } from "../types";
 
 describe("ChatStatus", () => {
 
@@ -13,12 +13,12 @@ describe("ChatStatus", () => {
   });
 
   it("shows pending state", () => {
-    const turn: Turn = {
+    const turn: TurnWithBlocks = {
       id: "turn-1",
-      session_id: "session-1",
-      user_prompt: "Test",
+      sessionId: "session-1",
+      userPrompt: "Test",
       status: "pending",
-      created_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
     };
@@ -29,13 +29,13 @@ describe("ChatStatus", () => {
   });
 
   it("shows running state with elapsed time", () => {
-    const turn: Turn = {
+    const turn: TurnWithBlocks = {
       id: "turn-1",
-      session_id: "session-1",
-      user_prompt: "Test",
+      sessionId: "session-1",
+      userPrompt: "Test",
       status: "running",
-      started_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
+      startedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
     };
@@ -49,14 +49,14 @@ describe("ChatStatus", () => {
   });
 
   it("shows completed state with duration", () => {
-    const turn: Turn = {
+    const turn: TurnWithBlocks = {
       id: "turn-1",
-      session_id: "session-1",
-      user_prompt: "Test",
+      sessionId: "session-1",
+      userPrompt: "Test",
       status: "completed",
-      started_at: new Date(Date.now() - 30000).toISOString(),
-      completed_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
+      startedAt: new Date(Date.now() - 30000).toISOString(),
+      completedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
     };
@@ -68,12 +68,12 @@ describe("ChatStatus", () => {
   });
 
   it("shows failed state", () => {
-    const turn: Turn = {
+    const turn: TurnWithBlocks = {
       id: "turn-1",
-      session_id: "session-1",
-      user_prompt: "Test",
+      sessionId: "session-1",
+      userPrompt: "Test",
       status: "failed",
-      created_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
     };
@@ -94,13 +94,13 @@ describe("ChatStatus", () => {
   });
 
   it("shows interrupt button for running turn", () => {
-    const turn: Turn = {
+    const turn: TurnWithBlocks = {
       id: "turn-1",
-      session_id: "session-1",
-      user_prompt: "Test",
+      sessionId: "session-1",
+      userPrompt: "Test",
       status: "running",
-      started_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
+      startedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
     };
@@ -116,13 +116,13 @@ describe("ChatStatus", () => {
   });
 
   it("does not show interrupt button when no handler provided", () => {
-    const turn: Turn = {
+    const turn: TurnWithBlocks = {
       id: "turn-1",
-      session_id: "session-1",
-      user_prompt: "Test",
+      sessionId: "session-1",
+      userPrompt: "Test",
       status: "running",
-      started_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
+      startedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
     };
@@ -132,13 +132,13 @@ describe("ChatStatus", () => {
   });
 
   it("formats time correctly for minutes", () => {
-    const turn: Turn = {
+    const turn: TurnWithBlocks = {
       id: "turn-1",
-      session_id: "session-1",
-      user_prompt: "Test",
+      sessionId: "session-1",
+      userPrompt: "Test",
       status: "running",
-      started_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
+      startedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
     };
@@ -153,12 +153,12 @@ describe("ChatStatus", () => {
     const { container, rerender } = render(<ChatStatus />);
     expect(container.querySelector(".bg-green-100")).toBeInTheDocument();
 
-    const pendingTurn: Turn = {
+    const pendingTurn: TurnWithBlocks = {
       id: "turn-1",
-      session_id: "session-1",
-      user_prompt: "Test",
+      sessionId: "session-1",
+      userPrompt: "Test",
       status: "pending",
-      created_at: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
     };
@@ -166,7 +166,7 @@ describe("ChatStatus", () => {
     rerender(<ChatStatus currentTurn={pendingTurn} />);
     expect(container.querySelector(".bg-gray-100")).toBeInTheDocument();
 
-    const runningTurn = { ...pendingTurn, status: "running" as const, started_at: new Date().toISOString() };
+    const runningTurn = { ...pendingTurn, status: "running" as const, startedAt: new Date().toISOString() };
     rerender(<ChatStatus currentTurn={runningTurn} />);
     expect(container.querySelector(".bg-blue-100")).toBeInTheDocument();
 
@@ -176,13 +176,13 @@ describe("ChatStatus", () => {
   });
 
   it("shows animated dots for running state", () => {
-    const turn: Turn = {
+    const turn: TurnWithBlocks = {
       id: "turn-1",
-      session_id: "session-1",
-      user_prompt: "Test",
+      sessionId: "session-1",
+      userPrompt: "Test",
       status: "running",
-      started_at: new Date().toISOString(),
-      created_at: new Date().toISOString(),
+      startedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
     };

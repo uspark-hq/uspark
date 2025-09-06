@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import type {
-  Block,
+  BlockWithParsedContent,
   ThinkingContent,
   TextContent,
   ToolUseContent,
@@ -8,7 +8,7 @@ import type {
 } from "./types";
 
 interface BlockDisplayProps {
-  block: Block;
+  block: BlockWithParsedContent;
 }
 
 export function BlockDisplay({ block }: BlockDisplayProps) {

@@ -1,52 +1,33 @@
-export interface Session {
-  id: string;
-  project_id: string;
-  title?: string;
-  created_at: string;
-  updated_at: string;
-  turn_ids?: string[];
-}
+// Re-export types from the database schema for consistency
+export type {
+  Session,
+  Turn,
+  Block,
+  ThinkingBlockContent as ThinkingContent,
+  ContentBlockContent as TextContent,
+  ToolUseBlockContent as ToolUseContent,
+  ToolResultBlockContent as ToolResultContent,
+} from "../../db/schema/sessions";
 
-export interface Turn {
-  id: string;
-  session_id: string;
-  user_prompt: string;
-  status: "pending" | "running" | "completed" | "failed";
-  started_at?: string;
-  completed_at?: string;
-  created_at: string;
-  blocks?: Block[];
-  block_ids?: string[];
+// Additional types for API responses that include nested data
+export interface TurnWithBlocks extends Omit<import("../../db/schema/sessions").Turn, "createdAt" | "startedAt" | "completedAt"> {
+  blocks?: BlockWithParsedContent[];
   block_count?: number;
+  // Convert Date to string for JSON serialization
+  createdAt: string;
+  startedAt?: string | null;
+  completedAt?: string | null;
 }
 
-export interface Block {
-  id: string;
-  turn_id: string;
-  type: "thinking" | "content" | "tool_use" | "tool_result";
+export interface BlockWithParsedContent extends Omit<import("../../db/schema/sessions").Block, "content" | "createdAt"> {
   content: ThinkingContent | TextContent | ToolUseContent | ToolResultContent;
-  sequence_number: number;
-  created_at?: string;
+  createdAt?: string;
 }
 
-export interface ThinkingContent {
-  text: string;
-}
-
-export interface TextContent {
-  text: string;
-}
-
-export interface ToolUseContent {
-  tool_name: string;
-  parameters: Record<string, unknown>;
-  tool_use_id: string;
-}
-
-export interface ToolResultContent {
-  tool_use_id: string;
-  result: string;
-  error?: string | null;
+export interface SessionWithTurns extends Omit<import("../../db/schema/sessions").Session, "createdAt" | "updatedAt"> {
+  turns?: TurnWithBlocks[];
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface SessionUpdates {

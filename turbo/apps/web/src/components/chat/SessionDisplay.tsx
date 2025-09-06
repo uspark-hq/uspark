@@ -1,9 +1,9 @@
 import React from "react";
-import type { Turn } from "./types";
+import type { TurnWithBlocks } from "./types";
 import { TurnDisplay } from "./TurnDisplay";
 
 interface SessionDisplayProps {
-  turns: Turn[];
+  turns: TurnWithBlocks[];
   currentTurnId?: string;
   onTurnClick?: (turnId: string) => void;
   className?: string;
