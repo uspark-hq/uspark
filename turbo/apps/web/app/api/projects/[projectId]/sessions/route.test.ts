@@ -4,7 +4,7 @@ import { GET, POST } from "./route";
 import { initServices } from "../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { SESSIONS_TBL, TURNS_TBL, BLOCKS_TBL } from "../../../../../src/db/schema/sessions";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import * as Y from "yjs";
 
 // Mock Clerk authentication

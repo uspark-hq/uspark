@@ -51,6 +51,11 @@ export async function addBlocks(
 ): Promise<string[]> {
   initServices();
 
+  // Handle empty array case
+  if (blocks.length === 0) {
+    return [];
+  }
+
   const blockData: NewBlock[] = blocks.map((block, index) => ({
     id: `block_${randomUUID()}`,
     turnId,

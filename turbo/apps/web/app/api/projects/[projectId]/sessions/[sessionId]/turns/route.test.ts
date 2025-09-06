@@ -285,7 +285,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       expect(data.total).toBe(2);
 
       // Check first turn has blocks
-      const firstTurn = data.turns.find((t: any) => t.id === turn1.id);
+      const firstTurn = data.turns.find((t: { id: string }) => t.id === turn1.id);
       expect(firstTurn).toBeDefined();
       expect(firstTurn.block_count).toBe(2);
       expect(firstTurn.block_ids).toHaveLength(2);
@@ -293,7 +293,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       expect(firstTurn.block_ids).toContain(block2.id);
 
       // Check second turn has no blocks
-      const secondTurn = data.turns.find((t: any) => t.id === turn2.id);
+      const secondTurn = data.turns.find((t: { id: string }) => t.id === turn2.id);
       expect(secondTurn).toBeDefined();
       expect(secondTurn.block_count).toBe(0);
       expect(secondTurn.block_ids).toEqual([]);

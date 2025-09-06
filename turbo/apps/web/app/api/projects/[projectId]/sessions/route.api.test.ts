@@ -142,13 +142,13 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
       expect(response.data.total).toBeGreaterThanOrEqual(initialCount + 3);
       
       // Find our created sessions
-      const ourSessions = response.data.sessions.filter((s: any) => 
+      const ourSessions = response.data.sessions.filter((s: { id: string }) => 
         [session1.data.id, session2.data.id, session3.data.id].includes(s.id)
       );
       expect(ourSessions).toHaveLength(3);
       
       // Sessions should be ordered by created_at desc (newest first)
-      const sessionIds = response.data.sessions.slice(0, 3).map((s: any) => s.id);
+      const sessionIds = response.data.sessions.slice(0, 3).map((s: { id: string }) => s.id);
       expect(sessionIds).toContain(session3.data.id);
       expect(sessionIds).toContain(session2.data.id);
       expect(sessionIds).toContain(session1.data.id);
@@ -183,7 +183,7 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
       expect(page1.data.total).toBeGreaterThanOrEqual(initialCount + 5);
       
       // Check that our newest sessions are in the results
-      const page1Ids = page1.data.sessions.map((s: any) => s.id);
+      const page1Ids = page1.data.sessions.map((s: { id: string }) => s.id);
       expect(page1Ids).toContain(sessionIds[4]); // Session 5 (newest)
       expect(page1Ids).toContain(sessionIds[3]); // Session 4
 
@@ -198,7 +198,7 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
       expect(page2.data.sessions.length).toBeLessThanOrEqual(5);
       
       // Check that all our sessions are included in a larger page
-      const page2Ids = page2.data.sessions.map((s: any) => s.id);
+      const page2Ids = page2.data.sessions.map((s: { id: string }) => s.id);
       sessionIds.forEach(id => {
         expect(page2Ids).toContain(id);
       });

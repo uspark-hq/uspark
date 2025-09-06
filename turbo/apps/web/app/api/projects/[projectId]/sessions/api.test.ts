@@ -1,5 +1,4 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { NextRequest } from "next/server";
 import { apiCall, apiCallWithQuery } from "../../../../../src/test/api-helpers";
 import { 
   POST as createSession, 
@@ -19,8 +18,7 @@ import {
 } from "./[sessionId]/turns/[turnId]/route";
 import { POST as interruptSession } from "./[sessionId]/interrupt/route";
 import { GET as getUpdates } from "./[sessionId]/updates/route";
-import { POST as createProject, GET as listProjects } from "../../route";
-import { GET as getProject } from "../route";
+import { POST as createProject } from "../../route";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -290,15 +288,15 @@ describe("Claude Session Management API Integration", () => {
       const turns = turnsResponse.data.turns;
       
       // Running turns should be failed
-      const failedTurns = turns.filter((t: any) => 
+      const failedTurns = turns.filter((t: { user_prompt: string }) => 
         t.user_prompt === "First message" || t.user_prompt === "Second message"
       );
-      failedTurns.forEach((turn: any) => {
+      failedTurns.forEach((turn: { status: string }) => {
         expect(turn.status).toBe("failed");
       });
 
       // Completed turn should remain completed
-      const completedTurn = turns.find((t: any) => 
+      const completedTurn = turns.find((t: { user_prompt: string }) => 
         t.user_prompt === "Completed message"
       );
       expect(completedTurn.status).toBe("completed");
@@ -449,7 +447,7 @@ describe("Claude Session Management API Integration", () => {
   describe("Error Handling", () => {
     it("should handle authentication errors", async () => {
       // Mock failed authentication
-      mockAuth.mockResolvedValueOnce({ userId: null } as any);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
 
       const response = await apiCall(
         createSession,
