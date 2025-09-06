@@ -241,7 +241,7 @@ function ToolResultBlock({ content }: { content: any }) {
           whiteSpace: 'pre-wrap',
         }}
       >
-        {result.result || result.error || JSON.stringify(result)}
+        {result.error || result.result || JSON.stringify(result)}
       </div>
     </div>
   );

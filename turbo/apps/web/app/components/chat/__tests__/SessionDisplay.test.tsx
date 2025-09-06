@@ -18,7 +18,7 @@ describe('SessionDisplay', () => {
     // Session ID should be truncated
     expect(screen.getByText(new RegExp(session.id.slice(0, 8)))).toBeInTheDocument();
     // Status badge should be shown
-    expect(screen.getByText('RUNNING')).toBeInTheDocument();
+    expect(screen.getByText('Running')).toBeInTheDocument();
   });
 
   it('should show interrupt button for running sessions', () => {
@@ -66,8 +66,8 @@ describe('SessionDisplay', () => {
     render(<SessionDisplay session={session} />);
     
     // Check that user inputs are displayed
-    session.turns.forEach(turn => {
-      expect(screen.getByText(turn.userInput)).toBeInTheDocument();
+    session.turns?.forEach(turn => {
+      expect(screen.getByText(turn.userPrompt)).toBeInTheDocument();
     });
   });
 
@@ -81,11 +81,11 @@ describe('SessionDisplay', () => {
 
   it('should display correct status badge color for each status', () => {
     const statuses = [
-      { session: mockSession.idle('p1'), label: 'IDLE' },
-      { session: mockSession.running('p2'), label: 'RUNNING' },
-      { session: mockSession.completed('p3'), label: 'COMPLETED' },
-      { session: mockSession.failed('p4'), label: 'FAILED' },
-      { session: mockSession.interrupted('p5'), label: 'INTERRUPTED' },
+      { session: mockSession.idle('p1'), label: 'Idle' },
+      { session: mockSession.running('p2'), label: 'Running' },
+      { session: mockSession.completed('p3'), label: 'Completed' },
+      { session: mockSession.failed('p4'), label: 'Failed' },
+      { session: mockSession.interrupted('p5'), label: 'Failed' }, // Interrupted shows as Failed
     ];
 
     statuses.forEach(({ session, label }) => {

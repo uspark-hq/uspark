@@ -12,7 +12,7 @@ describe('BlockDisplay', () => {
       render(<BlockDisplay block={block} />);
       
       expect(screen.getByText('💭 Thinking')).toBeInTheDocument();
-      expect(screen.getByText(block.content)).toBeInTheDocument();
+      expect(screen.getByText(block.content.text || JSON.stringify(block.content))).toBeInTheDocument();
     });
 
     it('should toggle thinking block expansion', () => {
@@ -23,15 +23,16 @@ describe('BlockDisplay', () => {
       expect(toggleButton).toBeInTheDocument();
       
       // Content should be visible by default
-      expect(screen.getByText(block.content)).toBeInTheDocument();
+      const contentText = block.content.text || JSON.stringify(block.content);
+      expect(screen.getByText(contentText)).toBeInTheDocument();
       
       // Click to collapse
       fireEvent.click(toggleButton!);
-      expect(screen.queryByText(block.content)).not.toBeInTheDocument();
+      expect(screen.queryByText(contentText)).not.toBeInTheDocument();
       
       // Click to expand again
       fireEvent.click(toggleButton!);
-      expect(screen.getByText(block.content)).toBeInTheDocument();
+      expect(screen.getByText(contentText)).toBeInTheDocument();
     });
 
     it('should show correct arrow rotation when toggled', () => {
@@ -58,7 +59,8 @@ describe('BlockDisplay', () => {
       // Use more specific selector for the tool name
       const button = screen.getByRole('button');
       expect(button.textContent).toContain('grep');
-      expect(screen.getByText(block.content)).toBeInTheDocument();
+      const contentText = JSON.stringify(block.content);
+      expect(screen.getByText(contentText)).toBeInTheDocument();
     });
 
     it('should display correct icon for different tools', () => {
@@ -95,21 +97,22 @@ describe('BlockDisplay', () => {
       const toggleButton = screen.getByRole('button');
       
       // Content should be visible by default
-      expect(screen.getByText(block.content)).toBeInTheDocument();
+      const contentText = JSON.stringify(block.content);
+      expect(screen.getByText(contentText)).toBeInTheDocument();
       
       // Click to collapse
       fireEvent.click(toggleButton);
-      expect(screen.queryByText(block.content)).not.toBeInTheDocument();
+      expect(screen.queryByText(contentText)).not.toBeInTheDocument();
       
       // Click to expand again
       fireEvent.click(toggleButton);
-      expect(screen.getByText(block.content)).toBeInTheDocument();
+      expect(screen.getByText(contentText)).toBeInTheDocument();
     });
 
     it('should handle missing tool_name metadata', () => {
       const block = {
         ...mockBlock.toolUse(turnId, 'test'),
-        metadata: undefined,
+        content: {},
       };
       render(<BlockDisplay block={block} />);
       
@@ -118,17 +121,17 @@ describe('BlockDisplay', () => {
     });
   });
 
-  describe('Text Block', () => {
-    it('should render text block content directly', () => {
-      const content = 'This is a text response from Claude';
-      const block = mockBlock.text(turnId, content);
+  describe('Content Block', () => {
+    it('should render content block text directly', () => {
+      const text = 'This is a text response from Claude';
+      const block = mockBlock.content(turnId, text);
       render(<BlockDisplay block={block} />);
       
-      expect(screen.getByText(content)).toBeInTheDocument();
+      expect(screen.getByText(text)).toBeInTheDocument();
     });
 
-    it('should not have toggle functionality for text blocks', () => {
-      const block = mockBlock.text(turnId, 'Some text');
+    it('should not have toggle functionality for content blocks', () => {
+      const block = mockBlock.content(turnId, 'Some text');
       render(<BlockDisplay block={block} />);
       
       // Should not have any buttons
@@ -136,22 +139,22 @@ describe('BlockDisplay', () => {
     });
   });
 
-  describe('Error Block', () => {
-    it('should render error block with error styling', () => {
+  describe('Tool Result Block', () => {
+    it('should render tool result block with error styling when there is an error', () => {
       const errorMessage = 'Permission denied: cannot access file';
-      const block = mockBlock.error(turnId, errorMessage);
+      const block = mockBlock.toolResult(turnId, 'tool_123', 'result', errorMessage);
       render(<BlockDisplay block={block} />);
       
       expect(screen.getByText('⚠️')).toBeInTheDocument();
-      expect(screen.getByText('Error')).toBeInTheDocument();
+      expect(screen.getByText('Tool Result')).toBeInTheDocument();
       expect(screen.getByText(errorMessage)).toBeInTheDocument();
     });
 
     it('should apply error-specific styling', () => {
-      const block = mockBlock.error(turnId, 'Test error');
+      const block = mockBlock.toolResult(turnId, 'tool_123', 'result', 'Test error');
       render(<BlockDisplay block={block} />);
       
-      const errorLabel = screen.getByText('Error');
+      const errorLabel = screen.getByText('Tool Result');
       expect(errorLabel).toHaveStyle({ color: '#ef4444' });
     });
   });
@@ -162,14 +165,15 @@ describe('BlockDisplay', () => {
         id: 'block-unknown',
         turnId,
         type: 'unknown_type' as any,
-        content: 'Unknown block content',
-        createdAt: new Date().toISOString(),
+        content: { text: 'Unknown block content' },
+        sequenceNumber: 0,
+        createdAt: new Date(),
       };
       
       render(<BlockDisplay block={block} />);
       
-      // Should default to text block rendering
-      expect(screen.getByText('Unknown block content')).toBeInTheDocument();
+      // Should default to content block rendering showing JSON stringified content
+      expect(screen.getByText('{"text":"Unknown block content"}')).toBeInTheDocument();
     });
   });
 
@@ -178,7 +182,7 @@ describe('BlockDisplay', () => {
       const blocks = [
         { block: mockBlock.thinking(turnId), bgColor: 'rgba(59, 130, 246, 0.05)' },
         { block: mockBlock.toolUse(turnId, 'test'), bgColor: 'rgba(168, 85, 247, 0.05)' },
-        { block: mockBlock.error(turnId, 'error'), bgColor: 'rgba(239, 68, 68, 0.05)' },
+        { block: mockBlock.toolResult(turnId, 'tool_123', 'result', 'error'), bgColor: 'rgba(239, 68, 68, 0.05)' },
       ];
 
       blocks.forEach(({ block, bgColor }) => {
