@@ -3,15 +3,12 @@
   "workspaces": {
     ".": {
       "entry": [],
-      "project": ["vitest.*.{js,ts,mjs}", "*.config.{js,ts,mjs}"]
+      "project": ["*.config.{js,ts,mjs}"]
     },
     "apps/web": {
       "entry": [
         "app/**/page.{ts,tsx}",
         "app/**/layout.{ts,tsx}",
-        "app/**/error.{ts,tsx}",
-        "app/**/loading.{ts,tsx}",
-        "app/**/not-found.{ts,tsx}",
         "app/api/**/route.{ts,tsx}",
         "middleware.{ts,tsx}",
         "scripts/*.ts"
@@ -26,18 +23,16 @@
       "project": ["src/**/*.ts"],
       "tsup": {
         "config": ["tsup.config.ts"]
-      },
-      "ignoreBinaries": ["eslint"]
+      }
     },
     "apps/docs": {
       "entry": ["source.config.ts"],
       "project": ["**/*.{ts,tsx,mdx,js,mjs}"],
-      "ignoreDependencies": ["fumadocs-mdx"]
+      "ignoreDependencies": []
     },
     "packages/core": {
       "entry": [],
-      "project": ["src/**/*.ts"],
-      "ignoreBinaries": ["eslint"]
+      "project": ["src/**/*.ts"]
     },
     "packages/ui": {
       "entry": [],
