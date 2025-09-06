@@ -172,7 +172,7 @@ const clerkHandlers = [
   }),
 ];
 
-// Share API endpoints handlers  
+// Share API endpoints handlers
 const shareHandlers = [
   // GET /api/shares - List user's shares
   http.get("*/api/shares", () => {
