@@ -28,7 +28,7 @@ describe("GET /api/shares", () => {
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
-    
+
     // Also clean up projects created in previous test runs
     await globalThis.services.db
       .delete(PROJECTS_TBL)
@@ -40,7 +40,7 @@ describe("GET /api/shares", () => {
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
   });
-  
+
   afterEach(async () => {
     // Clean up after each test - delete shares first due to FK constraints
     await globalThis.services.db
@@ -49,7 +49,7 @@ describe("GET /api/shares", () => {
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
-    
+
     await globalThis.services.db
       .delete(PROJECTS_TBL)
       .where(eq(PROJECTS_TBL.userId, userId));

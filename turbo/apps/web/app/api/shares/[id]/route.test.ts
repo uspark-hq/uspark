@@ -29,7 +29,7 @@ describe("DELETE /api/shares/[id]", () => {
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
-    
+
     // Also clean up projects created in previous test runs
     await globalThis.services.db
       .delete(PROJECTS_TBL)
@@ -41,7 +41,7 @@ describe("DELETE /api/shares/[id]", () => {
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
   });
-  
+
   afterEach(async () => {
     // Clean up after each test - delete shares first due to FK constraints
     await globalThis.services.db
@@ -50,7 +50,7 @@ describe("DELETE /api/shares/[id]", () => {
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
-    
+
     await globalThis.services.db
       .delete(PROJECTS_TBL)
       .where(eq(PROJECTS_TBL.userId, userId));
@@ -247,7 +247,9 @@ describe("DELETE /api/shares/[id]", () => {
 
     // Delete share-2
     const shareToDelete = `share-2-${timestamp}`;
-    const request = new NextRequest(`http://localhost:3000/api/shares/${shareToDelete}`);
+    const request = new NextRequest(
+      `http://localhost:3000/api/shares/${shareToDelete}`,
+    );
     const response = await DELETE(request, {
       params: Promise.resolve({ id: shareToDelete }),
     });

@@ -22,7 +22,9 @@ const createMockResponse = (data: unknown, ok = true) => {
   const response = {
     ok,
     json: async () => data,
-    clone: function() { return this; },
+    clone: function () {
+      return this;
+    },
     text: async () => JSON.stringify(data),
     headers: new Headers(),
     status: ok ? 200 : 400,
