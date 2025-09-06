@@ -18,7 +18,7 @@ vi.mock("next/link", () => ({
 }));
 
 // Helper to create proper Response mock
-const createMockResponse = (data: any, ok = true) => {
+const createMockResponse = (data: unknown, ok = true) => {
   const response = {
     ok,
     json: async () => data,
@@ -33,7 +33,7 @@ const createMockResponse = (data: any, ok = true) => {
 
 // Mock fetch for API calls
 const mockFetch = vi.fn();
-global.fetch = mockFetch as any;
+global.fetch = mockFetch as typeof fetch;
 
 describe("SharesPage", () => {
   beforeEach(() => {
