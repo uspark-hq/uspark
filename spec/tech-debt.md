@@ -94,6 +94,48 @@ cd turbo && pnpm knip:fix
 4. Clean up unused exports or mark as internal if required
 5. Update knip.json configuration to handle false positives
 
+## Test Database Setup Refactoring
+**Issue:** Tests in route.test.ts files heavily rely on manual database operations for setup, which duplicates logic already implemented in API endpoints.
+**Problem:** 
+- Manual database operations in tests duplicate business logic from API endpoints
+- Makes tests brittle when database schema or business logic changes
+- Increases maintenance burden when API logic changes
+**Solution:** Refactor tests to reuse existing API endpoints for data setup instead of direct database manipulation.
+**Status:** 🔴 Not Started
+**Example:**
+```typescript
+// ❌ Current approach - manual database operations
+beforeEach(async () => {
+  await db.insert(PROJECTS_TBL).values({ 
+    id: projectId, 
+    userId, 
+    name: "Test Project" 
+  });
+  await db.insert(SESSIONS_TBL).values({ 
+    id: sessionId, 
+    projectId 
+  });
+});
+
+// ✅ Better approach - reuse API endpoints
+beforeEach(async () => {
+  const projectRes = await POST("/api/projects", { 
+    json: { name: "Test Project" } 
+  });
+  const { id: projectId } = await projectRes.json();
+  
+  const sessionRes = await POST(`/api/projects/${projectId}/sessions`, {
+    json: { title: "Test Session" }
+  });
+  const { id: sessionId } = await sessionRes.json();
+});
+```
+**Benefits:**
+- Tests use the same code paths as production
+- Business logic changes are automatically reflected in tests
+- Reduces test maintenance overhead
+- Better coverage of actual API workflows
+
 ---
 
 *Last updated: 2025-09-06*
