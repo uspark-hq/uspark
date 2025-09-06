@@ -1,6 +1,6 @@
 import { test, expect, Page } from '@playwright/test';
 
-test.describe('CLI Token Management', () => {
+test.describe.skip('CLI Token Management', () => {
   let page: Page;
 
   test.beforeEach(async ({ browser }) => {

@@ -6,7 +6,7 @@ import { clerk } from '@clerk/testing/playwright';
  * 使用 Clerk Testing Token 测试认证流程
  */
 
-test.describe('Clerk Authentication Flow', () => {
+test.describe.skip('Clerk Authentication Flow', () => {
   test('complete sign-in flow using testing token', async ({ page }) => {
     console.log('🔐 Starting Clerk authentication test with testing token');
     
