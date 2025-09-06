@@ -10,10 +10,6 @@ export interface FileItem {
   hash?: string; // Content hash from YJS
 }
 
-export interface FileTree {
-  [key: string]: FileItem;
-}
-
 export interface FileIconProps {
   fileName: string;
   isDirectory?: boolean;
