@@ -2,7 +2,7 @@ import chalk from "chalk";
 import { getToken, getApiUrl } from "../config";
 import { ProjectSync } from "../project-sync";
 
-export interface AuthenticatedContext {
+interface AuthenticatedContext {
   token: string;
   apiUrl: string;
   sync: ProjectSync;

@@ -3,16 +3,16 @@
 import * as Y from "yjs";
 import { type FileItem } from "./types";
 
-export interface FileNode {
+interface FileNode {
   hash: string;
   mtime: number;
 }
 
-export interface BlobInfo {
+interface BlobInfo {
   size: number;
 }
 
-export interface YjsFileSystemData {
+interface YjsFileSystemData {
   files: FileItem[];
   totalSize: number;
   fileCount: number;
