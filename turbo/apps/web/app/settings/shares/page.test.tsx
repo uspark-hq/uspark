@@ -99,7 +99,9 @@ describe("SharesPage", () => {
 
     // Click revoke button (first one)
     const revokeButtons = screen.getAllByText("Revoke");
-    fireEvent.click(revokeButtons[0]);
+    if (revokeButtons[0]) {
+      fireEvent.click(revokeButtons[0]);
+    }
 
     // Wait for the share to be removed from UI
     await waitFor(() => {
@@ -130,7 +132,9 @@ describe("SharesPage", () => {
 
     // Click copy button (first one)
     const copyButtons = screen.getAllByText("Copy Link");
-    fireEvent.click(copyButtons[0]);
+    if (copyButtons[0]) {
+      fireEvent.click(copyButtons[0]);
+    }
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
       "https://uspark.dev/share/token-1",

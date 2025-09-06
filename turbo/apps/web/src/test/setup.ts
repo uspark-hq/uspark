@@ -1,5 +1,4 @@
 import "@testing-library/jest-dom/vitest";
-import { server, http, HttpResponse } from "./msw-setup";
 
 // Polyfill URL.createObjectURL and URL.revokeObjectURL for jsdom
 // jsdom doesn't support these APIs by default
