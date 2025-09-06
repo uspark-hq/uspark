@@ -24,7 +24,7 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
       createProject,
       "POST",
       {},
-      { name: "Test Project for Sessions" }
+      { name: "Test Project for Sessions" },
     );
     expect(projectResponse.status).toBe(201);
     projectId = projectResponse.data.id;
@@ -36,7 +36,7 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
         POST,
         "POST",
         { projectId },
-        { title: "Test Session" }
+        { title: "Test Session" },
       );
 
       expect(response.status).toBe(200);
@@ -49,12 +49,7 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
     });
 
     it("should create a session without title", async () => {
-      const response = await apiCall(
-        POST,
-        "POST",
-        { projectId },
-        {}
-      );
+      const response = await apiCall(POST, "POST", { projectId }, {});
 
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty("id");
@@ -70,7 +65,7 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
         POST,
         "POST",
         { projectId },
-        { title: "Test Session" }
+        { title: "Test Session" },
       );
 
       expect(response.status).toBe(401);
@@ -82,7 +77,7 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
         POST,
         "POST",
         { projectId: "non-existent" },
-        { title: "Test Session" }
+        { title: "Test Session" },
       );
 
       expect(response.status).toBe(404);
@@ -92,11 +87,7 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
 
   describe("GET /api/projects/:projectId/sessions", () => {
     it("should return empty list when no sessions exist", async () => {
-      const response = await apiCall(
-        GET,
-        "GET",
-        { projectId }
-      );
+      const response = await apiCall(GET, "GET", { projectId });
 
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty("sessions");
@@ -114,41 +105,39 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
         POST,
         "POST",
         { projectId },
-        { title: "Session 1" }
+        { title: "Session 1" },
       );
-      
+
       const session2 = await apiCall(
         POST,
         "POST",
         { projectId },
-        { title: "Session 2" }
+        { title: "Session 2" },
       );
-      
+
       const session3 = await apiCall(
         POST,
         "POST",
         { projectId },
-        { title: "Session 3" }
+        { title: "Session 3" },
       );
 
       // List sessions
-      const response = await apiCall(
-        GET,
-        "GET",
-        { projectId }
-      );
+      const response = await apiCall(GET, "GET", { projectId });
 
       expect(response.status).toBe(200);
       expect(response.data.total).toBeGreaterThanOrEqual(initialCount + 3);
-      
+
       // Find our created sessions
-      const ourSessions = response.data.sessions.filter((s: { id: string }) => 
-        [session1.data.id, session2.data.id, session3.data.id].includes(s.id)
+      const ourSessions = response.data.sessions.filter((s: { id: string }) =>
+        [session1.data.id, session2.data.id, session3.data.id].includes(s.id),
       );
       expect(ourSessions).toHaveLength(3);
-      
+
       // Sessions should be ordered by created_at desc (newest first)
-      const sessionIds = response.data.sessions.slice(0, 3).map((s: { id: string }) => s.id);
+      const sessionIds = response.data.sessions
+        .slice(0, 3)
+        .map((s: { id: string }) => s.id);
       expect(sessionIds).toContain(session3.data.id);
       expect(sessionIds).toContain(session2.data.id);
       expect(sessionIds).toContain(session1.data.id);
@@ -166,7 +155,7 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
           POST,
           "POST",
           { projectId },
-          { title: `Pagination Test Session ${i}` }
+          { title: `Pagination Test Session ${i}` },
         );
         sessionIds.push(session.data.id);
       }
@@ -175,13 +164,13 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
       const page1 = await apiCallWithQuery(
         GET,
         { projectId },
-        { limit: "2", offset: "0" }
+        { limit: "2", offset: "0" },
       );
 
       expect(page1.status).toBe(200);
       expect(page1.data.sessions).toHaveLength(2);
       expect(page1.data.total).toBeGreaterThanOrEqual(initialCount + 5);
-      
+
       // Check that our newest sessions are in the results
       const page1Ids = page1.data.sessions.map((s: { id: string }) => s.id);
       expect(page1Ids).toContain(sessionIds[4]); // Session 5 (newest)
@@ -191,15 +180,15 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
       const page2 = await apiCallWithQuery(
         GET,
         { projectId },
-        { limit: "5", offset: "0" }
+        { limit: "5", offset: "0" },
       );
 
       expect(page2.status).toBe(200);
       expect(page2.data.sessions.length).toBeLessThanOrEqual(5);
-      
+
       // Check that all our sessions are included in a larger page
       const page2Ids = page2.data.sessions.map((s: { id: string }) => s.id);
-      sessionIds.forEach(id => {
+      sessionIds.forEach((id) => {
         expect(page2Ids).toContain(id);
       });
     });
@@ -209,22 +198,14 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
         ReturnType<typeof auth>
       >);
 
-      const response = await apiCall(
-        GET,
-        "GET",
-        { projectId }
-      );
+      const response = await apiCall(GET, "GET", { projectId });
 
       expect(response.status).toBe(401);
       expect(response.data).toHaveProperty("error", "unauthorized");
     });
 
     it("should return 404 for non-existent project", async () => {
-      const response = await apiCall(
-        GET,
-        "GET",
-        { projectId: "non-existent" }
-      );
+      const response = await apiCall(GET, "GET", { projectId: "non-existent" });
 
       expect(response.status).toBe(404);
       expect(response.data).toHaveProperty("error", "project_not_found");
@@ -234,7 +215,7 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
       const response = await apiCallWithQuery(
         GET,
         { projectId },
-        { limit: "invalid", offset: "abc" }
+        { limit: "invalid", offset: "abc" },
       );
 
       expect(response.status).toBe(200);

@@ -1,20 +1,14 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { apiCall, apiCallWithQuery } from "../../../../../src/test/api-helpers";
-import { 
-  POST as createSession, 
-  GET as listSessions 
-} from "./route";
-import { 
-  GET as getSession, 
-  PATCH as updateSession 
-} from "./[sessionId]/route";
-import { 
-  POST as createTurn, 
-  GET as listTurns 
+import { POST as createSession, GET as listSessions } from "./route";
+import { GET as getSession, PATCH as updateSession } from "./[sessionId]/route";
+import {
+  POST as createTurn,
+  GET as listTurns,
 } from "./[sessionId]/turns/route";
 import {
   GET as getTurn,
-  PATCH as updateTurn
+  PATCH as updateTurn,
 } from "./[sessionId]/turns/[turnId]/route";
 import { POST as interruptSession } from "./[sessionId]/interrupt/route";
 import { GET as getUpdates } from "./[sessionId]/updates/route";
@@ -44,10 +38,10 @@ describe("Claude Session Management API Integration", () => {
 
     // Create a project using the API
     const projectResponse = await apiCall(
-      createProject, 
-      "POST", 
-      {}, 
-      { name: "Test Project" }
+      createProject,
+      "POST",
+      {},
+      { name: "Test Project" },
     );
     expect(projectResponse.status).toBe(201);
     projectId = projectResponse.data.id;
@@ -65,32 +59,27 @@ describe("Claude Session Management API Integration", () => {
         createSession,
         "POST",
         { projectId },
-        { title: "Test Session via API" }
+        { title: "Test Session via API" },
       );
-      
+
       expect(createResponse.status).toBe(200);
       expect(createResponse.data).toHaveProperty("id");
       expect(createResponse.data.title).toBe("Test Session via API");
       sessionId = createResponse.data.id;
 
       // 2. List sessions
-      const listResponse = await apiCall(
-        listSessions,
-        "GET",
-        { projectId }
-      );
-      
+      const listResponse = await apiCall(listSessions, "GET", { projectId });
+
       expect(listResponse.status).toBe(200);
       expect(listResponse.data.sessions).toHaveLength(1);
       expect(listResponse.data.sessions[0].id).toBe(sessionId);
 
       // 3. Get session details
-      const getResponse = await apiCall(
-        getSession,
-        "GET",
-        { projectId, sessionId }
-      );
-      
+      const getResponse = await apiCall(getSession, "GET", {
+        projectId,
+        sessionId,
+      });
+
       expect(getResponse.status).toBe(200);
       expect(getResponse.data.id).toBe(sessionId);
       expect(getResponse.data.turn_ids).toEqual([]);
@@ -100,9 +89,9 @@ describe("Claude Session Management API Integration", () => {
         updateSession,
         "PATCH",
         { projectId, sessionId },
-        { title: "Updated Title" }
+        { title: "Updated Title" },
       );
-      
+
       expect(updateResponse.status).toBe(200);
       expect(updateResponse.data.title).toBe("Updated Title");
     });
@@ -115,7 +104,7 @@ describe("Claude Session Management API Integration", () => {
         createSession,
         "POST",
         { projectId },
-        { title: "Session for Turns" }
+        { title: "Session for Turns" },
       );
       sessionId = response.data.id;
     });
@@ -126,9 +115,9 @@ describe("Claude Session Management API Integration", () => {
         createTurn,
         "POST",
         { projectId, sessionId },
-        { user_message: "Hello, Claude!" }
+        { user_message: "Hello, Claude!" },
       );
-      
+
       expect(createResponse.status).toBe(200);
       expect(createResponse.data).toHaveProperty("id");
       expect(createResponse.data.user_message).toBe("Hello, Claude!");
@@ -136,23 +125,22 @@ describe("Claude Session Management API Integration", () => {
       turnId = createResponse.data.id;
 
       // 2. List turns
-      const listResponse = await apiCall(
-        listTurns,
-        "GET",
-        { projectId, sessionId }
-      );
-      
+      const listResponse = await apiCall(listTurns, "GET", {
+        projectId,
+        sessionId,
+      });
+
       expect(listResponse.status).toBe(200);
       expect(listResponse.data.turns).toHaveLength(1);
       expect(listResponse.data.turns[0].id).toBe(turnId);
 
       // 3. Get turn details
-      const getResponse = await apiCall(
-        getTurn,
-        "GET",
-        { projectId, sessionId, turnId }
-      );
-      
+      const getResponse = await apiCall(getTurn, "GET", {
+        projectId,
+        sessionId,
+        turnId,
+      });
+
       expect(getResponse.status).toBe(200);
       expect(getResponse.data.id).toBe(turnId);
       expect(getResponse.data.blocks).toEqual([]);
@@ -162,9 +150,9 @@ describe("Claude Session Management API Integration", () => {
         updateTurn,
         "PATCH",
         { projectId, sessionId, turnId },
-        { status: "running" }
+        { status: "running" },
       );
-      
+
       expect(updateResponse.status).toBe(200);
       expect(updateResponse.data.status).toBe("running");
       expect(updateResponse.data.started_at).not.toBeNull();
@@ -174,9 +162,9 @@ describe("Claude Session Management API Integration", () => {
         updateTurn,
         "PATCH",
         { projectId, sessionId, turnId },
-        { status: "completed" }
+        { status: "completed" },
       );
-      
+
       expect(completeResponse.status).toBe(200);
       expect(completeResponse.data.status).toBe("completed");
       expect(completeResponse.data.completed_at).not.toBeNull();
@@ -188,7 +176,7 @@ describe("Claude Session Management API Integration", () => {
         createTurn,
         "POST",
         { projectId, sessionId },
-        { user_message: "This will fail" }
+        { user_message: "This will fail" },
       );
       turnId = createResponse.data.id;
 
@@ -197,12 +185,12 @@ describe("Claude Session Management API Integration", () => {
         updateTurn,
         "PATCH",
         { projectId, sessionId, turnId },
-        { 
+        {
           status: "failed",
-          error_message: "API rate limit exceeded"
-        }
+          error_message: "API rate limit exceeded",
+        },
       );
-      
+
       expect(failResponse.status).toBe(200);
       expect(failResponse.data.status).toBe("failed");
       expect(failResponse.data.error_message).toBe("API rate limit exceeded");
@@ -216,7 +204,7 @@ describe("Claude Session Management API Integration", () => {
         createSession,
         "POST",
         { projectId },
-        { title: "Session to Interrupt" }
+        { title: "Session to Interrupt" },
       );
       sessionId = sessionResponse.data.id;
 
@@ -225,30 +213,30 @@ describe("Claude Session Management API Integration", () => {
         createTurn,
         "POST",
         { projectId, sessionId },
-        { user_message: "First message" }
+        { user_message: "First message" },
       );
-      
+
       // Set first turn to running
       await apiCall(
         updateTurn,
         "PATCH",
         { projectId, sessionId, turnId: turn1Response.data.id },
-        { status: "running" }
+        { status: "running" },
       );
 
       const turn2Response = await apiCall(
         createTurn,
         "POST",
         { projectId, sessionId },
-        { user_message: "Second message" }
+        { user_message: "Second message" },
       );
-      
+
       // Set second turn to running
       await apiCall(
         updateTurn,
         "PATCH",
         { projectId, sessionId, turnId: turn2Response.data.id },
-        { status: "running" }
+        { status: "running" },
       );
 
       // Create a completed turn
@@ -256,48 +244,48 @@ describe("Claude Session Management API Integration", () => {
         createTurn,
         "POST",
         { projectId, sessionId },
-        { user_message: "Completed message" }
+        { user_message: "Completed message" },
       );
-      
+
       await apiCall(
         updateTurn,
         "PATCH",
         { projectId, sessionId, turnId: turn3Response.data.id },
-        { status: "completed" }
+        { status: "completed" },
       );
     });
 
     it("should interrupt running turns through API", async () => {
       // Interrupt the session
-      const interruptResponse = await apiCall(
-        interruptSession,
-        "POST",
-        { projectId, sessionId }
-      );
-      
+      const interruptResponse = await apiCall(interruptSession, "POST", {
+        projectId,
+        sessionId,
+      });
+
       expect(interruptResponse.status).toBe(200);
       expect(interruptResponse.data.status).toBe("interrupted");
 
       // Verify turns status
-      const turnsResponse = await apiCall(
-        listTurns,
-        "GET",
-        { projectId, sessionId }
-      );
-      
+      const turnsResponse = await apiCall(listTurns, "GET", {
+        projectId,
+        sessionId,
+      });
+
       const turns = turnsResponse.data.turns;
-      
+
       // Running turns should be failed
-      const failedTurns = turns.filter((t: { user_prompt: string }) => 
-        t.user_prompt === "First message" || t.user_prompt === "Second message"
+      const failedTurns = turns.filter(
+        (t: { user_prompt: string }) =>
+          t.user_prompt === "First message" ||
+          t.user_prompt === "Second message",
       );
       failedTurns.forEach((turn: { status: string }) => {
         expect(turn.status).toBe("failed");
       });
 
       // Completed turn should remain completed
-      const completedTurn = turns.find((t: { user_prompt: string }) => 
-        t.user_prompt === "Completed message"
+      const completedTurn = turns.find(
+        (t: { user_prompt: string }) => t.user_prompt === "Completed message",
       );
       expect(completedTurn.status).toBe("completed");
     });
@@ -309,19 +297,18 @@ describe("Claude Session Management API Integration", () => {
         createSession,
         "POST",
         { projectId },
-        { title: "Session for Polling" }
+        { title: "Session for Polling" },
       );
       sessionId = sessionResponse.data.id;
     });
 
     it("should detect new turns through polling API", async () => {
       // Initial state - no turns
-      const initial = await apiCall(
-        getUpdates,
-        "GET",
-        { projectId, sessionId }
-      );
-      
+      const initial = await apiCall(getUpdates, "GET", {
+        projectId,
+        sessionId,
+      });
+
       expect(initial.data.new_turn_ids).toEqual([]);
       expect(initial.data.has_active_turns).toBe(false);
 
@@ -330,16 +317,15 @@ describe("Claude Session Management API Integration", () => {
         createTurn,
         "POST",
         { projectId, sessionId },
-        { user_message: "New message" }
+        { user_message: "New message" },
       );
-      
+
       // Poll for updates (client hasn't seen any turns)
-      const updates = await apiCall(
-        getUpdates,
-        "GET",
-        { projectId, sessionId }
-      );
-      
+      const updates = await apiCall(getUpdates, "GET", {
+        projectId,
+        sessionId,
+      });
+
       expect(updates.data.new_turn_ids).toContain(turnResponse.data.id);
       expect(updates.data.has_active_turns).toBe(true);
 
@@ -348,14 +334,14 @@ describe("Claude Session Management API Integration", () => {
         updateTurn,
         "PATCH",
         { projectId, sessionId, turnId: turnResponse.data.id },
-        { status: "running" }
+        { status: "running" },
       );
 
       // Poll again (client has seen the turn at index 0)
       const updates2 = await apiCallWithQuery(
         getUpdates,
         { projectId, sessionId },
-        { last_turn_index: "0" }
+        { last_turn_index: "0" },
       );
 
       expect(updates2.data.new_turn_ids).toEqual([]);
@@ -370,7 +356,7 @@ describe("Claude Session Management API Integration", () => {
         createSession,
         "POST",
         { projectId },
-        { title: "Complete Conversation" }
+        { title: "Complete Conversation" },
       );
       sessionId = sessionResponse.data.id;
 
@@ -379,7 +365,7 @@ describe("Claude Session Management API Integration", () => {
         createTurn,
         "POST",
         { projectId, sessionId },
-        { user_message: "What is the weather today?" }
+        { user_message: "What is the weather today?" },
       );
       const turn1Id = turn1Response.data.id;
 
@@ -388,7 +374,7 @@ describe("Claude Session Management API Integration", () => {
         updateTurn,
         "PATCH",
         { projectId, sessionId, turnId: turn1Id },
-        { status: "running" }
+        { status: "running" },
       );
 
       // 4. System completes response
@@ -396,7 +382,7 @@ describe("Claude Session Management API Integration", () => {
         updateTurn,
         "PATCH",
         { projectId, sessionId, turnId: turn1Id },
-        { status: "completed" }
+        { status: "completed" },
       );
 
       // 5. User sends follow-up
@@ -404,7 +390,7 @@ describe("Claude Session Management API Integration", () => {
         createTurn,
         "POST",
         { projectId, sessionId },
-        { user_message: "What about tomorrow?" }
+        { user_message: "What about tomorrow?" },
       );
       const turn2Id = turn2Response.data.id;
 
@@ -413,31 +399,29 @@ describe("Claude Session Management API Integration", () => {
         updateTurn,
         "PATCH",
         { projectId, sessionId, turnId: turn2Id },
-        { status: "running" }
+        { status: "running" },
       );
 
       await apiCall(
         updateTurn,
         "PATCH",
         { projectId, sessionId, turnId: turn2Id },
-        { status: "completed" }
+        { status: "completed" },
       );
 
       // 7. Verify conversation history
-      const sessionDetails = await apiCall(
-        getSession,
-        "GET",
-        { projectId, sessionId }
-      );
-      
+      const sessionDetails = await apiCall(getSession, "GET", {
+        projectId,
+        sessionId,
+      });
+
       expect(sessionDetails.data.turn_ids).toHaveLength(2);
 
-      const turnsHistory = await apiCall(
-        listTurns,
-        "GET",
-        { projectId, sessionId }
-      );
-      
+      const turnsHistory = await apiCall(listTurns, "GET", {
+        projectId,
+        sessionId,
+      });
+
       expect(turnsHistory.data.turns).toHaveLength(2);
       expect(turnsHistory.data.turns[0].status).toBe("completed");
       expect(turnsHistory.data.turns[1].status).toBe("completed");
@@ -447,26 +431,27 @@ describe("Claude Session Management API Integration", () => {
   describe("Error Handling", () => {
     it("should handle authentication errors", async () => {
       // Mock failed authentication
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const response = await apiCall(
         createSession,
         "POST",
         { projectId },
-        { title: "Unauthorized" }
+        { title: "Unauthorized" },
       );
-      
+
       expect(response.status).toBe(401);
       expect(response.data.error).toBe("unauthorized");
     });
 
     it("should handle non-existent resources", async () => {
-      const response = await apiCall(
-        getSession,
-        "GET",
-        { projectId: "non-existent", sessionId: "non-existent" }
-      );
-      
+      const response = await apiCall(getSession, "GET", {
+        projectId: "non-existent",
+        sessionId: "non-existent",
+      });
+
       expect(response.status).toBe(404);
       expect(response.data.error).toBe("project_not_found");
     });
@@ -476,7 +461,7 @@ describe("Claude Session Management API Integration", () => {
         createSession,
         "POST",
         { projectId },
-        { title: "Session for Invalid Input" }
+        { title: "Session for Invalid Input" },
       );
       sessionId = sessionResponse.data.id;
 
@@ -485,9 +470,9 @@ describe("Claude Session Management API Integration", () => {
         createTurn,
         "POST",
         { projectId, sessionId },
-        {}
+        {},
       );
-      
+
       expect(response.status).toBe(400);
       expect(response.data.error).toBe("user_message_required");
     });

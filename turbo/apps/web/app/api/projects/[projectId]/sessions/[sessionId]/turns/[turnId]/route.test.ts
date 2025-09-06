@@ -3,7 +3,11 @@ import { NextRequest } from "next/server";
 import { GET, PATCH } from "./route";
 import { initServices } from "../../../../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../../../../src/db/schema/projects";
-import { SESSIONS_TBL, TURNS_TBL, BLOCKS_TBL } from "../../../../../../../../src/db/schema/sessions";
+import {
+  SESSIONS_TBL,
+  TURNS_TBL,
+  BLOCKS_TBL,
+} from "../../../../../../../../src/db/schema/sessions";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";
 
@@ -47,23 +51,19 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
     });
 
     // Create test session
-    await globalThis.services.db
-      .insert(SESSIONS_TBL)
-      .values({
-        id: sessionId,
-        projectId,
-        title: "Test Session",
-      });
+    await globalThis.services.db.insert(SESSIONS_TBL).values({
+      id: sessionId,
+      projectId,
+      title: "Test Session",
+    });
 
     // Create test turn
-    await globalThis.services.db
-      .insert(TURNS_TBL)
-      .values({
-        id: turnId,
-        sessionId,
-        userPrompt: "Test prompt",
-        status: "pending",
-      });
+    await globalThis.services.db.insert(TURNS_TBL).values({
+      id: turnId,
+      sessionId,
+      userPrompt: "Test prompt",
+      status: "pending",
+    });
 
     createdBlockIds = [];
   });
@@ -99,7 +99,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
       >);
 
       const request = new NextRequest("http://localhost:3000");
-      const context = { params: Promise.resolve({ projectId, sessionId, turnId }) };
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
 
       const response = await GET(request, context);
 
@@ -110,12 +112,12 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
 
     it("should return 404 when project doesn't exist", async () => {
       const request = new NextRequest("http://localhost:3000");
-      const context = { 
-        params: Promise.resolve({ 
-          projectId: "non-existent", 
-          sessionId, 
-          turnId 
-        }) 
+      const context = {
+        params: Promise.resolve({
+          projectId: "non-existent",
+          sessionId,
+          turnId,
+        }),
       };
 
       const response = await GET(request, context);
@@ -127,12 +129,12 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
 
     it("should return 404 when session doesn't exist", async () => {
       const request = new NextRequest("http://localhost:3000");
-      const context = { 
-        params: Promise.resolve({ 
-          projectId, 
-          sessionId: "non-existent", 
-          turnId 
-        }) 
+      const context = {
+        params: Promise.resolve({
+          projectId,
+          sessionId: "non-existent",
+          turnId,
+        }),
       };
 
       const response = await GET(request, context);
@@ -144,12 +146,12 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
 
     it("should return 404 when turn doesn't exist", async () => {
       const request = new NextRequest("http://localhost:3000");
-      const context = { 
-        params: Promise.resolve({ 
-          projectId, 
-          sessionId, 
-          turnId: "non-existent" 
-        }) 
+      const context = {
+        params: Promise.resolve({
+          projectId,
+          sessionId,
+          turnId: "non-existent",
+        }),
       };
 
       const response = await GET(request, context);
@@ -161,7 +163,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
 
     it("should return turn details without blocks", async () => {
       const request = new NextRequest("http://localhost:3000");
-      const context = { params: Promise.resolve({ projectId, sessionId, turnId }) };
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
 
       const response = await GET(request, context);
 
@@ -196,10 +200,10 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
           id: `block_tool_${Date.now()}`,
           turnId,
           type: "tool_use",
-          content: JSON.stringify({ 
+          content: JSON.stringify({
             tool_name: "read_file",
             parameters: { path: "/test.txt" },
-            tool_use_id: "tool_123"
+            tool_use_id: "tool_123",
           }),
           sequenceNumber: 1,
         })
@@ -211,10 +215,10 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
           id: `block_result_${Date.now()}`,
           turnId,
           type: "tool_result",
-          content: JSON.stringify({ 
+          content: JSON.stringify({
             tool_use_id: "tool_123",
             result: "File contents...",
-            error: null
+            error: null,
           }),
           sequenceNumber: 2,
         })
@@ -226,7 +230,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
           id: `block_content_${Date.now()}`,
           turnId,
           type: "content",
-          content: JSON.stringify({ text: "Based on the file, the answer is..." }),
+          content: JSON.stringify({
+            text: "Based on the file, the answer is...",
+          }),
           sequenceNumber: 3,
         })
         .returning();
@@ -234,14 +240,16 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
       createdBlockIds.push(block1.id, block2.id, block3.id, block4.id);
 
       const request = new NextRequest("http://localhost:3000");
-      const context = { params: Promise.resolve({ projectId, sessionId, turnId }) };
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
 
       const response = await GET(request, context);
 
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.blocks).toHaveLength(4);
-      
+
       // Check blocks are in sequence order
       expect(data.blocks[0].type).toBe("thinking");
       expect(data.blocks[0].content.text).toBe("Let me think about this...");
@@ -256,7 +264,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
       expect(data.blocks[2].sequence_number).toBe(2);
 
       expect(data.blocks[3].type).toBe("content");
-      expect(data.blocks[3].content.text).toBe("Based on the file, the answer is...");
+      expect(data.blocks[3].content.text).toBe(
+        "Based on the file, the answer is...",
+      );
       expect(data.blocks[3].sequence_number).toBe(3);
     });
   });
@@ -271,7 +281,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         method: "PATCH",
         body: JSON.stringify({ status: "running" }),
       });
-      const context = { params: Promise.resolve({ projectId, sessionId, turnId }) };
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
 
       const response = await PATCH(request, context);
 
@@ -285,7 +297,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         method: "PATCH",
         body: JSON.stringify({ status: "running" }),
       });
-      const context = { params: Promise.resolve({ projectId, sessionId, turnId }) };
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
 
       const response = await PATCH(request, context);
 
@@ -311,9 +325,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
       // First set to running
       await globalThis.services.db
         .update(TURNS_TBL)
-        .set({ 
+        .set({
           status: "running",
-          startedAt: new Date()
+          startedAt: new Date(),
         })
         .where(eq(TURNS_TBL.id, turnId));
 
@@ -321,7 +335,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         method: "PATCH",
         body: JSON.stringify({ status: "completed" }),
       });
-      const context = { params: Promise.resolve({ projectId, sessionId, turnId }) };
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
 
       const response = await PATCH(request, context);
 
@@ -344,15 +360,17 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
 
     it("should update turn status to failed with error message", async () => {
       const errorMessage = "Claude API error: Rate limit exceeded";
-      
+
       const request = new NextRequest("http://localhost:3000", {
         method: "PATCH",
-        body: JSON.stringify({ 
+        body: JSON.stringify({
           status: "failed",
-          error_message: errorMessage
+          error_message: errorMessage,
         }),
       });
-      const context = { params: Promise.resolve({ projectId, sessionId, turnId }) };
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
 
       const response = await PATCH(request, context);
 
@@ -376,13 +394,13 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
 
     it("should not override startedAt if already set", async () => {
       const originalStartTime = new Date("2024-01-01T10:00:00Z");
-      
+
       // Set initial startedAt
       await globalThis.services.db
         .update(TURNS_TBL)
-        .set({ 
+        .set({
           status: "running",
-          startedAt: originalStartTime
+          startedAt: originalStartTime,
         })
         .where(eq(TURNS_TBL.id, turnId));
 
@@ -391,7 +409,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         method: "PATCH",
         body: JSON.stringify({ status: "running" }),
       });
-      const context = { params: Promise.resolve({ projectId, sessionId, turnId }) };
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
 
       await PATCH(request, context);
 
@@ -401,7 +421,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         .from(TURNS_TBL)
         .where(eq(TURNS_TBL.id, turnId));
 
-      expect(updatedTurn.startedAt?.toISOString()).toBe(originalStartTime.toISOString());
+      expect(updatedTurn.startedAt?.toISOString()).toBe(
+        originalStartTime.toISOString(),
+      );
     });
 
     it("should update session updatedAt timestamp", async () => {
@@ -413,13 +435,15 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
 
       const originalUpdatedAt = originalSession.updatedAt;
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const request = new NextRequest("http://localhost:3000", {
         method: "PATCH",
         body: JSON.stringify({ status: "running" }),
       });
-      const context = { params: Promise.resolve({ projectId, sessionId, turnId }) };
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
 
       await PATCH(request, context);
 
@@ -429,7 +453,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         .from(SESSIONS_TBL)
         .where(eq(SESSIONS_TBL.id, sessionId));
 
-      expect(updatedSession.updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime());
+      expect(updatedSession.updatedAt.getTime()).toBeGreaterThan(
+        originalUpdatedAt.getTime(),
+      );
     });
   });
 });

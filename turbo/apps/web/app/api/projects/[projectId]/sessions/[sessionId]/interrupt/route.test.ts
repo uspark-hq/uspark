@@ -3,7 +3,10 @@ import { NextRequest } from "next/server";
 import { POST } from "./route";
 import { initServices } from "../../../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
-import { SESSIONS_TBL, TURNS_TBL } from "../../../../../../../src/db/schema/sessions";
+import {
+  SESSIONS_TBL,
+  TURNS_TBL,
+} from "../../../../../../../src/db/schema/sessions";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";
 
@@ -46,13 +49,11 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
     });
 
     // Create test session
-    await globalThis.services.db
-      .insert(SESSIONS_TBL)
-      .values({
-        id: sessionId,
-        projectId,
-        title: "Test Session for Interrupt",
-      });
+    await globalThis.services.db.insert(SESSIONS_TBL).values({
+      id: sessionId,
+      projectId,
+      title: "Test Session for Interrupt",
+    });
 
     createdTurnIds = [];
   });
@@ -98,11 +99,11 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
       const request = new NextRequest("http://localhost:3000", {
         method: "POST",
       });
-      const context = { 
-        params: Promise.resolve({ 
-          projectId: "non-existent", 
-          sessionId 
-        }) 
+      const context = {
+        params: Promise.resolve({
+          projectId: "non-existent",
+          sessionId,
+        }),
       };
 
       const response = await POST(request, context);
@@ -116,11 +117,11 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
       const request = new NextRequest("http://localhost:3000", {
         method: "POST",
       });
-      const context = { 
-        params: Promise.resolve({ 
-          projectId, 
-          sessionId: "non-existent" 
-        }) 
+      const context = {
+        params: Promise.resolve({
+          projectId,
+          sessionId: "non-existent",
+        }),
       };
 
       const response = await POST(request, context);
@@ -176,7 +177,12 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
         })
         .returning();
 
-      createdTurnIds.push(runningTurn1.id, runningTurn2.id, completedTurn.id, pendingTurn.id);
+      createdTurnIds.push(
+        runningTurn1.id,
+        runningTurn2.id,
+        completedTurn.id,
+        pendingTurn.id,
+      );
 
       const request = new NextRequest("http://localhost:3000", {
         method: "POST",
@@ -238,7 +244,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
 
       const originalUpdatedAt = originalSession.updatedAt;
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const request = new NextRequest("http://localhost:3000", {
         method: "POST",
@@ -253,7 +259,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
         .from(SESSIONS_TBL)
         .where(eq(SESSIONS_TBL.id, sessionId));
 
-      expect(updatedSession.updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime());
+      expect(updatedSession.updatedAt.getTime()).toBeGreaterThan(
+        originalUpdatedAt.getTime(),
+      );
     });
 
     it("should handle case when no running turns exist", async () => {
@@ -329,13 +337,11 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
 
       // Create another session with running turn
       const otherSessionId = `sess_other_${Date.now()}`;
-      await globalThis.services.db
-        .insert(SESSIONS_TBL)
-        .values({
-          id: otherSessionId,
-          projectId,
-          title: "Other Session",
-        });
+      await globalThis.services.db.insert(SESSIONS_TBL).values({
+        id: otherSessionId,
+        projectId,
+        title: "Other Session",
+      });
 
       const [otherRunningTurn] = await globalThis.services.db
         .insert(TURNS_TBL)

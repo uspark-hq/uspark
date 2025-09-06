@@ -15,8 +15,8 @@ describe("BlockFactory", () => {
       expect(block).toEqual({
         type: "thinking",
         content: {
-          text: "I need to analyze this problem..."
-        }
+          text: "I need to analyze this problem...",
+        },
       });
     });
 
@@ -32,13 +32,15 @@ Third line`;
 
   describe("content", () => {
     it("should create content block with correct structure", () => {
-      const block = BlockFactory.content("Here is the answer to your question.");
+      const block = BlockFactory.content(
+        "Here is the answer to your question.",
+      );
 
       expect(block).toEqual({
         type: "content",
         content: {
-          text: "Here is the answer to your question."
-        }
+          text: "Here is the answer to your question.",
+        },
       });
     });
 
@@ -53,7 +55,7 @@ Third line`;
       const block = BlockFactory.toolUse(
         "read_file",
         { path: "/test.txt" },
-        "custom_tool_id_123"
+        "custom_tool_id_123",
       );
 
       expect(block).toEqual({
@@ -61,22 +63,22 @@ Third line`;
         content: {
           tool_name: "read_file",
           parameters: { path: "/test.txt" },
-          tool_use_id: "custom_tool_id_123"
-        }
+          tool_use_id: "custom_tool_id_123",
+        },
       });
     });
 
     it("should generate tool_use_id if not provided", () => {
-      const block = BlockFactory.toolUse(
-        "write_file",
-        { path: "/output.txt", content: "Hello" }
-      );
+      const block = BlockFactory.toolUse("write_file", {
+        path: "/output.txt",
+        content: "Hello",
+      });
 
       expect(block.type).toBe("tool_use");
       expect(block.content.tool_name).toBe("write_file");
-      expect(block.content.parameters).toEqual({ 
-        path: "/output.txt", 
-        content: "Hello" 
+      expect(block.content.parameters).toEqual({
+        path: "/output.txt",
+        content: "Hello",
       });
       expect(block.content.tool_use_id).toMatch(/^tool_/);
     });
@@ -93,9 +95,9 @@ Third line`;
         options: {
           recursive: true,
           pattern: "*.ts",
-          excludes: ["node_modules", ".git"]
+          excludes: ["node_modules", ".git"],
         },
-        limit: 100
+        limit: 100,
       };
 
       const block = BlockFactory.toolUse("execute", parameters);
@@ -107,7 +109,7 @@ Third line`;
     it("should create tool_result block with success result", () => {
       const block = BlockFactory.toolResult(
         "tool_123",
-        "File contents: Hello World"
+        "File contents: Hello World",
       );
 
       expect(block).toEqual({
@@ -115,8 +117,8 @@ Third line`;
         content: {
           tool_use_id: "tool_123",
           result: "File contents: Hello World",
-          error: null
-        }
+          error: null,
+        },
       });
     });
 
@@ -124,7 +126,7 @@ Third line`;
       const block = BlockFactory.toolResult(
         "tool_456",
         "",
-        "File not found: /missing.txt"
+        "File not found: /missing.txt",
       );
 
       expect(block).toEqual({
@@ -132,26 +134,19 @@ Third line`;
         content: {
           tool_use_id: "tool_456",
           result: "",
-          error: "File not found: /missing.txt"
-        }
+          error: "File not found: /missing.txt",
+        },
       });
     });
 
     it("should handle null error explicitly", () => {
-      const block = BlockFactory.toolResult(
-        "tool_789",
-        "Success",
-        null
-      );
+      const block = BlockFactory.toolResult("tool_789", "Success", null);
 
       expect(block.content.error).toBeNull();
     });
 
     it("should handle undefined error as null", () => {
-      const block = BlockFactory.toolResult(
-        "tool_789",
-        "Success"
-      );
+      const block = BlockFactory.toolResult("tool_789", "Success");
 
       expect(block.content.error).toBeNull();
     });
@@ -196,23 +191,19 @@ describe("Blocks Database Functions", () => {
     });
 
     // Create test session
-    await globalThis.services.db
-      .insert(SESSIONS_TBL)
-      .values({
-        id: sessionId,
-        projectId,
-        title: "Test Session for Blocks",
-      });
+    await globalThis.services.db.insert(SESSIONS_TBL).values({
+      id: sessionId,
+      projectId,
+      title: "Test Session for Blocks",
+    });
 
     // Create test turn
-    await globalThis.services.db
-      .insert(TURNS_TBL)
-      .values({
-        id: turnId,
-        sessionId,
-        userPrompt: "Test prompt",
-        status: "running",
-      });
+    await globalThis.services.db.insert(TURNS_TBL).values({
+      id: turnId,
+      sessionId,
+      userPrompt: "Test prompt",
+      status: "running",
+    });
 
     createdBlockIds = [];
   });
@@ -266,11 +257,11 @@ describe("Blocks Database Functions", () => {
     it("should handle complex content objects", async () => {
       const content = {
         tool_name: "read_file",
-        parameters: { 
+        parameters: {
           path: "/test/file.txt",
-          encoding: "utf-8"
+          encoding: "utf-8",
         },
-        tool_use_id: "tool_test_123"
+        tool_use_id: "tool_test_123",
       };
 
       const blockId = await addBlock(turnId, "tool_use", content, 5);
@@ -288,7 +279,7 @@ describe("Blocks Database Functions", () => {
 
     it("should throw error if turn doesn't exist", async () => {
       await expect(
-        addBlock("non-existent-turn", "content", { text: "test" }, 0)
+        addBlock("non-existent-turn", "content", { text: "test" }, 0),
       ).rejects.toThrow();
     });
   });
@@ -304,7 +295,7 @@ describe("Blocks Database Functions", () => {
       const blockIds = await addBlocks(turnId, blocks);
 
       expect(blockIds).toHaveLength(3);
-      blockIds.forEach(id => {
+      blockIds.forEach((id) => {
         expect(id).toMatch(/^block_/);
         createdBlockIds.push(id);
       });
@@ -323,11 +314,15 @@ describe("Blocks Database Functions", () => {
 
       expect(dbBlocks[1].type).toBe("content");
       expect(dbBlocks[1].sequenceNumber).toBe(1);
-      expect(JSON.parse(dbBlocks[1].content)).toEqual({ text: "The answer is 42" });
+      expect(JSON.parse(dbBlocks[1].content)).toEqual({
+        text: "The answer is 42",
+      });
 
       expect(dbBlocks[2].type).toBe("content");
       expect(dbBlocks[2].sequenceNumber).toBe(2);
-      expect(JSON.parse(dbBlocks[2].content)).toEqual({ text: "Here's why..." });
+      expect(JSON.parse(dbBlocks[2].content)).toEqual({
+        text: "Here's why...",
+      });
     });
 
     it("should respect startSequence parameter", async () => {
@@ -357,7 +352,7 @@ describe("Blocks Database Functions", () => {
     it("should handle large batch of blocks", async () => {
       const blocks = Array.from({ length: 50 }, (_, i) => ({
         type: "content",
-        content: { text: `Block ${i}` }
+        content: { text: `Block ${i}` },
       }));
 
       const blockIds = await addBlocks(turnId, blocks);
@@ -377,9 +372,18 @@ describe("Blocks Database Functions", () => {
     it("should work end-to-end with BlockFactory and addBlocks", async () => {
       const blocks = [
         BlockFactory.thinking("Let me search for that file..."),
-        BlockFactory.toolUse("read_file", { path: "/readme.md" }, "tool_read_1"),
-        BlockFactory.toolResult("tool_read_1", "# README\nThis is a test file."),
-        BlockFactory.content("I found the README file. It contains a header and description."),
+        BlockFactory.toolUse(
+          "read_file",
+          { path: "/readme.md" },
+          "tool_read_1",
+        ),
+        BlockFactory.toolResult(
+          "tool_read_1",
+          "# README\nThis is a test file.",
+        ),
+        BlockFactory.content(
+          "I found the README file. It contains a header and description.",
+        ),
       ];
 
       const blockIds = await addBlocks(turnId, blocks);

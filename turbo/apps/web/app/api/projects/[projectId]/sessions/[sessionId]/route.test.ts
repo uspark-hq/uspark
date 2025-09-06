@@ -3,7 +3,11 @@ import { NextRequest } from "next/server";
 import { GET, PATCH } from "./route";
 import { initServices } from "../../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../../src/db/schema/projects";
-import { SESSIONS_TBL, TURNS_TBL, BLOCKS_TBL } from "../../../../../../src/db/schema/sessions";
+import {
+  SESSIONS_TBL,
+  TURNS_TBL,
+  BLOCKS_TBL,
+} from "../../../../../../src/db/schema/sessions";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";
 
@@ -99,11 +103,11 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
 
     it("should return 404 when project doesn't exist", async () => {
       const request = new NextRequest("http://localhost:3000");
-      const context = { 
-        params: Promise.resolve({ 
-          projectId: "non-existent", 
-          sessionId 
-        }) 
+      const context = {
+        params: Promise.resolve({
+          projectId: "non-existent",
+          sessionId,
+        }),
       };
 
       const response = await GET(request, context);
@@ -115,11 +119,11 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
 
     it("should return 404 when session doesn't exist", async () => {
       const request = new NextRequest("http://localhost:3000");
-      const context = { 
-        params: Promise.resolve({ 
-          projectId, 
-          sessionId: "non-existent" 
-        }) 
+      const context = {
+        params: Promise.resolve({
+          projectId,
+          sessionId: "non-existent",
+        }),
       };
 
       const response = await GET(request, context);
@@ -158,7 +162,7 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
         })
         .returning();
 
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const turn2 = await globalThis.services.db
         .insert(TURNS_TBL)
@@ -209,11 +213,11 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
         method: "PATCH",
         body: JSON.stringify({ title: "Updated Title" }),
       });
-      const context = { 
-        params: Promise.resolve({ 
-          projectId: "non-existent", 
-          sessionId 
-        }) 
+      const context = {
+        params: Promise.resolve({
+          projectId: "non-existent",
+          sessionId,
+        }),
       };
 
       const response = await PATCH(request, context);
@@ -228,11 +232,11 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
         method: "PATCH",
         body: JSON.stringify({ title: "Updated Title" }),
       });
-      const context = { 
-        params: Promise.resolve({ 
-          projectId, 
-          sessionId: "non-existent" 
-        }) 
+      const context = {
+        params: Promise.resolve({
+          projectId,
+          sessionId: "non-existent",
+        }),
       };
 
       const response = await PATCH(request, context);
@@ -265,7 +269,7 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
 
       expect(updatedSession.title).toBe("Updated Session Title");
       expect(updatedSession.updatedAt.getTime()).toBeGreaterThan(
-        updatedSession.createdAt.getTime()
+        updatedSession.createdAt.getTime(),
       );
     });
 
