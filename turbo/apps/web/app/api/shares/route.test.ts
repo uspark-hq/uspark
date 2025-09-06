@@ -16,16 +16,16 @@ import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 
 describe("/api/shares", () => {
-  const userId = "test-user";
-  const otherUserId = "other-user";
-  const projectId = `test-project-${Date.now()}`;
+  const userId = "test-user-shares-list";
+  const otherUserId = "other-user-shares-list";
+  const projectId = `test-project-shares-${Date.now()}`;
   const testFilePath = "src/test.ts";
 
   beforeEach(async () => {
     // Clean up any existing test data
     initServices();
     
-    // Clean up share links for test users
+    // Clean up ALL share links for test users (including any leftover from other tests)
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, userId));
@@ -54,6 +54,16 @@ describe("/api/shares", () => {
 
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+  });
+
+  afterEach(async () => {
+    // Clean up any created share links after each test
+    await globalThis.services.db
+      .delete(SHARE_LINKS_TBL)
+      .where(eq(SHARE_LINKS_TBL.userId, userId));
+    await globalThis.services.db
+      .delete(SHARE_LINKS_TBL)
+      .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
   });
 
   describe("GET /api/shares", () => {
