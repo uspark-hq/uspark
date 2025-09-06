@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { NextRequest } from "next/server";
 import { DELETE } from "./route";
 import { initServices } from "../../../../src/lib/init-services";
+import { apiCall } from "../../../../src/test/api-helpers";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
 import { eq } from "drizzle-orm";
@@ -92,16 +92,10 @@ describe("DELETE /api/shares/[id]", () => {
     expect(shareBefore).toBeDefined();
 
     // Delete the share
-    const request = new NextRequest(
-      "http://localhost:3000/api/shares/" + shareId,
-    );
-    const response = await DELETE(request, {
-      params: Promise.resolve({ id: shareId }),
-    });
-    const data = await response.json();
+    const response = await apiCall(DELETE, "DELETE", { id: shareId });
 
     expect(response.status).toBe(200);
-    expect(data).toEqual({ success: true });
+    expect(response.data).toEqual({ success: true });
 
     // Verify share is deleted
     const [shareAfter] = await globalThis.services.db
@@ -117,16 +111,10 @@ describe("DELETE /api/shares/[id]", () => {
   });
 
   it("should return 404 when trying to delete non-existent share", async () => {
-    const request = new NextRequest(
-      "http://localhost:3000/api/shares/non-existent",
-    );
-    const response = await DELETE(request, {
-      params: Promise.resolve({ id: "non-existent" }),
-    });
-    const data = await response.json();
+    const response = await apiCall(DELETE, "DELETE", { id: "non-existent" });
 
     expect(response.status).toBe(404);
-    expect(data).toEqual({ error: "share_not_found" });
+    expect(response.data).toEqual({ error: "share_not_found" });
   });
 
   it("should return 404 when trying to delete another user's share", async () => {
@@ -155,16 +143,10 @@ describe("DELETE /api/shares/[id]", () => {
     });
 
     // Try to delete as current user
-    const request = new NextRequest(
-      "http://localhost:3000/api/shares/" + shareId,
-    );
-    const response = await DELETE(request, {
-      params: Promise.resolve({ id: shareId }),
-    });
-    const data = await response.json();
+    const response = await apiCall(DELETE, "DELETE", { id: shareId });
 
     expect(response.status).toBe(404);
-    expect(data).toEqual({ error: "share_not_found" });
+    expect(response.data).toEqual({ error: "share_not_found" });
 
     // Verify share still exists
     const [shareAfter] = await globalThis.services.db
@@ -189,16 +171,10 @@ describe("DELETE /api/shares/[id]", () => {
     >);
 
     const shareId = "test-share-id";
-    const request = new NextRequest(
-      "http://localhost:3000/api/shares/" + shareId,
-    );
-    const response = await DELETE(request, {
-      params: Promise.resolve({ id: shareId }),
-    });
-    const data = await response.json();
+    const response = await apiCall(DELETE, "DELETE", { id: shareId });
 
     expect(response.status).toBe(401);
-    expect(data).toEqual({ error: "unauthorized" });
+    expect(response.data).toEqual({ error: "unauthorized" });
   });
 
   it("should only delete the specified share, not others", async () => {
@@ -247,12 +223,7 @@ describe("DELETE /api/shares/[id]", () => {
 
     // Delete share-2
     const shareToDelete = `share-2-${timestamp}`;
-    const request = new NextRequest(
-      `http://localhost:3000/api/shares/${shareToDelete}`,
-    );
-    const response = await DELETE(request, {
-      params: Promise.resolve({ id: shareToDelete }),
-    });
+    const response = await apiCall(DELETE, "DELETE", { id: shareToDelete });
 
     expect(response.status).toBe(200);
 

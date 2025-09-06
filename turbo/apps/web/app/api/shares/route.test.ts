@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { GET } from "./route";
 import { initServices } from "../../../src/lib/init-services";
+import { apiCall } from "../../../src/test/api-helpers";
 import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
 import { eq } from "drizzle-orm";
@@ -59,11 +60,10 @@ describe("GET /api/shares", () => {
   });
 
   it("should return empty array when user has no shares", async () => {
-    const response = await GET();
-    const data = await response.json();
+    const response = await apiCall(GET, "GET");
 
     expect(response.status).toBe(200);
-    expect(data).toEqual({ shares: [] });
+    expect(response.data).toEqual({ shares: [] });
   });
 
   it("should return user's shares with correct structure", async () => {
@@ -109,14 +109,13 @@ describe("GET /api/shares", () => {
       .insert(SHARE_LINKS_TBL)
       .values([share1, share2]);
 
-    const response = await GET();
-    const data = await response.json();
+    const response = await apiCall(GET, "GET");
 
     expect(response.status).toBe(200);
-    expect(data.shares).toHaveLength(2);
+    expect(response.data.shares).toHaveLength(2);
 
     // Should be ordered by createdAt desc (newest first)
-    expect(data.shares[0]).toMatchObject({
+    expect(response.data.shares[0]).toMatchObject({
       id: `share-2-${timestamp}`,
       token: `token-2-${timestamp}`,
       projectId,
@@ -125,7 +124,7 @@ describe("GET /api/shares", () => {
       accessedCount: 0,
     });
 
-    expect(data.shares[1]).toMatchObject({
+    expect(response.data.shares[1]).toMatchObject({
       id: `share-1-${timestamp}`,
       token: `token-1-${timestamp}`,
       projectId,
@@ -187,12 +186,11 @@ describe("GET /api/shares", () => {
       },
     ]);
 
-    const response = await GET();
-    const data = await response.json();
+    const response = await apiCall(GET, "GET");
 
     expect(response.status).toBe(200);
-    expect(data.shares).toHaveLength(1);
-    expect(data.shares[0].id).toBe(`my-share-${timestamp}`);
+    expect(response.data.shares).toHaveLength(1);
+    expect(response.data.shares[0].id).toBe(`my-share-${timestamp}`);
 
     // Clean up - delete shares first, then projects
     await globalThis.services.db
@@ -214,11 +212,10 @@ describe("GET /api/shares", () => {
       ReturnType<typeof auth>
     >);
 
-    const response = await GET();
-    const data = await response.json();
+    const response = await apiCall(GET, "GET");
 
     expect(response.status).toBe(401);
-    expect(data).toEqual({ error: "unauthorized" });
+    expect(response.data).toEqual({ error: "unauthorized" });
   });
 
   it("should order shares by creation date descending", async () => {
@@ -268,14 +265,13 @@ describe("GET /api/shares", () => {
 
     await globalThis.services.db.insert(SHARE_LINKS_TBL).values(shares);
 
-    const response = await GET();
-    const data = await response.json();
+    const response = await apiCall(GET, "GET");
 
     expect(response.status).toBe(200);
-    expect(data.shares).toHaveLength(3);
-    expect(data.shares[0].id).toBe(`new-share-${timestamp}`);
-    expect(data.shares[1].id).toBe(`middle-share-${timestamp}`);
-    expect(data.shares[2].id).toBe(`old-share-${timestamp}`);
+    expect(response.data.shares).toHaveLength(3);
+    expect(response.data.shares[0].id).toBe(`new-share-${timestamp}`);
+    expect(response.data.shares[1].id).toBe(`middle-share-${timestamp}`);
+    expect(response.data.shares[2].id).toBe(`old-share-${timestamp}`);
 
     // Clean up
     await globalThis.services.db
