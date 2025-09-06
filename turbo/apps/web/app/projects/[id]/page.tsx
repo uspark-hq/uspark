@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { YjsFileExplorer } from "../../components/file-explorer";
+import { SessionDisplay } from "../../components/chat/SessionDisplay";
+import { ChatStatus } from "../../components/chat/ChatStatus";
+import { useSessionPolling } from "../../../src/hooks/useSessionPolling";
+import { sessionsAPI } from "../../../src/lib/api/sessions";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -12,6 +16,21 @@ export default function ProjectDetailPage() {
   const [loadingContent, setLoadingContent] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [showShareSuccess, setShowShareSuccess] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string>();
+  const [inputMessage, setInputMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
+  const [activeView, setActiveView] = useState<"document" | "chat">("chat");
+
+  // Use session polling hook
+  const {
+    session,
+    error: sessionError,
+    interruptSession,
+  } = useSessionPolling({
+    projectId,
+    sessionId: currentSessionId,
+    enabled: !!currentSessionId,
+  });
 
   // Mock file content loading for now
   const loadFileContent = async (filePath: string) => {
@@ -55,6 +74,38 @@ export default function ProjectDetailPage() {
       setFileContent(undefined);
     }
   }, [selectedFile]);
+
+  // Handle sending a message
+  const handleSendMessage = useCallback(async () => {
+    if (!inputMessage.trim() || isSending) return;
+
+    setIsSending(true);
+    setInputMessage("");
+
+    try {
+      // Create a new session if needed
+      let sessionId = currentSessionId;
+      if (!sessionId) {
+        const newSession = await sessionsAPI.createSession(projectId);
+        sessionId = newSession.id;
+        setCurrentSessionId(sessionId);
+      }
+
+      // Create a new turn with the user input
+      await sessionsAPI.createTurn(projectId, sessionId, {
+        user_prompt: inputMessage.trim(),
+      });
+
+      // Note: Real Claude integration would happen here
+      // The backend would process the turn and add blocks
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      // Restore the input message on error
+      setInputMessage(inputMessage);
+    } finally {
+      setIsSending(false);
+    }
+  }, [inputMessage, isSending, currentSessionId, projectId]);
 
   const handleShare = async () => {
     if (!selectedFile) return;
@@ -191,34 +242,54 @@ export default function ProjectDetailPage() {
           />
         </div>
 
-        {/* Document Viewer */}
+        {/* Main View Area - Can toggle between Document Viewer and Chat */}
         <div
           style={{
             backgroundColor: "var(--background)",
-            overflow: "auto",
+            overflow: "hidden",
             display: "flex",
             flexDirection: "column",
           }}
         >
+          {/* View Toggle Tabs */}
           <div
             style={{
-              padding: "12px 16px",
-              borderBottom: "1px solid rgba(156, 163, 175, 0.1)",
-              fontSize: "14px",
-              fontWeight: "500",
-              color: "var(--foreground)",
               display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
+              borderBottom: "1px solid rgba(156, 163, 175, 0.1)",
             }}
           >
-            <span>
-              {selectedFile ? `📄 ${selectedFile}` : "📄 Document Viewer"}
-            </span>
-            {selectedFile && (
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "12px" }}
-              >
+            <button
+              onClick={() => setActiveView("chat")}
+              style={{
+                padding: "12px 24px",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: activeView === "chat" ? "#3b82f6" : "rgba(156, 163, 175, 0.8)",
+                backgroundColor: "transparent",
+                border: "none",
+                borderBottom: activeView === "chat" ? "2px solid #3b82f6" : "2px solid transparent",
+                cursor: "pointer",
+              }}
+            >
+              💬 Chat
+            </button>
+            <button
+              onClick={() => setActiveView("document")}
+              style={{
+                padding: "12px 24px",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: activeView === "document" ? "#3b82f6" : "rgba(156, 163, 175, 0.8)",
+                backgroundColor: "transparent",
+                border: "none",
+                borderBottom: activeView === "document" ? "2px solid #3b82f6" : "2px solid transparent",
+                cursor: "pointer",
+              }}
+            >
+              📄 Document
+            </button>
+            {activeView === "document" && selectedFile && (
+              <div style={{ marginLeft: "auto", padding: "8px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
                 {showShareSuccess && (
                   <span
                     style={{
@@ -257,74 +328,74 @@ export default function ProjectDetailPage() {
                 >
                   {isSharing ? "Sharing..." : "Share"}
                 </button>
-                <span
-                  style={{
-                    fontSize: "12px",
-                    color: "rgba(156, 163, 175, 0.6)",
-                  }}
-                >
-                  Read-only preview
-                </span>
               </div>
             )}
           </div>
 
-          <div style={{ flex: 1, padding: "16px" }}>
-            {loadingContent ? (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: "200px",
-                  color: "rgba(156, 163, 175, 0.6)",
-                  fontSize: "14px",
-                }}
-              >
-                Loading file content...
-              </div>
-            ) : selectedFile && fileContent ? (
-              <pre
-                style={{
-                  margin: 0,
-                  padding: "16px",
-                  backgroundColor: "rgba(156, 163, 175, 0.05)",
-                  border: "1px solid rgba(156, 163, 175, 0.1)",
-                  borderRadius: "6px",
-                  fontSize: "13px",
-                  fontFamily:
-                    'Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
-                  lineHeight: "1.5",
-                  color: "var(--foreground)",
-                  overflow: "auto",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                }}
-              >
-                {fileContent}
-              </pre>
+          {/* View Content */}
+          <div style={{ flex: 1, overflow: "hidden" }}>
+            {activeView === "chat" ? (
+              <SessionDisplay
+                session={session}
+                onInterrupt={interruptSession}
+              />
             ) : (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: "300px",
-                  color: "rgba(156, 163, 175, 0.6)",
-                  fontSize: "14px",
-                  textAlign: "center",
-                }}
-              >
-                <div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
-                <div style={{ marginBottom: "8px", fontWeight: "500" }}>
-                  Select a file to view its content
-                </div>
-                <div style={{ fontSize: "12px", maxWidth: "300px" }}>
-                  Click on any file in the explorer to see its content here. In
-                  the final implementation, this will show real file content
-                  from the YJS document.
-                </div>
+              <div style={{ height: "100%", overflow: "auto", padding: "16px" }}>
+                {loadingContent ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: "200px",
+                      color: "rgba(156, 163, 175, 0.6)",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Loading file content...
+                  </div>
+                ) : selectedFile && fileContent ? (
+                  <pre
+                    style={{
+                      margin: 0,
+                      padding: "16px",
+                      backgroundColor: "rgba(156, 163, 175, 0.05)",
+                      border: "1px solid rgba(156, 163, 175, 0.1)",
+                      borderRadius: "6px",
+                      fontSize: "13px",
+                      fontFamily:
+                        'Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
+                      lineHeight: "1.5",
+                      color: "var(--foreground)",
+                      overflow: "auto",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {fileContent}
+                  </pre>
+                ) : (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: "300px",
+                      color: "rgba(156, 163, 175, 0.6)",
+                      fontSize: "14px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
+                    <div style={{ marginBottom: "8px", fontWeight: "500" }}>
+                      Select a file to view its content
+                    </div>
+                    <div style={{ fontSize: "12px", maxWidth: "300px" }}>
+                      Click on any file in the explorer to see its content here.
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -338,6 +409,15 @@ export default function ProjectDetailPage() {
             padding: "16px",
           }}
         >
+          {/* Status Bar */}
+          <div style={{ marginBottom: "12px" }}>
+            <ChatStatus
+              session={session}
+              currentTurn={session?.turns?.[session.turns.length - 1]}
+            />
+          </div>
+
+          {/* Input Area */}
           <div
             style={{
               display: "flex",
@@ -352,7 +432,16 @@ export default function ProjectDetailPage() {
               }}
             >
               <textarea
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
                 placeholder="Ask Claude Code to modify your project files..."
+                disabled={isSending || session?.turns?.some(t => t.status === "running" || t.status === "pending")}
                 style={{
                   width: "100%",
                   minHeight: "80px",
@@ -365,9 +454,13 @@ export default function ProjectDetailPage() {
                   color: "var(--foreground)",
                   resize: "vertical",
                   outline: "none",
+                  opacity: isSending || session?.turns?.some(t => t.status === "running" || t.status === "pending") ? 0.6 : 1,
+                  cursor: isSending || session?.turns?.some(t => t.status === "running" || t.status === "pending") ? "not-allowed" : "text",
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = "rgba(59, 130, 246, 0.5)";
+                  if (!isSending && !session?.turns?.some(t => t.status === "running" || t.status === "pending")) {
+                    e.target.style.borderColor = "rgba(59, 130, 246, 0.5)";
+                  }
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = "rgba(156, 163, 175, 0.2)";
@@ -375,25 +468,36 @@ export default function ProjectDetailPage() {
               />
             </div>
             <button
+              onClick={handleSendMessage}
+              disabled={isSending || !inputMessage.trim() || session?.turns?.some(t => t.status === "running" || t.status === "pending")}
               style={{
                 padding: "12px 24px",
-                backgroundColor: "#3b82f6",
+                backgroundColor: isSending || !inputMessage.trim() || session?.turns?.some(t => t.status === "running" || t.status === "pending") 
+                  ? "#94a3b8" 
+                  : "#3b82f6",
                 color: "white",
                 border: "none",
                 borderRadius: "6px",
                 fontSize: "14px",
                 fontWeight: "500",
-                cursor: "pointer",
+                cursor: isSending || !inputMessage.trim() || session?.turns?.some(t => t.status === "running" || t.status === "pending") 
+                  ? "not-allowed" 
+                  : "pointer",
                 alignSelf: "flex-end",
+                transition: "background-color 0.2s",
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = "#2563eb";
+                if (!isSending && inputMessage.trim() && !session?.turns?.some(t => t.status === "running" || t.status === "pending")) {
+                  e.currentTarget.style.backgroundColor = "#2563eb";
+                }
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = "#3b82f6";
+                if (!isSending && inputMessage.trim() && !session?.turns?.some(t => t.status === "running" || t.status === "pending")) {
+                  e.currentTarget.style.backgroundColor = "#3b82f6";
+                }
               }}
             >
-              Send
+              {isSending ? "Sending..." : "Send"}
             </button>
           </div>
 
@@ -411,16 +515,19 @@ export default function ProjectDetailPage() {
               💡 Try: &quot;Add error handling to the login function&quot; or
               &quot;Create a new React component&quot;
             </span>
-            <div
-              style={{
-                padding: "2px 6px",
-                backgroundColor: "rgba(156, 163, 175, 0.1)",
-                borderRadius: "3px",
-                fontSize: "11px",
-              }}
-            >
-              Claude Code Ready
-            </div>
+            {sessionError && (
+              <div
+                style={{
+                  padding: "2px 6px",
+                  backgroundColor: "rgba(239, 68, 68, 0.1)",
+                  color: "#ef4444",
+                  borderRadius: "3px",
+                  fontSize: "11px",
+                }}
+              >
+                Error: {sessionError.message}
+              </div>
+            )}
           </div>
         </div>
       </div>
