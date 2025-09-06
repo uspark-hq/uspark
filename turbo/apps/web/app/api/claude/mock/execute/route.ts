@@ -197,11 +197,17 @@ export async function POST(request: NextRequest) {
         projectId,
         title: `Mock session ${new Date().toISOString()}`,
       };
-      const [session] = await db
+      const result = await db
         .insert(SESSIONS_TBL)
         .values(newSession)
         .returning();
-      sessionId = session.id;
+      if (!result[0]) {
+        return NextResponse.json(
+          { error: "Failed to create session" },
+          { status: 500 },
+        );
+      }
+      sessionId = result[0].id;
     } else {
       // Verify session exists
       const [existingSession] = await db
@@ -227,7 +233,14 @@ export async function POST(request: NextRequest) {
       startedAt: new Date(),
     };
 
-    const [turn] = await db.insert(TURNS_TBL).values(newTurn).returning();
+    const turnResult = await db.insert(TURNS_TBL).values(newTurn).returning();
+    if (!turnResult[0]) {
+      return NextResponse.json(
+        { error: "Failed to create turn" },
+        { status: 500 },
+      );
+    }
+    const turn = turnResult[0];
 
     // Start async block generation
     setTimeout(async () => {
