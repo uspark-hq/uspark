@@ -172,5 +172,41 @@ const clerkHandlers = [
   }),
 ];
 
+// Share API endpoints handlers
+const shareHandlers = [
+  // GET /api/shares - List user's shares
+  http.get("*/api/shares", () => {
+    return HttpResponse.json({
+      shares: [
+        {
+          id: "share-1",
+          token: "token-1",
+          projectId: "project-1",
+          filePath: "src/test.ts",
+          url: "https://uspark.dev/share/token-1",
+          createdAt: "2024-01-01T10:00:00Z",
+          accessedCount: 5,
+          lastAccessedAt: "2024-01-02T15:00:00Z",
+        },
+        {
+          id: "share-2",
+          token: "token-2",
+          projectId: "project-2",
+          filePath: "README.md",
+          url: "https://uspark.dev/share/token-2",
+          createdAt: "2024-01-03T10:00:00Z",
+          accessedCount: 0,
+          lastAccessedAt: null,
+        },
+      ],
+    });
+  }),
+
+  // DELETE /api/shares/:id - Delete a share
+  http.delete("*/api/shares/:id", () => {
+    return HttpResponse.json({ success: true });
+  }),
+];
+
 // Export all handlers
-export const handlers = [...clerkHandlers];
+export const handlers = [...clerkHandlers, ...shareHandlers];

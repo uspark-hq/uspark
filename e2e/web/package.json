@@ -3,18 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "pretest": "node scripts/check-env.js",
     "test": "playwright test",
-    "test:headed": "playwright test --headed",
-    "test:debug": "playwright test --debug",
-    "test:ui": "playwright test --ui",
-    "test:prod": "playwright test tests/cli-token-production.spec.ts",
-    "test:public": "playwright test tests/cli-token-production.spec.ts -g 'Public Access'",
-    "test:auth": "playwright test tests/cli-token-clerk-auth.spec.ts",
-    "test:secret": "node scripts/check-env.js && playwright test tests/cli-token-with-secret.spec.ts",
-    "test:production": "BASE_URL=https://app.uspark.ai playwright test tests/production-safe.spec.ts",
-    "test:smoke": "BASE_URL=https://app.uspark.ai playwright test tests/production-safe.spec.ts -g 'Smoke'",
-    "test:env": "playwright test tests/test-env-auth.spec.ts --reporter=list",
     "report": "playwright show-report"
   },
   "devDependencies": {

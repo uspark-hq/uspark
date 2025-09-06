@@ -240,6 +240,50 @@ vercel dev
 - **Unused files:** Remove if truly unused, or add to entry patterns if needed
 - **False positives:** Add to ignore patterns in knip.json
 
+## E2E Testing Guidelines (e2e/web)
+
+**Follow these guidelines when writing end-to-end tests:**
+
+### Key Principles:
+1. **No console.log debugging** - Test execution should be silent. Remove all debugging logs
+2. **Use default timeouts** - Tests should complete within default timeout limits. Never set custom timeouts
+3. **Simple authentication** - Use `clerkSetup()` directly for login. No need to manually handle environment variables
+4. **Comprehensive testing** - Write larger tests that cover multiple workflows rather than many small isolated tests
+5. **Wait for UI elements** - Don't rely on network events. Wait for actual UI elements to appear, which is more natural
+
+### Examples:
+
+**✅ Good - Clean test with proper authentication:**
+```typescript
+test("complete user workflow", async ({ page }) => {
+  await clerkSetup();
+  
+  // Test multiple features in one comprehensive test
+  await page.goto("/dashboard");
+  await expect(page.locator("h1")).toContainText("Dashboard");
+  
+  // Wait for UI elements, not network
+  await page.click("button[data-testid='create-project']");
+  await expect(page.locator(".project-form")).toBeVisible();
+});
+```
+
+**❌ Bad - Test with debugging and custom timeouts:**
+```typescript
+test("create project", async ({ page }) => {
+  console.log("Starting test..."); // Don't use console.log
+  
+  // Don't manually handle auth tokens
+  const token = process.env.CLERK_TEST_TOKEN;
+  await page.setExtraHTTPHeaders({ Authorization: `Bearer ${token}` });
+  
+  await page.goto("/dashboard", { timeout: 60000 }); // Don't set custom timeouts
+  
+  // Don't rely on network events
+  await page.waitForResponse(resp => resp.url().includes("/api/projects"));
+});
+```
+
 ## Git Authentication with GitHub CLI
 
 **When SSH keys are not available, use GitHub CLI for authentication:**

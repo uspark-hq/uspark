@@ -1,9 +1,10 @@
 import { beforeAll, afterEach, afterAll } from "vitest";
 import { setupServer } from "msw/node";
 import { http, HttpResponse } from "msw";
+import { handlers } from "./msw-handlers";
 
-// Create MSW server instance - handlers will be added in setup.ts
-export const server = setupServer();
+// Create MSW server instance with default handlers
+export const server = setupServer(...handlers);
 
 // Configure MSW to log all unhandled requests
 server.events.on("request:unhandled", ({ request }) => {
@@ -13,13 +14,13 @@ server.events.on("request:unhandled", ({ request }) => {
 // Setup MSW lifecycle hooks
 beforeAll(() => {
   server.listen({
-    onUnhandledRequest: "warn", // Warn about unhandled requests but don't error
+    onUnhandledRequest: "bypass", // Let unhandled requests pass through
   });
 });
 
 afterEach(() => {
-  // Don't reset handlers, keep our mocks in place
-  // server.resetHandlers();
+  // Reset handlers to restore the defaults from msw-handlers.ts
+  server.resetHandlers();
 });
 
 afterAll(() => {
