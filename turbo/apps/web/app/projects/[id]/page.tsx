@@ -1,58 +1,64 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { YjsFileExplorer } from "../../components/file-explorer";
+import { SessionDisplay } from "../../components/chat/SessionDisplay";
+import { ChatStatus } from "../../components/chat/ChatStatus";
+import { useSessionPolling } from "../../../src/hooks/useSessionPolling";
+import { sessionsAPI } from "../../../src/lib/api/sessions";
 
 export default function ProjectDetailPage() {
   const params = useParams();
   const projectId = params.id as string;
   const [selectedFile, setSelectedFile] = useState<string>();
-  const [fileContent, setFileContent] = useState<string>();
-  const [loadingContent, setLoadingContent] = useState(false);
+  const [currentSessionId, setCurrentSessionId] = useState<string>();
+  const [inputMessage, setInputMessage] = useState("");
+  const [isSending, setIsSending] = useState(false);
 
-  // Mock file content loading for now
-  const loadFileContent = async (filePath: string) => {
-    setLoadingContent(true);
+  // Use session polling hook
+  const {
+    session,
+    error: sessionError,
+    interruptSession,
+  } = useSessionPolling({
+    projectId,
+    sessionId: currentSessionId,
+    enabled: !!currentSessionId,
+  });
 
-    // Mock content based on file extension (no artificial delay)
-    const ext = filePath.split(".").pop()?.toLowerCase();
-    let mockContent = "";
+  // Handle sending a message
+  const handleSendMessage = useCallback(async () => {
+    if (!inputMessage.trim() || isSending) return;
 
-    switch (ext) {
-      case "ts":
-      case "tsx":
-        mockContent = `// ${filePath}\nexport function Component() {\n  return <div>Hello from ${filePath}</div>;\n}`;
-        break;
-      case "json":
-        mockContent = JSON.stringify(
-          {
-            name: "example-project",
-            version: "1.0.0",
-            description: `Content for ${filePath}`,
-          },
-          null,
-          2,
-        );
-        break;
-      case "md":
-        mockContent = `# ${filePath}\n\nThis is a markdown file.\n\n## Features\n\n- Feature 1\n- Feature 2\n- Feature 3`;
-        break;
-      default:
-        mockContent = `Content of ${filePath}\n\nThis is sample file content.`;
+    setIsSending(true);
+    setInputMessage("");
+
+    try {
+      // Create a new session if needed
+      let sessionId = currentSessionId;
+      if (!sessionId) {
+        const newSession = await sessionsAPI.createSession(projectId);
+        sessionId = newSession.id;
+        setCurrentSessionId(sessionId);
+      }
+
+      // Create a new turn with the user input
+      await sessionsAPI.createTurn(projectId, sessionId, {
+        userInput: inputMessage.trim(),
+      });
+
+      // Trigger mock execution (this would be replaced with real Claude integration)
+      await sessionsAPI.mockExecute(projectId, sessionId, inputMessage.trim());
+    } catch (error) {
+      console.error("Failed to send message:", error);
+      // Restore the input message on error
+      setInputMessage(inputMessage);
+    } finally {
+      setIsSending(false);
     }
+  }, [inputMessage, isSending, currentSessionId, projectId]);
 
-    setFileContent(mockContent);
-    setLoadingContent(false);
-  };
-
-  useEffect(() => {
-    if (selectedFile) {
-      loadFileContent(selectedFile);
-    } else {
-      setFileContent(undefined);
-    }
-  }, [selectedFile]);
 
   return (
     <div
@@ -154,101 +160,19 @@ export default function ProjectDetailPage() {
           />
         </div>
 
-        {/* Document Viewer */}
+        {/* Session Display / Chat History */}
         <div
           style={{
             backgroundColor: "var(--background)",
-            overflow: "auto",
+            overflow: "hidden",
             display: "flex",
             flexDirection: "column",
           }}
         >
-          <div
-            style={{
-              padding: "12px 16px",
-              borderBottom: "1px solid rgba(156, 163, 175, 0.1)",
-              fontSize: "14px",
-              fontWeight: "500",
-              color: "var(--foreground)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <span>
-              {selectedFile ? `📄 ${selectedFile}` : "📄 Document Viewer"}
-            </span>
-            {selectedFile && (
-              <span
-                style={{
-                  fontSize: "12px",
-                  color: "rgba(156, 163, 175, 0.6)",
-                }}
-              >
-                Read-only preview
-              </span>
-            )}
-          </div>
-
-          <div style={{ flex: 1, padding: "16px" }}>
-            {loadingContent ? (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: "200px",
-                  color: "rgba(156, 163, 175, 0.6)",
-                  fontSize: "14px",
-                }}
-              >
-                Loading file content...
-              </div>
-            ) : selectedFile && fileContent ? (
-              <pre
-                style={{
-                  margin: 0,
-                  padding: "16px",
-                  backgroundColor: "rgba(156, 163, 175, 0.05)",
-                  border: "1px solid rgba(156, 163, 175, 0.1)",
-                  borderRadius: "6px",
-                  fontSize: "13px",
-                  fontFamily:
-                    'Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
-                  lineHeight: "1.5",
-                  color: "var(--foreground)",
-                  overflow: "auto",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                }}
-              >
-                {fileContent}
-              </pre>
-            ) : (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: "300px",
-                  color: "rgba(156, 163, 175, 0.6)",
-                  fontSize: "14px",
-                  textAlign: "center",
-                }}
-              >
-                <div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
-                <div style={{ marginBottom: "8px", fontWeight: "500" }}>
-                  Select a file to view its content
-                </div>
-                <div style={{ fontSize: "12px", maxWidth: "300px" }}>
-                  Click on any file in the explorer to see its content here. In
-                  the final implementation, this will show real file content
-                  from the YJS document.
-                </div>
-              </div>
-            )}
-          </div>
+          <SessionDisplay
+            session={session}
+            onInterrupt={interruptSession}
+          />
         </div>
 
         {/* Chat Input */}
@@ -259,6 +183,15 @@ export default function ProjectDetailPage() {
             padding: "16px",
           }}
         >
+          {/* Status Bar */}
+          <div style={{ marginBottom: "12px" }}>
+            <ChatStatus
+              session={session}
+              currentTurn={session?.turns[session.turns.length - 1]}
+            />
+          </div>
+
+          {/* Input Area */}
           <div
             style={{
               display: "flex",
@@ -273,7 +206,16 @@ export default function ProjectDetailPage() {
               }}
             >
               <textarea
+                value={inputMessage}
+                onChange={(e) => setInputMessage(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
                 placeholder="Ask Claude Code to modify your project files..."
+                disabled={isSending || session?.status === "running"}
                 style={{
                   width: "100%",
                   minHeight: "80px",
@@ -286,9 +228,13 @@ export default function ProjectDetailPage() {
                   color: "var(--foreground)",
                   resize: "vertical",
                   outline: "none",
+                  opacity: isSending || session?.status === "running" ? 0.6 : 1,
+                  cursor: isSending || session?.status === "running" ? "not-allowed" : "text",
                 }}
                 onFocus={(e) => {
-                  e.target.style.borderColor = "rgba(59, 130, 246, 0.5)";
+                  if (!isSending && session?.status !== "running") {
+                    e.target.style.borderColor = "rgba(59, 130, 246, 0.5)";
+                  }
                 }}
                 onBlur={(e) => {
                   e.target.style.borderColor = "rgba(156, 163, 175, 0.2)";
@@ -296,25 +242,36 @@ export default function ProjectDetailPage() {
               />
             </div>
             <button
+              onClick={handleSendMessage}
+              disabled={isSending || !inputMessage.trim() || session?.status === "running"}
               style={{
                 padding: "12px 24px",
-                backgroundColor: "#3b82f6",
+                backgroundColor: isSending || !inputMessage.trim() || session?.status === "running" 
+                  ? "#94a3b8" 
+                  : "#3b82f6",
                 color: "white",
                 border: "none",
                 borderRadius: "6px",
                 fontSize: "14px",
                 fontWeight: "500",
-                cursor: "pointer",
+                cursor: isSending || !inputMessage.trim() || session?.status === "running" 
+                  ? "not-allowed" 
+                  : "pointer",
                 alignSelf: "flex-end",
+                transition: "background-color 0.2s",
               }}
               onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = "#2563eb";
+                if (!isSending && inputMessage.trim() && session?.status !== "running") {
+                  e.currentTarget.style.backgroundColor = "#2563eb";
+                }
               }}
               onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = "#3b82f6";
+                if (!isSending && inputMessage.trim() && session?.status !== "running") {
+                  e.currentTarget.style.backgroundColor = "#3b82f6";
+                }
               }}
             >
-              Send
+              {isSending ? "Sending..." : "Send"}
             </button>
           </div>
 
@@ -332,16 +289,19 @@ export default function ProjectDetailPage() {
               💡 Try: &quot;Add error handling to the login function&quot; or
               &quot;Create a new React component&quot;
             </span>
-            <div
-              style={{
-                padding: "2px 6px",
-                backgroundColor: "rgba(156, 163, 175, 0.1)",
-                borderRadius: "3px",
-                fontSize: "11px",
-              }}
-            >
-              Claude Code Ready
-            </div>
+            {sessionError && (
+              <div
+                style={{
+                  padding: "2px 6px",
+                  backgroundColor: "rgba(239, 68, 68, 0.1)",
+                  color: "#ef4444",
+                  borderRadius: "3px",
+                  fontSize: "11px",
+                }}
+              >
+                Error: {sessionError.message}
+              </div>
+            )}
           </div>
         </div>
       </div>
