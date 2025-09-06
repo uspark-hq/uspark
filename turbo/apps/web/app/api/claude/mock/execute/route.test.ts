@@ -1,367 +1,423 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 import { POST, GET } from "./route";
+import { initServices } from "../../../../../src/lib/init-services";
+import {
+  SESSIONS_TBL,
+  TURNS_TBL,
+  BLOCKS_TBL,
+} from "../../../../../src/db/schema/sessions";
+import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
+import { eq } from "drizzle-orm";
+import * as Y from "yjs";
 
-// Mock the init-services module
-vi.mock("../../../../../src/lib/init-services", () => ({
-  initServices: vi.fn(),
-}));
+describe("Mock Executor with Real Database", () => {
+  let testProjectId: string;
+  let db: ReturnType<typeof globalThis.services.db>;
 
-// Mock the database operations
-vi.mock("drizzle-orm", () => ({
-  eq: vi.fn((field, value) => ({ field, value })),
-}));
+  beforeEach(async () => {
+    initServices();
+    db = globalThis.services.db;
 
-// Mock YJS
-vi.mock("yjs", () => {
-  const mockYDoc = {
-    getText: vi.fn(() => ({
-      toString: vi.fn(() => "existing content"),
-      insert: vi.fn(),
-    })),
-  };
+    // Clean up test data
+    await db.delete(BLOCKS_TBL);
+    await db.delete(TURNS_TBL);
+    await db.delete(SESSIONS_TBL);
 
-  return {
-    Doc: vi.fn(() => mockYDoc),
-    applyUpdate: vi.fn(),
-    encodeStateAsUpdate: vi.fn(() => new Uint8Array([1, 2, 3])),
-  };
-});
+    // Create a test project with YDoc data
+    const ydoc = new Y.Doc();
+    const ytext = ydoc.getText("content");
+    ytext.insert(0, "// Initial test content\n");
+    const ydocData = Y.encodeStateAsUpdate(ydoc);
+    const ydocBase64 = Buffer.from(ydocData).toString("base64");
 
-// Mock global services
-const mockDb = {
-  select: vi.fn().mockReturnThis(),
-  from: vi.fn().mockReturnThis(),
-  where: vi.fn().mockReturnThis(),
-  limit: vi.fn().mockReturnThis(),
-  update: vi.fn().mockReturnThis(),
-  set: vi.fn().mockReturnThis(),
-};
+    const [project] = await db
+      .insert(PROJECTS_TBL)
+      .values({
+        id: `test_proj_${Date.now()}`,
+        userId: "test_user",
+        ydocData: ydocBase64,
+        version: 0,
+      })
+      .returning();
 
-beforeEach(() => {
-  vi.clearAllMocks();
+    testProjectId = project.id;
+  });
 
-  // Setup global services mock
-  globalThis.services = {
-    db: mockDb,
-    env: {},
-    pool: null,
-  } as typeof globalThis.services;
-
-  // Setup method chaining
-  mockDb.select.mockReturnThis();
-  mockDb.from.mockReturnThis();
-  mockDb.where.mockReturnThis();
-  mockDb.update.mockReturnThis();
-  mockDb.set.mockReturnThis();
-
-  // Final methods in chains return promises
-  mockDb.limit.mockImplementation(() =>
-    Promise.resolve([
-      {
-        id: "proj_test_123",
-        ydocData: Buffer.from("test").toString("base64"),
-        version: 1,
-      },
-    ]),
-  );
-
-  // For update chain, where is the last method that returns a promise
-  mockDb.where.mockImplementation(function () {
-    // If called from update chain, return promise
-    if (this === mockDb && mockDb.update.mock.calls.length > 0) {
-      return Promise.resolve({ rowCount: 1 });
+  afterEach(async () => {
+    // Clean up test data
+    if (testProjectId) {
+      await db.delete(BLOCKS_TBL);
+      await db.delete(TURNS_TBL);
+      await db.delete(SESSIONS_TBL);
+      await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.id, testProjectId));
     }
-    // Otherwise return this for chaining
-    return this;
-  });
-});
-
-describe("POST /api/claude/mock/execute", () => {
-  it("should start a mock execution successfully", async () => {
-    const body = {
-      projectId: "proj_test_123",
-      sessionId: "session_test_456",
-      message: "Test message",
-    };
-
-    const request = new NextRequest(
-      "http://localhost:3000/api/claude/mock/execute",
-      {
-        method: "POST",
-        body: JSON.stringify(body),
-      },
-    );
-
-    const response = await POST(request);
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data).toHaveProperty("turnId");
-    expect(data).toHaveProperty("sessionId", "session_test_456");
-    expect(data).toHaveProperty("status", "running");
-    expect(data).toHaveProperty("message", "Mock execution started");
   });
 
-  it("should return 400 for missing required fields", async () => {
-    const body = {
-      projectId: "proj_test_123",
-      // Missing sessionId and message
-    };
+  describe("POST /api/claude/mock/execute", () => {
+    it("should create a new session and turn", async () => {
+      const body = {
+        projectId: testProjectId,
+        message: "Test message",
+      };
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/claude/mock/execute",
-      {
-        method: "POST",
-        body: JSON.stringify(body),
-      },
-    );
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/mock/execute",
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+        },
+      );
 
-    const response = await POST(request);
-    const data = await response.json();
+      const response = await POST(request);
+      const data = await response.json();
 
-    expect(response.status).toBe(400);
-    expect(data).toHaveProperty("error", "Missing required fields");
+      expect(response.status).toBe(200);
+      expect(data).toHaveProperty("turnId");
+      expect(data).toHaveProperty("sessionId");
+      expect(data).toHaveProperty("status", "running");
+      expect(data).toHaveProperty("message", "Mock execution started");
+
+      // Verify in database
+      const [session] = await db
+        .select()
+        .from(SESSIONS_TBL)
+        .where(eq(SESSIONS_TBL.id, data.sessionId))
+        .limit(1);
+
+      expect(session).toBeDefined();
+      expect(session.projectId).toBe(testProjectId);
+
+      const [turn] = await db
+        .select()
+        .from(TURNS_TBL)
+        .where(eq(TURNS_TBL.id, data.turnId))
+        .limit(1);
+
+      expect(turn).toBeDefined();
+      expect(turn.sessionId).toBe(data.sessionId);
+      expect(turn.userPrompt).toBe("Test message");
+      expect(turn.status).toBe("running");
+    });
+
+    it("should use existing session if provided", async () => {
+      // First create a session
+      const [session] = await db
+        .insert(SESSIONS_TBL)
+        .values({
+          projectId: testProjectId,
+          title: "Test session",
+        })
+        .returning();
+
+      const body = {
+        projectId: testProjectId,
+        sessionId: session.id,
+        message: "Test message with existing session",
+      };
+
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/mock/execute",
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+        },
+      );
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(200);
+      expect(data.sessionId).toBe(session.id);
+
+      // Verify turn was created for existing session
+      const [turn] = await db
+        .select()
+        .from(TURNS_TBL)
+        .where(eq(TURNS_TBL.id, data.turnId))
+        .limit(1);
+
+      expect(turn.sessionId).toBe(session.id);
+    });
+
+    it("should return 400 for missing required fields", async () => {
+      const body = {
+        projectId: testProjectId,
+        // Missing message
+      };
+
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/mock/execute",
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+        },
+      );
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(400);
+      expect(data).toHaveProperty("error", "Missing required fields");
+    });
+
+    it("should return 404 for non-existent session", async () => {
+      const body = {
+        projectId: testProjectId,
+        sessionId: "non_existent_session",
+        message: "Test message",
+      };
+
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/mock/execute",
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+        },
+      );
+
+      const response = await POST(request);
+      const data = await response.json();
+
+      expect(response.status).toBe(404);
+      expect(data).toHaveProperty("error", "Session not found");
+    });
   });
 
-  it("should handle invalid JSON gracefully", async () => {
-    const request = new NextRequest(
-      "http://localhost:3000/api/claude/mock/execute",
-      {
-        method: "POST",
-        body: "invalid json",
-      },
-    );
+  describe("GET /api/claude/mock/execute", () => {
+    it("should return 400 when sessionId is missing", async () => {
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/mock/execute",
+      );
 
-    const response = await POST(request);
-    const data = await response.json();
+      const response = await GET(request);
+      const data = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(data).toHaveProperty("error", "Failed to start mock execution");
-  });
-});
+      expect(response.status).toBe(400);
+      expect(data).toHaveProperty("error", "sessionId is required");
+    });
 
-describe("GET /api/claude/mock/execute", () => {
-  it("should return 400 when sessionId is missing", async () => {
-    const request = new NextRequest(
-      "http://localhost:3000/api/claude/mock/execute",
-    );
+    it("should return 404 for non-existent session", async () => {
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/mock/execute?sessionId=non_existent",
+      );
 
-    const response = await GET(request);
-    const data = await response.json();
+      const response = await GET(request);
+      const data = await response.json();
 
-    expect(response.status).toBe(400);
-    expect(data).toHaveProperty("error", "sessionId is required");
-  });
+      expect(response.status).toBe(404);
+      expect(data).toHaveProperty("error", "Session not found");
+    });
 
-  it("should return 404 for non-existent session", async () => {
-    const request = new NextRequest(
-      "http://localhost:3000/api/claude/mock/execute?sessionId=non_existent",
-    );
+    it("should return session with turns", async () => {
+      // Create session
+      const [session] = await db
+        .insert(SESSIONS_TBL)
+        .values({
+          projectId: testProjectId,
+          title: "Test session",
+        })
+        .returning();
 
-    const response = await GET(request);
-    const data = await response.json();
+      // Create turns
+      const [turn1] = await db
+        .insert(TURNS_TBL)
+        .values({
+          sessionId: session.id,
+          userPrompt: "First message",
+          status: "completed",
+        })
+        .returning();
 
-    expect(response.status).toBe(404);
-    expect(data).toHaveProperty("error", "Session not found");
-  });
+      const [turn2] = await db
+        .insert(TURNS_TBL)
+        .values({
+          sessionId: session.id,
+          userPrompt: "Second message",
+          status: "running",
+        })
+        .returning();
 
-  it("should return session data after creating a turn", async () => {
-    // First create a turn
-    const createBody = {
-      projectId: "proj_test_123",
-      sessionId: "session_test_789",
-      message: "Test message",
-    };
+      const request = new NextRequest(
+        `http://localhost:3000/api/claude/mock/execute?sessionId=${session.id}`,
+      );
 
-    const createRequest = new NextRequest(
-      "http://localhost:3000/api/claude/mock/execute",
-      {
-        method: "POST",
-        body: JSON.stringify(createBody),
-      },
-    );
+      const response = await GET(request);
+      const data = await response.json();
 
-    const createResponse = await POST(createRequest);
-    const createData = await createResponse.json();
+      expect(response.status).toBe(200);
+      expect(data.sessionId).toBe(session.id);
+      expect(data.session).toBeDefined();
+      expect(data.turns).toHaveLength(2);
+      expect(data.turns[0].id).toBe(turn1.id);
+      expect(data.turns[1].id).toBe(turn2.id);
+    });
 
-    expect(createResponse.status).toBe(200);
-    const { turnId } = createData;
+    it("should return specific turn with blocks", async () => {
+      // Create session
+      const [session] = await db
+        .insert(SESSIONS_TBL)
+        .values({
+          projectId: testProjectId,
+          title: "Test session",
+        })
+        .returning();
 
-    // Then query the session
-    const getRequest = new NextRequest(
-      `http://localhost:3000/api/claude/mock/execute?sessionId=session_test_789`,
-    );
+      // Create turn
+      const [turn] = await db
+        .insert(TURNS_TBL)
+        .values({
+          sessionId: session.id,
+          userPrompt: "Test message",
+          status: "completed",
+        })
+        .returning();
 
-    const getResponse = await GET(getRequest);
-    const getData = await getResponse.json();
+      // Create blocks
+      await db.insert(BLOCKS_TBL).values([
+        {
+          turnId: turn.id,
+          type: "thinking",
+          content: { text: "Thinking..." },
+          sequenceNumber: 0,
+        },
+        {
+          turnId: turn.id,
+          type: "content",
+          content: { text: "Response content" },
+          sequenceNumber: 1,
+        },
+      ]);
 
-    expect(getResponse.status).toBe(200);
-    expect(getData).toHaveProperty("sessionId", "session_test_789");
-    expect(getData).toHaveProperty("turns");
-    expect(Array.isArray(getData.turns)).toBe(true);
-    expect(getData.turns.length).toBeGreaterThan(0);
-    expect(getData.turns[0]).toHaveProperty("id", turnId);
-    expect(getData.turns[0]).toHaveProperty("userMessage", "Test message");
-    expect(getData.turns[0]).toHaveProperty("status", "running");
-  });
+      const request = new NextRequest(
+        `http://localhost:3000/api/claude/mock/execute?sessionId=${session.id}&turnId=${turn.id}`,
+      );
 
-  it("should return specific turn data when turnId is provided", async () => {
-    // First create a turn
-    const createBody = {
-      projectId: "proj_test_123",
-      sessionId: "session_test_turn",
-      message: "Test turn message",
-    };
+      const response = await GET(request);
+      const data = await response.json();
 
-    const createRequest = new NextRequest(
-      "http://localhost:3000/api/claude/mock/execute",
-      {
-        method: "POST",
-        body: JSON.stringify(createBody),
-      },
-    );
+      expect(response.status).toBe(200);
+      expect(data.id).toBe(turn.id);
+      expect(data.blocks).toHaveLength(2);
+      expect(data.blocks[0].type).toBe("thinking");
+      expect(data.blocks[1].type).toBe("content");
+      expect(data.blocks[0].sequenceNumber).toBe(0);
+      expect(data.blocks[1].sequenceNumber).toBe(1);
+    });
 
-    const createResponse = await POST(createRequest);
-    const createData = await createResponse.json();
-    const { turnId } = createData;
+    it("should return 404 for non-existent turn", async () => {
+      // Create session
+      const [session] = await db
+        .insert(SESSIONS_TBL)
+        .values({
+          projectId: testProjectId,
+          title: "Test session",
+        })
+        .returning();
 
-    // Query specific turn
-    const getRequest = new NextRequest(
-      `http://localhost:3000/api/claude/mock/execute?sessionId=session_test_turn&turnId=${turnId}`,
-    );
+      const request = new NextRequest(
+        `http://localhost:3000/api/claude/mock/execute?sessionId=${session.id}&turnId=non_existent_turn`,
+      );
 
-    const getResponse = await GET(getRequest);
-    const getData = await getResponse.json();
+      const response = await GET(request);
+      const data = await response.json();
 
-    expect(getResponse.status).toBe(200);
-    expect(getData).toHaveProperty("id", turnId);
-    expect(getData).toHaveProperty("sessionId", "session_test_turn");
-    expect(getData).toHaveProperty("userMessage", "Test turn message");
-    expect(getData).toHaveProperty("status", "running");
-    expect(getData).toHaveProperty("blocks");
-    expect(Array.isArray(getData.blocks)).toBe(true);
-  });
-
-  it("should return 404 for non-existent turn", async () => {
-    // First create a session
-    const createBody = {
-      projectId: "proj_test_123",
-      sessionId: "session_with_turn",
-      message: "Test message",
-    };
-
-    const createRequest = new NextRequest(
-      "http://localhost:3000/api/claude/mock/execute",
-      {
-        method: "POST",
-        body: JSON.stringify(createBody),
-      },
-    );
-
-    await POST(createRequest);
-
-    // Query non-existent turn
-    const getRequest = new NextRequest(
-      "http://localhost:3000/api/claude/mock/execute?sessionId=session_with_turn&turnId=non_existent_turn",
-    );
-
-    const getResponse = await GET(getRequest);
-    const getData = await getResponse.json();
-
-    expect(getResponse.status).toBe(404);
-    expect(getData).toHaveProperty("error", "Turn not found");
-  });
-});
-
-describe("Mock executor turn tracking", () => {
-  it("should track turn with initial running status", async () => {
-    const body = {
-      projectId: "proj_test_123",
-      sessionId: "session_status_test",
-      message: "Test status tracking",
-    };
-
-    const createRequest = new NextRequest(
-      "http://localhost:3000/api/claude/mock/execute",
-      {
-        method: "POST",
-        body: JSON.stringify(body),
-      },
-    );
-
-    const createResponse = await POST(createRequest);
-    const createData = await createResponse.json();
-
-    expect(createResponse.status).toBe(200);
-    expect(createData).toHaveProperty("turnId");
-    expect(createData.status).toBe("running");
-
-    const { turnId } = createData;
-
-    // Immediately query the turn to check initial state
-    const getRequest = new NextRequest(
-      `http://localhost:3000/api/claude/mock/execute?sessionId=session_status_test&turnId=${turnId}`,
-    );
-
-    const getResponse = await GET(getRequest);
-    const getData = await getResponse.json();
-
-    expect(getResponse.status).toBe(200);
-    expect(getData).toHaveProperty("id", turnId);
-    expect(getData).toHaveProperty("status", "running");
-    expect(getData).toHaveProperty("blocks");
-    expect(Array.isArray(getData.blocks)).toBe(true);
-    expect(getData.blocks.length).toBe(0); // No blocks initially
+      expect(response.status).toBe(404);
+      expect(data).toHaveProperty("error", "Turn not found");
+    });
   });
 
-  it("should handle multiple turns in a session", async () => {
-    const sessionId = "session_multi_turn";
+  describe("Block generation", () => {
+    it("should generate blocks after execution", async () => {
+      const body = {
+        projectId: testProjectId,
+        message: "Generate blocks test",
+      };
 
-    // Create first turn
-    const firstRequest = new NextRequest(
-      "http://localhost:3000/api/claude/mock/execute",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          projectId: "proj_test_123",
-          sessionId,
-          message: "First message",
-        }),
-      },
-    );
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/mock/execute",
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+        },
+      );
 
-    const firstResponse = await POST(firstRequest);
-    const firstData = await firstResponse.json();
+      const response = await POST(request);
+      const data = await response.json();
 
-    // Create second turn
-    const secondRequest = new NextRequest(
-      "http://localhost:3000/api/claude/mock/execute",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          projectId: "proj_test_123",
-          sessionId,
-          message: "Second message",
-        }),
-      },
-    );
+      expect(response.status).toBe(200);
+      const { turnId } = data;
 
-    const secondResponse = await POST(secondRequest);
-    const secondData = await secondResponse.json();
+      // Wait for blocks to be generated
+      await new Promise((resolve) => setTimeout(resolve, 4000));
 
-    // Query all turns in session
-    const getRequest = new NextRequest(
-      `http://localhost:3000/api/claude/mock/execute?sessionId=${sessionId}`,
-    );
+      // Check blocks were created
+      const blocks = await db
+        .select()
+        .from(BLOCKS_TBL)
+        .where(eq(BLOCKS_TBL.turnId, turnId));
 
-    const getResponse = await GET(getRequest);
-    const sessionData = await getResponse.json();
+      expect(blocks.length).toBeGreaterThan(0);
 
-    expect(sessionData.turns.length).toBe(2);
-    expect(sessionData.turns[0].id).toBe(firstData.turnId);
-    expect(sessionData.turns[1].id).toBe(secondData.turnId);
-    expect(sessionData.turns[0].userMessage).toBe("First message");
-    expect(sessionData.turns[1].userMessage).toBe("Second message");
+      // Check turn status was updated
+      const [turn] = await db
+        .select()
+        .from(TURNS_TBL)
+        .where(eq(TURNS_TBL.id, turnId))
+        .limit(1);
+
+      expect(turn.status).toBe("completed");
+      expect(turn.completedAt).toBeDefined();
+
+      // Verify block types
+      const blockTypes = blocks.map((b) => b.type);
+      expect(blockTypes).toContain("thinking");
+      expect(blockTypes).toContain("content");
+      expect(blockTypes).toContain("tool_use");
+      expect(blockTypes).toContain("tool_result");
+    }, 10000); // Increase timeout for async operations
+  });
+
+  describe("YDoc modification", () => {
+    it("should modify project YDoc during execution", async () => {
+      const body = {
+        projectId: testProjectId,
+        message: "Modify document test",
+      };
+
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/mock/execute",
+        {
+          method: "POST",
+          body: JSON.stringify(body),
+        },
+      );
+
+      const response = await POST(request);
+      expect(response.status).toBe(200);
+
+      // Wait for execution to complete
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+
+      // Check if YDoc was modified
+      const [project] = await db
+        .select()
+        .from(PROJECTS_TBL)
+        .where(eq(PROJECTS_TBL.id, testProjectId))
+        .limit(1);
+
+      // Decode and check YDoc content
+      const ydoc = new Y.Doc();
+      const ydocContent = Buffer.from(project.ydocData, "base64");
+      Y.applyUpdate(ydoc, new Uint8Array(ydocContent));
+
+      const ytext = ydoc.getText("content");
+      const content = ytext.toString();
+
+      expect(content).toContain("// Initial test content");
+      expect(content).toContain("// Mock change by Claude Code simulator");
+      expect(content).toContain("function simulatedFunction()");
+      expect(project.version).toBeGreaterThan(0);
+    }, 10000);
   });
 });
