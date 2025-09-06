@@ -1,33 +1,6 @@
 import React from 'react';
 import { TurnDisplay } from './TurnDisplay';
-
-interface Turn {
-  id: string;
-  sessionId: string;
-  userInput: string;
-  status: 'running' | 'completed' | 'failed';
-  createdAt: string;
-  updatedAt: string;
-  blocks: Block[];
-}
-
-interface Block {
-  id: string;
-  turnId: string;
-  type: 'thinking' | 'tool_use' | 'text' | 'error';
-  content: string;
-  metadata?: Record<string, unknown>;
-  createdAt: string;
-}
-
-interface Session {
-  id: string;
-  projectId: string;
-  status: 'idle' | 'running' | 'completed' | 'failed' | 'interrupted';
-  turns: Turn[];
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Session, Turn } from '../../../src/lib/api/sessions';
 
 interface SessionDisplayProps {
   session: Session | null;
@@ -86,10 +59,10 @@ export function SessionDisplay({ session, onInterrupt }: SessionDisplayProps) {
           <span style={{ fontSize: '14px', fontWeight: '500' }}>
             Session {session.id.slice(0, 8)}...
           </span>
-          <SessionStatusBadge status={session.status} />
+          <SessionStatusBadge session={session} />
         </div>
         
-        {session.status === 'running' && onInterrupt && (
+        {session.turns?.some(t => t.status === 'running' || t.status === 'pending') && onInterrupt && (
           <button
             onClick={onInterrupt}
             style={{
@@ -122,7 +95,7 @@ export function SessionDisplay({ session, onInterrupt }: SessionDisplayProps) {
           padding: '16px',
         }}
       >
-        {session.turns.length === 0 ? (
+        {!session.turns || session.turns.length === 0 ? (
           <div
             style={{
               textAlign: 'center',
@@ -135,7 +108,7 @@ export function SessionDisplay({ session, onInterrupt }: SessionDisplayProps) {
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            {session.turns.map((turn) => (
+            {session.turns?.map((turn) => (
               <TurnDisplay key={turn.id} turn={turn} />
             ))}
           </div>
@@ -145,13 +118,32 @@ export function SessionDisplay({ session, onInterrupt }: SessionDisplayProps) {
   );
 }
 
-function SessionStatusBadge({ status }: { status: Session['status'] }) {
+function SessionStatusBadge({ session }: { session: Session }) {
+  // Derive status from turns
+  const hasActiveTurns = session.turns?.some(
+    turn => turn.status === 'pending' || turn.status === 'running'
+  ) ?? false;
+  
+  const hasFailedTurns = session.turns?.some(
+    turn => turn.status === 'failed'
+  ) ?? false;
+  
+  let status: 'idle' | 'running' | 'completed' | 'failed';
+  if (!session.turns || session.turns.length === 0) {
+    status = 'idle';
+  } else if (hasActiveTurns) {
+    status = 'running';
+  } else if (hasFailedTurns) {
+    status = 'failed';
+  } else {
+    status = 'completed';
+  }
+  
   const statusConfig = {
     idle: { color: '#6b7280', label: 'Idle' },
     running: { color: '#3b82f6', label: 'Running' },
     completed: { color: '#10b981', label: 'Completed' },
     failed: { color: '#ef4444', label: 'Failed' },
-    interrupted: { color: '#f59e0b', label: 'Interrupted' },
   };
 
   const config = statusConfig[status];

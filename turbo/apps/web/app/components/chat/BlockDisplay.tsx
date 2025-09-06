@@ -1,13 +1,5 @@
 import React, { useState } from 'react';
-
-interface Block {
-  id: string;
-  turnId: string;
-  type: 'thinking' | 'tool_use' | 'text' | 'error';
-  content: string;
-  metadata?: Record<string, unknown>;
-  createdAt: string;
-}
+import type { Block } from '../../../src/lib/api/sessions';
 
 interface BlockDisplayProps {
   block: Block;
@@ -21,7 +13,7 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
       case 'thinking':
         return (
           <ThinkingBlock
-            content={block.content}
+            content={typeof block.content === 'object' && block.content?.text ? block.content.text : JSON.stringify(block.content)}
             isExpanded={isExpanded}
             onToggle={() => setIsExpanded(!isExpanded)}
           />
@@ -29,18 +21,18 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
       case 'tool_use':
         return (
           <ToolUseBlock
-            content={block.content}
-            metadata={block.metadata}
+            content={JSON.stringify(block.content)}
+            metadata={typeof block.content === 'object' ? block.content : undefined}
             isExpanded={isExpanded}
             onToggle={() => setIsExpanded(!isExpanded)}
           />
         );
-      case 'text':
-        return <TextBlock content={block.content} />;
-      case 'error':
-        return <ErrorBlock content={block.content} />;
+      case 'content':
+        return <TextBlock content={typeof block.content === 'object' && block.content?.text ? block.content.text : JSON.stringify(block.content)} />;
+      case 'tool_result':
+        return <ToolResultBlock content={block.content} />;
       default:
-        return <TextBlock content={block.content} />;
+        return <TextBlock content={JSON.stringify(block.content)} />;
     }
   };
 
@@ -119,7 +111,7 @@ function ToolUseBlock({
   onToggle,
 }: {
   content: string;
-  metadata?: Record<string, unknown>;
+  metadata?: any;
   isExpanded: boolean;
   onToggle: () => void;
 }) {
@@ -204,6 +196,53 @@ function TextBlock({ content }: { content: string }) {
       }}
     >
       {content}
+    </div>
+  );
+}
+
+function ToolResultBlock({ content }: { content: any }) {
+  const result = typeof content === 'object' ? content : { result: content };
+  const hasError = result.error;
+  
+  return (
+    <div
+      style={{
+        backgroundColor: hasError ? 'rgba(239, 68, 68, 0.05)' : 'rgba(156, 163, 175, 0.05)',
+        border: `1px solid ${hasError ? 'rgba(239, 68, 68, 0.2)' : 'rgba(156, 163, 175, 0.2)'}`,
+        borderRadius: '6px',
+        padding: '12px',
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          marginBottom: '8px',
+        }}
+      >
+        <span style={{ fontSize: '14px' }}>{hasError ? '⚠️' : '✅'}</span>
+        <span
+          style={{
+            fontSize: '13px',
+            fontWeight: '500',
+            color: hasError ? '#ef4444' : '#10b981',
+          }}
+        >
+          Tool Result
+        </span>
+      </div>
+      <div
+        style={{
+          fontSize: '13px',
+          lineHeight: '1.5',
+          color: hasError ? 'rgba(239, 68, 68, 0.9)' : 'var(--foreground)',
+          fontFamily: 'monospace',
+          whiteSpace: 'pre-wrap',
+        }}
+      >
+        {result.result || result.error || JSON.stringify(result)}
+      </div>
     </div>
   );
 }

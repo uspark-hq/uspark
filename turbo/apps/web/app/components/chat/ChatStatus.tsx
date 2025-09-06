@@ -1,23 +1,5 @@
 import React, { useEffect, useState } from 'react';
-
-interface Turn {
-  id: string;
-  sessionId: string;
-  userInput: string;
-  status: 'running' | 'completed' | 'failed';
-  createdAt: string;
-  updatedAt: string;
-  blocks: unknown[];
-}
-
-interface Session {
-  id: string;
-  projectId: string;
-  status: 'idle' | 'running' | 'completed' | 'failed' | 'interrupted';
-  turns: Turn[];
-  createdAt: string;
-  updatedAt: string;
-}
+import type { Session, Turn } from '../../../src/lib/api/sessions';
 
 interface ChatStatusProps {
   session?: Session | null;
@@ -31,9 +13,13 @@ export function ChatStatus({ session, currentTurn }: ChatStatusProps) {
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
 
-    if (session?.status === 'running' || currentTurn?.status === 'running') {
+    const hasActiveTurns = session?.turns?.some(
+      t => t.status === 'running' || t.status === 'pending'
+    ) ?? false;
+
+    if (hasActiveTurns || currentTurn?.status === 'running') {
       setIsActive(true);
-      const startTime = currentTurn?.createdAt ? new Date(currentTurn.createdAt) : new Date();
+      const startTime = currentTurn?.createdAt ? currentTurn.createdAt : new Date();
       
       interval = setInterval(() => {
         const now = new Date();
@@ -42,9 +28,9 @@ export function ChatStatus({ session, currentTurn }: ChatStatusProps) {
       }, 100);
     } else {
       setIsActive(false);
-      if (currentTurn?.updatedAt && currentTurn?.createdAt) {
-        const start = new Date(currentTurn.createdAt);
-        const end = new Date(currentTurn.updatedAt);
+      if (currentTurn?.completedAt && currentTurn?.startedAt) {
+        const start = currentTurn.startedAt;
+        const end = currentTurn.completedAt;
         const elapsed = Math.floor((end.getTime() - start.getTime()) / 1000);
         setExecutionTime(elapsed);
       }
@@ -55,7 +41,7 @@ export function ChatStatus({ session, currentTurn }: ChatStatusProps) {
         clearInterval(interval);
       }
     };
-  }, [session?.status, currentTurn]);
+  }, [session, currentTurn]);
 
   const formatTime = (seconds: number): string => {
     if (seconds < 60) {
@@ -69,42 +55,40 @@ export function ChatStatus({ session, currentTurn }: ChatStatusProps) {
   const getStatusColor = () => {
     if (!session) return '#6b7280';
     
-    switch (session.status) {
-      case 'running':
-        return '#3b82f6';
-      case 'completed':
-        return '#10b981';
-      case 'failed':
-        return '#ef4444';
-      case 'interrupted':
-        return '#f59e0b';
-      default:
-        return '#6b7280';
-    }
+    const hasActiveTurns = session.turns?.some(
+      t => t.status === 'running' || t.status === 'pending'
+    ) ?? false;
+    
+    const hasFailedTurns = session.turns?.some(
+      t => t.status === 'failed'
+    ) ?? false;
+    
+    if (hasActiveTurns) return '#3b82f6';
+    if (hasFailedTurns) return '#ef4444';
+    if (session.turns && session.turns.length > 0) return '#10b981';
+    return '#6b7280';
   };
 
   const getStatusText = () => {
     if (!session) return 'No Session';
     
-    if (session.status === 'running' && currentTurn) {
-      const blockCount = currentTurn.blocks.length;
+    const hasActiveTurns = session.turns?.some(
+      t => t.status === 'running' || t.status === 'pending'
+    ) ?? false;
+    
+    if (hasActiveTurns && currentTurn) {
+      const blockCount = currentTurn.blocks?.length ?? 0;
       return `Processing (${blockCount} block${blockCount !== 1 ? 's' : ''})`;
     }
     
-    switch (session.status) {
-      case 'idle':
-        return 'Ready';
-      case 'running':
-        return 'Processing...';
-      case 'completed':
-        return 'Completed';
-      case 'failed':
-        return 'Failed';
-      case 'interrupted':
-        return 'Interrupted';
-      default:
-        return 'Unknown';
-    }
+    const hasFailedTurns = session.turns?.some(
+      t => t.status === 'failed'
+    ) ?? false;
+    
+    if (!session.turns || session.turns.length === 0) return 'Ready';
+    if (hasActiveTurns) return 'Processing...';
+    if (hasFailedTurns) return 'Failed';
+    return 'Completed';
   };
 
   return (
@@ -161,7 +145,7 @@ export function ChatStatus({ session, currentTurn }: ChatStatusProps) {
       )}
 
       {/* Turn Counter */}
-      {session && session.turns.length > 0 && (
+      {session && session.turns && session.turns.length > 0 && (
         <>
           <div
             style={{

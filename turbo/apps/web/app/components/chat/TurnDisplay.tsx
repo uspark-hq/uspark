@@ -1,32 +1,13 @@
 import React from 'react';
 import { BlockDisplay } from './BlockDisplay';
-
-interface Block {
-  id: string;
-  turnId: string;
-  type: 'thinking' | 'tool_use' | 'text' | 'error';
-  content: string;
-  metadata?: Record<string, unknown>;
-  createdAt: string;
-}
-
-interface Turn {
-  id: string;
-  sessionId: string;
-  userInput: string;
-  status: 'running' | 'completed' | 'failed';
-  createdAt: string;
-  updatedAt: string;
-  blocks: Block[];
-}
+import type { Turn, Block } from '../../../src/lib/api/sessions';
 
 interface TurnDisplayProps {
   turn: Turn;
 }
 
 export function TurnDisplay({ turn }: TurnDisplayProps) {
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
+  const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
@@ -85,7 +66,7 @@ export function TurnDisplay({ turn }: TurnDisplayProps) {
               color: 'var(--foreground)',
             }}
           >
-            {turn.userInput}
+            {turn.userPrompt}
           </div>
         </div>
       </div>
@@ -124,7 +105,7 @@ export function TurnDisplay({ turn }: TurnDisplayProps) {
           </div>
           
           {/* Blocks */}
-          {turn.blocks.length === 0 && turn.status === 'running' ? (
+          {(!turn.blocks || turn.blocks.length === 0) && turn.status === 'running' ? (
             <div
               style={{
                 fontSize: '14px',
@@ -136,7 +117,7 @@ export function TurnDisplay({ turn }: TurnDisplayProps) {
             </div>
           ) : (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {turn.blocks.map((block) => (
+              {turn.blocks?.map((block) => (
                 <BlockDisplay key={block.id} block={block} />
               ))}
             </div>
@@ -149,12 +130,13 @@ export function TurnDisplay({ turn }: TurnDisplayProps) {
 
 function TurnStatusBadge({ status }: { status: Turn['status'] }) {
   const statusConfig = {
+    pending: { color: '#6b7280', label: 'Pending' },
     running: { color: '#3b82f6', label: 'Running' },
     completed: { color: '#10b981', label: 'Completed' },
     failed: { color: '#ef4444', label: 'Failed' },
   };
 
-  const config = statusConfig[status];
+  const config = statusConfig[status] || statusConfig.pending;
 
   return (
     <span

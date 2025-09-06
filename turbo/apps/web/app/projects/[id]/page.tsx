@@ -45,11 +45,11 @@ export default function ProjectDetailPage() {
 
       // Create a new turn with the user input
       await sessionsAPI.createTurn(projectId, sessionId, {
-        userInput: inputMessage.trim(),
+        user_prompt: inputMessage.trim(),
       });
 
-      // Trigger mock execution (this would be replaced with real Claude integration)
-      await sessionsAPI.mockExecute(projectId, sessionId, inputMessage.trim());
+      // Note: Real Claude integration would happen here
+      // The backend would process the turn and add blocks
     } catch (error) {
       console.error("Failed to send message:", error);
       // Restore the input message on error
@@ -187,7 +187,7 @@ export default function ProjectDetailPage() {
           <div style={{ marginBottom: "12px" }}>
             <ChatStatus
               session={session}
-              currentTurn={session?.turns[session.turns.length - 1]}
+              currentTurn={session?.turns?.[session.turns.length - 1]}
             />
           </div>
 
@@ -215,7 +215,7 @@ export default function ProjectDetailPage() {
                   }
                 }}
                 placeholder="Ask Claude Code to modify your project files..."
-                disabled={isSending || session?.status === "running"}
+                disabled={isSending || session?.turns?.some(t => t.status === "running" || t.status === "pending")}
                 style={{
                   width: "100%",
                   minHeight: "80px",
@@ -228,11 +228,11 @@ export default function ProjectDetailPage() {
                   color: "var(--foreground)",
                   resize: "vertical",
                   outline: "none",
-                  opacity: isSending || session?.status === "running" ? 0.6 : 1,
-                  cursor: isSending || session?.status === "running" ? "not-allowed" : "text",
+                  opacity: isSending || session?.turns?.some(t => t.status === "running" || t.status === "pending") ? 0.6 : 1,
+                  cursor: isSending || session?.turns?.some(t => t.status === "running" || t.status === "pending") ? "not-allowed" : "text",
                 }}
                 onFocus={(e) => {
-                  if (!isSending && session?.status !== "running") {
+                  if (!isSending && !session?.turns?.some(t => t.status === "running" || t.status === "pending")) {
                     e.target.style.borderColor = "rgba(59, 130, 246, 0.5)";
                   }
                 }}
@@ -243,10 +243,10 @@ export default function ProjectDetailPage() {
             </div>
             <button
               onClick={handleSendMessage}
-              disabled={isSending || !inputMessage.trim() || session?.status === "running"}
+              disabled={isSending || !inputMessage.trim() || session?.turns?.some(t => t.status === "running" || t.status === "pending")}
               style={{
                 padding: "12px 24px",
-                backgroundColor: isSending || !inputMessage.trim() || session?.status === "running" 
+                backgroundColor: isSending || !inputMessage.trim() || session?.turns?.some(t => t.status === "running" || t.status === "pending") 
                   ? "#94a3b8" 
                   : "#3b82f6",
                 color: "white",
@@ -254,19 +254,19 @@ export default function ProjectDetailPage() {
                 borderRadius: "6px",
                 fontSize: "14px",
                 fontWeight: "500",
-                cursor: isSending || !inputMessage.trim() || session?.status === "running" 
+                cursor: isSending || !inputMessage.trim() || session?.turns?.some(t => t.status === "running" || t.status === "pending") 
                   ? "not-allowed" 
                   : "pointer",
                 alignSelf: "flex-end",
                 transition: "background-color 0.2s",
               }}
               onMouseOver={(e) => {
-                if (!isSending && inputMessage.trim() && session?.status !== "running") {
+                if (!isSending && inputMessage.trim() && !session?.turns?.some(t => t.status === "running" || t.status === "pending")) {
                   e.currentTarget.style.backgroundColor = "#2563eb";
                 }
               }}
               onMouseOut={(e) => {
-                if (!isSending && inputMessage.trim() && session?.status !== "running") {
+                if (!isSending && inputMessage.trim() && !session?.turns?.some(t => t.status === "running" || t.status === "pending")) {
                   e.currentTarget.style.backgroundColor = "#3b82f6";
                 }
               }}

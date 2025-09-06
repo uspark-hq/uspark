@@ -1,32 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-
-interface Turn {
-  id: string;
-  sessionId: string;
-  userInput: string;
-  status: 'running' | 'completed' | 'failed';
-  createdAt: string;
-  updatedAt: string;
-  blocks: Block[];
-}
-
-interface Block {
-  id: string;
-  turnId: string;
-  type: 'thinking' | 'tool_use' | 'text' | 'error';
-  content: string;
-  metadata?: Record<string, unknown>;
-  createdAt: string;
-}
-
-interface Session {
-  id: string;
-  projectId: string;
-  status: 'idle' | 'running' | 'completed' | 'failed' | 'interrupted';
-  turns: Turn[];
-  createdAt: string;
-  updatedAt: string;
-}
+import { sessionsAPI, type Session, type Turn, type Block } from '../lib/api/sessions';
 
 interface UseSessionPollingOptions {
   projectId: string;
@@ -53,21 +26,8 @@ export function useSessionPolling({
     if (!sessionId || !enabled) return;
 
     try {
-      // Create new abort controller for this request
-      abortControllerRef.current = new AbortController();
-      
-      const response = await fetch(
-        `/api/projects/${projectId}/sessions/${sessionId}`,
-        {
-          signal: abortControllerRef.current.signal,
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch session: ${response.statusText}`);
-      }
-
-      const data = await response.json();
+      // Fetch full session data with turns and blocks
+      const data = await sessionsAPI.getFullSession(projectId, sessionId);
       setSession(data);
       setError(null);
       
@@ -75,8 +35,13 @@ export function useSessionPolling({
         onUpdate(data);
       }
 
-      // Stop polling if session is completed or failed
-      if (data.status === 'completed' || data.status === 'failed' || data.status === 'interrupted') {
+      // Check if all turns are completed/failed
+      const hasActiveTurns = data.turns?.some(
+        turn => turn.status === 'pending' || turn.status === 'running'
+      ) ?? false;
+      
+      // Stop polling if no active turns
+      if (!hasActiveTurns && data.turns && data.turns.length > 0) {
         stopPolling();
       }
     } catch (err) {
@@ -146,17 +111,8 @@ export function useSessionPolling({
     if (!sessionId) return;
     
     try {
-      const response = await fetch(
-        `/api/projects/${projectId}/sessions/${sessionId}/interrupt`,
-        {
-          method: 'POST',
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to interrupt session: ${response.statusText}`);
-      }
-
+      await sessionsAPI.interruptSession(projectId, sessionId);
+      
       // Refresh session state
       await fetchSession();
     } catch (err) {

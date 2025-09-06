@@ -1,50 +1,65 @@
 import type { Session, Turn, Block } from '../../lib/api/sessions';
+import { BlockFactory } from '../../lib/sessions/blocks';
 
 export const mockBlock = {
   thinking: (turnId: string): Block => ({
     id: `block-thinking-${Math.random()}`,
     turnId,
     type: 'thinking',
-    content: 'Analyzing the request and planning the approach...',
-    createdAt: new Date().toISOString(),
+    content: { text: 'Analyzing the request and planning the approach...' },
+    sequenceNumber: 0,
+    createdAt: new Date(),
   }),
   
   toolUse: (turnId: string, toolName: string): Block => ({
     id: `block-tool-${Math.random()}`,
     turnId,
     type: 'tool_use',
-    content: `Executing ${toolName} command...`,
-    metadata: { tool_name: toolName },
-    createdAt: new Date().toISOString(),
+    content: {
+      tool_name: toolName,
+      parameters: {},
+      tool_use_id: `tool_${Math.random()}`,
+    },
+    sequenceNumber: 1,
+    createdAt: new Date(),
   }),
   
-  text: (turnId: string, content: string): Block => ({
-    id: `block-text-${Math.random()}`,
+  content: (turnId: string, text: string): Block => ({
+    id: `block-content-${Math.random()}`,
     turnId,
-    type: 'text',
-    content,
-    createdAt: new Date().toISOString(),
+    type: 'content',
+    content: { text },
+    sequenceNumber: 2,
+    createdAt: new Date(),
   }),
   
-  error: (turnId: string, message: string): Block => ({
-    id: `block-error-${Math.random()}`,
+  toolResult: (turnId: string, toolUseId: string, result: string, error?: string): Block => ({
+    id: `block-result-${Math.random()}`,
     turnId,
-    type: 'error',
-    content: message,
-    createdAt: new Date().toISOString(),
+    type: 'tool_result',
+    content: {
+      tool_use_id: toolUseId,
+      result,
+      error: error || null,
+    },
+    sequenceNumber: 3,
+    createdAt: new Date(),
   }),
 };
 
 export const mockTurn = {
-  running: (sessionId: string, userInput: string): Turn => {
+  running: (sessionId: string, userPrompt: string): Turn => {
     const turnId = `turn-running-${Math.random()}`;
     return {
       id: turnId,
       sessionId,
-      userInput,
+      userPrompt,
       status: 'running',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      startedAt: new Date(),
+      completedAt: null,
+      errorMessage: null,
+      createdAt: new Date(),
+      blockIds: [],
       blocks: [
         mockBlock.thinking(turnId),
         mockBlock.toolUse(turnId, 'grep'),
@@ -52,36 +67,44 @@ export const mockTurn = {
     };
   },
   
-  completed: (sessionId: string, userInput: string): Turn => {
+  completed: (sessionId: string, userPrompt: string): Turn => {
     const turnId = `turn-completed-${Math.random()}`;
+    const startTime = new Date(Date.now() - 60000);
+    const endTime = new Date(Date.now() - 30000);
     return {
       id: turnId,
       sessionId,
-      userInput,
+      userPrompt,
       status: 'completed',
-      createdAt: new Date(Date.now() - 60000).toISOString(),
-      updatedAt: new Date(Date.now() - 30000).toISOString(),
+      startedAt: startTime,
+      completedAt: endTime,
+      errorMessage: null,
+      createdAt: startTime,
+      blockIds: [],
       blocks: [
         mockBlock.thinking(turnId),
         mockBlock.toolUse(turnId, 'read'),
         mockBlock.toolUse(turnId, 'edit'),
-        mockBlock.text(turnId, 'Successfully updated the file with error handling.'),
+        mockBlock.content(turnId, 'Successfully updated the file with error handling.'),
       ],
     };
   },
   
-  failed: (sessionId: string, userInput: string): Turn => {
+  failed: (sessionId: string, userPrompt: string): Turn => {
     const turnId = `turn-failed-${Math.random()}`;
+    const startTime = new Date(Date.now() - 120000);
+    const endTime = new Date(Date.now() - 90000);
     return {
       id: turnId,
       sessionId,
-      userInput,
+      userPrompt,
       status: 'failed',
-      createdAt: new Date(Date.now() - 120000).toISOString(),
-      updatedAt: new Date(Date.now() - 90000).toISOString(),
-      blocks: [
-        mockBlock.error(turnId, 'Failed to access file: Permission denied'),
-      ],
+      startedAt: startTime,
+      completedAt: endTime,
+      errorMessage: 'Failed to access file: Permission denied',
+      createdAt: startTime,
+      blockIds: [],
+      blocks: [],
     };
   },
 };
@@ -92,69 +115,78 @@ export const mockSession = {
     return {
       id: sessionId,
       projectId,
-      status: 'idle',
+      title: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      turnIds: [],
       turns: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     };
   },
   
   running: (projectId: string): Session => {
     const sessionId = `session-running-${Math.random()}`;
+    const turns = [
+      mockTurn.completed(sessionId, 'Add error handling to login function'),
+      mockTurn.running(sessionId, 'Add input validation'),
+    ];
     return {
       id: sessionId,
       projectId,
-      status: 'running',
-      turns: [
-        mockTurn.completed(sessionId, 'Add error handling to login function'),
-        mockTurn.running(sessionId, 'Add input validation'),
-      ],
-      createdAt: new Date(Date.now() - 180000).toISOString(),
-      updatedAt: new Date().toISOString(),
+      title: 'Development Session',
+      createdAt: new Date(Date.now() - 180000),
+      updatedAt: new Date(),
+      turnIds: turns.map(t => t.id),
+      turns,
     };
   },
   
   completed: (projectId: string): Session => {
     const sessionId = `session-completed-${Math.random()}`;
+    const turns = [
+      mockTurn.completed(sessionId, 'Create a new React component'),
+      mockTurn.completed(sessionId, 'Add tests for the component'),
+    ];
     return {
       id: sessionId,
       projectId,
-      status: 'completed',
-      turns: [
-        mockTurn.completed(sessionId, 'Create a new React component'),
-        mockTurn.completed(sessionId, 'Add tests for the component'),
-      ],
-      createdAt: new Date(Date.now() - 300000).toISOString(),
-      updatedAt: new Date(Date.now() - 60000).toISOString(),
+      title: 'Component Development',
+      createdAt: new Date(Date.now() - 300000),
+      updatedAt: new Date(Date.now() - 60000),
+      turnIds: turns.map(t => t.id),
+      turns,
     };
   },
   
   failed: (projectId: string): Session => {
     const sessionId = `session-failed-${Math.random()}`;
+    const turns = [
+      mockTurn.failed(sessionId, 'Update configuration file'),
+    ];
     return {
       id: sessionId,
       projectId,
-      status: 'failed',
-      turns: [
-        mockTurn.failed(sessionId, 'Update configuration file'),
-      ],
-      createdAt: new Date(Date.now() - 240000).toISOString(),
-      updatedAt: new Date(Date.now() - 120000).toISOString(),
+      title: 'Failed Operation',
+      createdAt: new Date(Date.now() - 240000),
+      updatedAt: new Date(Date.now() - 120000),
+      turnIds: turns.map(t => t.id),
+      turns,
     };
   },
   
   interrupted: (projectId: string): Session => {
     const sessionId = `session-interrupted-${Math.random()}`;
+    const turns = [
+      mockTurn.completed(sessionId, 'Start refactoring'),
+      { ...mockTurn.running(sessionId, 'Continue refactoring'), status: 'failed' as const, errorMessage: 'Interrupted by user' },
+    ];
     return {
       id: sessionId,
       projectId,
-      status: 'interrupted',
-      turns: [
-        mockTurn.completed(sessionId, 'Start refactoring'),
-        mockTurn.running(sessionId, 'Continue refactoring'),
-      ],
-      createdAt: new Date(Date.now() - 150000).toISOString(),
-      updatedAt: new Date(Date.now() - 30000).toISOString(),
+      title: 'Interrupted Session',
+      createdAt: new Date(Date.now() - 150000),
+      updatedAt: new Date(Date.now() - 30000),
+      turnIds: turns.map(t => t.id),
+      turns,
     };
   },
 };
@@ -167,71 +199,93 @@ export const createMockSessionSequence = (projectId: string) => {
     initial: (): Session => ({
       id: sessionId,
       projectId,
-      status: 'idle',
+      title: 'Test Session',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      turnIds: [],
       turns: [],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
     }),
     
-    processing: (): Session => ({
-      id: sessionId,
-      projectId,
-      status: 'running',
-      turns: [{
+    processing: (): Session => {
+      const turn: Turn = {
         id: turnId,
         sessionId,
-        userInput: 'Test input',
+        userPrompt: 'Test input',
         status: 'running',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        startedAt: new Date(),
+        completedAt: null,
+        errorMessage: null,
+        createdAt: new Date(),
+        blockIds: [],
         blocks: [mockBlock.thinking(turnId)],
-      }],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }),
+      };
+      return {
+        id: sessionId,
+        projectId,
+        title: 'Test Session',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        turnIds: [turnId],
+        turns: [turn],
+      };
+    },
     
-    withMoreBlocks: (): Session => ({
-      id: sessionId,
-      projectId,
-      status: 'running',
-      turns: [{
+    withMoreBlocks: (): Session => {
+      const turn: Turn = {
         id: turnId,
         sessionId,
-        userInput: 'Test input',
+        userPrompt: 'Test input',
         status: 'running',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        startedAt: new Date(),
+        completedAt: null,
+        errorMessage: null,
+        createdAt: new Date(),
+        blockIds: [],
         blocks: [
           mockBlock.thinking(turnId),
           mockBlock.toolUse(turnId, 'bash'),
           mockBlock.toolUse(turnId, 'write'),
         ],
-      }],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }),
+      };
+      return {
+        id: sessionId,
+        projectId,
+        title: 'Test Session',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        turnIds: [turnId],
+        turns: [turn],
+      };
+    },
     
-    complete: (): Session => ({
-      id: sessionId,
-      projectId,
-      status: 'completed',
-      turns: [{
+    complete: (): Session => {
+      const turn: Turn = {
         id: turnId,
         sessionId,
-        userInput: 'Test input',
+        userPrompt: 'Test input',
         status: 'completed',
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        startedAt: new Date(Date.now() - 5000),
+        completedAt: new Date(),
+        errorMessage: null,
+        createdAt: new Date(Date.now() - 5000),
+        blockIds: [],
         blocks: [
           mockBlock.thinking(turnId),
           mockBlock.toolUse(turnId, 'bash'),
           mockBlock.toolUse(turnId, 'write'),
-          mockBlock.text(turnId, 'Task completed successfully'),
+          mockBlock.content(turnId, 'Task completed successfully'),
         ],
-      }],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    }),
+      };
+      return {
+        id: sessionId,
+        projectId,
+        title: 'Test Session',
+        createdAt: new Date(Date.now() - 5000),
+        updatedAt: new Date(),
+        turnIds: [turnId],
+        turns: [turn],
+      };
+    },
   };
   
   return states;
