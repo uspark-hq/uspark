@@ -7,12 +7,15 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: 'html',
+  timeout: 5000, // 5 seconds per test
   globalSetup: require.resolve('./playwright/global-setup.ts'),
   use: {
     baseURL: process.env.BASE_URL || 'https://uspark-8fgbrlx5p-uspark.vercel.app',
     trace: 'on-first-retry',
     screenshot: 'only-on-failure',
     storageState: 'playwright/.clerk/auth.json',
+    actionTimeout: 5000, // 5 seconds for actions
+    navigationTimeout: 5000, // 5 seconds for navigation
   },
 
   projects: [
