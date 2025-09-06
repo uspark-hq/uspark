@@ -1,0 +1,461 @@
+import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { NextRequest } from "next/server";
+import { GET, PATCH } from "./route";
+import { initServices } from "../../../../../../../../src/lib/init-services";
+import { PROJECTS_TBL } from "../../../../../../../../src/db/schema/projects";
+import {
+  SESSIONS_TBL,
+  TURNS_TBL,
+  BLOCKS_TBL,
+} from "../../../../../../../../src/db/schema/sessions";
+import { eq } from "drizzle-orm";
+import * as Y from "yjs";
+
+// Mock Clerk authentication
+vi.mock("@clerk/nextjs/server", () => ({
+  auth: vi.fn(),
+}));
+
+import { auth } from "@clerk/nextjs/server";
+const mockAuth = vi.mocked(auth);
+
+describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
+  const projectId = `proj_turn_detail_${Date.now()}`;
+  const sessionId = `sess_turn_detail_${Date.now()}`;
+  const turnId = `turn_detail_${Date.now()}`;
+  const userId = "test-user-turn-detail";
+  let createdBlockIds: string[] = [];
+
+  beforeEach(async () => {
+    // Mock successful authentication by default
+    mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+
+    // Initialize services
+    initServices();
+
+    // Clean up any existing test data
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.id, projectId));
+
+    // Create test project
+    const ydoc = new Y.Doc();
+    const state = Y.encodeStateAsUpdate(ydoc);
+    const base64Data = Buffer.from(state).toString("base64");
+
+    await globalThis.services.db.insert(PROJECTS_TBL).values({
+      id: projectId,
+      userId,
+      ydocData: base64Data,
+      version: 0,
+    });
+
+    // Create test session
+    await globalThis.services.db.insert(SESSIONS_TBL).values({
+      id: sessionId,
+      projectId,
+      title: "Test Session",
+    });
+
+    // Create test turn
+    await globalThis.services.db.insert(TURNS_TBL).values({
+      id: turnId,
+      sessionId,
+      userPrompt: "Test prompt",
+      status: "pending",
+    });
+
+    createdBlockIds = [];
+  });
+
+  afterEach(async () => {
+    // Clean up blocks
+    for (const blockId of createdBlockIds) {
+      await globalThis.services.db
+        .delete(BLOCKS_TBL)
+        .where(eq(BLOCKS_TBL.id, blockId));
+    }
+
+    // Clean up turn
+    await globalThis.services.db
+      .delete(TURNS_TBL)
+      .where(eq(TURNS_TBL.id, turnId));
+
+    // Clean up session
+    await globalThis.services.db
+      .delete(SESSIONS_TBL)
+      .where(eq(SESSIONS_TBL.id, sessionId));
+
+    // Clean up project
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.id, projectId));
+  });
+
+  describe("GET /api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
+    it("should return 401 when not authenticated", async () => {
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
+
+      const request = new NextRequest("http://localhost:3000");
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
+
+      const response = await GET(request, context);
+
+      expect(response.status).toBe(401);
+      const data = await response.json();
+      expect(data).toHaveProperty("error", "unauthorized");
+    });
+
+    it("should return 404 when project doesn't exist", async () => {
+      const request = new NextRequest("http://localhost:3000");
+      const context = {
+        params: Promise.resolve({
+          projectId: "non-existent",
+          sessionId,
+          turnId,
+        }),
+      };
+
+      const response = await GET(request, context);
+
+      expect(response.status).toBe(404);
+      const data = await response.json();
+      expect(data).toHaveProperty("error", "project_not_found");
+    });
+
+    it("should return 404 when session doesn't exist", async () => {
+      const request = new NextRequest("http://localhost:3000");
+      const context = {
+        params: Promise.resolve({
+          projectId,
+          sessionId: "non-existent",
+          turnId,
+        }),
+      };
+
+      const response = await GET(request, context);
+
+      expect(response.status).toBe(404);
+      const data = await response.json();
+      expect(data).toHaveProperty("error", "session_not_found");
+    });
+
+    it("should return 404 when turn doesn't exist", async () => {
+      const request = new NextRequest("http://localhost:3000");
+      const context = {
+        params: Promise.resolve({
+          projectId,
+          sessionId,
+          turnId: "non-existent",
+        }),
+      };
+
+      const response = await GET(request, context);
+
+      expect(response.status).toBe(404);
+      const data = await response.json();
+      expect(data).toHaveProperty("error", "turn_not_found");
+    });
+
+    it("should return turn details without blocks", async () => {
+      const request = new NextRequest("http://localhost:3000");
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
+
+      const response = await GET(request, context);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toHaveProperty("id", turnId);
+      expect(data).toHaveProperty("session_id", sessionId);
+      expect(data).toHaveProperty("user_prompt", "Test prompt");
+      expect(data).toHaveProperty("status", "pending");
+      expect(data).toHaveProperty("started_at", null);
+      expect(data).toHaveProperty("completed_at", null);
+      expect(data).toHaveProperty("blocks");
+      expect(data.blocks).toEqual([]);
+    });
+
+    it("should return turn details with blocks in sequence order", async () => {
+      // Create blocks
+      const [block1] = await globalThis.services.db
+        .insert(BLOCKS_TBL)
+        .values({
+          id: `block_thinking_${Date.now()}`,
+          turnId,
+          type: "thinking",
+          content: JSON.stringify({ text: "Let me think about this..." }),
+          sequenceNumber: 0,
+        })
+        .returning();
+
+      const [block2] = await globalThis.services.db
+        .insert(BLOCKS_TBL)
+        .values({
+          id: `block_tool_${Date.now()}`,
+          turnId,
+          type: "tool_use",
+          content: JSON.stringify({
+            tool_name: "read_file",
+            parameters: { path: "/test.txt" },
+            tool_use_id: "tool_123",
+          }),
+          sequenceNumber: 1,
+        })
+        .returning();
+
+      const [block3] = await globalThis.services.db
+        .insert(BLOCKS_TBL)
+        .values({
+          id: `block_result_${Date.now()}`,
+          turnId,
+          type: "tool_result",
+          content: JSON.stringify({
+            tool_use_id: "tool_123",
+            result: "File contents...",
+            error: null,
+          }),
+          sequenceNumber: 2,
+        })
+        .returning();
+
+      const [block4] = await globalThis.services.db
+        .insert(BLOCKS_TBL)
+        .values({
+          id: `block_content_${Date.now()}`,
+          turnId,
+          type: "content",
+          content: JSON.stringify({
+            text: "Based on the file, the answer is...",
+          }),
+          sequenceNumber: 3,
+        })
+        .returning();
+
+      createdBlockIds.push(block1.id, block2.id, block3.id, block4.id);
+
+      const request = new NextRequest("http://localhost:3000");
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
+
+      const response = await GET(request, context);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data.blocks).toHaveLength(4);
+
+      // Check blocks are in sequence order
+      expect(data.blocks[0].type).toBe("thinking");
+      expect(data.blocks[0].content.text).toBe("Let me think about this...");
+      expect(data.blocks[0].sequence_number).toBe(0);
+
+      expect(data.blocks[1].type).toBe("tool_use");
+      expect(data.blocks[1].content.tool_name).toBe("read_file");
+      expect(data.blocks[1].sequence_number).toBe(1);
+
+      expect(data.blocks[2].type).toBe("tool_result");
+      expect(data.blocks[2].content.result).toBe("File contents...");
+      expect(data.blocks[2].sequence_number).toBe(2);
+
+      expect(data.blocks[3].type).toBe("content");
+      expect(data.blocks[3].content.text).toBe(
+        "Based on the file, the answer is...",
+      );
+      expect(data.blocks[3].sequence_number).toBe(3);
+    });
+  });
+
+  describe("PATCH /api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
+    it("should return 401 when not authenticated", async () => {
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
+
+      const request = new NextRequest("http://localhost:3000", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "running" }),
+      });
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
+
+      const response = await PATCH(request, context);
+
+      expect(response.status).toBe(401);
+      const data = await response.json();
+      expect(data).toHaveProperty("error", "unauthorized");
+    });
+
+    it("should update turn status to running and set startedAt", async () => {
+      const request = new NextRequest("http://localhost:3000", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "running" }),
+      });
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
+
+      const response = await PATCH(request, context);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toHaveProperty("id", turnId);
+      expect(data).toHaveProperty("status", "running");
+      expect(data).toHaveProperty("started_at");
+      expect(data.started_at).not.toBeNull();
+
+      // Verify in database
+      const [updatedTurn] = await globalThis.services.db
+        .select()
+        .from(TURNS_TBL)
+        .where(eq(TURNS_TBL.id, turnId));
+
+      expect(updatedTurn.status).toBe("running");
+      expect(updatedTurn.startedAt).not.toBeNull();
+      expect(updatedTurn.completedAt).toBeNull();
+    });
+
+    it("should update turn status to completed and set completedAt", async () => {
+      // First set to running
+      await globalThis.services.db
+        .update(TURNS_TBL)
+        .set({
+          status: "running",
+          startedAt: new Date(),
+        })
+        .where(eq(TURNS_TBL.id, turnId));
+
+      const request = new NextRequest("http://localhost:3000", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "completed" }),
+      });
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
+
+      const response = await PATCH(request, context);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toHaveProperty("status", "completed");
+      expect(data).toHaveProperty("completed_at");
+      expect(data.completed_at).not.toBeNull();
+
+      // Verify in database
+      const [updatedTurn] = await globalThis.services.db
+        .select()
+        .from(TURNS_TBL)
+        .where(eq(TURNS_TBL.id, turnId));
+
+      expect(updatedTurn.status).toBe("completed");
+      expect(updatedTurn.startedAt).not.toBeNull();
+      expect(updatedTurn.completedAt).not.toBeNull();
+    });
+
+    it("should update turn status to failed with error message", async () => {
+      const errorMessage = "Claude API error: Rate limit exceeded";
+
+      const request = new NextRequest("http://localhost:3000", {
+        method: "PATCH",
+        body: JSON.stringify({
+          status: "failed",
+          error_message: errorMessage,
+        }),
+      });
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
+
+      const response = await PATCH(request, context);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+      expect(data).toHaveProperty("status", "failed");
+      expect(data).toHaveProperty("error_message", errorMessage);
+      expect(data).toHaveProperty("completed_at");
+      expect(data.completed_at).not.toBeNull();
+
+      // Verify in database
+      const [updatedTurn] = await globalThis.services.db
+        .select()
+        .from(TURNS_TBL)
+        .where(eq(TURNS_TBL.id, turnId));
+
+      expect(updatedTurn.status).toBe("failed");
+      expect(updatedTurn.errorMessage).toBe(errorMessage);
+      expect(updatedTurn.completedAt).not.toBeNull();
+    });
+
+    it("should not override startedAt if already set", async () => {
+      const originalStartTime = new Date("2024-01-01T10:00:00Z");
+
+      // Set initial startedAt
+      await globalThis.services.db
+        .update(TURNS_TBL)
+        .set({
+          status: "running",
+          startedAt: originalStartTime,
+        })
+        .where(eq(TURNS_TBL.id, turnId));
+
+      // Try to set to running again
+      const request = new NextRequest("http://localhost:3000", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "running" }),
+      });
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
+
+      await PATCH(request, context);
+
+      // Verify startedAt wasn't changed
+      const [updatedTurn] = await globalThis.services.db
+        .select()
+        .from(TURNS_TBL)
+        .where(eq(TURNS_TBL.id, turnId));
+
+      expect(updatedTurn.startedAt?.toISOString()).toBe(
+        originalStartTime.toISOString(),
+      );
+    });
+
+    it("should update session updatedAt timestamp", async () => {
+      // Get original session timestamp
+      const [originalSession] = await globalThis.services.db
+        .select()
+        .from(SESSIONS_TBL)
+        .where(eq(SESSIONS_TBL.id, sessionId));
+
+      const originalUpdatedAt = originalSession.updatedAt;
+
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      const request = new NextRequest("http://localhost:3000", {
+        method: "PATCH",
+        body: JSON.stringify({ status: "running" }),
+      });
+      const context = {
+        params: Promise.resolve({ projectId, sessionId, turnId }),
+      };
+
+      await PATCH(request, context);
+
+      // Verify session was updated
+      const [updatedSession] = await globalThis.services.db
+        .select()
+        .from(SESSIONS_TBL)
+        .where(eq(SESSIONS_TBL.id, sessionId));
+
+      expect(updatedSession.updatedAt.getTime()).toBeGreaterThan(
+        originalUpdatedAt.getTime(),
+      );
+    });
+  });
+});
