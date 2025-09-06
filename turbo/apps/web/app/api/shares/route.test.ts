@@ -17,10 +17,10 @@ const mockAuth = vi.mocked(auth);
 describe("GET /api/shares", () => {
   const userId = "test-user-123";
   const otherUserId = "other-user-456";
-  
+
   beforeEach(async () => {
     initServices();
-    
+
     // Clean up test data
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
@@ -28,7 +28,7 @@ describe("GET /api/shares", () => {
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
-    
+
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
   });
@@ -47,10 +47,10 @@ describe("GET /api/shares", () => {
     const ydoc = new Y.Doc();
     const files = ydoc.getMap("files");
     files.set("test.ts", { hash: "abc123", mtime: Date.now() });
-    
+
     const state = Y.encodeStateAsUpdate(ydoc);
     const base64Data = Buffer.from(state).toString("base64");
-    
+
     await globalThis.services.db.insert(PROJECTS_TBL).values({
       id: projectId,
       userId,
@@ -70,7 +70,7 @@ describe("GET /api/shares", () => {
     };
 
     const share2 = {
-      id: "share-2", 
+      id: "share-2",
       token: "token-2",
       projectId,
       filePath: "src/file2.ts",
@@ -79,14 +79,16 @@ describe("GET /api/shares", () => {
       createdAt: new Date("2024-01-02"),
     };
 
-    await globalThis.services.db.insert(SHARE_LINKS_TBL).values([share1, share2]);
+    await globalThis.services.db
+      .insert(SHARE_LINKS_TBL)
+      .values([share1, share2]);
 
     const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(200);
     expect(data.shares).toHaveLength(2);
-    
+
     // Should be ordered by createdAt desc (newest first)
     expect(data.shares[0]).toMatchObject({
       id: "share-2",
@@ -96,7 +98,7 @@ describe("GET /api/shares", () => {
       url: expect.stringMatching(/\/share\/token-2$/),
       accessedCount: 0,
     });
-    
+
     expect(data.shares[1]).toMatchObject({
       id: "share-1",
       token: "token-1",
@@ -119,11 +121,11 @@ describe("GET /api/shares", () => {
     // Create projects for different users
     const myProjectId = `my-project-${Date.now()}`;
     const otherProjectId = `other-project-${Date.now()}`;
-    
+
     const ydoc = new Y.Doc();
     const state = Y.encodeStateAsUpdate(ydoc);
     const base64Data = Buffer.from(state).toString("base64");
-    
+
     // Create both projects
     await globalThis.services.db.insert(PROJECTS_TBL).values([
       {
@@ -137,7 +139,7 @@ describe("GET /api/shares", () => {
         userId: otherUserId,
         ydocData: base64Data,
         version: 0,
-      }
+      },
     ]);
 
     // Create shares for both users
@@ -181,7 +183,9 @@ describe("GET /api/shares", () => {
   });
 
   it("should return 401 when not authenticated", async () => {
-    mockAuth.mockResolvedValue({ userId: null } as Awaited<ReturnType<typeof auth>>);
+    mockAuth.mockResolvedValue({ userId: null } as Awaited<
+      ReturnType<typeof auth>
+    >);
 
     const response = await GET();
     const data = await response.json();
@@ -195,11 +199,11 @@ describe("GET /api/shares", () => {
     const project1 = `project-1-${Date.now()}`;
     const project2 = `project-2-${Date.now()}`;
     const project3 = `project-3-${Date.now()}`;
-    
+
     const ydoc = new Y.Doc();
     const state = Y.encodeStateAsUpdate(ydoc);
     const base64Data = Buffer.from(state).toString("base64");
-    
+
     await globalThis.services.db.insert(PROJECTS_TBL).values([
       { id: project1, userId, ydocData: base64Data, version: 0 },
       { id: project2, userId, ydocData: base64Data, version: 0 },
@@ -254,3 +258,4 @@ describe("GET /api/shares", () => {
       .where(eq(PROJECTS_TBL.userId, userId));
   });
 });
+

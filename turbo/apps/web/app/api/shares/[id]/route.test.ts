@@ -18,10 +18,10 @@ const mockAuth = vi.mocked(auth);
 describe("DELETE /api/shares/[id]", () => {
   const userId = "test-user-123";
   const otherUserId = "other-user-456";
-  
+
   beforeEach(async () => {
     initServices();
-    
+
     // Clean up ALL test data for both users
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
@@ -29,20 +29,20 @@ describe("DELETE /api/shares/[id]", () => {
     await globalThis.services.db
       .delete(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
-    
+
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
   });
 
   it("should successfully delete user's own share", async () => {
     const shareId = "test-share-id";
-    
+
     // Create project first
     const projectId = `test-project-${Date.now()}`;
     const ydoc = new Y.Doc();
     const state = Y.encodeStateAsUpdate(ydoc);
     const base64Data = Buffer.from(state).toString("base64");
-    
+
     await globalThis.services.db.insert(PROJECTS_TBL).values({
       id: projectId,
       userId,
@@ -67,8 +67,12 @@ describe("DELETE /api/shares/[id]", () => {
     expect(shareBefore).toBeDefined();
 
     // Delete the share
-    const request = new NextRequest("http://localhost:3000/api/shares/" + shareId);
-    const response = await DELETE(request, { params: Promise.resolve({ id: shareId }) });
+    const request = new NextRequest(
+      "http://localhost:3000/api/shares/" + shareId,
+    );
+    const response = await DELETE(request, {
+      params: Promise.resolve({ id: shareId }),
+    });
     const data = await response.json();
 
     expect(response.status).toBe(200);
@@ -88,8 +92,12 @@ describe("DELETE /api/shares/[id]", () => {
   });
 
   it("should return 404 when trying to delete non-existent share", async () => {
-    const request = new NextRequest("http://localhost:3000/api/shares/non-existent");
-    const response = await DELETE(request, { params: Promise.resolve({ id: "non-existent" }) });
+    const request = new NextRequest(
+      "http://localhost:3000/api/shares/non-existent",
+    );
+    const response = await DELETE(request, {
+      params: Promise.resolve({ id: "non-existent" }),
+    });
     const data = await response.json();
 
     expect(response.status).toBe(404);
@@ -98,13 +106,13 @@ describe("DELETE /api/shares/[id]", () => {
 
   it("should return 404 when trying to delete another user's share", async () => {
     const shareId = "test-share-id-other";
-    
+
     // Create project for other user
     const projectId = `other-project-${Date.now()}`;
     const ydoc = new Y.Doc();
     const state = Y.encodeStateAsUpdate(ydoc);
     const base64Data = Buffer.from(state).toString("base64");
-    
+
     await globalThis.services.db.insert(PROJECTS_TBL).values({
       id: projectId,
       userId: otherUserId,
@@ -122,8 +130,12 @@ describe("DELETE /api/shares/[id]", () => {
     });
 
     // Try to delete as current user
-    const request = new NextRequest("http://localhost:3000/api/shares/" + shareId);
-    const response = await DELETE(request, { params: Promise.resolve({ id: shareId }) });
+    const request = new NextRequest(
+      "http://localhost:3000/api/shares/" + shareId,
+    );
+    const response = await DELETE(request, {
+      params: Promise.resolve({ id: shareId }),
+    });
     const data = await response.json();
 
     expect(response.status).toBe(404);
@@ -147,10 +159,17 @@ describe("DELETE /api/shares/[id]", () => {
   });
 
   it("should return 401 when not authenticated", async () => {
-    mockAuth.mockResolvedValue({ userId: null } as Awaited<ReturnType<typeof auth>>);
+    mockAuth.mockResolvedValue({ userId: null } as Awaited<
+      ReturnType<typeof auth>
+    >);
 
-    const request = new NextRequest("http://localhost:3000/api/shares/" + shareId);
-    const response = await DELETE(request, { params: Promise.resolve({ id: shareId }) });
+    const shareId = "test-share-id";
+    const request = new NextRequest(
+      "http://localhost:3000/api/shares/" + shareId,
+    );
+    const response = await DELETE(request, {
+      params: Promise.resolve({ id: shareId }),
+    });
     const data = await response.json();
 
     expect(response.status).toBe(401);
@@ -162,11 +181,11 @@ describe("DELETE /api/shares/[id]", () => {
     const project1 = `project-1-${Date.now()}`;
     const project2 = `project-2-${Date.now()}`;
     const project3 = `project-3-${Date.now()}`;
-    
+
     const ydoc = new Y.Doc();
     const state = Y.encodeStateAsUpdate(ydoc);
     const base64Data = Buffer.from(state).toString("base64");
-    
+
     await globalThis.services.db.insert(PROJECTS_TBL).values([
       { id: project1, userId, ydocData: base64Data, version: 0 },
       { id: project2, userId, ydocData: base64Data, version: 0 },
@@ -202,8 +221,10 @@ describe("DELETE /api/shares/[id]", () => {
 
     // Delete share-2
     const request = new NextRequest("http://localhost:3000/api/shares/share-2");
-    const response = await DELETE(request, { params: Promise.resolve({ id: "share-2" }) });
-    
+    const response = await DELETE(request, {
+      params: Promise.resolve({ id: "share-2" }),
+    });
+
     expect(response.status).toBe(200);
 
     // Verify only share-2 is deleted
@@ -213,7 +234,10 @@ describe("DELETE /api/shares/[id]", () => {
       .where(eq(SHARE_LINKS_TBL.userId, userId));
 
     expect(remainingShares).toHaveLength(2);
-    expect(remainingShares.map(s => s.id).sort()).toEqual(["share-1", "share-3"]);
+    expect(remainingShares.map((s) => s.id).sort()).toEqual([
+      "share-1",
+      "share-3",
+    ]);
 
     // Clean up
     await globalThis.services.db
@@ -224,3 +248,4 @@ describe("DELETE /api/shares/[id]", () => {
       .where(eq(PROJECTS_TBL.userId, userId));
   });
 });
+

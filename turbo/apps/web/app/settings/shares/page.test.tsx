@@ -8,9 +8,13 @@ import SharesPage from "./page";
 
 // Mock Next.js Link component
 vi.mock("next/link", () => ({
-  default: ({ children, href }: { children: React.ReactNode; href: string }) => (
-    <a href={href}>{children}</a>
-  ),
+  default: ({
+    children,
+    href,
+  }: {
+    children: React.ReactNode;
+    href: string;
+  }) => <a href={href}>{children}</a>,
 }));
 
 // Mock fetch for API calls
@@ -23,8 +27,8 @@ describe("SharesPage", () => {
   });
 
   it("should render loading state initially", () => {
-    mockFetch.mockImplementation(() => 
-      new Promise(() => {}) // Never resolves to keep loading
+    mockFetch.mockImplementation(
+      () => new Promise(() => {}), // Never resolves to keep loading
     );
 
     render(<SharesPage />);
@@ -41,7 +45,9 @@ describe("SharesPage", () => {
 
     await waitFor(() => {
       expect(screen.getByText("No shared links yet")).toBeInTheDocument();
-      expect(screen.getByText(/Share files from your projects/)).toBeInTheDocument();
+      expect(
+        screen.getByText(/Share files from your projects/),
+      ).toBeInTheDocument();
     });
   });
 
@@ -175,7 +181,7 @@ describe("SharesPage", () => {
     fireEvent.click(copyButton);
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-      "https://uspark.dev/share/token-1"
+      "https://uspark.dev/share/token-1",
     );
   });
 
@@ -188,15 +194,17 @@ describe("SharesPage", () => {
     render(<SharesPage />);
 
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Shared Links"
+      "Shared Links",
     );
     expect(screen.getByText("← Back to Settings")).toBeInTheDocument();
-    expect(screen.getByText(/Manage your shared file links/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/Manage your shared file links/),
+    ).toBeInTheDocument();
   });
 
   it("should handle API error gracefully", async () => {
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-    
+
     mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
     render(<SharesPage />);
@@ -208,9 +216,10 @@ describe("SharesPage", () => {
 
     expect(consoleSpy).toHaveBeenCalledWith(
       "Error fetching shares:",
-      expect.any(Error)
+      expect.any(Error),
     );
 
     consoleSpy.mockRestore();
   });
 });
+
