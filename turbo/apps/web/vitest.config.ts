@@ -14,6 +14,9 @@ export default defineConfig({
       // Use Node environment for API route tests
       ["app/api/**/*.test.ts", "node"],
       ["app/api/**/*.test.tsx", "node"],
+      // Use Node environment for server-side library tests
+      ["src/lib/**/*.test.ts", "node"],
+      ["src/test/**/*.test.ts", "node"],
       // Use jsdom for component tests
       ["app/**/*.test.tsx", "jsdom"],
       ["src/**/*.test.tsx", "jsdom"],

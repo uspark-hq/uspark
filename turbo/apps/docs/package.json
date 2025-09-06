@@ -21,7 +21,6 @@
   },
   "devDependencies": {
     "@uspark/eslint-config": "workspace:*",
-    "@uspark/typescript-config": "workspace:*",
     "@tailwindcss/postcss": "^4.1.12",
     "@types/mdx": "^2.0.13",
     "@types/node": "24.3.0",
