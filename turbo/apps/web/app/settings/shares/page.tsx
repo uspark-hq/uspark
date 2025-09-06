@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useTransition } from "react";
 import Link from "next/link";
+import { getShares, deleteShare } from "./actions";
 
 interface Share {
   id: string;
@@ -9,32 +10,28 @@ interface Share {
   projectId: string;
   filePath: string | null;
   url: string;
-  createdAt: string;
+  createdAt: Date;
   accessedCount: number;
-  lastAccessedAt: string | null;
+  lastAccessedAt: Date | null;
 }
 
 export default function SharesPage() {
   const [shares, setShares] = useState<Share[]>([]);
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
-
-  const fetchShares = async () => {
-    try {
-      const response = await fetch("/api/shares");
-      if (response.ok) {
-        const data = await response.json();
-        setShares(data.shares || []);
-      }
-    } catch (error) {
-      console.error("Error fetching shares:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const [isPending, startTransition] = useTransition();
 
   useEffect(() => {
-    fetchShares();
+    startTransition(async () => {
+      try {
+        const data = await getShares();
+        setShares(data);
+      } catch (error) {
+        console.error("Error fetching shares:", error);
+      } finally {
+        setLoading(false);
+      }
+    });
   }, []);
 
   const handleDelete = async (shareId: string) => {
@@ -44,15 +41,8 @@ export default function SharesPage() {
 
     setDeletingId(shareId);
     try {
-      const response = await fetch(`/api/shares/${shareId}`, {
-        method: "DELETE",
-      });
-
-      if (response.ok) {
-        setShares((prev) => prev.filter((share) => share.id !== shareId));
-      } else {
-        console.error("Failed to delete share");
-      }
+      await deleteShare(shareId);
+      setShares((prev) => prev.filter((share) => share.id !== shareId));
     } catch (error) {
       console.error("Error deleting share:", error);
     } finally {
@@ -69,8 +59,8 @@ export default function SharesPage() {
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
+  const formatDate = (date: Date) => {
+    return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "short",
       day: "numeric",
