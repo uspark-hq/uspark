@@ -1,5 +1,5 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach, type Mock } from "vitest";
 import { useSessionPolling } from "../useSessionPolling";
 import type { Session, SessionApiClient } from "../../lib/api/sessions";
 
@@ -12,18 +12,22 @@ describe("useSessionPolling", () => {
     mockSession = {
       id: "session-123",
       projectId: "project-456",
-      status: "idle",
+      title: "Test Session",
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       turns: [],
     };
 
     mockApiClient = {
-      getSession: vi.fn(),
+      getSession: vi.fn().mockResolvedValue(mockSession),
       getSessionUpdates: vi.fn().mockResolvedValue({
-        session: mockSession,
-        hasNewUpdates: true,
-        lastUpdateTimestamp: new Date().toISOString(),
+        session: {
+          id: mockSession.id,
+          updated_at: mockSession.updatedAt,
+        },
+        new_turn_ids: [],
+        updated_turns: [],
+        has_active_turns: false,
       }),
       createSession: vi.fn(),
       interruptSession: vi.fn(),
@@ -60,6 +64,17 @@ describe("useSessionPolling", () => {
 
   describe("Polling Lifecycle", () => {
     it("should start polling when enabled with valid IDs", async () => {
+      // Return has_active_turns: true to keep polling active
+      (mockApiClient.getSessionUpdates as Mock).mockResolvedValue({
+        session: {
+          id: mockSession.id,
+          updated_at: mockSession.updatedAt,
+        },
+        new_turn_ids: [],
+        updated_turns: [],
+        has_active_turns: true,  // Keep polling active
+      });
+
       const { result } = renderHook(() =>
         useSessionPolling("project-456", "session-123", {
           apiClient: mockApiClient,
@@ -72,7 +87,8 @@ describe("useSessionPolling", () => {
         expect(mockApiClient.getSessionUpdates).toHaveBeenCalledWith(
           "project-456",
           "session-123",
-          undefined
+          -1,
+          -1
         );
       });
 
@@ -92,13 +108,13 @@ describe("useSessionPolling", () => {
         expect(mockApiClient.getSessionUpdates).toHaveBeenCalled();
       });
 
-      const callCount = (mockApiClient.getSessionUpdates as any).mock.calls.length;
+      const callCount = (mockApiClient.getSessionUpdates as Mock).mock.calls.length;
       unmount();
 
       // Wait a bit to ensure no more calls after unmount
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      expect((mockApiClient.getSessionUpdates as any).mock.calls.length).toBe(callCount);
+      expect((mockApiClient.getSessionUpdates as Mock).mock.calls.length).toBe(callCount);
     });
 
     it("should manually start and stop polling", async () => {
@@ -133,16 +149,30 @@ describe("useSessionPolling", () => {
   });
 
   describe("Polling Frequency", () => {
-    it("should use running interval when session is running", async () => {
-      const runningSession: Session = {
+    it("should use running interval when there are active turns", async () => {
+      (mockApiClient.getSessionUpdates as Mock).mockResolvedValue({
+        session: {
+          id: mockSession.id,
+          updated_at: mockSession.updatedAt,
+        },
+        new_turn_ids: ["turn-1"],
+        updated_turns: [],
+        has_active_turns: true,
+      });
+      
+      (mockApiClient.getSession as Mock).mockResolvedValue({
         ...mockSession,
-        status: "running",
-      };
-
-      (mockApiClient.getSessionUpdates as any).mockResolvedValue({
-        session: runningSession,
-        hasNewUpdates: true,
-        lastUpdateTimestamp: new Date().toISOString(),
+        turns: [{
+          id: "turn-1",
+          sessionId: mockSession.id,
+          userPrompt: "test",
+          status: "running",
+          createdAt: new Date().toISOString(),
+          startedAt: new Date().toISOString(),
+          completedAt: null,
+          errorMessage: null,
+          blocks: [],
+        }],
       });
 
       renderHook(() =>
@@ -158,25 +188,35 @@ describe("useSessionPolling", () => {
         expect(mockApiClient.getSessionUpdates).toHaveBeenCalled();
       });
 
-      const initialCallCount = (mockApiClient.getSessionUpdates as any).mock.calls.length;
+      const initialCallCount = (mockApiClient.getSessionUpdates as Mock).mock.calls.length;
 
       // Wait for next poll at running interval
       await new Promise(resolve => setTimeout(resolve, 150));
 
-      expect((mockApiClient.getSessionUpdates as any).mock.calls.length).toBeGreaterThan(initialCallCount);
+      expect((mockApiClient.getSessionUpdates as Mock).mock.calls.length).toBeGreaterThan(initialCallCount);
     });
 
-    it("should use idle interval when session is idle", async () => {
-      const idleSession: Session = {
-        ...mockSession,
-        status: "idle",
-      };
-
-      (mockApiClient.getSessionUpdates as any).mockResolvedValue({
-        session: idleSession,
-        hasNewUpdates: true,
-        lastUpdateTimestamp: new Date().toISOString(),
-      });
+    it("should use idle interval when there are no active turns", async () => {
+      // Return has_active_turns: true first to start polling, then false to use idle interval
+      (mockApiClient.getSessionUpdates as Mock)
+        .mockResolvedValueOnce({
+          session: {
+            id: mockSession.id,
+            updated_at: mockSession.updatedAt,
+          },
+          new_turn_ids: [],
+          updated_turns: [],
+          has_active_turns: true,  // Start with active turns
+        })
+        .mockResolvedValue({
+          session: {
+            id: mockSession.id,
+            updated_at: mockSession.updatedAt,
+          },
+          new_turn_ids: [],
+          updated_turns: [],
+          has_active_turns: false,  // Then no active turns
+        });
 
       renderHook(() =>
         useSessionPolling("project-456", "session-123", {
@@ -191,29 +231,27 @@ describe("useSessionPolling", () => {
         expect(mockApiClient.getSessionUpdates).toHaveBeenCalled();
       });
 
-      const initialCallCount = (mockApiClient.getSessionUpdates as any).mock.calls.length;
+      const initialCallCount = (mockApiClient.getSessionUpdates as Mock).mock.calls.length;
 
       // Wait less than idle interval - should not trigger new call
       await new Promise(resolve => setTimeout(resolve, 100));
-      const midCallCount = (mockApiClient.getSessionUpdates as any).mock.calls.length;
       
       // Wait past idle interval - should trigger new call
       await new Promise(resolve => setTimeout(resolve, 150));
-      const finalCallCount = (mockApiClient.getSessionUpdates as any).mock.calls.length;
+      const finalCallCount = (mockApiClient.getSessionUpdates as Mock).mock.calls.length;
 
       expect(finalCallCount).toBeGreaterThan(initialCallCount);
     });
 
-    it("should stop polling when session reaches terminal state", async () => {
-      const completedSession: Session = {
-        ...mockSession,
-        status: "completed",
-      };
-
-      (mockApiClient.getSessionUpdates as any).mockResolvedValue({
-        session: completedSession,
-        hasNewUpdates: true,
-        lastUpdateTimestamp: new Date().toISOString(),
+    it("should stop polling when there are no active turns and no updates", async () => {
+      (mockApiClient.getSessionUpdates as Mock).mockResolvedValue({
+        session: {
+          id: mockSession.id,
+          updated_at: mockSession.updatedAt,
+        },
+        new_turn_ids: [],
+        updated_turns: [],
+        has_active_turns: false,
       });
 
       const { result } = renderHook(() =>
@@ -224,24 +262,22 @@ describe("useSessionPolling", () => {
       );
 
       await waitFor(() => {
-        expect(result.current.session?.status).toBe("completed");
+        expect(result.current.isPolling).toBe(false);
       });
 
-      expect(result.current.isPolling).toBe(false);
-
-      const callCount = (mockApiClient.getSessionUpdates as any).mock.calls.length;
+      const callCount = (mockApiClient.getSessionUpdates as Mock).mock.calls.length;
       
       // Wait to ensure no more calls
       await new Promise(resolve => setTimeout(resolve, 200));
       
-      expect((mockApiClient.getSessionUpdates as any).mock.calls.length).toBe(callCount);
+      expect((mockApiClient.getSessionUpdates as Mock).mock.calls.length).toBe(callCount);
     });
   });
 
   describe("Error Handling", () => {
     it("should handle API errors gracefully", async () => {
       const error = new Error("Network error");
-      (mockApiClient.getSessionUpdates as any).mockRejectedValue(error);
+      (mockApiClient.getSessionUpdates as Mock).mockRejectedValue(error);
 
       const onError = vi.fn();
       const { result } = renderHook(() =>
@@ -262,21 +298,27 @@ describe("useSessionPolling", () => {
       expect(result.current.isPolling).toBe(true);
       
       // Verify it continues polling (with extended interval)
-      const initialCallCount = (mockApiClient.getSessionUpdates as any).mock.calls.length;
+      const initialCallCount = (mockApiClient.getSessionUpdates as Mock).mock.calls.length;
       await new Promise(resolve => setTimeout(resolve, 250)); // 2x idle interval
       
-      expect((mockApiClient.getSessionUpdates as any).mock.calls.length).toBeGreaterThan(initialCallCount);
+      expect((mockApiClient.getSessionUpdates as Mock).mock.calls.length).toBeGreaterThan(initialCallCount);
     });
 
     it("should clear error on successful update", async () => {
       const error = new Error("Network error");
-      (mockApiClient.getSessionUpdates as any)
+      (mockApiClient.getSessionUpdates as Mock)
         .mockRejectedValueOnce(error)
         .mockResolvedValueOnce({
-          session: mockSession,
-          hasNewUpdates: true,
-          lastUpdateTimestamp: new Date().toISOString(),
+          session: {
+            id: mockSession.id,
+            updated_at: mockSession.updatedAt,
+          },
+          new_turn_ids: ["turn-1"],  // Has updates to trigger getSession
+          updated_turns: [],
+          has_active_turns: false,
         });
+      
+      (mockApiClient.getSession as Mock).mockResolvedValue(mockSession);
 
       const { result } = renderHook(() =>
         useSessionPolling("project-456", "session-123", {
@@ -306,20 +348,28 @@ describe("useSessionPolling", () => {
           {
             id: "turn-1",
             sessionId: "session-123",
+            userPrompt: "test",
             status: "completed",
-            userMessage: "test",
             createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            startedAt: new Date().toISOString(),
+            completedAt: new Date().toISOString(),
+            errorMessage: null,
             blocks: [],
           },
         ],
       };
 
-      (mockApiClient.getSessionUpdates as any).mockResolvedValue({
-        session: updatedSession,
-        hasNewUpdates: true,
-        lastUpdateTimestamp: new Date().toISOString(),
+      (mockApiClient.getSessionUpdates as Mock).mockResolvedValue({
+        session: {
+          id: updatedSession.id,
+          updated_at: updatedSession.updatedAt,
+        },
+        new_turn_ids: ["turn-1"],
+        updated_turns: [],
+        has_active_turns: false,
       });
+      
+      (mockApiClient.getSession as Mock).mockResolvedValue(updatedSession);
 
       renderHook(() =>
         useSessionPolling("project-456", "session-123", {
@@ -336,10 +386,14 @@ describe("useSessionPolling", () => {
     it("should not call onUpdate when no new updates", async () => {
       const onUpdate = vi.fn();
       
-      (mockApiClient.getSessionUpdates as any).mockResolvedValue({
-        session: mockSession,
-        hasNewUpdates: false,
-        lastUpdateTimestamp: new Date().toISOString(),
+      (mockApiClient.getSessionUpdates as Mock).mockResolvedValue({
+        session: {
+          id: mockSession.id,
+          updated_at: mockSession.updatedAt,
+        },
+        new_turn_ids: [],
+        updated_turns: [],
+        has_active_turns: false,
       });
 
       renderHook(() =>
@@ -371,33 +425,65 @@ describe("useSessionPolling", () => {
         expect(mockApiClient.getSessionUpdates).toHaveBeenCalled();
       });
       
-      const initialCallCount = (mockApiClient.getSessionUpdates as any).mock.calls.length;
+      const initialCallCount = (mockApiClient.getSessionUpdates as Mock).mock.calls.length;
 
       // Trigger manual refetch
       await act(async () => {
         await result.current.refetch();
       });
 
-      expect((mockApiClient.getSessionUpdates as any).mock.calls.length).toBe(initialCallCount + 1);
+      expect((mockApiClient.getSessionUpdates as Mock).mock.calls.length).toBe(initialCallCount + 1);
     });
   });
 
   describe("Incremental Updates", () => {
-    it("should pass lastUpdateTimestamp for incremental updates", async () => {
-      const timestamp1 = "2024-01-01T00:00:00Z";
-      const timestamp2 = "2024-01-01T00:01:00Z";
-
-      (mockApiClient.getSessionUpdates as any)
+    it("should pass turn and block indices for incremental updates", async () => {
+      (mockApiClient.getSessionUpdates as Mock)
         .mockResolvedValueOnce({
-          session: mockSession,
-          hasNewUpdates: true,
-          lastUpdateTimestamp: timestamp1,
+          session: {
+            id: mockSession.id,
+            updated_at: mockSession.updatedAt,
+          },
+          new_turn_ids: ["turn-1"],
+          updated_turns: [],
+          has_active_turns: true,
         })
         .mockResolvedValueOnce({
-          session: mockSession,
-          hasNewUpdates: true,
-          lastUpdateTimestamp: timestamp2,
+          session: {
+            id: mockSession.id,
+            updated_at: mockSession.updatedAt,
+          },
+          new_turn_ids: [],
+          updated_turns: [{
+            id: "turn-1",
+            status: "running",
+            new_block_ids: ["block-1"],
+            block_count: 1,
+          }],
+          has_active_turns: true,
         });
+      
+      (mockApiClient.getSession as Mock).mockResolvedValue({
+        ...mockSession,
+        turns: [{
+          id: "turn-1",
+          sessionId: mockSession.id,
+          userPrompt: "test",
+          status: "running",
+          createdAt: new Date().toISOString(),
+          startedAt: new Date().toISOString(),
+          completedAt: null,
+          errorMessage: null,
+          blocks: [{
+            id: "block-1",
+            turnId: "turn-1",
+            type: "content",
+            content: JSON.stringify({ text: "test" }),
+            sequenceNumber: 0,
+            createdAt: new Date().toISOString(),
+          }],
+        }],
+      });
 
       renderHook(() =>
         useSessionPolling("project-456", "session-123", {
@@ -407,27 +493,29 @@ describe("useSessionPolling", () => {
         })
       );
 
-      // Wait for first call - should have no timestamp
+      // Wait for first call - should have default indices
       await waitFor(() => {
         expect(mockApiClient.getSessionUpdates).toHaveBeenCalledWith(
           "project-456",
           "session-123",
-          undefined
+          -1,
+          -1
         );
       });
 
       // Wait for second poll
       await waitFor(() => {
-        expect((mockApiClient.getSessionUpdates as any).mock.calls.length).toBeGreaterThanOrEqual(2);
+        expect((mockApiClient.getSessionUpdates as Mock).mock.calls.length).toBeGreaterThanOrEqual(2);
       }, { timeout: 300 });
 
-      // Second call should have timestamp from first response
-      const calls = (mockApiClient.getSessionUpdates as any).mock.calls;
+      // Second call should have updated indices
+      const calls = (mockApiClient.getSessionUpdates as Mock).mock.calls;
       if (calls.length >= 2) {
         expect(calls[1]).toEqual([
           "project-456",
           "session-123",
-          timestamp1
+          0,  // lastTurnIndex
+          -1  // lastBlockIndex (reset for new turn)
         ]);
       }
     });

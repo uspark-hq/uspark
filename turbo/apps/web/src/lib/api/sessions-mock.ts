@@ -1,28 +1,48 @@
 /**
  * Mock data generator for testing session polling
  * This can be used to simulate various session states and transitions
+ * Updated to match real database schema from main branch
  */
 
-import { Session, Turn, Block } from "./sessions";
+import type { Session, Turn, Block } from "./sessions";
+import { randomUUID } from "crypto";
+import { BlockFactory } from "../sessions/blocks";
 
 /**
  * Generate a mock block
  */
 export function generateMockBlock(
   turnId: string,
-  type: Block["type"] = "content",
-  content?: string,
+  type: "thinking" | "content" | "tool_use" | "tool_result" = "content",
+  sequenceNumber: number = 0,
 ): Block {
-  const blockContent =
-    content ||
-    `Mock ${type} block content: ${Math.random().toString(36).substring(7)}`;
+  // Use the real BlockFactory to generate consistent block content
+  let blockContent;
+  const mockText = `Mock ${type} block content: ${Math.random().toString(36).substring(7)}`;
+  
+  switch (type) {
+    case "thinking":
+      blockContent = BlockFactory.thinking(mockText);
+      break;
+    case "content":
+      blockContent = BlockFactory.content(mockText);
+      break;
+    case "tool_use":
+      blockContent = BlockFactory.toolUse("example_tool", {}, `tool_${randomUUID()}`);
+      break;
+    case "tool_result":
+      blockContent = BlockFactory.toolResult(`tool_${randomUUID()}`, "Tool execution result");
+      break;
+    default:
+      blockContent = BlockFactory.content(mockText);
+  }
 
   return {
-    id: `block-${Math.random().toString(36).substring(7)}`,
+    id: `block_${randomUUID()}`,
     turnId,
     type,
-    content: blockContent,
-    metadata: type === "tool_use" ? { tool: "example_tool" } : undefined,
+    content: JSON.stringify(blockContent.content),
+    sequenceNumber,
     createdAt: new Date().toISOString(),
   };
 }
@@ -32,46 +52,38 @@ export function generateMockBlock(
  */
 export function generateMockTurn(
   sessionId: string,
-  status: Turn["status"] = "running",
+  status: "pending" | "running" | "completed" | "failed" = "running",
   blockCount = 3,
 ): Turn {
-  const turnId = `turn-${Math.random().toString(36).substring(7)}`;
+  const turnId = `turn_${randomUUID()}`;
 
   const blocks: Block[] = [];
 
   if (blockCount > 0) {
     // Add thinking block
-    blocks.push(
-      generateMockBlock(turnId, "thinking", "Analyzing the request..."),
-    );
+    blocks.push(generateMockBlock(turnId, "thinking", 0));
 
     // Add tool use blocks
     if (blockCount > 1) {
-      blocks.push(
-        generateMockBlock(turnId, "tool_use", "Executing tool: file_reader"),
-      );
+      blocks.push(generateMockBlock(turnId, "tool_use", 1));
     }
 
     // Add content blocks
     if (blockCount > 2) {
-      blocks.push(
-        generateMockBlock(
-          turnId,
-          "content",
-          "Here's the response to your query...",
-        ),
-      );
+      blocks.push(generateMockBlock(turnId, "content", 2));
     }
   }
 
+  const now = new Date();
   return {
     id: turnId,
     sessionId,
+    userPrompt: "Sample user prompt: " + Math.random().toString(36).substring(7),
     status,
-    userMessage:
-      "Sample user message: " + Math.random().toString(36).substring(7),
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    startedAt: status !== "pending" ? now.toISOString() : null,
+    completedAt: status === "completed" ? now.toISOString() : null,
+    errorMessage: status === "failed" ? "Mock error message" : null,
+    createdAt: now.toISOString(),
     blocks,
   };
 }
@@ -81,25 +93,24 @@ export function generateMockTurn(
  */
 export function generateMockSession(
   projectId: string,
-  status: Session["status"] = "running",
   turnCount = 2,
 ): Session {
-  const sessionId = `session-${Math.random().toString(36).substring(7)}`;
+  const sessionId = `sess_${randomUUID()}`;
 
   const turns: Turn[] = [];
 
   for (let i = 0; i < turnCount; i++) {
-    const turnStatus =
-      i === turnCount - 1 && status === "running" ? "running" : "completed";
+    const turnStatus = i === turnCount - 1 ? "running" : "completed";
     turns.push(generateMockTurn(sessionId, turnStatus));
   }
 
+  const now = new Date();
   return {
     id: sessionId,
     projectId,
-    status,
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
+    title: "Mock Session",
+    createdAt: now.toISOString(),
+    updatedAt: now.toISOString(),
     turns,
   };
 }
@@ -110,11 +121,12 @@ export function generateMockSession(
  */
 export function createSessionSimulator(projectId: string) {
   let callCount = 0;
-  const sessionId = `session-${Math.random().toString(36).substring(7)}`;
+  const sessionId = `sess_${randomUUID()}`;
   const turns: Turn[] = [];
 
   return (): Session => {
     callCount++;
+    const now = new Date();
 
     // Simulate session progression
     if (callCount === 1) {
@@ -122,9 +134,9 @@ export function createSessionSimulator(projectId: string) {
       return {
         id: sessionId,
         projectId,
-        status: "idle",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        title: "Simulated Session",
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
         turns: [],
       };
     }
@@ -136,9 +148,9 @@ export function createSessionSimulator(projectId: string) {
       return {
         id: sessionId,
         projectId,
-        status: "running",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        title: "Simulated Session",
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
         turns: [...turns],
       };
     }
@@ -146,14 +158,14 @@ export function createSessionSimulator(projectId: string) {
     if (callCount === 3) {
       // First turn gets more blocks
       if (turns[0]) {
-        turns[0].blocks.push(generateMockBlock(turns[0].id, "tool_use"));
+        turns[0].blocks?.push(generateMockBlock(turns[0].id, "tool_use", 1));
       }
       return {
         id: sessionId,
         projectId,
-        status: "running",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        title: "Simulated Session",
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
         turns: [...turns],
       };
     }
@@ -162,14 +174,15 @@ export function createSessionSimulator(projectId: string) {
       // First turn completes
       if (turns[0]) {
         turns[0].status = "completed";
-        turns[0].blocks.push(generateMockBlock(turns[0].id, "content"));
+        turns[0].completedAt = now.toISOString();
+        turns[0].blocks?.push(generateMockBlock(turns[0].id, "content", 2));
       }
       return {
         id: sessionId,
         projectId,
-        status: "idle",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        title: "Simulated Session",
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
         turns: [...turns],
       };
     }
@@ -181,26 +194,27 @@ export function createSessionSimulator(projectId: string) {
       return {
         id: sessionId,
         projectId,
-        status: "running",
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        title: "Simulated Session",
+        createdAt: now.toISOString(),
+        updatedAt: now.toISOString(),
         turns: [...turns],
       };
     }
 
-    // Final state - session completed
+    // Final state - all turns completed
     const lastTurn = turns[turns.length - 1];
     if (turns.length > 1 && lastTurn) {
       lastTurn.status = "completed";
-      lastTurn.blocks.push(generateMockBlock(lastTurn.id, "content"));
+      lastTurn.completedAt = now.toISOString();
+      lastTurn.blocks?.push(generateMockBlock(lastTurn.id, "content", 3));
     }
 
     return {
       id: sessionId,
       projectId,
-      status: "completed",
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      title: "Simulated Session",
+      createdAt: now.toISOString(),
+      updatedAt: now.toISOString(),
       turns: [...turns],
     };
   };
@@ -225,22 +239,55 @@ export class MockSessionApiClient {
   }
 
   async getSessionUpdates(
-    _projectId?: string,
-    _sessionId?: string,
-    lastUpdateTimestamp?: string,
+    _projectId: string,
+    _sessionId: string,
+    lastTurnIndex?: number,
+    lastBlockIndex?: number,
   ) {
     // Simulate network delay
     await new Promise((resolve) => setTimeout(resolve, 100));
 
     const session = this.simulator();
-    const hasNewUpdates =
-      !lastUpdateTimestamp || this.lastUpdate > lastUpdateTimestamp;
-    this.lastUpdate = new Date().toISOString();
+    const turnIndex = lastTurnIndex ?? -1;
+    const blockIndex = lastBlockIndex ?? -1;
+
+    // Calculate new turns and updated turns
+    const turns = session.turns || [];
+    const newTurnIds = turns
+      .slice(turnIndex + 1)
+      .map(turn => turn.id);
+
+    const updatedTurns = [];
+    if (turnIndex >= 0 && turnIndex < turns.length) {
+      const turn = turns[turnIndex];
+      if (turn && turn.blocks) {
+        const newBlockIds = turn.blocks
+          .slice(blockIndex + 1)
+          .map(block => block.id);
+        
+        if (newBlockIds.length > 0) {
+          updatedTurns.push({
+            id: turn.id,
+            status: turn.status,
+            new_block_ids: newBlockIds,
+            block_count: turn.blocks.length,
+          });
+        }
+      }
+    }
+
+    const hasActiveTurns = turns.some(
+      turn => turn.status === "running" || turn.status === "pending"
+    );
 
     return {
-      session,
-      hasNewUpdates,
-      lastUpdateTimestamp: this.lastUpdate,
+      session: {
+        id: session.id,
+        updated_at: session.updatedAt,
+      },
+      new_turn_ids: newTurnIds,
+      updated_turns: updatedTurns,
+      has_active_turns: hasActiveTurns,
     };
   }
 
@@ -249,7 +296,7 @@ export class MockSessionApiClient {
     initialMessage?: string;
   }): Promise<Session> {
     await new Promise((resolve) => setTimeout(resolve, 300));
-    return generateMockSession(request.projectId, "idle", 0);
+    return generateMockSession(request.projectId, 0);
   }
 
   async interruptSession(): Promise<void> {

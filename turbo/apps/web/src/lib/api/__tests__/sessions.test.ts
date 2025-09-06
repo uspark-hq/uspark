@@ -7,7 +7,7 @@ describe("SessionApiClient", () => {
   const mockFetch = vi.fn();
   
   beforeEach(() => {
-    global.fetch = mockFetch as any;
+    global.fetch = mockFetch as unknown as typeof fetch;
     client = new SessionApiClient("/api");
     vi.clearAllMocks();
   });
@@ -59,18 +59,15 @@ describe("SessionApiClient", () => {
   });
 
   describe("getSessionUpdates", () => {
-    it("should fetch session updates without timestamp", async () => {
+    it("should fetch session updates without indices", async () => {
       const mockResponse = {
         session: {
           id: "session-123",
-          projectId: "project-456",
-          status: "running" as const,
-          createdAt: "2024-01-01T00:00:00Z",
-          updatedAt: "2024-01-01T00:00:00Z",
-          turns: [],
+          updated_at: "2024-01-01T00:00:00Z",
         },
-        hasNewUpdates: true,
-        lastUpdateTimestamp: "2024-01-01T00:00:00Z",
+        new_turn_ids: [],
+        updated_turns: [],
+        has_active_turns: false,
       };
 
       mockFetch.mockResolvedValueOnce({
@@ -92,18 +89,15 @@ describe("SessionApiClient", () => {
       expect(result).toEqual(mockResponse);
     });
 
-    it("should include timestamp in query params when provided", async () => {
+    it("should include indices in query params when provided", async () => {
       const mockResponse = {
         session: {
           id: "session-123",
-          projectId: "project-456",
-          status: "running" as const,
-          createdAt: "2024-01-01T00:00:00Z",
-          updatedAt: "2024-01-01T00:00:00Z",
-          turns: [],
+          updated_at: "2024-01-01T00:01:00Z",
         },
-        hasNewUpdates: false,
-        lastUpdateTimestamp: "2024-01-01T00:01:00Z",
+        new_turn_ids: ["turn-1"],
+        updated_turns: [],
+        has_active_turns: true,
       };
 
       mockFetch.mockResolvedValueOnce({
@@ -114,11 +108,12 @@ describe("SessionApiClient", () => {
       const result = await client.getSessionUpdates(
         "project-456",
         "session-123",
-        "2024-01-01T00:00:00Z"
+        0,
+        2
       );
 
       expect(mockFetch).toHaveBeenCalledWith(
-        "/api/projects/project-456/sessions/session-123/updates?since=2024-01-01T00%3A00%3A00Z",
+        "/api/projects/project-456/sessions/session-123/updates?last_turn_index=0&last_block_index=2",
         {
           method: "GET",
           headers: {
@@ -126,7 +121,7 @@ describe("SessionApiClient", () => {
           },
         }
       );
-      expect(result.hasNewUpdates).toBe(false);
+      expect(result.new_turn_ids).toEqual(["turn-1"]);
     });
 
     it("should throw error on failed request", async () => {

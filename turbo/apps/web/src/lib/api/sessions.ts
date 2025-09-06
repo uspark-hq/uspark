@@ -1,34 +1,32 @@
 /**
  * API client for session management
  * Provides typed interfaces for interacting with session endpoints
+ * Uses the actual database schema from main branch
  */
 
-export interface Session {
-  id: string;
-  projectId: string;
-  status: "idle" | "running" | "completed" | "failed" | "interrupted";
+import type { 
+  Session as DbSession,
+  Turn as DbTurn,
+  Block as DbBlock 
+} from "../../db/schema/sessions";
+
+// Extended types for API responses that include nested data
+export interface Session extends Omit<DbSession, 'createdAt' | 'updatedAt'> {
   createdAt: string;
   updatedAt: string;
-  turns: Turn[];
+  turns?: Turn[];
 }
 
-export interface Turn {
-  id: string;
-  sessionId: string;
-  status: "running" | "completed" | "failed";
-  userMessage: string;
+export interface Turn extends Omit<DbTurn, 'createdAt' | 'startedAt' | 'completedAt'> {
   createdAt: string;
-  updatedAt: string;
-  blocks: Block[];
+  startedAt?: string | null;
+  completedAt?: string | null;
+  blocks?: Block[];
 }
 
-export interface Block {
-  id: string;
-  turnId: string;
-  type: "thinking" | "tool_use" | "content" | "error";
-  content: string;
-  metadata?: Record<string, unknown>;
+export interface Block extends Omit<DbBlock, 'createdAt'> {
   createdAt: string;
+  parsedContent?: unknown; // Parsed JSON content
 }
 
 export interface CreateSessionRequest {
@@ -37,9 +35,18 @@ export interface CreateSessionRequest {
 }
 
 export interface SessionUpdateResponse {
-  session: Session;
-  hasNewUpdates: boolean;
-  lastUpdateTimestamp: string;
+  session: {
+    id: string;
+    updated_at: string;
+  };
+  new_turn_ids: string[];
+  updated_turns: Array<{
+    id: string;
+    status: string;
+    new_block_ids: string[];
+    block_count: number;
+  }>;
+  has_active_turns: boolean;
 }
 
 export class SessionApiClient {
@@ -76,11 +83,15 @@ export class SessionApiClient {
   async getSessionUpdates(
     projectId: string,
     sessionId: string,
-    lastUpdateTimestamp?: string,
+    lastTurnIndex?: number,
+    lastBlockIndex?: number,
   ): Promise<SessionUpdateResponse> {
     const params = new URLSearchParams();
-    if (lastUpdateTimestamp) {
-      params.set("since", lastUpdateTimestamp);
+    if (lastTurnIndex !== undefined && lastTurnIndex >= 0) {
+      params.set("last_turn_index", lastTurnIndex.toString());
+    }
+    if (lastBlockIndex !== undefined && lastBlockIndex >= 0) {
+      params.set("last_block_index", lastBlockIndex.toString());
     }
 
     const response = await fetch(

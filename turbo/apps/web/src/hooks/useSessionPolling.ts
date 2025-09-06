@@ -96,7 +96,8 @@ export function useSessionPolling(
   const [error, setError] = useState<Error | null>(null);
 
   const intervalIdRef = useRef<NodeJS.Timeout | null>(null);
-  const lastUpdateTimestampRef = useRef<string | null>(null);
+  const lastTurnIndexRef = useRef<number>(-1);
+  const lastBlockIndexRef = useRef<number>(-1);
   const isPollingRef = useRef(false);
   const isMountedRef = useRef(true);
 
@@ -114,20 +115,11 @@ export function useSessionPolling(
   });
 
   /**
-   * Calculate polling interval based on session status
+   * Calculate polling interval based on whether there are active turns
    */
   const getPollingInterval = useCallback(
-    (sessionStatus?: Session["status"]) => {
-      if (!sessionStatus || sessionStatus === "idle") {
-        return idleInterval;
-      }
-
-      if (sessionStatus === "running") {
-        return runningInterval;
-      }
-
-      // For completed, failed, or interrupted sessions, stop polling
-      return null;
+    (hasActiveTurns: boolean) => {
+      return hasActiveTurns ? runningInterval : idleInterval;
     },
     [runningInterval, idleInterval],
   );
@@ -144,26 +136,45 @@ export function useSessionPolling(
       const response = await apiClient.getSessionUpdates(
         projectId,
         sessionId,
-        lastUpdateTimestampRef.current || undefined,
+        lastTurnIndexRef.current,
+        lastBlockIndexRef.current,
       );
 
       if (!isMountedRef.current) return;
 
-      if (response.hasNewUpdates) {
-        setSession(response.session);
-        lastUpdateTimestampRef.current = response.lastUpdateTimestamp;
+      // Check if there are updates
+      const hasUpdates = response.new_turn_ids.length > 0 || 
+                        response.updated_turns.length > 0;
+
+      if (hasUpdates) {
+        // Update indices for next poll
+        if (response.new_turn_ids.length > 0) {
+          lastTurnIndexRef.current += response.new_turn_ids.length;
+          lastBlockIndexRef.current = -1; // Reset block index for new turn
+        }
+        
+        if (response.updated_turns.length > 0) {
+          const lastUpdatedTurn = response.updated_turns[response.updated_turns.length - 1];
+          if (lastUpdatedTurn) {
+            lastBlockIndexRef.current = lastUpdatedTurn.block_count - 1;
+          }
+        }
+
+        // Fetch full session data if there are updates
+        const fullSession = await apiClient.getSession(projectId, sessionId);
+        setSession(fullSession);
         setError(null);
 
         if (onUpdate) {
-          onUpdate(response.session);
+          onUpdate(fullSession);
         }
       }
 
-      // Adjust polling interval based on session status
-      const newInterval = getPollingInterval(response.session.status);
+      // Adjust polling interval based on active turns
+      const newInterval = getPollingInterval(response.has_active_turns);
 
-      if (newInterval === null) {
-        // Session is in a terminal state, stop polling
+      if (!response.has_active_turns && !hasUpdates) {
+        // No active turns and no updates, can stop polling
         stopPollingRef.current();
       } else if (intervalIdRef.current) {
         // Clear existing interval and set new one with updated frequency
@@ -233,10 +244,8 @@ export function useSessionPolling(
     // Initial fetch
     fetchSessionUpdates();
 
-    // Set up interval with initial frequency
-    const initialInterval = session
-      ? getPollingInterval(session.status)
-      : runningInterval;
+    // Set up interval with initial frequency (start with running interval)
+    const initialInterval = runningInterval;
 
     if (initialInterval !== null) {
       intervalIdRef.current = setInterval(fetchSessionUpdates, initialInterval);
@@ -278,21 +287,6 @@ export function useSessionPolling(
     runningInterval,
   ]);
 
-  /**
-   * Effect to handle session status changes
-   */
-  useEffect(() => {
-    if (!session || !isPollingRef.current) {
-      return;
-    }
-
-    const newInterval = getPollingInterval(session.status);
-
-    if (newInterval === null) {
-      // Session reached terminal state
-      stopPollingRef.current();
-    }
-  }, [session, getPollingInterval]);
 
   return {
     session,
