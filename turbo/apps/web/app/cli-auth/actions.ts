@@ -5,7 +5,7 @@ import { initServices } from "../../src/lib/init-services";
 import { DEVICE_CODES_TBL } from "../../src/db/schema/device-codes";
 import { eq, and, gt } from "drizzle-orm";
 
-export type VerifyDeviceResult =
+type VerifyDeviceResult =
   | { success: true; message: string }
   | { success: false; error: string; error_description: string };
 
