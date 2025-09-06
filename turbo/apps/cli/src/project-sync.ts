@@ -3,7 +3,7 @@ import { writeFile, readFile, mkdir } from "fs/promises";
 import { dirname, join } from "path";
 import { createHash } from "crypto";
 
-export interface SyncOptions {
+interface SyncOptions {
   token: string;
   apiUrl: string;
 }
