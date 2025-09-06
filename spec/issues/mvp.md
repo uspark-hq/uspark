@@ -148,6 +148,14 @@ The following features are explicitly excluded from the MVP:
    - Usage-based pricing
    - Payment processing
 
+## Technical Debt Status (Updated 2025-09-06)
+
+✅ **All technical debt cleaned up!**
+- Removed all unused files (PR #167, #168)
+- Removed all unused dependencies (PR #177)
+- Cleaned up all unused exports (PR #168, #177)
+- All checks passing: lint, type-check, test, knip
+
 ## Technical Debt Acknowledgment
 
 Areas where we accept temporary shortcuts for MVP:
