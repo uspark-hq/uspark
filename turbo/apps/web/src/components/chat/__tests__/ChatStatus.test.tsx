@@ -21,6 +21,7 @@ describe("ChatStatus", () => {
       createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
+      errorMessage: null,
     };
 
     render(<ChatStatus currentTurn={turn} />);
@@ -38,6 +39,7 @@ describe("ChatStatus", () => {
       createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
+      errorMessage: null,
     };
 
     render(<ChatStatus currentTurn={turn} elapsedSeconds={15} />);
@@ -59,6 +61,7 @@ describe("ChatStatus", () => {
       createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
+      errorMessage: null,
     };
 
     render(<ChatStatus currentTurn={turn} />);
@@ -76,6 +79,7 @@ describe("ChatStatus", () => {
       createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
+      errorMessage: null,
     };
 
     render(<ChatStatus currentTurn={turn} />);
@@ -103,6 +107,7 @@ describe("ChatStatus", () => {
       createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
+      errorMessage: null,
     };
 
     const handleInterrupt = vi.fn();
@@ -125,6 +130,7 @@ describe("ChatStatus", () => {
       createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
+      errorMessage: null,
     };
 
     render(<ChatStatus currentTurn={turn} />);
@@ -141,6 +147,7 @@ describe("ChatStatus", () => {
       createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
+      errorMessage: null,
     };
 
     render(<ChatStatus currentTurn={turn} elapsedSeconds={75} />);
@@ -161,6 +168,7 @@ describe("ChatStatus", () => {
       createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
+      errorMessage: null,
     };
     
     rerender(<ChatStatus currentTurn={pendingTurn} />);
@@ -185,6 +193,7 @@ describe("ChatStatus", () => {
       createdAt: new Date().toISOString(),
       blocks: [],
       block_count: 0,
+      errorMessage: null,
     };
 
     const { container } = render(<ChatStatus currentTurn={turn} />);

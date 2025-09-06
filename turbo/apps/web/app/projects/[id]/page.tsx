@@ -8,7 +8,7 @@ import {
   ChatStatus,
   mockTurns,
   mockSession,
-  type Turn,
+  type TurnWithBlocks,
 } from "../../../src/components/chat";
 
 export default function ProjectDetailPage() {
@@ -21,8 +21,8 @@ export default function ProjectDetailPage() {
   const [showShareSuccess, setShowShareSuccess] = useState(false);
 
   // Chat state
-  const [turns, setTurns] = useState<Turn[]>(mockTurns);
-  const [currentTurn, setCurrentTurn] = useState<Turn | undefined>(
+  const [turns, setTurns] = useState<TurnWithBlocks[]>(mockTurns);
+  const [currentTurn, setCurrentTurn] = useState<TurnWithBlocks | undefined>(
     mockTurns.find((t) => t.status === "running"),
   );
   const [showChat, setShowChat] = useState(false);

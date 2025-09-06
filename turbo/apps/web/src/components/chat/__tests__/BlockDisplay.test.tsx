@@ -2,16 +2,16 @@ import React from "react";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { BlockDisplay } from "../BlockDisplay";
-import type { Block } from "../types";
+import type { BlockWithParsedContent } from "../types";
 
 describe("BlockDisplay", () => {
   it("renders thinking block correctly", () => {
-    const block: Block = {
+    const block: BlockWithParsedContent = {
       id: "block-1",
-      turn_id: "turn-1",
+      turnId: "turn-1",
       type: "thinking",
       content: { text: "Analyzing the request..." },
-      sequence_number: 0,
+      sequenceNumber: 0,
     };
 
     render(<BlockDisplay block={block} />);
@@ -21,12 +21,12 @@ describe("BlockDisplay", () => {
   });
 
   it("renders content block correctly", () => {
-    const block: Block = {
+    const block: BlockWithParsedContent = {
       id: "block-2",
-      turn_id: "turn-1",
+      turnId: "turn-1",
       type: "content",
       content: { text: "Here is my response" },
-      sequence_number: 1,
+      sequenceNumber: 1,
     };
 
     render(<BlockDisplay block={block} />);
@@ -35,16 +35,16 @@ describe("BlockDisplay", () => {
   });
 
   it("renders tool_use block correctly", () => {
-    const block: Block = {
+    const block: BlockWithParsedContent = {
       id: "block-3",
-      turn_id: "turn-1",
+      turnId: "turn-1",
       type: "tool_use",
       content: {
         tool_name: "read_file",
         parameters: { path: "/test/file.ts" },
         tool_use_id: "tool-1",
       },
-      sequence_number: 2,
+      sequenceNumber: 2,
     };
 
     render(<BlockDisplay block={block} />);
@@ -54,16 +54,16 @@ describe("BlockDisplay", () => {
   });
 
   it("renders successful tool_result block", () => {
-    const block: Block = {
+    const block: BlockWithParsedContent = {
       id: "block-4",
-      turn_id: "turn-1",
+      turnId: "turn-1",
       type: "tool_result",
       content: {
         tool_use_id: "tool-1",
         result: "File contents here",
         error: null,
       },
-      sequence_number: 3,
+      sequenceNumber: 3,
     };
 
     render(<BlockDisplay block={block} />);
@@ -73,16 +73,16 @@ describe("BlockDisplay", () => {
   });
 
   it("renders failed tool_result block", () => {
-    const block: Block = {
+    const block: BlockWithParsedContent = {
       id: "block-5",
-      turn_id: "turn-1",
+      turnId: "turn-1",
       type: "tool_result",
       content: {
         tool_use_id: "tool-1",
         result: "",
         error: "File not found",
       },
-      sequence_number: 4,
+      sequenceNumber: 4,
     };
 
     render(<BlockDisplay block={block} />);
@@ -92,12 +92,12 @@ describe("BlockDisplay", () => {
   });
 
   it("handles expand/collapse for thinking block", () => {
-    const block: Block = {
+    const block: BlockWithParsedContent = {
       id: "block-1",
-      turn_id: "turn-1",
+      turnId: "turn-1",
       type: "thinking",
       content: { text: "Long thinking process..." },
-      sequence_number: 0,
+      sequenceNumber: 0,
     };
 
     render(<BlockDisplay block={block} />);
@@ -112,16 +112,16 @@ describe("BlockDisplay", () => {
   });
 
   it("handles expand/collapse for tool blocks", () => {
-    const block: Block = {
+    const block: BlockWithParsedContent = {
       id: "block-3",
-      turn_id: "turn-1",
+      turnId: "turn-1",
       type: "tool_use",
       content: {
         tool_name: "test_tool",
         parameters: { key: "value" },
         tool_use_id: "tool-1",
       },
-      sequence_number: 0,
+      sequenceNumber: 0,
     };
 
     const { container } = render(<BlockDisplay block={block} />);
@@ -136,12 +136,12 @@ describe("BlockDisplay", () => {
   });
 
   it("renders unknown block type gracefully", () => {
-    const block: Block = {
+    const block: BlockWithParsedContent = {
       id: "block-6",
-      turn_id: "turn-1",
-      type: "unknown" as any,
+      turnId: "turn-1",
+      type: "unknown" as unknown as BlockWithParsedContent["type"],
       content: { text: "Unknown content" },
-      sequence_number: 0,
+      sequenceNumber: 0,
     };
 
     render(<BlockDisplay block={block} />);
@@ -149,34 +149,34 @@ describe("BlockDisplay", () => {
   });
 
   it("applies correct styling for each block type", () => {
-    const thinkingBlock: Block = {
+    const thinkingBlock: BlockWithParsedContent = {
       id: "b1",
-      turn_id: "t1",
+      turnId: "t1",
       type: "thinking",
       content: { text: "test" },
-      sequence_number: 0,
+      sequenceNumber: 0,
     };
 
     const { container: thinkingContainer } = render(<BlockDisplay block={thinkingBlock} />);
     expect(thinkingContainer.querySelector(".bg-purple-50")).toBeInTheDocument();
 
-    const contentBlock: Block = {
+    const contentBlock: BlockWithParsedContent = {
       id: "b2",
-      turn_id: "t1",
+      turnId: "t1",
       type: "content",
       content: { text: "test" },
-      sequence_number: 0,
+      sequenceNumber: 0,
     };
 
     const { container: contentContainer } = render(<BlockDisplay block={contentBlock} />);
     expect(contentContainer.querySelector(".bg-gray-50")).toBeInTheDocument();
 
-    const toolBlock: Block = {
+    const toolBlock: BlockWithParsedContent = {
       id: "b3",
-      turn_id: "t1",
+      turnId: "t1",
       type: "tool_use",
       content: { tool_name: "test", parameters: {}, tool_use_id: "t1" },
-      sequence_number: 0,
+      sequenceNumber: 0,
     };
 
     const { container: toolContainer } = render(<BlockDisplay block={toolBlock} />);

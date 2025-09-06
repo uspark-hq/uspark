@@ -11,24 +11,25 @@ import {
   mockTurns,
   mockSession,
   getMockTurnsWithVariableBlocks,
-  type Turn,
 } from "./mockData";
+import type { TurnWithBlocks } from "./types";
 
 export function ChatComponentsDemo() {
   const [scenario, setScenario] = useState<
     "default" | "running" | "failed" | "mixed"
   >("default");
-  const [currentTurn, setCurrentTurn] = useState<Turn | undefined>();
+  const [currentTurn, setCurrentTurn] = useState<TurnWithBlocks | undefined>();
 
-  const getScenarioTurns = () => {
+  const getScenarioTurns = (): TurnWithBlocks[] => {
     switch (scenario) {
       case "running":
+        const runningTurn = mockTurns[2] || mockTurns[0];
         return [
           ...mockTurns.slice(0, 2),
           {
-            ...mockTurns[2],
+            ...runningTurn,
             status: "running" as const,
-          },
+          } as TurnWithBlocks,
         ];
       case "failed":
         return mockTurns.map((t) => ({
