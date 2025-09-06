@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { YjsFileExplorer } from "../../components/file-explorer";
 import { SessionDisplay } from "../../components/chat/SessionDisplay";
@@ -12,9 +12,14 @@ export default function ProjectDetailPage() {
   const params = useParams();
   const projectId = params.id as string;
   const [selectedFile, setSelectedFile] = useState<string>();
+  const [fileContent, setFileContent] = useState<string>();
+  const [loadingContent, setLoadingContent] = useState(false);
+  const [isSharing, setIsSharing] = useState(false);
+  const [showShareSuccess, setShowShareSuccess] = useState(false);
   const [currentSessionId, setCurrentSessionId] = useState<string>();
   const [inputMessage, setInputMessage] = useState("");
   const [isSending, setIsSending] = useState(false);
+  const [activeView, setActiveView] = useState<"document" | "chat">("chat");
 
   // Use session polling hook
   const {
@@ -26,6 +31,49 @@ export default function ProjectDetailPage() {
     sessionId: currentSessionId,
     enabled: !!currentSessionId,
   });
+
+  // Mock file content loading for now
+  const loadFileContent = async (filePath: string) => {
+    setLoadingContent(true);
+
+    // Mock content based on file extension (no artificial delay)
+    const ext = filePath.split(".").pop()?.toLowerCase();
+    let mockContent = "";
+
+    switch (ext) {
+      case "ts":
+      case "tsx":
+        mockContent = `// ${filePath}\nexport function Component() {\n  return <div>Hello from ${filePath}</div>;\n}`;
+        break;
+      case "json":
+        mockContent = JSON.stringify(
+          {
+            name: "example-project",
+            version: "1.0.0",
+            description: `Content for ${filePath}`,
+          },
+          null,
+          2,
+        );
+        break;
+      case "md":
+        mockContent = `# ${filePath}\n\nThis is a markdown file.\n\n## Features\n\n- Feature 1\n- Feature 2\n- Feature 3`;
+        break;
+      default:
+        mockContent = `Content of ${filePath}\n\nThis is sample file content.`;
+    }
+
+    setFileContent(mockContent);
+    setLoadingContent(false);
+  };
+
+  useEffect(() => {
+    if (selectedFile) {
+      loadFileContent(selectedFile);
+    } else {
+      setFileContent(undefined);
+    }
+  }, [selectedFile]);
 
   // Handle sending a message
   const handleSendMessage = useCallback(async () => {
@@ -59,6 +107,40 @@ export default function ProjectDetailPage() {
     }
   }, [inputMessage, isSending, currentSessionId, projectId]);
 
+  const handleShare = async () => {
+    if (!selectedFile) return;
+
+    setIsSharing(true);
+    try {
+      const response = await fetch("/api/share", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          project_id: projectId,
+          file_path: selectedFile,
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setShowShareSuccess(true);
+
+        // Copy to clipboard
+        await navigator.clipboard.writeText(data.url);
+
+        // Hide success message after 3 seconds
+        setTimeout(() => setShowShareSuccess(false), 3000);
+      } else {
+        console.error("Failed to create share link");
+      }
+    } catch (error) {
+      console.error("Error creating share link:", error);
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
   return (
     <div
@@ -160,7 +242,7 @@ export default function ProjectDetailPage() {
           />
         </div>
 
-        {/* Session Display / Chat History */}
+        {/* Main View Area - Can toggle between Document Viewer and Chat */}
         <div
           style={{
             backgroundColor: "var(--background)",
@@ -169,10 +251,154 @@ export default function ProjectDetailPage() {
             flexDirection: "column",
           }}
         >
-          <SessionDisplay
-            session={session}
-            onInterrupt={interruptSession}
-          />
+          {/* View Toggle Tabs */}
+          <div
+            style={{
+              display: "flex",
+              borderBottom: "1px solid rgba(156, 163, 175, 0.1)",
+            }}
+          >
+            <button
+              onClick={() => setActiveView("chat")}
+              style={{
+                padding: "12px 24px",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: activeView === "chat" ? "#3b82f6" : "rgba(156, 163, 175, 0.8)",
+                backgroundColor: "transparent",
+                border: "none",
+                borderBottom: activeView === "chat" ? "2px solid #3b82f6" : "2px solid transparent",
+                cursor: "pointer",
+              }}
+            >
+              💬 Chat
+            </button>
+            <button
+              onClick={() => setActiveView("document")}
+              style={{
+                padding: "12px 24px",
+                fontSize: "14px",
+                fontWeight: "500",
+                color: activeView === "document" ? "#3b82f6" : "rgba(156, 163, 175, 0.8)",
+                backgroundColor: "transparent",
+                border: "none",
+                borderBottom: activeView === "document" ? "2px solid #3b82f6" : "2px solid transparent",
+                cursor: "pointer",
+              }}
+            >
+              📄 Document
+            </button>
+            {activeView === "document" && selectedFile && (
+              <div style={{ marginLeft: "auto", padding: "8px 16px", display: "flex", alignItems: "center", gap: "12px" }}>
+                {showShareSuccess && (
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "#10b981",
+                      animation: "fadeIn 0.3s ease-in",
+                    }}
+                  >
+                    ✓ Link copied to clipboard!
+                  </span>
+                )}
+                <button
+                  onClick={handleShare}
+                  disabled={isSharing}
+                  style={{
+                    padding: "4px 12px",
+                    fontSize: "12px",
+                    color: "#3b82f6",
+                    backgroundColor: "transparent",
+                    border: "1px solid #3b82f6",
+                    borderRadius: "4px",
+                    cursor: isSharing ? "not-allowed" : "pointer",
+                    opacity: isSharing ? 0.5 : 1,
+                    transition: "all 0.2s ease",
+                  }}
+                  onMouseOver={(e) => {
+                    if (!isSharing) {
+                      e.currentTarget.style.backgroundColor = "#3b82f6";
+                      e.currentTarget.style.color = "white";
+                    }
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = "transparent";
+                    e.currentTarget.style.color = "#3b82f6";
+                  }}
+                >
+                  {isSharing ? "Sharing..." : "Share"}
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* View Content */}
+          <div style={{ flex: 1, overflow: "hidden" }}>
+            {activeView === "chat" ? (
+              <SessionDisplay
+                session={session}
+                onInterrupt={interruptSession}
+              />
+            ) : (
+              <div style={{ height: "100%", overflow: "auto", padding: "16px" }}>
+                {loadingContent ? (
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: "200px",
+                      color: "rgba(156, 163, 175, 0.6)",
+                      fontSize: "14px",
+                    }}
+                  >
+                    Loading file content...
+                  </div>
+                ) : selectedFile && fileContent ? (
+                  <pre
+                    style={{
+                      margin: 0,
+                      padding: "16px",
+                      backgroundColor: "rgba(156, 163, 175, 0.05)",
+                      border: "1px solid rgba(156, 163, 175, 0.1)",
+                      borderRadius: "6px",
+                      fontSize: "13px",
+                      fontFamily:
+                        'Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
+                      lineHeight: "1.5",
+                      color: "var(--foreground)",
+                      overflow: "auto",
+                      whiteSpace: "pre-wrap",
+                      wordBreak: "break-word",
+                    }}
+                  >
+                    {fileContent}
+                  </pre>
+                ) : (
+                  <div
+                    style={{
+                      display: "flex",
+                      flexDirection: "column",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      height: "300px",
+                      color: "rgba(156, 163, 175, 0.6)",
+                      fontSize: "14px",
+                      textAlign: "center",
+                    }}
+                  >
+                    <div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
+                    <div style={{ marginBottom: "8px", fontWeight: "500" }}>
+                      Select a file to view its content
+                    </div>
+                    <div style={{ fontSize: "12px", maxWidth: "300px" }}>
+                      Click on any file in the explorer to see its content here.
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Chat Input */}
