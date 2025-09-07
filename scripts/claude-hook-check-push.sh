@@ -16,15 +16,28 @@ if echo "$COMMAND" | grep -qE "git\s+push"; then
     export SKIP_DB_CHECK=1
     export SKIP_VERCEL_CHECK=1
     
-    # Run the CI check script
-    if /workspaces/uspark2/scripts/ci-check.sh; then
+    # Run the CI check script, redirect output to stderr
+    if /workspaces/uspark2/scripts/ci-check.sh >&2; then
         echo "✅ CI checks passed, allowing git push" >&2
-        echo '{"decision": "allow", "permissionDecisionReason": "CI checks passed"}'
+        # Return correct format for Claude Code hook
+        echo '{
+          "hookEventName": "PreToolUse",
+          "permissionDecision": "allow",
+          "permissionDecisionReason": "CI checks passed successfully"
+        }'
     else
         echo "❌ CI checks failed, blocking git push" >&2
-        echo '{"decision": "deny", "permissionDecisionReason": "CI checks failed. Please fix the issues and try again."}'
+        # Return correct format to block the command
+        echo '{
+          "hookEventName": "PreToolUse",
+          "permissionDecision": "deny",
+          "permissionDecisionReason": "CI checks failed. Please fix the lint/format issues and try again."
+        }'
     fi
 else
     # Not a git push, allow it
-    echo '{"decision": "allow"}'
+    echo '{
+      "hookEventName": "PreToolUse",
+      "permissionDecision": "allow"
+    }'
 fi
