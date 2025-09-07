@@ -13,7 +13,7 @@
         "middleware.{ts,tsx}",
         "scripts/*.ts"
       ],
-      "project": ["**/*.{ts,tsx}", "scripts/**/*.ts", "!drizzle.config.ts"],
+      "project": ["**/*.{ts,tsx}", "scripts/**/*.ts"],
       "next": {
         "entry": ["next.config.{js,ts,mjs}"]
       }
