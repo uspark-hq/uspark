@@ -39,14 +39,14 @@ This document defines the mid-term goals and user stories for the MVP release of
 - [ ] Document explorer showing project file tree
 - [ ] Document viewer/editor for selected files
 - [ ] Chat interface for entering Claude Code prompts
-- [ ] Real-time execution status indicators
-- [ ] Live document updates as Claude makes changes
+- [ ] Execution status indicators (via polling)
+- [ ] Document updates as Claude makes changes (via YJS polling)
 
 #### Technical Requirements
 
 - E2B container runtime for Claude Code execution
-- WebSocket or SSE for real-time updates
-- YJS for real-time document synchronization
+- Polling API for status updates
+- YJS for document synchronization (polling-based)
 - Queue system for managing Claude tasks
 - Audit logging for all AI operations
 
@@ -104,8 +104,8 @@ This document defines the mid-term goals and user stories for the MVP release of
 3. ✅ uspark watch-claude command implementation
 4. [ ] Claude Code runtime integration
 5. ⏳ Chat interface component (UI only, no backend)
-6. [ ] WebSocket/SSE for real-time updates
-7. [ ] Document change streaming
+6. [ ] Polling system for status updates
+7. [ ] Document change detection via YJS polling
 
 ### Phase 5: Sharing Features (Story 3)
 

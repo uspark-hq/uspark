@@ -83,10 +83,10 @@ Returns: {
 }
 ```
 
-**Real-time Updates**:
-- WebSocket connection for live updates
-- Show file changes as they happen
-- Display execution logs
+**Status Updates (Polling-based)**:
+- Polling connection for live updates
+- Show file changes via YJS polling
+- Display execution logs via status polling
 
 ## Implementation Todos
 
@@ -103,7 +103,7 @@ Returns: {
 **Acceptance Criteria**:
 - [ ] POST /api/claude/execute - Start Claude task
 - [ ] GET /api/claude/status/:taskId - Get task status
-- [ ] WebSocket endpoint for real-time updates
+- [ ] Polling endpoints for status updates
 
 ### Frontend Pages
 
@@ -118,13 +118,13 @@ Returns: {
 - [x] File explorer component (✅ PR #107)
 - [x] Document viewer with syntax highlighting (✅ PR #106)
 - [ ] Chat input component (待实现)
-- [ ] Real-time update display (待实现)
+- [ ] Polling-based update display (待实现)
 
-#### 5. Real-time Integration
+#### 5. Polling Integration
 **Acceptance Criteria**:
-- [ ] WebSocket client setup
-- [ ] Live file change updates
-- [ ] Execution status updates
+- [ ] Polling client setup (useSessionPolling hook)
+- [ ] File change updates via YJS polling
+- [ ] Execution status updates via API polling
 
 ## Database Schema
 
@@ -150,4 +150,4 @@ CREATE TABLE claude_tasks (
 - Tailwind CSS for styling
 - shadcn/ui for components
 - Monaco Editor or CodeMirror for syntax highlighting
-- Socket.io or native WebSocket for real-time updates
+- Polling-based updates using existing API endpoints
