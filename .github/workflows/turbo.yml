@@ -11,7 +11,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/uspark-hq/uspark-toolchain:4c465ea
+      image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
 
     steps:
       - uses: actions/checkout@v4
@@ -23,7 +23,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/uspark-hq/uspark-toolchain:4c465ea
+      image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
 
     services:
       postgres:
@@ -53,7 +53,7 @@ jobs:
   deploy-web:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/uspark-hq/uspark-toolchain:4c465ea
+      image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
     if: github.event_name == 'pull_request'
     outputs:
       preview-url: ${{ steps.deploy.outputs.url }}
@@ -122,7 +122,7 @@ jobs:
   deploy-docs:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/uspark-hq/uspark-toolchain:4c465ea
+      image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
     if: github.event_name == 'pull_request'
     permissions:
       contents: read
@@ -159,7 +159,7 @@ jobs:
   cli-e2e:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/uspark-hq/uspark-toolchain:4c465ea
+      image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
     needs: [deploy-web]
     if: github.event_name == 'pull_request' && needs.deploy-web.outputs.preview-url != ''
     steps:
@@ -190,20 +190,23 @@ jobs:
   # Run Web E2E tests with Playwright
   web-e2e:
     runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
     needs: [deploy-web]
     if: github.event_name == 'pull_request' && needs.deploy-web.outputs.preview-url != ''
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
 
-      - name: Install Playwright dependencies
+      - name: Install npm dependencies for e2e tests
         run: |
           cd e2e/web
           npm ci
+
+      - name: Install Playwright browser
+        run: |
+          cd e2e/web
           npx playwright install chromium
-          npx playwright install-deps chromium
+          # Note: install-deps is not needed as dependencies are already in the container
 
       - name: Run Playwright E2E Tests
         run: |
