@@ -5,7 +5,7 @@
 
 # Read the command from stdin (Claude passes tool input as JSON)
 TOOL_INPUT=$(cat)
-COMMAND=$(echo "$TOOL_INPUT" | jq -r '.command // ""')
+COMMAND=$(echo "$TOOL_INPUT" | jq -r '.tool_input.command // ""')
 
 # Check if it's a git push command
 if echo "$COMMAND" | grep -qE "git\s+push"; then
