@@ -43,7 +43,7 @@ jobs:
           
           # Check web app
           cd turbo/apps/web
-          if npx turbo-ignore web; then
+          if npx turbo-ignore; then
             echo "No changes detected in web app"
             echo "web-changed=false" >> $GITHUB_OUTPUT
           else
@@ -53,7 +53,7 @@ jobs:
           
           # Check docs app
           cd ../docs
-          if npx turbo-ignore docs; then
+          if npx turbo-ignore; then
             echo "No changes detected in docs app"
             echo "docs-changed=false" >> $GITHUB_OUTPUT
           else
@@ -63,7 +63,7 @@ jobs:
           
           # Check CLI app
           cd ../cli
-          if npx turbo-ignore cli; then
+          if npx turbo-ignore; then
             echo "No changes detected in CLI app"
             echo "cli-changed=false" >> $GITHUB_OUTPUT
           else
