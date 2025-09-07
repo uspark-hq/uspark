@@ -8,7 +8,7 @@ jobs:
   cleanup-database:
     runs-on: ubuntu-latest
     container:
-      image: ghcr.io/uspark-hq/uspark-toolchain:4c465ea
+      image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
     steps:
       - uses: actions/checkout@v4
 
