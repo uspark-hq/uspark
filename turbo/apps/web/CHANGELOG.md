@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/uspark-hq/uspark/compare/web-v0.14.0...web-v0.15.0) (2025-09-07)
+
+
+### Features
+
+* update claude workflow to use project toolchain container ([#192](https://github.com/uspark-hq/uspark/issues/192)) ([33a0991](https://github.com/uspark-hq/uspark/commit/33a0991aed4ce2ad3b08e3ead71df28a653a2ab1))
+
 ## [0.14.0](https://github.com/uspark-hq/uspark/compare/web-v0.13.0...web-v0.14.0) (2025-09-06)
 
 
