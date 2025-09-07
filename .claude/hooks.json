@@ -1,0 +1,14 @@
+{
+  "PreToolUse": [
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "/workspaces/uspark2/scripts/claude-hook-check-push.sh",
+          "timeout": 300
+        }
+      ]
+    }
+  ]
+}
