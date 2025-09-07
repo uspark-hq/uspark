@@ -83,10 +83,13 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && rm -rf /var/lib/apt/lists/*
 
 # Create vscode user with standard UID/GID for devcontainer compatibility
+# Following Microsoft's devcontainer pattern for better feature compatibility
 RUN groupadd --gid 1000 vscode \
     && useradd --uid 1000 --gid vscode --shell /usr/bin/zsh --create-home vscode \
-    && echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/vscode \
-    && chmod 0440 /etc/sudoers.d/vscode
+    && echo "vscode ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/vscode \
+    && chmod 0440 /etc/sudoers.d/vscode \
+    && mkdir -p /home/vscode/.local/share /home/vscode/.cache /home/vscode/.config \
+    && chown -R vscode:vscode /home/vscode
 
 # Default command
 CMD ["/usr/bin/zsh"]
