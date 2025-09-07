@@ -300,3 +300,33 @@ git pull
 ```
 
 This allows pushing/pulling without SSH keys by leveraging the GitHub CLI's authentication.
+
+## CI Checks Before Git Push
+
+**IMPORTANT for Claude Code**: Before executing any `git push` command, you MUST run CI checks:
+
+```bash
+./scripts/ci-check.sh
+```
+
+Only proceed with push if ALL checks pass. If any check fails:
+1. Stop immediately
+2. Fix the reported issues  
+3. Re-run the checks
+4. Only push after all checks pass
+
+**Note**: This is a manual check for Claude Code only. Regular git users won't have automatic pre-push hooks.
+
+### Using Sub-Agent for CI Checks (Recommended)
+
+To keep CI output isolated from the main context, use a sub-agent:
+
+```javascript
+await Task({
+  description: "Run CI checks",
+  prompt: "Execute ./scripts/ci-check.sh and report any failures. Stop at first error.",
+  subagent_type: "general-purpose"
+});
+```
+
+This prevents broken code from reaching the repository while keeping the main context clean.
