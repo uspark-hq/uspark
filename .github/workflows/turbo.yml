@@ -23,6 +23,9 @@ jobs:
         with:
           fetch-depth: 2
       
+      - name: Configure Git safe directory
+        run: git config --global --add safe.directory /__w/uspark/uspark
+      
       - name: Detect changes
         id: detect
         run: |
