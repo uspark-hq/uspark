@@ -1,6 +1,6 @@
 {
   "name": "USpark Development",
-  "image": "ghcr.io/uspark-hq/uspark-dev:8767eed",
+  "image": "ghcr.io/uspark-hq/uspark-dev:bd056ee",
   "features": {
     "ghcr.io/itsmechlark/features/postgresql:1": {}
   },
