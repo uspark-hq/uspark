@@ -8,6 +8,69 @@ on:
   merge_group:
 
 jobs:
+  # Detect changes in apps to optimize CI pipeline
+  change-detection:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
+    # Run for all events, but only do actual detection for PRs
+    outputs:
+      web-changed: ${{ steps.detect.outputs.web-changed }}
+      docs-changed: ${{ steps.detect.outputs.docs-changed }}
+      cli-changed: ${{ steps.detect.outputs.cli-changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      
+      - name: Configure Git safe directory
+        run: git config --global --add safe.directory /__w/uspark/uspark
+      
+      - name: Detect changes
+        id: detect
+        run: |
+          # For non-PR events, assume everything changed
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "Not a PR, assuming all apps changed"
+            echo "web-changed=true" >> $GITHUB_OUTPUT
+            echo "docs-changed=true" >> $GITHUB_OUTPUT
+            echo "cli-changed=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+          
+          # For PRs, use turbo-ignore to detect changes
+          echo "Checking for changes in PR..."
+          
+          # Check web app
+          cd turbo/apps/web
+          if npx turbo-ignore; then
+            echo "No changes detected in web app"
+            echo "web-changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in web app"
+            echo "web-changed=true" >> $GITHUB_OUTPUT
+          fi
+          
+          # Check docs app
+          cd ../docs
+          if npx turbo-ignore; then
+            echo "No changes detected in docs app"
+            echo "docs-changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in docs app"
+            echo "docs-changed=true" >> $GITHUB_OUTPUT
+          fi
+          
+          # Check CLI app
+          cd ../cli
+          if npx turbo-ignore; then
+            echo "No changes detected in CLI app"
+            echo "cli-changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in CLI app"
+            echo "cli-changed=true" >> $GITHUB_OUTPUT
+          fi
+
   lint:
     runs-on: ubuntu-latest
     container:
@@ -54,7 +117,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
-    if: github.event_name == 'pull_request'
+    needs: [change-detection]
+    # Deploy if it's a PR and either web or CLI changed (CLI needs web for e2e tests)
+    if: github.event_name == 'pull_request' && (needs.change-detection.outputs.web-changed == 'true' || needs.change-detection.outputs.cli-changed == 'true')
     outputs:
       preview-url: ${{ steps.deploy.outputs.url }}
     permissions:
@@ -63,35 +128,10 @@ jobs:
       deployments: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-      
-      - name: Check for changes affecting deployment
-        id: check-changes
-        run: |
-          # Check if web app has changes
-          cd turbo/apps/web
-          if npx turbo-ignore web; then
-            # No web changes, but check if CLI changed (for e2e testing)
-            cd ../cli
-            if npx turbo-ignore cli; then
-              echo "No changes affecting deployment"
-              echo "has-changes=false" >> $GITHUB_OUTPUT
-            else
-              echo "CLI changes detected, deploying web for e2e testing"
-              echo "has-changes=true" >> $GITHUB_OUTPUT
-            fi
-          else
-            echo "Web app changes detected"
-            echo "has-changes=true" >> $GITHUB_OUTPUT
-          fi
-      
       - uses: ./.github/actions/toolchain-init
-        if: steps.check-changes.outputs.has-changes == 'true'
 
       # Step 1: Create Neon database branch
       - name: Create Neon Branch and Run Migrations
-        if: steps.check-changes.outputs.has-changes == 'true'
         id: branch
         uses: ./.github/actions/neon-branch
         with:
@@ -102,7 +142,6 @@ jobs:
 
       # Step 2: Deploy to Vercel with database URL
       - name: Deploy Web to Vercel
-        if: steps.check-changes.outputs.has-changes == 'true'
         id: deploy
         uses: ./.github/actions/vercel-deploy
         with:
@@ -123,27 +162,18 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
-    if: github.event_name == 'pull_request'
+    needs: [change-detection]
+    # Only deploy if it's a PR and docs changed
+    if: github.event_name == 'pull_request' && needs.change-detection.outputs.docs-changed == 'true'
     permissions:
       contents: read
       pull-requests: write
       deployments: write
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-      
-      - name: Check for changes in docs app
-        id: check-changes
-        run: |
-          cd turbo/apps/docs
-          npx turbo-ignore docs || echo "has-changes=true" >> $GITHUB_OUTPUT
-      
       - uses: ./.github/actions/toolchain-init
-        if: steps.check-changes.outputs.has-changes == 'true'
 
       - name: Deploy Docs to Vercel
-        if: steps.check-changes.outputs.has-changes == 'true'
         id: deploy
         uses: ./.github/actions/vercel-deploy
         with:
@@ -160,8 +190,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
-    needs: [deploy-web]
-    if: github.event_name == 'pull_request' && needs.deploy-web.outputs.preview-url != ''
+    needs: [change-detection, deploy-web]
+    # Run if CLI changed and web deployment succeeded
+    if: github.event_name == 'pull_request' && needs.change-detection.outputs.cli-changed == 'true' && needs.deploy-web.outputs.preview-url != ''
     steps:
       - uses: actions/checkout@v4
         with:
@@ -192,8 +223,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
-    needs: [deploy-web]
-    if: github.event_name == 'pull_request' && needs.deploy-web.outputs.preview-url != ''
+    needs: [change-detection, deploy-web]
+    # Run if web changed and deployment succeeded
+    if: github.event_name == 'pull_request' && needs.change-detection.outputs.web-changed == 'true' && needs.deploy-web.outputs.preview-url != ''
     steps:
       - uses: actions/checkout@v4
 
