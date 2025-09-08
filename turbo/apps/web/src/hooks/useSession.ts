@@ -1,10 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { sessionAPI, SessionPoller } from "../lib/api/sessions";
 import type { Session } from "../db/schema/sessions";
-import type {
-  TurnWithBlocks,
-  SessionUpdates,
-} from "../components/chat/types";
+import type { TurnWithBlocks, SessionUpdates } from "../components/chat/types";
 
 /**
  * Hook for managing a chat session with real-time updates

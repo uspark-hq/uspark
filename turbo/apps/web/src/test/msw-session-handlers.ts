@@ -1,12 +1,6 @@
 import { http, HttpResponse, delay } from "msw";
-import type {
-  Session,
-  Turn,
-  Block,
-} from "../db/schema/sessions";
-import type {
-  SessionUpdates,
-} from "../components/chat/types";
+import type { Session, Turn, Block } from "../db/schema/sessions";
+import type { SessionUpdates } from "../components/chat/types";
 
 // Mock data storage (simulating a database)
 const mockDatabase = {

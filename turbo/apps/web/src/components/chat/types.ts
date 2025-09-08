@@ -7,8 +7,6 @@ import type {
   ToolResultBlockContent,
 } from "../../db/schema/sessions";
 
-
-
 // Additional types for API responses that include nested data
 export interface TurnWithBlocks
   extends Omit<Turn, "createdAt" | "startedAt" | "completedAt"> {
@@ -29,7 +27,6 @@ export interface BlockWithParsedContent
     | ToolResultBlockContent;
   createdAt?: string;
 }
-
 
 export interface SessionUpdates {
   session: {
