@@ -681,3 +681,246 @@
     opacity: 0.05;
   }
 }
+
+/* Demo Section */
+.demo {
+  padding: 80px 5%;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e9ecef 100%);
+  text-align: center;
+}
+
+.demoContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 3rem;
+  flex-wrap: wrap;
+}
+
+.demoStep {
+  flex: 1;
+  min-width: 250px;
+  max-width: 350px;
+  text-align: center;
+}
+
+.stepNumber {
+  display: inline-block;
+  width: 40px;
+  height: 40px;
+  line-height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: white;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.demoStep h3 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+  color: #2d3748;
+}
+
+.chatExample {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.userMessage {
+  color: #4a5568;
+  font-style: italic;
+  line-height: 1.6;
+}
+
+.documentPreview {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.documentPreview code {
+  display: block;
+  margin-bottom: 1rem;
+  color: #667eea;
+  font-weight: 600;
+}
+
+.previewContent {
+  color: #718096;
+  font-family: monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.ownershipFeatures {
+  background: white;
+  padding: 1.5rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  text-align: left;
+}
+
+.ownershipFeatures p {
+  margin: 0.5rem 0;
+  color: #2d3748;
+  font-weight: 500;
+}
+
+.demoArrow {
+  font-size: 2rem;
+  color: #667eea;
+  font-weight: bold;
+}
+
+/* Why uSpark Section */
+.whyUspark {
+  padding: 80px 5%;
+  background: white;
+  text-align: center;
+}
+
+.comparisonGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 2rem;
+  margin: 3rem auto;
+  max-width: 1200px;
+}
+
+.comparisonCard {
+  background: #f7fafc;
+  padding: 2rem;
+  border-radius: 16px;
+  transition: transform 0.3s ease;
+}
+
+.comparisonCard:hover {
+  transform: translateY(-5px);
+}
+
+.comparisonCard h3 {
+  font-size: 1.3rem;
+  margin-bottom: 1.5rem;
+  color: #2d3748;
+}
+
+.comparisonContent {
+  text-align: left;
+}
+
+.problem {
+  color: #e53e3e;
+  margin: 0.8rem 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+
+.solution {
+  color: #38a169;
+  margin: 0.8rem 0;
+  font-size: 1rem;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+.comparisonCard:last-child {
+  background: linear-gradient(135deg, #f0f4ff 0%, #f5f3ff 100%);
+  border: 2px solid #667eea;
+}
+
+.comparisonInsight {
+  margin-top: 3rem;
+  font-size: 1.2rem;
+  color: #4a5568;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 1.5rem;
+  background: #f7fafc;
+  border-radius: 12px;
+  border-left: 4px solid #667eea;
+}
+
+.comparisonInsight strong {
+  color: #2d3748;
+}
+
+/* Dark mode support for new sections */
+@media (prefers-color-scheme: dark) {
+  .demo {
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+  }
+  
+  .demoStep h3 {
+    color: #e2e8f0;
+  }
+  
+  .chatExample,
+  .documentPreview,
+  .ownershipFeatures {
+    background: #2d3748;
+  }
+  
+  .userMessage,
+  .previewContent {
+    color: #cbd5e0;
+  }
+  
+  .ownershipFeatures p {
+    color: #e2e8f0;
+  }
+  
+  .whyUspark {
+    background: #1a202c;
+  }
+  
+  .comparisonCard {
+    background: #2d3748;
+  }
+  
+  .comparisonCard h3 {
+    color: #e2e8f0;
+  }
+  
+  .comparisonCard:last-child {
+    background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
+    border-color: #764ba2;
+  }
+  
+  .comparisonInsight {
+    background: #2d3748;
+    color: #cbd5e0;
+    border-left-color: #764ba2;
+  }
+  
+  .comparisonInsight strong {
+    color: #e2e8f0;
+  }
+  
+  .demoArrow {
+    color: #764ba2;
+  }
+}
+
+/* Mobile responsiveness for new sections */
+@media (max-width: 768px) {
+  .demoContainer {
+    flex-direction: column;
+  }
+  
+  .demoArrow {
+    transform: rotate(90deg);
+    margin: 1rem 0;
+  }
+  
+  .comparisonGrid {
+    grid-template-columns: 1fr;
+  }
+}
