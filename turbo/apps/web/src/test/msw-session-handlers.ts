@@ -220,10 +220,10 @@ export const sessionHandlers = [
     const sessions = Array.from(mockDatabase.sessions.values()).map(
       (session) => ({
         id: session.id,
-        project_id: session.projectId,
+        projectId: session.projectId,
         title: session.title,
-        created_at: session.createdAt.toISOString(),
-        updated_at:
+        createdAt: session.createdAt.toISOString(),
+        updatedAt:
           session.updatedAt instanceof Date
             ? session.updatedAt.toISOString()
             : session.updatedAt,
@@ -254,10 +254,10 @@ export const sessionHandlers = [
 
       return HttpResponse.json({
         id: newSession.id,
-        project_id: newSession.projectId,
+        projectId: newSession.projectId,
         title: newSession.title,
-        created_at: newSession.createdAt.toISOString(),
-        updated_at: newSession.updatedAt.toISOString(),
+        createdAt: newSession.createdAt.toISOString(),
+        updatedAt: newSession.updatedAt.toISOString(),
       });
     },
   ),
@@ -285,13 +285,13 @@ export const sessionHandlers = [
 
       return HttpResponse.json({
         id: session.id,
-        project_id: session.projectId,
+        projectId: session.projectId,
         title: session.title,
-        created_at:
+        createdAt:
           session.createdAt instanceof Date
             ? session.createdAt.toISOString()
             : session.createdAt,
-        updated_at:
+        updatedAt:
           session.updatedAt instanceof Date
             ? session.updatedAt.toISOString()
             : session.updatedAt,
@@ -328,7 +328,7 @@ export const sessionHandlers = [
           return {
             ...turn,
             blocks,
-            block_count: blocks.length,
+            blockCount: blocks.length,
             createdAt:
               turn.createdAt instanceof Date
                 ? turn.createdAt.toISOString()
@@ -377,22 +377,22 @@ export const sessionHandlers = [
 
       return HttpResponse.json({
         id: newTurn.id,
-        session_id: newTurn.sessionId,
-        user_prompt: newTurn.userPrompt,
+        sessionId: newTurn.sessionId,
+        userPrompt: newTurn.userPrompt,
         status: newTurn.status,
-        created_at:
+        createdAt:
           newTurn.createdAt instanceof Date
             ? newTurn.createdAt.toISOString()
             : newTurn.createdAt,
-        started_at: newTurn.startedAt
+        startedAt: newTurn.startedAt
           ? newTurn.startedAt instanceof Date
             ? newTurn.startedAt.toISOString()
             : newTurn.startedAt
           : null,
-        completed_at: null,
-        error_message: null,
+        completedAt: null,
+        errorMessage: null,
         blocks: [],
-        block_count: 0,
+        blockCount: 0,
       });
     },
   ),
@@ -422,7 +422,7 @@ export const sessionHandlers = [
       return HttpResponse.json({
         ...turn,
         blocks,
-        block_count: blocks.length,
+        blockCount: blocks.length,
         createdAt:
           turn.createdAt instanceof Date
             ? turn.createdAt.toISOString()
@@ -466,7 +466,7 @@ export const sessionHandlers = [
             id: turn.id,
             status: turn.status,
             new_block_ids: blockIds.slice(-2), // Return last 2 block IDs as "new"
-            block_count: blockIds.length,
+            blockCount: blockIds.length,
           };
         });
 
@@ -551,13 +551,13 @@ export const sessionHandlers = [
 
       return HttpResponse.json({
         id: session.id,
-        project_id: session.projectId,
+        projectId: session.projectId,
         title: session.title,
-        created_at:
+        createdAt:
           session.createdAt instanceof Date
             ? session.createdAt.toISOString()
             : session.createdAt,
-        updated_at:
+        updatedAt:
           session.updatedAt instanceof Date
             ? session.updatedAt.toISOString()
             : session.updatedAt,
@@ -577,19 +577,4 @@ export function resetMockSessionData() {
     streamingInterval = null;
   }
   initializeMockData();
-}
-
-// Export function to add custom mock data (useful for specific test scenarios)
-export function addMockSession(session: Session) {
-  mockDatabase.sessions.set(session.id, session);
-}
-
-export function addMockTurn(turn: Turn) {
-  mockDatabase.turns.set(turn.id, turn);
-}
-
-export function addMockBlock(block: Block, turnId: string) {
-  mockDatabase.blocks.set(block.id, block);
-  const currentBlocks = mockDatabase.blocksByTurn.get(turnId) || [];
-  mockDatabase.blocksByTurn.set(turnId, [...currentBlocks, block.id]);
 }

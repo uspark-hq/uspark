@@ -9,7 +9,7 @@ import type {
  * These functions make real HTTP requests to the backend APIs
  */
 
-export class SessionAPIError extends Error {
+class SessionAPIError extends Error {
   constructor(
     message: string,
     public status?: number,

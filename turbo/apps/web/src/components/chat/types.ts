@@ -1,5 +1,5 @@
-// Re-export types from the database schema for consistency
-export type {
+// Import types from the database schema
+import type {
   Session,
   Turn,
   Block,
@@ -9,24 +9,20 @@ export type {
   ToolResultBlockContent,
 } from "../../db/schema/sessions";
 
-// Type aliases for easier usage
-export type ThinkingContent =
-  import("../../db/schema/sessions").ThinkingBlockContent;
-export type TextContent =
-  import("../../db/schema/sessions").ContentBlockContent;
-export type ToolUseContent =
-  import("../../db/schema/sessions").ToolUseBlockContent;
-export type ToolResultContent =
-  import("../../db/schema/sessions").ToolResultBlockContent;
+// Re-export only the main types that are actually used
+export type { Session, Turn, Block } from "../../db/schema/sessions";
+
+// Type aliases for internal use
+type ThinkingContent = ThinkingBlockContent;
+type TextContent = ContentBlockContent;
+type ToolUseContent = ToolUseBlockContent;
+type ToolResultContent = ToolResultBlockContent;
 
 // Additional types for API responses that include nested data
 export interface TurnWithBlocks
-  extends Omit<
-    import("../../db/schema/sessions").Turn,
-    "createdAt" | "startedAt" | "completedAt"
-  > {
+  extends Omit<Turn, "createdAt" | "startedAt" | "completedAt"> {
   blocks?: BlockWithParsedContent[];
-  block_count?: number;
+  blockCount?: number;
   // Convert Date to string for JSON serialization
   createdAt: string;
   startedAt?: string | null;
@@ -34,23 +30,16 @@ export interface TurnWithBlocks
 }
 
 export interface BlockWithParsedContent
-  extends Omit<
-    import("../../db/schema/sessions").Block,
-    "content" | "createdAt"
-  > {
+  extends Omit<Block, "content" | "createdAt"> {
   content:
-    | import("../../db/schema/sessions").ThinkingBlockContent
-    | import("../../db/schema/sessions").ContentBlockContent
-    | import("../../db/schema/sessions").ToolUseBlockContent
-    | import("../../db/schema/sessions").ToolResultBlockContent;
+    | ThinkingBlockContent
+    | ContentBlockContent
+    | ToolUseBlockContent
+    | ToolResultBlockContent;
   createdAt?: string;
 }
 
-export interface SessionWithTurns
-  extends Omit<
-    import("../../db/schema/sessions").Session,
-    "createdAt" | "updatedAt"
-  > {
+interface SessionWithTurns extends Omit<Session, "createdAt" | "updatedAt"> {
   turns?: TurnWithBlocks[];
   createdAt: string;
   updatedAt: string;
@@ -64,9 +53,9 @@ export interface SessionUpdates {
   new_turn_ids?: string[];
   updated_turns?: {
     id: string;
-    status: import("../../db/schema/sessions").Turn["status"];
+    status: Turn["status"];
     new_block_ids?: string[];
-    block_count: number;
+    blockCount: number;
   }[];
   has_active_turns: boolean;
 }

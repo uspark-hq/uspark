@@ -22,6 +22,7 @@ export function ChatWithAPI({
 }: ChatWithAPIProps) {
   const [activeSessionId, setActiveSessionId] = useState(initialSessionId);
   const [inputValue, setInputValue] = useState("");
+  const [isCreatingSession, setIsCreatingSession] = useState(false);
 
   const {
     session,
@@ -38,17 +39,28 @@ export function ChatWithAPI({
 
   // Create a session if none exists
   useEffect(() => {
-    if (!activeSessionId && !isLoading) {
+    if (!activeSessionId && !isLoading && !isCreatingSession) {
+      setIsCreatingSession(true);
       createSession("New Chat Session")
         .then((newSession) => {
           setActiveSessionId(newSession.id);
+          setIsCreatingSession(false);
           if (onSessionCreated) {
             onSessionCreated(newSession.id);
           }
         })
-        .catch(console.error);
+        .catch((err) => {
+          console.error("Failed to create session:", err);
+          setIsCreatingSession(false);
+        });
     }
-  }, [activeSessionId, isLoading, createSession, onSessionCreated]);
+  }, [
+    activeSessionId,
+    isLoading,
+    isCreatingSession,
+    createSession,
+    onSessionCreated,
+  ]);
 
   const handleSendMessage = async () => {
     if (!inputValue.trim() || isSending || !activeSessionId) return;
@@ -81,7 +93,7 @@ export function ChatWithAPI({
     }
   };
 
-  if (isLoading) {
+  if (isLoading || isCreatingSession) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-gray-500">Loading session...</div>
@@ -170,32 +182,6 @@ export function ChatWithAPI({
             AI is generating a response...
           </div>
         )}
-      </div>
-    </div>
-  );
-}
-
-/**
- * Demo page component that can be used for testing
- */
-export function ChatAPIDemo() {
-  const [sessionId, setSessionId] = useState<string>();
-  const projectId = "project-test-1"; // Mock project ID for demo
-
-  return (
-    <div className="h-screen flex flex-col">
-      <div className="bg-gray-100 p-4 border-b">
-        <h1 className="text-2xl font-bold">Chat API Demo (with MSW)</h1>
-        <p className="text-sm text-gray-600 mt-1">
-          This demo uses real API calls mocked by MSW for realistic behavior
-        </p>
-      </div>
-      <div className="flex-1 overflow-hidden">
-        <ChatWithAPI
-          projectId={projectId}
-          sessionId={sessionId}
-          onSessionCreated={setSessionId}
-        />
       </div>
     </div>
   );
