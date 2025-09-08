@@ -176,9 +176,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <p className={styles.comparisonInsight}>
-          <strong>Just as GitHub defined code collaboration, uSpark defines AI knowledge collaboration.</strong>
-        </p>
       </section>
 
       {/* User Stories Section */}

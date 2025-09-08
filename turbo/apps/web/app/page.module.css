@@ -228,7 +228,7 @@
 
 .conceptsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(4, 1fr);
   gap: 3rem;
   max-width: 1200px;
   margin: 0 auto;
@@ -603,6 +603,12 @@
   }
 }
 
+@media (max-width: 1024px) {
+  .conceptsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 @media (max-width: 768px) {
   .logo {
     font-size: 3.5rem;
@@ -842,22 +848,6 @@
   border: 2px solid #667eea;
 }
 
-.comparisonInsight {
-  margin-top: 3rem;
-  font-size: 1.2rem;
-  color: #4a5568;
-  max-width: 800px;
-  margin-left: auto;
-  margin-right: auto;
-  padding: 1.5rem;
-  background: #f7fafc;
-  border-radius: 12px;
-  border-left: 4px solid #667eea;
-}
-
-.comparisonInsight strong {
-  color: #2d3748;
-}
 
 /* Dark mode support for new sections */
 @media (prefers-color-scheme: dark) {
@@ -899,16 +889,6 @@
   .comparisonCard:last-child {
     background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
     border-color: #764ba2;
-  }
-  
-  .comparisonInsight {
-    background: #2d3748;
-    color: #cbd5e0;
-    border-left-color: #764ba2;
-  }
-  
-  .comparisonInsight strong {
-    color: #e2e8f0;
   }
   
   .demoArrow {
