@@ -15,25 +15,25 @@ export default function Home() {
       <section className={styles.hero}>
         <div className={styles.heroInner}>
           <h1 className={styles.heroTitle}>
-            Your AI conversations,<br/>
+            Your AI conversations,
+            <br />
             <span className={styles.heroTitleGradient}>forever organized</span>
           </h1>
           <p className={styles.heroSubtitle}>
-            Stop losing brilliant ideas to chat history. uSpark transforms every AI conversation 
-            into searchable, editable documents that grow with your team.
+            Stop losing brilliant ideas to chat history. uSpark transforms every
+            AI conversation into searchable, editable documents that grow with
+            your team.
           </p>
-          
+
           <div className={styles.heroCta}>
             <SignUpButton mode="modal">
               <button className={styles.primaryButton}>
                 Start Building Knowledge
               </button>
             </SignUpButton>
-            <button className={styles.secondaryButton}>
-              See How It Works
-            </button>
+            <button className={styles.secondaryButton}>See How It Works</button>
           </div>
-          
+
           <div className={styles.heroTrust}>
             <span>Trusted by 10,000+ teams</span>
             <span className={styles.divider}>•</span>
@@ -42,7 +42,7 @@ export default function Home() {
             <span>Free to start</span>
           </div>
         </div>
-        
+
         {/* Product Demo Visual */}
         <div className={styles.heroDemo}>
           <div className={styles.demoWindow}>
@@ -65,9 +65,20 @@ export default function Home() {
               </div>
               <div className={styles.transformArrow}>
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                  <path d="M7 7l10 10M17 7v10H7" stroke="url(#gradient)" strokeWidth="2" strokeLinecap="round"/>
+                  <path
+                    d="M7 7l10 10M17 7v10H7"
+                    stroke="url(#gradient)"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
                   <defs>
-                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <linearGradient
+                      id="gradient"
+                      x1="0%"
+                      y1="0%"
+                      x2="100%"
+                      y2="100%"
+                    >
                       <stop offset="0%" stopColor="#667eea" />
                       <stop offset="100%" stopColor="#764ba2" />
                     </linearGradient>
@@ -90,16 +101,15 @@ export default function Home() {
 
       {/* Transformation Demo Section */}
       <section className={styles.demo}>
-        <h2 className={styles.sectionTitle}>
-          See the Magic Happen
-        </h2>
+        <h2 className={styles.sectionTitle}>See the Magic Happen</h2>
         <div className={styles.demoContainer}>
           <div className={styles.demoStep}>
             <span className={styles.stepNumber}>1</span>
             <h3>You Chat</h3>
             <div className={styles.chatExample}>
               <p className={styles.userMessage}>
-                &quot;I need a PRD for a new user onboarding flow with email verification and progress tracking&quot;
+                &quot;I need a PRD for a new user onboarding flow with email
+                verification and progress tracking&quot;
               </p>
             </div>
           </div>
@@ -110,10 +120,14 @@ export default function Home() {
             <div className={styles.documentPreview}>
               <code>📄 user-onboarding-prd.md</code>
               <p className={styles.previewContent}>
-                # User Onboarding Flow PRD<br/>
-                ## Overview<br/>
-                ## User Stories<br/>
-                ## Requirements<br/>
+                # User Onboarding Flow PRD
+                <br />
+                ## Overview
+                <br />
+                ## User Stories
+                <br />
+                ## Requirements
+                <br />
                 ## Success Metrics...
               </p>
             </div>
@@ -144,7 +158,7 @@ export default function Home() {
             </div>
             <h3>Chat Naturally, Save Automatically</h3>
             <p>
-              Just describe what you need. Every conversation becomes a 
+              Just describe what you need. Every conversation becomes a
               structured document you can edit, share, and reuse forever.
             </p>
           </div>
@@ -154,8 +168,8 @@ export default function Home() {
             </div>
             <h3>Professional Documents in Seconds</h3>
             <p>
-              Generate PRDs, technical specs, or content briefs instantly. 
-              AI creates the structure, you refine the details.
+              Generate PRDs, technical specs, or content briefs instantly. AI
+              creates the structure, you refine the details.
             </p>
           </div>
           <div className={styles.conceptCard}>
@@ -164,8 +178,8 @@ export default function Home() {
             </div>
             <h3>Real-Time Team Collaboration</h3>
             <p>
-              See teammates&apos; edits live. Continue each other&apos;s AI conversations. 
-              Build shared knowledge together, naturally.
+              See teammates&apos; edits live. Continue each other&apos;s AI
+              conversations. Build shared knowledge together, naturally.
             </p>
           </div>
           <div className={styles.conceptCard}>
@@ -174,8 +188,8 @@ export default function Home() {
             </div>
             <h3>Edit Anywhere You Like</h3>
             <p>
-              Sync to your Mac, use VS Code, or stay in the browser. 
-              Your documents, your tools, your workflow.
+              Sync to your Mac, use VS Code, or stay in the browser. Your
+              documents, your tools, your workflow.
             </p>
           </div>
         </div>
@@ -233,14 +247,17 @@ export default function Home() {
               <span className={styles.storyLabel}>Product Managers</span>
               <h3>PRDs in Minutes, Not Hours</h3>
               <p>
-                &quot;I describe the feature in plain English. uSpark generates 
-                a complete PRD with user stories, requirements, and acceptance criteria. 
-                I refine it through conversation. What took 3 hours now takes 20 minutes.&quot;
+                &quot;I describe the feature in plain English. uSpark generates
+                a complete PRD with user stories, requirements, and acceptance
+                criteria. I refine it through conversation. What took 3 hours
+                now takes 20 minutes.&quot;
               </p>
               <div className={styles.storyMetrics}>
                 <div className={styles.metric}>
                   <span className={styles.metricValue}>70%</span>
-                  <span className={styles.metricLabel}>Faster PRD Creation</span>
+                  <span className={styles.metricLabel}>
+                    Faster PRD Creation
+                  </span>
                 </div>
                 <div className={styles.metric}>
                   <span className={styles.metricValue}>100%</span>
@@ -255,9 +272,10 @@ export default function Home() {
               <span className={styles.storyLabel}>Engineering Teams</span>
               <h3>Documentation That Stays Updated</h3>
               <p>
-                &quot;Our technical docs live where we work. Edit in VS Code, 
-                sync automatically, collaborate in real-time. The AI understands 
-                our codebase context and helps maintain consistency across all docs.&quot;
+                &quot;Our technical docs live where we work. Edit in VS Code,
+                sync automatically, collaborate in real-time. The AI understands
+                our codebase context and helps maintain consistency across all
+                docs.&quot;
               </p>
               <div className={styles.storyMetrics}>
                 <div className={styles.metric}>
@@ -291,14 +309,17 @@ export default function Home() {
               <span className={styles.storyLabel}>Design Teams</span>
               <h3>From Ideas to Specifications</h3>
               <p>
-                &quot;We brainstorm with AI, and every idea becomes a document. 
-                Design specs, user research notes, feature proposals - all searchable, 
-                all connected. Our entire design system is now AI-aware.&quot;
+                &quot;We brainstorm with AI, and every idea becomes a document.
+                Design specs, user research notes, feature proposals - all
+                searchable, all connected. Our entire design system is now
+                AI-aware.&quot;
               </p>
               <div className={styles.storyMetrics}>
                 <div className={styles.metric}>
                   <span className={styles.metricValue}>5x</span>
-                  <span className={styles.metricLabel}>More Ideas Captured</span>
+                  <span className={styles.metricLabel}>
+                    More Ideas Captured
+                  </span>
                 </div>
                 <div className={styles.metric}>
                   <span className={styles.metricValue}>90%</span>
@@ -315,7 +336,8 @@ export default function Home() {
         <div className={styles.finalCtaContent}>
           <h2>Stop Losing Your Best Ideas to Chat History</h2>
           <p className={styles.finalCtaTopText}>
-            Every conversation with AI should build your knowledge base, not disappear into the void.
+            Every conversation with AI should build your knowledge base, not
+            disappear into the void.
           </p>
           <SignUpButton mode="modal">
             <button className={styles.primaryCta}>
@@ -324,7 +346,8 @@ export default function Home() {
             </button>
           </SignUpButton>
           <p className={styles.finalCtaBottomText}>
-            Free to start. No credit card required. Your documents stay yours forever.
+            Free to start. No credit card required. Your documents stay yours
+            forever.
           </p>
         </div>
         <div className={styles.finalCtaBackground}></div>

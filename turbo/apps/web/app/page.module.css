@@ -24,8 +24,17 @@
   left: -50%;
   width: 200%;
   height: 200%;
-  background: radial-gradient(circle at 30% 40%, rgba(102, 126, 234, 0.08) 0%, transparent 50%),
-              radial-gradient(circle at 70% 60%, rgba(118, 75, 162, 0.06) 0%, transparent 50%);
+  background:
+    radial-gradient(
+      circle at 30% 40%,
+      rgba(102, 126, 234, 0.08) 0%,
+      transparent 50%
+    ),
+    radial-gradient(
+      circle at 70% 60%,
+      rgba(118, 75, 162, 0.06) 0%,
+      transparent 50%
+    );
   animation: float 20s ease-in-out infinite;
 }
 
@@ -256,16 +265,7 @@
   margin: 0.25rem 0;
   color: #4a5568;
   font-size: 0.9rem;
-  font-family: 'SF Mono', 'Monaco', 'Inconsolata', monospace;
-}
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 215, 0, 0.3) 0%,
-    transparent 70%
-  );
-  animation: rotate 20s linear infinite;
+  font-family: "SF Mono", "Monaco", "Inconsolata", monospace;
 }
 
 /* Core Concepts Section */
@@ -639,26 +639,26 @@
   .heroTitle {
     font-size: 3.5rem;
   }
-  
+
   .heroSubtitle {
     font-size: 1.1rem;
   }
-  
+
   .heroCta {
     flex-direction: column;
     align-items: center;
   }
-  
+
   .demoContent {
     grid-template-columns: 1fr;
     gap: 1.5rem;
     padding: 2rem;
   }
-  
+
   .transformArrow {
     order: 2;
   }
-  
+
   .documentSide {
     order: 3;
   }
@@ -694,11 +694,11 @@
     font-size: 1rem;
     padding: 0 1rem;
   }
-  
+
   .heroCta {
     gap: 0.75rem;
   }
-  
+
   .primaryButton,
   .secondaryButton {
     padding: 0.75rem 1.5rem;
@@ -706,25 +706,25 @@
     width: 100%;
     max-width: 280px;
   }
-  
+
   .heroTrust {
     flex-direction: column;
     gap: 0.5rem;
     font-size: 0.85rem;
   }
-  
+
   .divider {
     display: none;
   }
-  
+
   .demoWindow {
     margin: 0 1rem;
   }
-  
+
   .windowHeader {
     padding: 0.75rem 1rem;
   }
-  
+
   .demoContent {
     padding: 1.5rem;
   }
@@ -765,61 +765,61 @@
   .hero {
     background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
   }
-  
+
   .heroTitle {
     color: #f7fafc;
   }
-  
+
   .heroSubtitle {
     color: #cbd5e0;
   }
-  
+
   .secondaryButton {
     color: #cbd5e0;
     border-color: #4a5568;
   }
-  
+
   .secondaryButton:hover {
     border-color: #718096;
     background: #2d3748;
   }
-  
+
   .heroTrust {
     color: #a0aec0;
   }
-  
+
   .demoWindow {
     background: #2d3748;
     border-color: #4a5568;
   }
-  
+
   .windowHeader {
     background: #1a202c;
     border-bottom-color: #4a5568;
   }
-  
+
   .windowTitle {
     color: #a0aec0;
   }
-  
+
   .chatBubble {
     background: #1a202c;
     color: #e2e8f0;
   }
-  
+
   .chatBubble p {
     color: #e2e8f0;
   }
-  
+
   .documentSide {
     background: #1a202c;
     border-color: #4a5568;
   }
-  
+
   .documentPreview h3 {
     color: #f7fafc;
   }
-  
+
   .documentPreview p {
     color: #cbd5e0;
   }
@@ -1017,49 +1017,48 @@
   border: 2px solid #667eea;
 }
 
-
 /* Dark mode support for new sections */
 @media (prefers-color-scheme: dark) {
   .demo {
     background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
   }
-  
+
   .demoStep h3 {
     color: #e2e8f0;
   }
-  
+
   .chatExample,
   .documentPreview,
   .ownershipFeatures {
     background: #2d3748;
   }
-  
+
   .userMessage,
   .previewContent {
     color: #cbd5e0;
   }
-  
+
   .ownershipFeatures p {
     color: #e2e8f0;
   }
-  
+
   .whyUspark {
     background: #1a202c;
   }
-  
+
   .comparisonCard {
     background: #2d3748;
   }
-  
+
   .comparisonCard h3 {
     color: #e2e8f0;
   }
-  
+
   .comparisonCard:last-child {
     background: linear-gradient(135deg, #2d3748 0%, #4a5568 100%);
     border-color: #764ba2;
   }
-  
+
   .demoArrow {
     color: #764ba2;
   }
@@ -1070,12 +1069,12 @@
   .demoContainer {
     flex-direction: column;
   }
-  
+
   .demoArrow {
     transform: rotate(90deg);
     margin: 1rem 0;
   }
-  
+
   .comparisonGrid {
     grid-template-columns: 1fr;
   }
