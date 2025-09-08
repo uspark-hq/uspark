@@ -440,6 +440,9 @@
   margin: 0 auto;
   z-index: 2;
   position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .finalCtaContent h2 {
@@ -450,6 +453,7 @@
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+  text-align: center;
 }
 
 .finalCtaTopText {
@@ -457,6 +461,8 @@
   color: #4a5568;
   line-height: 1.6;
   margin-bottom: 2rem;
+  text-align: center;
+  max-width: 600px;
 }
 
 .finalCtaBottomText {
@@ -465,6 +471,7 @@
   line-height: 1.6;
   margin-top: 2rem;
   font-style: italic;
+  text-align: center;
 }
 
 /* Footer */
