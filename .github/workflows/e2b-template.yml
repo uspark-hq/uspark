@@ -28,26 +28,25 @@ jobs:
       - name: Install E2B CLI
         run: npm install -g @e2b/cli
 
-      - name: Authenticate with E2B
-        env:
-          E2B_ACCESS_TOKEN: ${{ secrets.E2B_API_KEY }}
-        run: |
-          echo "Setting up E2B authentication..."
-          export E2B_ACCESS_TOKEN=$E2B_ACCESS_TOKEN
-
       - name: Build E2B template
         working-directory: ./turbo/e2b
         env:
-          E2B_ACCESS_TOKEN: ${{ secrets.E2B_API_KEY }}
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
         run: |
           echo "Building E2B template..."
-          e2b template build --name "claude-code-sandbox" --dockerfile ./Dockerfile
+          # Try with different authentication methods
+          export E2B_API_KEY="${E2B_API_KEY}"
+          export E2B_ACCESS_TOKEN="sk_${E2B_API_KEY}"
+          echo "Attempting to build with E2B CLI..."
+          e2b template build --name "claude-code-sandbox" --dockerfile ./Dockerfile || {
+            echo "First attempt failed, trying with API key directly..."
+            export E2B_ACCESS_TOKEN="${E2B_API_KEY}"
+            e2b template build --name "claude-code-sandbox" --dockerfile ./Dockerfile
+          }
 
       - name: Test template build (PR only)
         if: github.event_name == 'pull_request'
         working-directory: ./turbo/e2b
-        env:
-          E2B_ACCESS_TOKEN: ${{ secrets.E2B_API_KEY }}
         run: |
           echo "✅ Template build successful (dry run for PR)"
           echo "Template will be pushed when merged to main"
@@ -56,9 +55,10 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         working-directory: ./turbo/e2b
         env:
-          E2B_ACCESS_TOKEN: ${{ secrets.E2B_API_KEY }}
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
         run: |
           echo "Pushing template to E2B registry..."
+          export E2B_ACCESS_TOKEN="${E2B_API_KEY}"
           e2b template push --name "claude-code-sandbox"
           echo "✅ Template pushed successfully"
 
@@ -66,9 +66,10 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         working-directory: ./turbo/e2b
         env:
-          E2B_ACCESS_TOKEN: ${{ secrets.E2B_API_KEY }}
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
         run: |
           echo "Getting template ID..."
+          export E2B_ACCESS_TOKEN="${E2B_API_KEY}"
           TEMPLATE_ID=$(e2b template list | grep "claude-code-sandbox" | awk '{print $1}')
           echo "Template ID: $TEMPLATE_ID"
           echo "TEMPLATE_ID=$TEMPLATE_ID" >> $GITHUB_ENV
