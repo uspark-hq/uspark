@@ -13,37 +13,76 @@ export default function Home() {
     <div className={styles.container}>
       {/* Hero Section */}
       <section className={styles.hero}>
-        <div className={styles.heroContent}>
-          <div className={styles.logoContainer}>
-            <div className={styles.sparkEffect}></div>
-            <h1 className={styles.logo}>
-              <span className={styles.logoU}>u</span>
-              <span className={styles.logoSpark}>Spark</span>
-            </h1>
-          </div>
-          <p className={styles.slogan}>
-            Where AI Conversations Become Living Documents
+        <div className={styles.heroInner}>
+          <h1 className={styles.heroTitle}>
+            Your AI conversations,<br/>
+            <span className={styles.heroTitleGradient}>forever organized</span>
+          </h1>
+          <p className={styles.heroSubtitle}>
+            Stop losing brilliant ideas to chat history. uSpark transforms every AI conversation 
+            into searchable, editable documents that grow with your team.
           </p>
-          <p className={styles.heroDescription}>
-            Transform every chat with AI into structured, editable Markdown documents. 
-            Build your team&apos;s knowledge base naturally through conversation.
-          </p>
-          <div className={styles.ctaContainer}>
+          
+          <div className={styles.heroCta}>
             <SignUpButton mode="modal">
-              <button className={styles.primaryCta}>
-                Start Creating Documents
-                <span className={styles.arrow}>→</span>
+              <button className={styles.primaryButton}>
+                Start Building Knowledge
               </button>
             </SignUpButton>
-            <p className={styles.ctaSubtext}>
-              Join 10,000+ teams building knowledge 70% faster
-            </p>
+            <button className={styles.secondaryButton}>
+              See How It Works
+            </button>
+          </div>
+          
+          <div className={styles.heroTrust}>
+            <span>Trusted by 10,000+ teams</span>
+            <span className={styles.divider}>•</span>
+            <span>70% faster documentation</span>
+            <span className={styles.divider}>•</span>
+            <span>Free to start</span>
           </div>
         </div>
-        <div className={styles.heroVisual}>
-          <div className={styles.floatingCard}>
-            <div className={styles.cardGradient}>
-              <AINetworkIllustration />
+        
+        {/* Product Demo Visual */}
+        <div className={styles.heroDemo}>
+          <div className={styles.demoWindow}>
+            <div className={styles.windowHeader}>
+              <div className={styles.windowDots}>
+                <span></span>
+                <span></span>
+                <span></span>
+              </div>
+              <span className={styles.windowTitle}>uSpark</span>
+            </div>
+            <div className={styles.demoContent}>
+              <div className={styles.chatSide}>
+                <div className={styles.chatBubble}>
+                  <p>Create a PRD for user authentication with SSO support</p>
+                </div>
+                <div className={styles.aiResponse}>
+                  <p>I&apos;ll create a comprehensive PRD for you...</p>
+                </div>
+              </div>
+              <div className={styles.transformArrow}>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
+                  <path d="M7 7l10 10M17 7v10H7" stroke="url(#gradient)" strokeWidth="2" strokeLinecap="round"/>
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                      <stop offset="0%" stopColor="#667eea" />
+                      <stop offset="100%" stopColor="#764ba2" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+              </div>
+              <div className={styles.documentSide}>
+                <div className={styles.documentPreview}>
+                  <h3># User Authentication PRD</h3>
+                  <p>## Overview</p>
+                  <p>Single Sign-On implementation...</p>
+                  <p>## User Stories</p>
+                  <p>## Technical Requirements</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
