@@ -154,6 +154,7 @@ jobs:
             DATABASE_URL=${{ steps.branch.outputs.database-url }}
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
             CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
+            E2B_API_KEY=${{ secrets.E2B_API_KEY }}
           meta-branch: ${{ github.head_ref }}
           meta-pr: ${{ github.event.pull_request.number }}
 
