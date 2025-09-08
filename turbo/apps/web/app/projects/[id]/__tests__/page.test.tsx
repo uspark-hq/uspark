@@ -47,8 +47,12 @@ describe("Project Detail Page", () => {
     // Set up default mock response for project API
     const mockYjsData = createMockYjsDocument();
     server.use(
-      http.get("/api/projects/test-project-123", () => {
-        return HttpResponse.arrayBuffer(mockYjsData);
+      http.get("*/api/projects/:projectId", () => {
+        return HttpResponse.arrayBuffer(mockYjsData, {
+          headers: {
+            "Content-Type": "application/octet-stream",
+          },
+        });
       }),
     );
   });
@@ -243,13 +247,8 @@ describe("Project Detail Page", () => {
       id: "another-project-456",
     });
 
-    // Set up mock for different project
-    const mockYjsData = createMockYjsDocument();
-    server.use(
-      http.get("/api/projects/another-project-456", () => {
-        return HttpResponse.arrayBuffer(mockYjsData);
-      }),
-    );
+    // Mock handler is already set up in beforeEach with wildcard pattern
+    // No need to set up again as the wildcard pattern will match any project ID
 
     render(<ProjectDetailPage />);
 
@@ -356,5 +355,276 @@ describe("Project Detail Page", () => {
     fireEvent.click(componentsFolder);
 
     expect(screen.getByText("Button.tsx")).toBeInTheDocument();
+  });
+
+  describe("Share functionality", () => {
+    beforeEach(() => {
+      // Mock clipboard API
+      Object.assign(navigator, {
+        clipboard: {
+          writeText: vi.fn().mockResolvedValue(undefined),
+        },
+      });
+    });
+
+    it("does not show share button when no file is selected", async () => {
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText("Loading project files..."),
+        ).not.toBeInTheDocument();
+      });
+
+      // Share button should not be visible when no file is selected
+      expect(screen.queryByText("Share")).not.toBeInTheDocument();
+    });
+
+    it("shows share button when a file is selected", async () => {
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText("Loading project files..."),
+        ).not.toBeInTheDocument();
+      });
+
+      // Select a file
+      const packageJson = screen.getByText("package.json");
+      fireEvent.click(packageJson);
+
+      await waitFor(() => {
+        expect(screen.getByText("📄 package.json")).toBeInTheDocument();
+      });
+
+      // Share button should now be visible
+      expect(screen.getByText("Share")).toBeInTheDocument();
+    });
+
+    it("creates share link and copies to clipboard", async () => {
+      const mockShareResponse = {
+        id: "share-123",
+        url: "http://localhost:3000/share/token-abc",
+        token: "token-abc",
+      };
+
+      // Use MSW to mock the share API
+      server.use(
+        http.post("*/api/share", () => {
+          return HttpResponse.json(mockShareResponse);
+        }),
+      );
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText("Loading project files..."),
+        ).not.toBeInTheDocument();
+      });
+
+      // Select a file
+      const packageJson = screen.getByText("package.json");
+      fireEvent.click(packageJson);
+
+      await waitFor(() => {
+        expect(screen.getByText("📄 package.json")).toBeInTheDocument();
+      });
+
+      // Click share button
+      const shareButton = screen.getByText("Share");
+      fireEvent.click(shareButton);
+
+      // Should show loading state
+      expect(screen.getByText("Sharing...")).toBeInTheDocument();
+
+      // Wait for API call to complete
+      await waitFor(() => {
+        expect(
+          screen.getByText("✓ Link copied to clipboard!"),
+        ).toBeInTheDocument();
+      });
+
+      // The API call verification is handled by MSW
+      // If the endpoint wasn't called, MSW would have returned an error
+
+      // Verify clipboard was updated
+      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+        "http://localhost:3000/share/token-abc",
+      );
+
+      // Success message should disappear after 3 seconds
+      await waitFor(
+        () => {
+          expect(
+            screen.queryByText("✓ Link copied to clipboard!"),
+          ).not.toBeInTheDocument();
+          expect(screen.getByText("Share")).toBeInTheDocument();
+        },
+        { timeout: 4000 },
+      );
+    });
+
+    it("handles share API errors gracefully", async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      // Use MSW to mock API error
+      server.use(
+        http.post("*/api/share", () => {
+          return new HttpResponse(null, { status: 500 });
+        }),
+      );
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText("Loading project files..."),
+        ).not.toBeInTheDocument();
+      });
+
+      // Select a file
+      const packageJson = screen.getByText("package.json");
+      fireEvent.click(packageJson);
+
+      await waitFor(() => {
+        expect(screen.getByText("📄 package.json")).toBeInTheDocument();
+      });
+
+      // Click share button
+      const shareButton = screen.getByText("Share");
+      fireEvent.click(shareButton);
+
+      // Should show loading state
+      expect(screen.getByText("Sharing...")).toBeInTheDocument();
+
+      // Wait for API call to complete
+      await waitFor(() => {
+        expect(screen.getByText("Share")).toBeInTheDocument();
+      });
+
+      // Should not show success message
+      expect(
+        screen.queryByText("✓ Link copied to clipboard!"),
+      ).not.toBeInTheDocument();
+
+      // Verify error was logged
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Failed to create share link",
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it("handles network errors during share", async () => {
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
+
+      // Use MSW to simulate network error
+      server.use(
+        http.post("*/api/share", () => {
+          return HttpResponse.error();
+        }),
+      );
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText("Loading project files..."),
+        ).not.toBeInTheDocument();
+      });
+
+      // Select a file
+      const readmeFile = screen.getByText("README.md");
+      fireEvent.click(readmeFile);
+
+      await waitFor(() => {
+        expect(screen.getByText("📄 README.md")).toBeInTheDocument();
+      });
+
+      // Click share button
+      const shareButton = screen.getByText("Share");
+      fireEvent.click(shareButton);
+
+      // Should show loading state
+      expect(screen.getByText("Sharing...")).toBeInTheDocument();
+
+      // Wait for API call to fail
+      await waitFor(() => {
+        expect(screen.getByText("Share")).toBeInTheDocument();
+      });
+
+      // Should not show success message
+      expect(
+        screen.queryByText("✓ Link copied to clipboard!"),
+      ).not.toBeInTheDocument();
+
+      // Verify error was logged
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "Error creating share link:",
+        expect.any(Error),
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it("disables share button while creating share", async () => {
+      // Create a promise we can control
+      let resolveHandler: (() => void) | undefined;
+      const delayedResponse = new Promise<void>((resolve) => {
+        resolveHandler = resolve;
+      });
+
+      // Use MSW with delayed response
+      server.use(
+        http.post("*/api/share", async () => {
+          await delayedResponse;
+          return HttpResponse.json({
+            id: "share-123",
+            url: "http://localhost:3000/share/token-abc",
+            token: "token-abc",
+          });
+        }),
+      );
+
+      render(<ProjectDetailPage />);
+
+      await waitFor(() => {
+        expect(
+          screen.queryByText("Loading project files..."),
+        ).not.toBeInTheDocument();
+      });
+
+      // Select a file
+      const packageJson = screen.getByText("package.json");
+      fireEvent.click(packageJson);
+
+      await waitFor(() => {
+        expect(screen.getByText("📄 package.json")).toBeInTheDocument();
+      });
+
+      // Click share button
+      const shareButton = screen.getByText("Share").closest("button");
+      fireEvent.click(shareButton!);
+
+      // Button should be disabled during loading
+      expect(screen.getByText("Sharing...").closest("button")).toHaveAttribute(
+        "disabled",
+      );
+
+      // Resolve the delayed response
+      resolveHandler!();
+
+      // Wait for button to be enabled again
+      await waitFor(() => {
+        expect(screen.getByText("Share").closest("button")).not.toHaveAttribute(
+          "disabled",
+        );
+      });
+    });
   });
 });

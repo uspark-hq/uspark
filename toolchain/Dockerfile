@@ -27,6 +27,10 @@ RUN curl -sL https://github.com/jqlang/jq/releases/download/jq-1.7.1/jq-linux-am
 # Install global npm packages for CI/CD
 RUN npm install -g pnpm@10.15.0 lefthook@1.12.3 vercel@46.1.1 neonctl@2.15.0
 
+# Install Playwright system dependencies for Chromium
+# This is needed for e2e tests in CI
+RUN npx playwright install-deps chromium
+
 # Stage 2: Development environment with additional tools
 FROM toolchain AS development
 
@@ -79,10 +83,13 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && rm -rf /var/lib/apt/lists/*
 
 # Create vscode user with standard UID/GID for devcontainer compatibility
+# Following Microsoft's devcontainer pattern for better feature compatibility
 RUN groupadd --gid 1000 vscode \
     && useradd --uid 1000 --gid vscode --shell /usr/bin/zsh --create-home vscode \
-    && echo "vscode ALL=(ALL) NOPASSWD:ALL" >> /etc/sudoers.d/vscode \
-    && chmod 0440 /etc/sudoers.d/vscode
+    && echo "vscode ALL=(ALL) NOPASSWD:ALL" > /etc/sudoers.d/vscode \
+    && chmod 0440 /etc/sudoers.d/vscode \
+    && mkdir -p /home/vscode/.local/share /home/vscode/.cache /home/vscode/.config \
+    && chown -R vscode:vscode /home/vscode
 
 # Default command
 CMD ["/usr/bin/zsh"]

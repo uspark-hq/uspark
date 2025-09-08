@@ -1,5 +1,40 @@
 # Changelog
 
+## [0.16.0](https://github.com/uspark-hq/uspark/compare/web-v0.15.0...web-v0.16.0) (2025-09-08)
+
+
+### Features
+
+* implement share management functionality ([#173](https://github.com/uspark-hq/uspark/issues/173)) ([36dd0e4](https://github.com/uspark-hq/uspark/commit/36dd0e4d688fd002bbb67a5a98a4318f5496ed78))
+
+## [0.15.0](https://github.com/uspark-hq/uspark/compare/web-v0.14.0...web-v0.15.0) (2025-09-07)
+
+
+### Features
+
+* update claude workflow to use project toolchain container ([#192](https://github.com/uspark-hq/uspark/issues/192)) ([33a0991](https://github.com/uspark-hq/uspark/commit/33a0991aed4ce2ad3b08e3ead71df28a653a2ab1))
+
+## [0.14.0](https://github.com/uspark-hq/uspark/compare/web-v0.13.0...web-v0.14.0) (2025-09-06)
+
+
+### Features
+
+* implement claude session management system ([#175](https://github.com/uspark-hq/uspark/issues/175)) ([4685547](https://github.com/uspark-hq/uspark/commit/4685547f5b7368655ec11ce73219fb01c2f2617d))
+* implement complete document share management system ([#171](https://github.com/uspark-hq/uspark/issues/171)) ([d50b99c](https://github.com/uspark-hq/uspark/commit/d50b99c6a64706793c6802a98d88c4bef8eaabbe))
+* implement complete document share management system ([#185](https://github.com/uspark-hq/uspark/issues/185)) ([4ade8bc](https://github.com/uspark-hq/uspark/commit/4ade8bca9ff5f97c7bce3b848742288bb0890ce2))
+
+
+### Bug Fixes
+
+* correct technical debt cleanup keeping ts-rest/core ([#177](https://github.com/uspark-hq/uspark/issues/177)) ([87c676f](https://github.com/uspark-hq/uspark/commit/87c676f57a5a5c51ceb22d7f9d2600e521f6518c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.9.2
+
 ## [0.13.0](https://github.com/uspark-hq/uspark/compare/web-v0.12.0...web-v0.13.0) (2025-09-05)
 
 

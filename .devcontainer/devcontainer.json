@@ -1,6 +1,6 @@
 {
   "name": "USpark Development",
-  "image": "ghcr.io/uspark-hq/uspark-dev:8767eed",
+  "image": "ghcr.io/uspark-hq/uspark-dev:1dacb9c",
   "features": {
     "ghcr.io/itsmechlark/features/postgresql:1": {}
   },
@@ -16,7 +16,7 @@
     "source=cache,target=/home/vscode/.cache",
     "source=vercel,target=/home/vscode/.local/share/com.vercel.cli"
   ],
-  "postCreateCommand": "sudo mkdir -p /home/vscode/.local/bin && sudo chown -R vscode:vscode /home/vscode/.config /home/vscode/.cache /home/vscode/.local && echo 'Dev container initialized successfully'",
+  "postCreateCommand": "sudo chown -R postgres:postgres /var/lib/postgresql 2>/dev/null || true; sudo service postgresql start 2>/dev/null || true; sudo mkdir -p /home/vscode/.local/bin && sudo chown -R vscode:vscode /home/vscode/.config /home/vscode/.cache /home/vscode/.local && echo 'Dev container initialized successfully'",
   "customizations": {
     "vscode": {
       "settings": {

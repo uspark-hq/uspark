@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.2](https://github.com/uspark-hq/uspark/compare/core-v0.9.1...core-v0.9.2) (2025-09-06)
+
+
+### Bug Fixes
+
+* correct technical debt cleanup keeping ts-rest/core ([#177](https://github.com/uspark-hq/uspark/issues/177)) ([87c676f](https://github.com/uspark-hq/uspark/commit/87c676f57a5a5c51ceb22d7f9d2600e521f6518c))
+
 ## [0.9.1](https://github.com/uspark-hq/uspark/compare/core-v0.9.0...core-v0.9.1) (2025-09-05)
 
 

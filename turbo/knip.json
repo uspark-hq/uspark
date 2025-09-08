@@ -48,6 +48,13 @@
       "ignoreUnresolved": ["next"]
     }
   },
-  "ignore": ["**/*.d.ts", ".next/**", "dist/**", "build/**", "coverage/**"],
+  "ignore": [
+    "**/*.d.ts",
+    ".next/**",
+    "dist/**",
+    "build/**",
+    "coverage/**",
+    "**/drizzle.config.ts"
+  ],
   "ignoreWorkspaces": []
 }
