@@ -4,6 +4,83 @@
   overflow-x: hidden;
 }
 
+/* Header */
+.header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.headerContent {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 2rem;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.headerLogo {
+  font-size: 1.5rem;
+  font-weight: 900;
+  display: flex;
+  gap: 0.1em;
+  text-decoration: none;
+}
+
+.headerLogo .logoU {
+  color: #667eea;
+}
+
+.headerLogo .logoSpark {
+  color: #1a202c;
+}
+
+.nav {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
+}
+
+.navLink {
+  color: #4a5568;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.navLink:hover {
+  color: #667eea;
+}
+
+.headerCta {
+  display: flex;
+  align-items: center;
+}
+
+.signInButton {
+  padding: 0.5rem 1.5rem;
+  background: transparent;
+  color: #4a5568;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.signInButton:hover {
+  background: #f7fafc;
+  border-color: #cbd5e0;
+}
+
 /* Hero Section - Modern Minimal Design */
 .hero {
   min-height: 100vh;
@@ -11,7 +88,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 2rem 5%;
+  padding: 6rem 5% 2rem;
   background: linear-gradient(180deg, #ffffff 0%, #f8f9fa 100%);
   position: relative;
   overflow: hidden;
@@ -288,9 +365,10 @@
 
 .conceptsGrid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
   gap: 3rem;
-  max-width: 1200px;
+  max-width: 800px;
   margin: 0 auto;
 }
 
@@ -685,6 +763,14 @@
 }
 
 @media (max-width: 768px) {
+  .headerContent {
+    padding: 0 1rem;
+  }
+  
+  .nav {
+    display: none;
+  }
+
   .heroTitle {
     font-size: 2.8rem;
     line-height: 1.2;
@@ -762,6 +848,33 @@
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
+  .header {
+    background: rgba(26, 32, 44, 0.95);
+    border-bottom-color: rgba(255, 255, 255, 0.05);
+  }
+  
+  .headerLogo .logoSpark {
+    color: #f7fafc;
+  }
+  
+  .navLink {
+    color: #cbd5e0;
+  }
+  
+  .navLink:hover {
+    color: #667eea;
+  }
+  
+  .signInButton {
+    color: #cbd5e0;
+    border-color: #4a5568;
+  }
+  
+  .signInButton:hover {
+    background: #2d3748;
+    border-color: #718096;
+  }
+
   .hero {
     background: linear-gradient(180deg, #1a202c 0%, #2d3748 100%);
   }

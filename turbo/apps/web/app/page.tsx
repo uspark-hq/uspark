@@ -11,6 +11,26 @@ import styles from "./page.module.css";
 export default function Home() {
   return (
     <div className={styles.container}>
+      {/* Header */}
+      <header className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.headerLogo}>
+            <span className={styles.logoU}>u</span>
+            <span className={styles.logoSpark}>Spark</span>
+          </div>
+          <nav className={styles.nav}>
+            <a href="#features" className={styles.navLink}>Features</a>
+            <a href="#how-it-works" className={styles.navLink}>How It Works</a>
+            <a href="#pricing" className={styles.navLink}>Pricing</a>
+          </nav>
+          <div className={styles.headerCta}>
+            <SignUpButton mode="modal">
+              <button className={styles.signInButton}>Sign In</button>
+            </SignUpButton>
+          </div>
+        </div>
+      </header>
+
       {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.heroInner}>
@@ -340,9 +360,8 @@ export default function Home() {
             disappear into the void.
           </p>
           <SignUpButton mode="modal">
-            <button className={styles.primaryCta}>
+            <button className={styles.primaryButton}>
               Start Building Knowledge
-              <span className={styles.arrow}>→</span>
             </button>
           </SignUpButton>
           <p className={styles.finalCtaBottomText}>
