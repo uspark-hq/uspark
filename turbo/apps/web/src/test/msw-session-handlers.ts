@@ -150,7 +150,7 @@ function startStreamingUpdates(turnId: string) {
             path: "middleware.ts",
             content:
               "import { authMiddleware } from '@clerk/nextjs';\n\nexport default authMiddleware();\n\nexport const config = {\n  matcher: ['/((?!.+\\\\.[\\\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],\n};",
-          }),
+          },
         }),
         sequenceNumber: blockCount - 1,
         createdAt: new Date(),
