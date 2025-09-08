@@ -4,7 +4,7 @@ import { NextRequest } from "next/server";
  * Helper function to make API calls in tests
  * Simulates HTTP requests to API route handlers
  */
-type Handler = (...args: unknown[]) => Promise<Response>;
+type Handler = (...args: any[]) => Promise<Response>;
 
 export async function apiCall(
   handler: Handler,

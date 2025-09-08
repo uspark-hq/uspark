@@ -172,6 +172,56 @@ const clerkHandlers = [
   }),
 ];
 
+// Projects API endpoints handlers
+const projectsHandlers = [
+  // GET /api/projects - List user's projects
+  http.get("*/api/projects", () => {
+    return HttpResponse.json({
+      projects: [
+        {
+          id: "demo-project-123",
+          name: "Demo Project",
+          created_at: new Date(
+            Date.now() - 7 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+          updated_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        },
+        {
+          id: "web-app-456",
+          name: "Web Application",
+          created_at: new Date(
+            Date.now() - 14 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+          updated_at: new Date(
+            Date.now() - 1 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+        },
+        {
+          id: "api-service-789",
+          name: "API Service",
+          created_at: new Date(
+            Date.now() - 30 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+          updated_at: new Date(
+            Date.now() - 3 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+        },
+      ],
+    });
+  }),
+
+  // POST /api/projects - Create a new project
+  http.post("*/api/projects", async ({ request }) => {
+    const body = await request.json() as { name: string };
+    const newProject = {
+      id: `project-${Date.now()}`,
+      name: body.name,
+      created_at: new Date().toISOString(),
+    };
+    return HttpResponse.json(newProject, { status: 201 });
+  }),
+];
+
 // Share API endpoints handlers
 const shareHandlers = [
   // GET /api/shares - List user's shares
@@ -209,4 +259,4 @@ const shareHandlers = [
 ];
 
 // Export all handlers
-export const handlers = [...clerkHandlers, ...shareHandlers];
+export const handlers = [...clerkHandlers, ...projectsHandlers, ...shareHandlers];
