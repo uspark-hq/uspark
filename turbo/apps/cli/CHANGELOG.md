@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.2](https://github.com/uspark-hq/uspark/compare/cli-v0.8.1...cli-v0.8.2) (2025-09-08)
+
+
+### Bug Fixes
+
+* update all urls from app.uspark.com to uspark.ai ([#208](https://github.com/uspark-hq/uspark/issues/208)) ([5f50e4b](https://github.com/uspark-hq/uspark/commit/5f50e4b3588569d0000fd2873569d1780c4cfab5))
+
 ## [0.8.1](https://github.com/uspark-hq/uspark/compare/cli-v0.8.0...cli-v0.8.1) (2025-09-06)
 
 
