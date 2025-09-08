@@ -55,23 +55,19 @@ async function exchangeToken(
   }>;
 }
 
-export async function authenticate(
-  apiUrl?: string,
-): Promise<void> {
+export async function authenticate(apiUrl?: string): Promise<void> {
   // Use provided apiUrl or get from config/env
-  const targetApiUrl = apiUrl || await getApiUrl();
+  const targetApiUrl = apiUrl || (await getApiUrl());
   console.log(chalk.blue("🔐 Initiating authentication..."));
 
   // Request device code
   const deviceAuth = await requestDeviceCode(targetApiUrl);
 
   console.log(chalk.green("\n✓ Device code generated"));
-  
+
   // Construct verification URL from API URL
   const verificationUrl = `${targetApiUrl}/cli-auth`;
-  console.log(
-    chalk.cyan(`\nTo authenticate, visit: ${verificationUrl}`),
-  );
+  console.log(chalk.cyan(`\nTo authenticate, visit: ${verificationUrl}`));
   console.log(
     chalk.yellow(`And enter this code: ${chalk.bold(deviceAuth.user_code)}`),
   );
@@ -91,7 +87,10 @@ export async function authenticate(
   while (Date.now() - startTime < maxWaitTime) {
     await delay(pollInterval); // Use dynamic polling interval
 
-    const tokenResult = await exchangeToken(targetApiUrl, deviceAuth.device_code);
+    const tokenResult = await exchangeToken(
+      targetApiUrl,
+      deviceAuth.device_code,
+    );
 
     if (tokenResult.access_token) {
       // Success! Store the token

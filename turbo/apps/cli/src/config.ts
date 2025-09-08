@@ -69,9 +69,7 @@ export async function getToken(): Promise<string | undefined> {
 export async function getApiUrl(): Promise<string> {
   if (overrideConfig !== null) {
     return (
-      overrideConfig.apiUrl ||
-      process.env.USPARK_API_URL ||
-      "https://uspark.ai"
+      overrideConfig.apiUrl || process.env.USPARK_API_URL || "https://uspark.ai"
     );
   }
 
