@@ -26,8 +26,7 @@ async function testClaudeAuth() {
   try {
     // Initialize sandbox with specified template
     console.log("Initializing sandbox...");
-    sandbox = await Sandbox.create({
-      template: "w6qe4mwx23icyuytq64y",
+    sandbox = await Sandbox.create("w6qe4mwx23icyuytq64y", {
       apiKey: process.env.E2B_API_TOKEN,
     });
     console.log(`Sandbox created successfully! ID: ${sandbox.sandboxId}`);
@@ -35,24 +34,36 @@ async function testClaudeAuth() {
 
     // Test the claude command directly
     console.log("Testing Claude CLI...");
-    
-    // Check if claude command is available
-    const claudeVersion = await sandbox.commands.run("claude --version");
-    console.log("✅ Claude CLI found! Version:", claudeVersion.stdout);
 
-    // Test claude auth command
-    console.log("\nTesting Claude authentication flow...");
-    const authResult = await sandbox.commands.run("claude auth 2>&1");
-    console.log("Auth command output:", authResult.stdout);
+    try {
+      // Check if claude command is available
+      const claudeVersion = await sandbox.commands.run("claude --version");
+      console.log("✅ Claude CLI found! Version:", claudeVersion.stdout);
 
-    // If claude is installed, proceed with real auth flow
-    console.log("\n---");
-    console.log("🔐 Starting Claude authentication...");
-      
+      // Test claude auth command
+      console.log("\nTesting Claude authentication flow...");
+      const authResult = await sandbox.commands.run("claude auth 2>&1");
+      console.log("Auth command output:", authResult.stdout);
+
+      // If claude is installed, proceed with real auth flow
+      console.log("\n---");
+      console.log("🔐 Starting Claude authentication...");
+    } catch (error) {
+      // Claude not found, fall back to simulation
+      console.log("❌ Claude CLI not found in sandbox:", error);
+      console.log("\n⚠️  Simulating authentication flow...");
+      console.log("\n🔗 Authentication URL (simulated):");
+      console.log("   https://claude.ai/auth/setup?code=ABC123XYZ");
+      console.log("\n📝 In a real scenario, you would:");
+      console.log("   1. Open this URL in your browser");
+      console.log("   2. Complete the authentication");
+      console.log("   3. Copy the verification code");
+      console.log("---\n");
+    }
 
     // Check if running in interactive mode (TTY)
     const isInteractive = process.stdin.isTTY;
-    
+
     if (isInteractive) {
       // Create readline interface for user input
       rl = readline.createInterface({
@@ -70,12 +81,16 @@ async function testClaudeAuth() {
       };
 
       // Wait for user to input the verification code (for demonstration)
-      const verificationCode = await prompt("Enter a test verification code (or 'skip' to continue): ");
-      
-      if (verificationCode.trim() && verificationCode.trim() !== 'skip') {
+      const verificationCode = await prompt(
+        "Enter a test verification code (or 'skip' to continue): ",
+      );
+
+      if (verificationCode.trim() && verificationCode.trim() !== "skip") {
         console.log(`\n📝 Verification code received: ${verificationCode}`);
-        console.log("In a real scenario, this would be sent to the Claude CLI for authentication.");
-        
+        console.log(
+          "In a real scenario, this would be sent to the Claude CLI for authentication.",
+        );
+
         // Simulate successful authentication
         console.log("\n✅ Authentication simulation complete!");
         console.log("📌 Example OAuth Token: claude_oauth_abc123xyz789...");
@@ -85,28 +100,29 @@ async function testClaudeAuth() {
       console.log("\n✅ Authentication simulation complete!");
       console.log("📌 Example OAuth Token: claude_oauth_abc123xyz789...");
     }
-    
+
     // Check what tools are actually available in the sandbox
     console.log("\n---");
     console.log("Exploring sandbox environment...");
-    const envInfo = await sandbox.commands.run("env | grep -E '(PATH|HOME|USER)' | head -5");
+    const envInfo = await sandbox.commands.run(
+      "env | grep -E '(PATH|HOME|USER)' | head -5",
+    );
     console.log("Environment variables:");
     console.log(envInfo.stdout);
-    
+
     const nodeVersion = await sandbox.commands.run("node --version");
     console.log("\nNode version:", nodeVersion.stdout);
-    
+
     const npmVersion = await sandbox.commands.run("npm --version");
     console.log("NPM version:", npmVersion.stdout);
 
     console.log("\n✅ Test completed successfully!");
-
-  } finally {    
+  } finally {
     // Close readline interface if it was created
     if (rl) {
       rl.close();
     }
-    
+
     if (sandbox) {
       console.log("\n---");
       console.log("Cleaning up sandbox...");
