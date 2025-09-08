@@ -1,4 +1,5 @@
 import { http, HttpResponse } from "msw";
+import { sessionHandlers } from "./msw-session-handlers";
 
 // Clerk API endpoints handlers
 const clerkHandlers = [
@@ -209,4 +210,4 @@ const shareHandlers = [
 ];
 
 // Export all handlers
-export const handlers = [...clerkHandlers, ...shareHandlers];
+export const handlers = [...clerkHandlers, ...shareHandlers, ...sessionHandlers];
