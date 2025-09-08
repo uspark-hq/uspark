@@ -11,39 +11,129 @@ import styles from "./page.module.css";
 export default function Home() {
   return (
     <div className={styles.container}>
+      {/* Header */}
+      <header className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.headerLogo}>
+            <span className={styles.logoU}>u</span>
+            <span className={styles.logoSpark}>Spark</span>
+          </div>
+        </div>
+      </header>
+
       {/* Hero Section */}
       <section className={styles.hero}>
         <div className={styles.heroContent}>
-          <div className={styles.logoContainer}>
-            <div className={styles.sparkEffect}></div>
-            <h1 className={styles.logo}>
-              <span className={styles.logoU}>u</span>
-              <span className={styles.logoSpark}>Spark</span>
+          <div className={styles.heroText}>
+            <h1 className={styles.heroTitle}>
+              Your AI conversations,
+              <br />
+              <span className={styles.heroTitleGradient}>
+                forever organized
+              </span>
             </h1>
-          </div>
-          <p className={styles.slogan}>
-            Ignite Your AI Workflow. Supercharge Your Productivity.
-          </p>
-          <p className={styles.heroDescription}>
-            The next-generation AI assistant that understands your context,
-            learns your patterns, and delivers intelligent automation at scale.
-          </p>
-          <div className={styles.ctaContainer}>
-            <SignUpButton mode="modal">
-              <button className={styles.primaryCta}>
-                Join the Waiting List
-                <span className={styles.arrow}>→</span>
-              </button>
-            </SignUpButton>
-            <p className={styles.ctaSubtext}>
-              Be among the first to experience the future of AI assistance
+            <p className={styles.heroSubtitle}>
+              Stop losing brilliant ideas to chat history. uSpark transforms
+              every AI conversation into searchable, editable documents that
+              grow with your team.
             </p>
+
+            <div className={styles.heroCta}>
+              <SignUpButton mode="modal">
+                <button className={styles.primaryButton}>Join Waitlist</button>
+              </SignUpButton>
+            </div>
+
+            <div className={styles.heroTrust}>
+              <span>Trusted by 10,000+ teams</span>
+              <span className={styles.divider}>•</span>
+              <span>70% faster documentation</span>
+              <span className={styles.divider}>•</span>
+              <span>Free to start</span>
+            </div>
+          </div>
+
+          {/* Animated Demo */}
+          <div className={styles.heroAnimation}>
+            <div className={styles.animatedDemo}>
+              <div className={styles.demoStep} data-step="1">
+                <div className={styles.chatMessage}>
+                  <p>
+                    &quot;Create a PRD for user authentication with SSO
+                    support&quot;
+                  </p>
+                </div>
+              </div>
+              <div className={styles.animatedArrow}>↓</div>
+              <div className={styles.demoStep} data-step="2">
+                <div className={styles.aiProcessing}>
+                  <p>AI is generating your document...</p>
+                  <div className={styles.loadingDots}>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
+              </div>
+              <div className={styles.animatedArrow}>↓</div>
+              <div className={styles.demoStep} data-step="3">
+                <div className={styles.generatedDoc}>
+                  <div className={styles.docHeader}>📄 user-auth-prd.md</div>
+                  <div className={styles.docContent}>
+                    <p># User Authentication PRD</p>
+                    <p>## Overview</p>
+                    <p>## User Stories</p>
+                    <p>## Technical Requirements</p>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div className={styles.heroVisual}>
-          <div className={styles.floatingCard}>
-            <div className={styles.cardGradient}>
-              <AINetworkIllustration />
+      </section>
+
+      {/* Transformation Demo Section */}
+      <section className={styles.demo}>
+        <h2 className={styles.sectionTitle}>See the Magic Happen</h2>
+        <div className={styles.demoContainer}>
+          <div className={styles.demoStep}>
+            <span className={styles.stepNumber}>1</span>
+            <h3>You Chat</h3>
+            <div className={styles.chatExample}>
+              <p className={styles.userMessage}>
+                &quot;I need a PRD for a new user onboarding flow with email
+                verification and progress tracking&quot;
+              </p>
+            </div>
+          </div>
+          <div className={styles.demoArrow}>→</div>
+          <div className={styles.demoStep}>
+            <span className={styles.stepNumber}>2</span>
+            <h3>AI Creates</h3>
+            <div className={styles.documentPreview}>
+              <code>📄 user-onboarding-prd.md</code>
+              <p className={styles.previewContent}>
+                # User Onboarding Flow PRD
+                <br />
+                ## Overview
+                <br />
+                ## User Stories
+                <br />
+                ## Requirements
+                <br />
+                ## Success Metrics...
+              </p>
+            </div>
+          </div>
+          <div className={styles.demoArrow}>→</div>
+          <div className={styles.demoStep}>
+            <span className={styles.stepNumber}>3</span>
+            <h3>You Own</h3>
+            <div className={styles.ownershipFeatures}>
+              <p>✅ Edit anywhere</p>
+              <p>✅ Share with team</p>
+              <p>✅ Version history</p>
+              <p>✅ Export anytime</p>
             </div>
           </div>
         </div>
@@ -52,55 +142,91 @@ export default function Home() {
       {/* Core Concepts Section */}
       <section className={styles.concepts}>
         <h2 className={styles.sectionTitle}>
-          Redefining What AI Can Do For You
+          Finally, AI That Creates Reusable Knowledge
         </h2>
         <div className={styles.conceptsGrid}>
           <div className={styles.conceptCard}>
             <div className={styles.conceptIcon}>
-              <span className={styles.iconGradient}>🧠</span>
+              <span className={styles.iconGradient}>💬</span>
             </div>
-            <h3>Contextual Intelligence</h3>
+            <h3>Chat Naturally, Save Automatically</h3>
             <p>
-              uSpark remembers your preferences, understands your projects, and
-              adapts to your unique workflow patterns.
+              Just describe what you need. Every conversation becomes a
+              structured document you can edit, share, and reuse forever.
             </p>
           </div>
           <div className={styles.conceptCard}>
             <div className={styles.conceptIcon}>
-              <span className={styles.iconGradient}>⚡</span>
+              <span className={styles.iconGradient}>📝</span>
             </div>
-            <h3>Lightning Fast Automation</h3>
+            <h3>Professional Documents in Seconds</h3>
             <p>
-              Execute complex workflows in seconds. From data analysis to
-              content creation, uSpark handles it all with unprecedented speed.
+              Generate PRDs, technical specs, or content briefs instantly. AI
+              creates the structure, you refine the details.
             </p>
           </div>
           <div className={styles.conceptCard}>
             <div className={styles.conceptIcon}>
-              <span className={styles.iconGradient}>🔐</span>
+              <span className={styles.iconGradient}>👥</span>
             </div>
-            <h3>Enterprise-Grade Security</h3>
+            <h3>Real-Time Team Collaboration</h3>
             <p>
-              Your data stays yours. With end-to-end encryption and
-              privacy-first architecture, trust is built into every interaction.
+              See teammates&apos; edits live. Continue each other&apos;s AI
+              conversations. Build shared knowledge together, naturally.
             </p>
           </div>
           <div className={styles.conceptCard}>
             <div className={styles.conceptIcon}>
-              <span className={styles.iconGradient}>🎯</span>
+              <span className={styles.iconGradient}>💻</span>
             </div>
-            <h3>Precision Customization</h3>
+            <h3>Edit Anywhere You Like</h3>
             <p>
-              Fine-tune uSpark to match your exact needs. Create custom agents,
-              workflows, and integrations that work perfectly for you.
+              Sync to your Mac, use VS Code, or stay in the browser. Your
+              documents, your tools, your workflow.
             </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Why uSpark Section */}
+      <section className={styles.whyUspark}>
+        <h2 className={styles.sectionTitle}>
+          The Missing Link in Your AI Workflow
+        </h2>
+        <div className={styles.comparisonGrid}>
+          <div className={`${styles.comparisonCard} ${styles.grayedOut}`}>
+            <h3>ChatGPT / Claude</h3>
+            <div className={styles.comparisonContent}>
+              <p className={styles.problem}>❌ Linear chat history</p>
+              <p className={styles.problem}>❌ Can&apos;t edit responses</p>
+              <p className={styles.problem}>❌ No team collaboration</p>
+              <p className={styles.problem}>❌ Lost after session ends</p>
+            </div>
+          </div>
+          <div className={`${styles.comparisonCard} ${styles.grayedOut}`}>
+            <h3>Notion / Docs</h3>
+            <div className={styles.comparisonContent}>
+              <p className={styles.problem}>❌ AI is just a feature</p>
+              <p className={styles.problem}>❌ Manual organization</p>
+              <p className={styles.problem}>❌ Complex structures</p>
+              <p className={styles.problem}>❌ Not AI-native</p>
+            </div>
+          </div>
+          <div className={styles.comparisonCard}>
+            <h3>uSpark</h3>
+            <div className={styles.comparisonContent}>
+              <p className={styles.solution}>✓ Every chat → document</p>
+              <p className={styles.solution}>✓ Edit anywhere, anytime</p>
+              <p className={styles.solution}>✓ Real-time collaboration</p>
+              <p className={styles.solution}>✓ AI-native from day one</p>
+            </div>
           </div>
         </div>
       </section>
 
       {/* User Stories Section */}
       <section className={styles.stories}>
-        <h2 className={styles.sectionTitle}>Transform Your Daily Workflow</h2>
+        <h2 className={styles.sectionTitle}>Built for Teams Who Ship</h2>
         <div className={styles.storiesContainer}>
           <div className={styles.storyCard}>
             <div className={styles.storyImage}>
@@ -111,22 +237,24 @@ export default function Home() {
               </div>
             </div>
             <div className={styles.storyContent}>
-              <span className={styles.storyLabel}>For Developers</span>
-              <h3>Code Smarter, Ship Faster</h3>
+              <span className={styles.storyLabel}>Product Managers</span>
+              <h3>PRDs in Minutes, Not Hours</h3>
               <p>
-                &quot;uSpark reduced our development cycle by 40%. It
-                understands our codebase, suggests optimal solutions, and
-                automates testing workflows. It&apos;s like having a senior
-                developer available 24/7.&quot;
+                &quot;I describe the feature in plain English. uSpark generates
+                a complete PRD with user stories, requirements, and acceptance
+                criteria. I refine it through conversation. What took 3 hours
+                now takes 20 minutes.&quot;
               </p>
               <div className={styles.storyMetrics}>
                 <div className={styles.metric}>
-                  <span className={styles.metricValue}>40%</span>
-                  <span className={styles.metricLabel}>Faster Development</span>
+                  <span className={styles.metricValue}>70%</span>
+                  <span className={styles.metricLabel}>
+                    Faster PRD Creation
+                  </span>
                 </div>
                 <div className={styles.metric}>
-                  <span className={styles.metricValue}>60%</span>
-                  <span className={styles.metricLabel}>Fewer Bugs</span>
+                  <span className={styles.metricValue}>100%</span>
+                  <span className={styles.metricLabel}>Consistent Format</span>
                 </div>
               </div>
             </div>
@@ -134,21 +262,22 @@ export default function Home() {
 
           <div className={styles.storyCard}>
             <div className={styles.storyContent}>
-              <span className={styles.storyLabel}>For Researchers</span>
-              <h3>Accelerate Discovery</h3>
+              <span className={styles.storyLabel}>Engineering Teams</span>
+              <h3>Documentation That Stays Updated</h3>
               <p>
-                &quot;What used to take weeks now takes hours. uSpark analyzes
-                research papers, synthesizes findings, and helps us identify
-                patterns we would have never found manually.&quot;
+                &quot;Our technical docs live where we work. Edit in VS Code,
+                sync automatically, collaborate in real-time. The AI understands
+                our codebase context and helps maintain consistency across all
+                docs.&quot;
               </p>
               <div className={styles.storyMetrics}>
                 <div className={styles.metric}>
-                  <span className={styles.metricValue}>10x</span>
-                  <span className={styles.metricLabel}>Research Speed</span>
+                  <span className={styles.metricValue}>2 sec</span>
+                  <span className={styles.metricLabel}>Sync Time</span>
                 </div>
                 <div className={styles.metric}>
-                  <span className={styles.metricValue}>95%</span>
-                  <span className={styles.metricLabel}>Accuracy Rate</span>
+                  <span className={styles.metricValue}>Zero</span>
+                  <span className={styles.metricLabel}>Context Switching</span>
                 </div>
               </div>
             </div>
@@ -170,21 +299,24 @@ export default function Home() {
               </div>
             </div>
             <div className={styles.storyContent}>
-              <span className={styles.storyLabel}>For Creators</span>
-              <h3>Unleash Creative Potential</h3>
+              <span className={styles.storyLabel}>Design Teams</span>
+              <h3>From Ideas to Specifications</h3>
               <p>
-                &quot;uSpark is my creative partner. From ideation to final
-                polish, it helps me produce content that resonates. My
-                engagement has tripled since I started using it.&quot;
+                &quot;We brainstorm with AI, and every idea becomes a document.
+                Design specs, user research notes, feature proposals - all
+                searchable, all connected. Our entire design system is now
+                AI-aware.&quot;
               </p>
               <div className={styles.storyMetrics}>
                 <div className={styles.metric}>
-                  <span className={styles.metricValue}>3x</span>
-                  <span className={styles.metricLabel}>Engagement Growth</span>
+                  <span className={styles.metricValue}>5x</span>
+                  <span className={styles.metricLabel}>
+                    More Ideas Captured
+                  </span>
                 </div>
                 <div className={styles.metric}>
-                  <span className={styles.metricValue}>5h</span>
-                  <span className={styles.metricLabel}>Saved Daily</span>
+                  <span className={styles.metricValue}>90%</span>
+                  <span className={styles.metricLabel}>Reuse Rate</span>
                 </div>
               </div>
             </div>
@@ -195,18 +327,17 @@ export default function Home() {
       {/* Final CTA Section */}
       <section className={styles.finalCta}>
         <div className={styles.finalCtaContent}>
-          <h2>Ready to Spark Your Potential?</h2>
+          <h2>Stop Losing Your Best Ideas to Chat History</h2>
           <p className={styles.finalCtaTopText}>
-            Join thousands of innovators already on the waiting list.
+            Every conversation with AI should build your knowledge base, not
+            disappear into the void.
           </p>
           <SignUpButton mode="modal">
-            <button className={styles.primaryCta}>
-              Reserve Your Spot
-              <span className={styles.arrow}>→</span>
-            </button>
+            <button className={styles.primaryButton}>Join Waitlist</button>
           </SignUpButton>
           <p className={styles.finalCtaBottomText}>
-            Be first to experience the AI assistant that changes everything.
+            Free to start. No credit card required. Your documents stay yours
+            forever.
           </p>
         </div>
         <div className={styles.finalCtaBackground}></div>
@@ -216,11 +347,11 @@ export default function Home() {
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <div className={styles.footerLogo}>
-            <span className={styles.logoU}>u</span>
-            <span className={styles.logoSpark}>Spark</span>
+            <span className={styles.footerLogoU}>u</span>
+            <span className={styles.footerLogoSpark}>Spark</span>
           </div>
           <p className={styles.footerText}>
-            © 2025 uSpark. Building the future of AI assistance.
+            © 2025 uSpark. Where conversations become knowledge.
           </p>
         </div>
       </footer>
