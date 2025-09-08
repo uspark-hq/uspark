@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { DELETE } from "./route";
+import { POST as createProject } from "../../projects/route";
 import { initServices } from "../../../../src/lib/init-services";
 import { apiCall } from "../../../../src/test/api-helpers";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";
+import { NextRequest } from "next/server";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -62,18 +64,15 @@ describe("DELETE /api/shares/[id]", () => {
   it("should successfully delete user's own share", async () => {
     const shareId = `test-share-id-${Date.now()}`;
 
-    // Create project first
-    const projectId = `test-project-${Date.now()}`;
-    const ydoc = new Y.Doc();
-    const state = Y.encodeStateAsUpdate(ydoc);
-    const base64Data = Buffer.from(state).toString("base64");
-
-    await globalThis.services.db.insert(PROJECTS_TBL).values({
-      id: projectId,
-      userId,
-      ydocData: base64Data,
-      version: 0,
+    // Create project using API
+    const createProjectRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: "Test Project" }),
     });
+    const projectResponse = await createProject(createProjectRequest);
+    expect(projectResponse.status).toBe(201);
+    const projectData = await projectResponse.json();
+    const projectId = projectData.id;
 
     // Create a share owned by the user
     await globalThis.services.db.insert(SHARE_LINKS_TBL).values({
@@ -120,12 +119,13 @@ describe("DELETE /api/shares/[id]", () => {
   it("should return 404 when trying to delete another user's share", async () => {
     const shareId = `test-share-id-other-${Date.now()}`;
 
-    // Create project for other user
+    // Create project for other user using direct DB (needed for different user)
     const projectId = `other-project-${Date.now()}`;
     const ydoc = new Y.Doc();
     const state = Y.encodeStateAsUpdate(ydoc);
     const base64Data = Buffer.from(state).toString("base64");
 
+    // Direct DB insert needed here because we need to test with a different userId
     await globalThis.services.db.insert(PROJECTS_TBL).values({
       id: projectId,
       userId: otherUserId,
@@ -178,20 +178,33 @@ describe("DELETE /api/shares/[id]", () => {
   });
 
   it("should only delete the specified share, not others", async () => {
-    // Create projects first
-    const project1 = `project-1-${Date.now()}`;
-    const project2 = `project-2-${Date.now()}`;
-    const project3 = `project-3-${Date.now()}`;
+    // Create projects using API
+    const createProject1Request = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: "Project 1" }),
+    });
+    const project1Response = await createProject(createProject1Request);
+    expect(project1Response.status).toBe(201);
+    const project1Data = await project1Response.json();
+    const project1 = project1Data.id;
 
-    const ydoc = new Y.Doc();
-    const state = Y.encodeStateAsUpdate(ydoc);
-    const base64Data = Buffer.from(state).toString("base64");
+    const createProject2Request = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: "Project 2" }),
+    });
+    const project2Response = await createProject(createProject2Request);
+    expect(project2Response.status).toBe(201);
+    const project2Data = await project2Response.json();
+    const project2 = project2Data.id;
 
-    await globalThis.services.db.insert(PROJECTS_TBL).values([
-      { id: project1, userId, ydocData: base64Data, version: 0 },
-      { id: project2, userId, ydocData: base64Data, version: 0 },
-      { id: project3, userId, ydocData: base64Data, version: 0 },
-    ]);
+    const createProject3Request = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: "Project 3" }),
+    });
+    const project3Response = await createProject(createProject3Request);
+    expect(project3Response.status).toBe(201);
+    const project3Data = await project3Response.json();
+    const project3 = project3Data.id;
 
     // Create multiple shares for the same user
     const timestamp = Date.now();

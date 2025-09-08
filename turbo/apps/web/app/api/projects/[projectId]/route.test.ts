@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { GET, PATCH } from "./route";
+import { POST as createProject } from "../route";
 import * as Y from "yjs";
 import { initServices } from "../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
@@ -78,7 +79,16 @@ describe("/api/projects/:projectId", () => {
     });
 
     it("should return existing project YDoc", async () => {
-      // Create a project with some data
+      // Create a project using API endpoint first
+      const createRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ name: "test-project" }),
+      });
+      const createResponse = await createProject(createRequest);
+      const createdProject = await createResponse.json();
+      const testProjectId = createdProject.id;
+
+      // Now update the project's data directly (simulating previous edits)
       const ydoc = new Y.Doc();
       const files = ydoc.getMap("files");
       files.set("test.md", { hash: "abc123", mtime: Date.now() });
@@ -86,16 +96,14 @@ describe("/api/projects/:projectId", () => {
       const state = Y.encodeStateAsUpdate(ydoc);
       const base64Data = Buffer.from(state).toString("base64");
 
-      await globalThis.services.db.insert(PROJECTS_TBL).values({
-        id: projectId,
-        userId,
-        ydocData: base64Data,
-        version: 3,
-      });
+      await globalThis.services.db
+        .update(PROJECTS_TBL)
+        .set({ ydocData: base64Data, version: 3 })
+        .where(eq(PROJECTS_TBL.id, testProjectId));
 
       // Make GET request
       const mockRequest = new NextRequest("http://localhost:3000");
-      const context = { params: Promise.resolve({ projectId }) };
+      const context = { params: Promise.resolve({ projectId: testProjectId }) };
 
       const response = await GET(mockRequest, context);
 
@@ -134,21 +142,26 @@ describe("/api/projects/:projectId", () => {
     });
 
     it("should apply YDoc updates to existing project", async () => {
-      // Create initial project
-      const ydoc = new Y.Doc();
-      const state = Y.encodeStateAsUpdate(ydoc);
-      const base64Data = Buffer.from(state).toString("base64");
-
-      await globalThis.services.db.insert(PROJECTS_TBL).values({
-        id: projectId,
-        userId,
-        ydocData: base64Data,
-        version: 0,
+      // Create initial project using API endpoint
+      const createRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ name: "test-project" }),
       });
+      const createResponse = await createProject(createRequest);
+      const createdProject = await createResponse.json();
+      const testProjectId = createdProject.id;
+
+      // Get the initial state for updates
+      const getRequest = new NextRequest("http://localhost:3000");
+      const getContext = {
+        params: Promise.resolve({ projectId: testProjectId }),
+      };
+      const getResponse = await GET(getRequest, getContext);
+      const initialState = await getResponse.arrayBuffer();
 
       // Create an update
       const clientDoc = new Y.Doc();
-      Y.applyUpdate(clientDoc, state);
+      Y.applyUpdate(clientDoc, new Uint8Array(initialState));
       const stateVector = Y.encodeStateVector(clientDoc);
 
       const files = clientDoc.getMap("files");
@@ -165,7 +178,7 @@ describe("/api/projects/:projectId", () => {
           "X-Version": "0",
         },
       });
-      const context = { params: Promise.resolve({ projectId }) };
+      const context = { params: Promise.resolve({ projectId: testProjectId }) };
 
       const response = await PATCH(mockRequest, context);
 
@@ -177,7 +190,10 @@ describe("/api/projects/:projectId", () => {
         .select()
         .from(PROJECTS_TBL)
         .where(
-          and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)),
+          and(
+            eq(PROJECTS_TBL.id, testProjectId),
+            eq(PROJECTS_TBL.userId, userId),
+          ),
         );
 
       expect(updatedProject?.version).toBe(1);
@@ -217,17 +233,20 @@ describe("/api/projects/:projectId", () => {
     });
 
     it("should return 409 on version conflict", async () => {
-      // Create project with version 2
-      const ydoc = new Y.Doc();
-      const state = Y.encodeStateAsUpdate(ydoc);
-      const base64Data = Buffer.from(state).toString("base64");
-
-      await globalThis.services.db.insert(PROJECTS_TBL).values({
-        id: projectId,
-        userId,
-        ydocData: base64Data,
-        version: 2,
+      // Create project using API endpoint
+      const createRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ name: "test-project" }),
       });
+      const createResponse = await createProject(createRequest);
+      const createdProject = await createResponse.json();
+      const testProjectId = createdProject.id;
+
+      // Update version directly to simulate version conflict
+      await globalThis.services.db
+        .update(PROJECTS_TBL)
+        .set({ version: 2 })
+        .where(eq(PROJECTS_TBL.id, testProjectId));
 
       const update = new Uint8Array([1, 2, 3]); // dummy update
 
@@ -239,7 +258,7 @@ describe("/api/projects/:projectId", () => {
           "X-Version": "1", // Wrong version
         },
       });
-      const context = { params: Promise.resolve({ projectId }) };
+      const context = { params: Promise.resolve({ projectId: testProjectId }) };
 
       const response = await PATCH(mockRequest, context);
 
@@ -250,27 +269,32 @@ describe("/api/projects/:projectId", () => {
     });
 
     it("should handle concurrent updates with optimistic locking", async () => {
-      // Create initial project
-      const ydoc = new Y.Doc();
-      const state = Y.encodeStateAsUpdate(ydoc);
-      const base64Data = Buffer.from(state).toString("base64");
-
-      await globalThis.services.db.insert(PROJECTS_TBL).values({
-        id: projectId,
-        userId,
-        ydocData: base64Data,
-        version: 0,
+      // Create initial project using API endpoint
+      const createRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ name: "test-project" }),
       });
+      const createResponse = await createProject(createRequest);
+      const createdProject = await createResponse.json();
+      const testProjectId = createdProject.id;
+
+      // Get the initial state
+      const getRequest = new NextRequest("http://localhost:3000");
+      const getContext = {
+        params: Promise.resolve({ projectId: testProjectId }),
+      };
+      const getResponse = await GET(getRequest, getContext);
+      const state = await getResponse.arrayBuffer();
 
       // Create two different updates
       const clientDoc1 = new Y.Doc();
-      Y.applyUpdate(clientDoc1, state);
+      Y.applyUpdate(clientDoc1, new Uint8Array(state));
       const stateVector1 = Y.encodeStateVector(clientDoc1);
       clientDoc1.getMap("files").set("file1.ts", { hash: "hash1", mtime: 1 });
       const update1 = Y.encodeStateAsUpdate(clientDoc1, stateVector1);
 
       const clientDoc2 = new Y.Doc();
-      Y.applyUpdate(clientDoc2, state);
+      Y.applyUpdate(clientDoc2, new Uint8Array(state));
       const stateVector2 = Y.encodeStateVector(clientDoc2);
       clientDoc2.getMap("files").set("file2.ts", { hash: "hash2", mtime: 2 });
       const update2 = Y.encodeStateAsUpdate(clientDoc2, stateVector2);
@@ -284,7 +308,9 @@ describe("/api/projects/:projectId", () => {
           "X-Version": "0",
         },
       });
-      const context1 = { params: Promise.resolve({ projectId }) };
+      const context1 = {
+        params: Promise.resolve({ projectId: testProjectId }),
+      };
       const response1 = await PATCH(request1, context1);
       expect(response1.status).toBe(200);
 
@@ -297,7 +323,9 @@ describe("/api/projects/:projectId", () => {
           "X-Version": "0", // Old version
         },
       });
-      const context2 = { params: Promise.resolve({ projectId }) };
+      const context2 = {
+        params: Promise.resolve({ projectId: testProjectId }),
+      };
       const response2 = await PATCH(request2, context2);
 
       expect(response2.status).toBe(409);

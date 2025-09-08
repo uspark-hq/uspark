@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { POST } from "./route";
+import { POST as createProject } from "../projects/route";
 import { initServices } from "../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
@@ -36,20 +37,26 @@ describe("/api/share", () => {
 
   describe("POST /api/share", () => {
     beforeEach(async () => {
-      // Create a test project with file data
+      // Create a test project using API
+      const createProjectRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ name: "Test Project" }),
+      });
+      const projectResponse = await createProject(createProjectRequest);
+      expect(projectResponse.status).toBe(201);
+      const projectData = await projectResponse.json();
+
+      // Update the project with our test ID for consistency and add file data
       const ydoc = new Y.Doc();
       const files = ydoc.getMap("files");
       files.set(testFilePath, { hash: "abc123", mtime: Date.now() });
-
       const state = Y.encodeStateAsUpdate(ydoc);
       const base64Data = Buffer.from(state).toString("base64");
 
-      await globalThis.services.db.insert(PROJECTS_TBL).values({
-        id: projectId,
-        userId,
-        ydocData: base64Data,
-        version: 0,
-      });
+      await globalThis.services.db
+        .update(PROJECTS_TBL)
+        .set({ id: projectId, ydocData: base64Data })
+        .where(eq(PROJECTS_TBL.id, projectData.id));
     });
 
     it("should create share link for valid request", async () => {
@@ -175,7 +182,7 @@ describe("/api/share", () => {
     });
 
     it("should return 404 for project owned by different user", async () => {
-      // Create project owned by different user
+      // Create project owned by different user using direct DB (needed for different user)
       const otherUserId = "other-user";
       const otherProjectId = `other-project-${Date.now()}`;
 
@@ -183,6 +190,7 @@ describe("/api/share", () => {
       const state = Y.encodeStateAsUpdate(ydoc);
       const base64Data = Buffer.from(state).toString("base64");
 
+      // Direct DB insert needed here because we need to test with a different userId
       await globalThis.services.db.insert(PROJECTS_TBL).values({
         id: otherProjectId,
         userId: otherUserId,
