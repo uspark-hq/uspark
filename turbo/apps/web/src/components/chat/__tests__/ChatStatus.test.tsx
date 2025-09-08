@@ -5,7 +5,6 @@ import { ChatStatus } from "../ChatStatus";
 import type { TurnWithBlocks } from "../types";
 
 describe("ChatStatus", () => {
-
   it("shows ready state when no current turn", () => {
     render(<ChatStatus />);
     expect(screen.getByText("Ready to chat")).toBeInTheDocument();
@@ -45,7 +44,7 @@ describe("ChatStatus", () => {
     render(<ChatStatus currentTurn={turn} elapsedSeconds={15} />);
     expect(screen.getByText("Claude is thinking...")).toBeInTheDocument();
     expect(screen.getByText("🔄")).toBeInTheDocument();
-    
+
     // Check elapsed time display
     expect(screen.getByText("15s")).toBeInTheDocument();
   });
@@ -91,7 +90,7 @@ describe("ChatStatus", () => {
   it("displays session ID when provided", () => {
     const { container } = render(<ChatStatus sessionId="session-abc123" />);
     // The session ID is displayed with ellipsis
-    const sessionElement = container.querySelector('.text-xs.opacity-75');
+    const sessionElement = container.querySelector(".text-xs.opacity-75");
     expect(sessionElement).toBeInTheDocument();
     expect(sessionElement?.textContent).toContain("Session:");
     expect(sessionElement?.textContent).toContain("...");
@@ -112,10 +111,10 @@ describe("ChatStatus", () => {
 
     const handleInterrupt = vi.fn();
     render(<ChatStatus currentTurn={turn} onInterrupt={handleInterrupt} />);
-    
+
     const interruptButton = screen.getByText("Interrupt");
     expect(interruptButton).toBeInTheDocument();
-    
+
     fireEvent.click(interruptButton);
     expect(handleInterrupt).toHaveBeenCalled();
   });
@@ -151,7 +150,7 @@ describe("ChatStatus", () => {
     };
 
     render(<ChatStatus currentTurn={turn} elapsedSeconds={75} />);
-    
+
     // Check that 75 seconds is formatted as 1m 15s
     expect(screen.getByText("1m 15s")).toBeInTheDocument();
   });
@@ -170,11 +169,15 @@ describe("ChatStatus", () => {
       block_count: 0,
       errorMessage: null,
     };
-    
+
     rerender(<ChatStatus currentTurn={pendingTurn} />);
     expect(container.querySelector(".bg-gray-100")).toBeInTheDocument();
 
-    const runningTurn = { ...pendingTurn, status: "running" as const, startedAt: new Date().toISOString() };
+    const runningTurn = {
+      ...pendingTurn,
+      status: "running" as const,
+      startedAt: new Date().toISOString(),
+    };
     rerender(<ChatStatus currentTurn={runningTurn} />);
     expect(container.querySelector(".bg-blue-100")).toBeInTheDocument();
 

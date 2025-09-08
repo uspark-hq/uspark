@@ -101,14 +101,16 @@ describe("BlockDisplay", () => {
     };
 
     render(<BlockDisplay block={block} />);
-    
+
     const hideButton = screen.getByText("Hide");
     expect(screen.getByText("Long thinking process...")).toBeInTheDocument();
-    
+
     fireEvent.click(hideButton);
-    
+
     expect(screen.getByText("Show")).toBeInTheDocument();
-    expect(screen.queryByText("Long thinking process...")).not.toBeInTheDocument();
+    expect(
+      screen.queryByText("Long thinking process..."),
+    ).not.toBeInTheDocument();
   });
 
   it("handles expand/collapse for tool blocks", () => {
@@ -125,12 +127,12 @@ describe("BlockDisplay", () => {
     };
 
     const { container } = render(<BlockDisplay block={block} />);
-    
+
     const hideButton = screen.getByText("Hide");
     expect(container.querySelector("pre")).toBeInTheDocument();
-    
+
     fireEvent.click(hideButton);
-    
+
     expect(screen.getByText("Show")).toBeInTheDocument();
     expect(container.querySelector("pre")).not.toBeInTheDocument();
   });
@@ -157,8 +159,12 @@ describe("BlockDisplay", () => {
       sequenceNumber: 0,
     };
 
-    const { container: thinkingContainer } = render(<BlockDisplay block={thinkingBlock} />);
-    expect(thinkingContainer.querySelector(".bg-purple-50")).toBeInTheDocument();
+    const { container: thinkingContainer } = render(
+      <BlockDisplay block={thinkingBlock} />,
+    );
+    expect(
+      thinkingContainer.querySelector(".bg-purple-50"),
+    ).toBeInTheDocument();
 
     const contentBlock: BlockWithParsedContent = {
       id: "b2",
@@ -168,7 +174,9 @@ describe("BlockDisplay", () => {
       sequenceNumber: 0,
     };
 
-    const { container: contentContainer } = render(<BlockDisplay block={contentBlock} />);
+    const { container: contentContainer } = render(
+      <BlockDisplay block={contentBlock} />,
+    );
     expect(contentContainer.querySelector(".bg-gray-50")).toBeInTheDocument();
 
     const toolBlock: BlockWithParsedContent = {
@@ -179,7 +187,9 @@ describe("BlockDisplay", () => {
       sequenceNumber: 0,
     };
 
-    const { container: toolContainer } = render(<BlockDisplay block={toolBlock} />);
+    const { container: toolContainer } = render(
+      <BlockDisplay block={toolBlock} />,
+    );
     expect(toolContainer.querySelector(".bg-blue-50")).toBeInTheDocument();
   });
 });

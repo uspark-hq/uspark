@@ -52,7 +52,7 @@ describe("SessionDisplay", () => {
 
   it("highlights active turn", () => {
     const { container } = render(
-      <SessionDisplay turns={mockTurns} currentTurnId="turn_2" />
+      <SessionDisplay turns={mockTurns} currentTurnId="turn_2" />,
     );
     const activeTurn = container.querySelector(".border-blue-500");
     expect(activeTurn).toBeInTheDocument();
@@ -60,19 +60,19 @@ describe("SessionDisplay", () => {
 
   it("calls onTurnClick when turn is clicked", () => {
     const handleClick = vi.fn();
-    render(
-      <SessionDisplay turns={mockTurns} onTurnClick={handleClick} />
-    );
-    
-    const firstTurn = screen.getByText("Test prompt 1").closest('[role="button"]');
+    render(<SessionDisplay turns={mockTurns} onTurnClick={handleClick} />);
+
+    const firstTurn = screen
+      .getByText("Test prompt 1")
+      .closest('[role="button"]');
     fireEvent.click(firstTurn!);
-    
+
     expect(handleClick).toHaveBeenCalledWith("turn_1");
   });
 
   it("applies custom className", () => {
     const { container } = render(
-      <SessionDisplay turns={mockTurns} className="custom-class" />
+      <SessionDisplay turns={mockTurns} className="custom-class" />,
     );
     expect(container.querySelector(".custom-class")).toBeInTheDocument();
   });

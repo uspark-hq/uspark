@@ -9,6 +9,7 @@ import {
   mockTurns,
   mockSession,
   type TurnWithBlocks,
+  type Turn,
 } from "../../../src/components/chat";
 
 export default function ProjectDetailPage() {

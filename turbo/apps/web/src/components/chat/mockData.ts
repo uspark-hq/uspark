@@ -1,4 +1,8 @@
-import type { SessionWithTurns, TurnWithBlocks, BlockWithParsedContent } from "./types";
+import type {
+  SessionWithTurns,
+  TurnWithBlocks,
+  BlockWithParsedContent,
+} from "./types";
 
 export const mockSession: SessionWithTurns = {
   id: "sess_mock-001",
@@ -251,7 +255,9 @@ export const mockTurns: TurnWithBlocks[] = [
   },
 ];
 
-export function getMockTurnsWithVariableBlocks(turnCount: number = 5): TurnWithBlocks[] {
+export function getMockTurnsWithVariableBlocks(
+  turnCount: number = 5,
+): TurnWithBlocks[] {
   const turns: TurnWithBlocks[] = [];
   const statuses: Array<TurnWithBlocks["status"]> = [
     "completed",
@@ -261,7 +267,8 @@ export function getMockTurnsWithVariableBlocks(turnCount: number = 5): TurnWithB
   ];
 
   for (let i = 0; i < turnCount; i++) {
-    const status: TurnWithBlocks["status"] = statuses[i % statuses.length] || "pending";
+    const status: TurnWithBlocks["status"] =
+      statuses[i % statuses.length] || "pending";
     const turnId = `turn_${i + 1}`;
     const blocks: BlockWithParsedContent[] = [];
 

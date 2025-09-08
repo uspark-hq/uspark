@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/claude-hook-check-push.sh"
+            "command": "scripts/claude-hook-check-push.sh"
           }
         ]
       }
