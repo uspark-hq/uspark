@@ -103,7 +103,7 @@ This document defines the mid-term goals and user stories for the MVP release of
 2. [ ] E2B container setup and configuration
 3. ✅ uspark watch-claude command implementation
 4. [ ] Claude Code runtime integration
-5. ⏳ Chat interface component (UI only, no backend)
+5. [ ] Chat interface component (paused - complexity issues)
 6. [ ] Polling system for status updates
 7. [ ] Document change detection via YJS polling
 
