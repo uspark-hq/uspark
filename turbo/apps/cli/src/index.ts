@@ -5,7 +5,7 @@ import { authenticate, logout, checkAuthStatus } from "./auth";
 import { pullCommand, pullAllCommand, pushCommand } from "./commands/sync";
 import { watchClaudeCommand } from "./commands/watch-claude";
 
-const API_HOST = process.env.API_HOST || "https://app.uspark.com";
+const getApiUrl = () => process.env.API_HOST || "https://uspark.ai";
 
 const program = new Command();
 
@@ -30,7 +30,7 @@ program
     console.log(`Node Version: ${process.version}`);
     console.log(`Platform: ${process.platform}`);
     console.log(`Architecture: ${process.arch}`);
-    console.log(`API Host: ${API_HOST}`);
+    console.log(`API Host: ${getApiUrl()}`);
   });
 
 const authCommand = program
@@ -39,14 +39,9 @@ const authCommand = program
 
 authCommand
   .command("login")
-  .description("Log in to uSpark")
-  .option(
-    "--api-url <url>",
-    "API URL",
-    process.env.API_HOST || "https://app.uspark.com",
-  )
-  .action(async (options: { apiUrl: string }) => {
-    await authenticate(options.apiUrl);
+  .description("Log in to uSpark (use API_HOST env var to set API URL)")
+  .action(async () => {
+    await authenticate(getApiUrl());
   });
 
 authCommand

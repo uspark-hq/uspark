@@ -7,9 +7,11 @@ function initEnv() {
       DATABASE_URL: z.string().min(1),
       CLERK_SECRET_KEY: z.string().min(1),
       BLOB_READ_WRITE_TOKEN: z.string().min(1),
+      APP_URL: z.string().url().optional().default("https://uspark.ai"),
     },
     client: {
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
+      NEXT_PUBLIC_APP_URL: z.string().url().optional().default("https://uspark.ai"),
     },
     runtimeEnv: {
       DATABASE_URL: process.env.DATABASE_URL,
@@ -17,6 +19,8 @@ function initEnv() {
       BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
         process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
+      APP_URL: process.env.APP_URL,
+      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL,
     },
     emptyStringAsUndefined: true,
   });

@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/claude-hook-check-push.sh"
+            "command": "./scripts/claude-hook-check-push.sh"
           }
         ]
       }
@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": ".claude/hooks/check-defensive-programming.sh"
+            "command": "./scripts/check-defensive-programming.sh"
           }
         ]
       }
