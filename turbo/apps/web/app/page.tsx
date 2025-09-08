@@ -58,7 +58,10 @@ export default function Home() {
             <div className={styles.animatedDemo}>
               <div className={styles.demoStep} data-step="1">
                 <div className={styles.chatMessage}>
-                  <p>&quot;Create a PRD for user authentication with SSO support&quot;</p>
+                  <p>
+                    &quot;Create a PRD for user authentication with SSO
+                    support&quot;
+                  </p>
                 </div>
               </div>
               <div className={styles.animatedArrow}>↓</div>
