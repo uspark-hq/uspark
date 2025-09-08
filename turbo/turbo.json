@@ -10,7 +10,8 @@
     "USPARK_API_URL",
     "USPARK_TOKEN",
     "VERCEL_BLOB_UPLOAD_URL",
-    "VERCEL_BLOB_URL"
+    "VERCEL_BLOB_URL",
+    "E2B_API_KEY"
   ],
   "tasks": {
     "build": {
