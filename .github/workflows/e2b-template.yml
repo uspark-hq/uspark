@@ -33,12 +33,12 @@ jobs:
         env:
           E2B_ACCESS_TOKEN: ${{ secrets.E2B_ACCESS_TOKEN }}
         run: |
-          e2b template build --name "claude-code-sandbox" --dockerfile ./Dockerfile
+          e2b template build
 
-      - name: Push template to E2B (main branch only)
+      - name: Push template to E2B
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         working-directory: ./e2b
         env:
           E2B_ACCESS_TOKEN: ${{ secrets.E2B_ACCESS_TOKEN }}
         run: |
-          e2b template push --name "claude-code-sandbox"
+          e2b template publish -y
