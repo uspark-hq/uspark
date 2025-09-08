@@ -3,43 +3,49 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { YjsFileExplorer } from "../../components/file-explorer";
-import {
-  SessionDisplay,
-  ChatStatus,
-  mockTurns,
-  mockSession,
-  type TurnWithBlocks,
-  type Turn,
-} from "../../../src/components/chat";
+import { ChatWithAPI } from "../../../src/components/chat";
 
 export default function ProjectDetailPage() {
   const params = useParams();
   const projectId = params.id as string;
+  
+  // File explorer state
   const [selectedFile, setSelectedFile] = useState<string>();
   const [fileContent, setFileContent] = useState<string>();
   const [loadingContent, setLoadingContent] = useState(false);
+  
+  // Share functionality
   const [isSharing, setIsSharing] = useState(false);
   const [showShareSuccess, setShowShareSuccess] = useState(false);
-
-  // Chat state
-  const [turns, setTurns] = useState<TurnWithBlocks[]>(mockTurns);
-  const [currentTurn, setCurrentTurn] = useState<TurnWithBlocks | undefined>(
-    mockTurns.find((t) => t.status === "running"),
-  );
-  const [showChat, setShowChat] = useState(false);
+  
+  // Layout state
+  const [chatWidth, setChatWidth] = useState(400);
+  const [fileExplorerWidth, setFileExplorerWidth] = useState(280);
+  const [isResizingChat, setIsResizingChat] = useState(false);
+  const [isResizingExplorer, setIsResizingExplorer] = useState(false);
 
   // Mock file content loading for now
   const loadFileContent = async (filePath: string) => {
     setLoadingContent(true);
 
-    // Mock content based on file extension (no artificial delay)
+    // Mock content based on file extension
     const ext = filePath.split(".").pop()?.toLowerCase();
     let mockContent = "";
 
     switch (ext) {
       case "ts":
       case "tsx":
-        mockContent = `// ${filePath}\nexport function Component() {\n  return <div>Hello from ${filePath}</div>;\n}`;
+        mockContent = `// ${filePath}
+import React from 'react';
+
+export function Component() {
+  return (
+    <div>
+      <h1>Hello from ${filePath}</h1>
+      <p>This is a sample TypeScript component.</p>
+    </div>
+  );
+}`;
         break;
       case "json":
         mockContent = JSON.stringify(
@@ -47,16 +53,50 @@ export default function ProjectDetailPage() {
             name: "example-project",
             version: "1.0.0",
             description: `Content for ${filePath}`,
+            dependencies: {
+              react: "^18.0.0",
+              "next": "^14.0.0",
+            },
           },
           null,
           2,
         );
         break;
       case "md":
-        mockContent = `# ${filePath}\n\nThis is a markdown file.\n\n## Features\n\n- Feature 1\n- Feature 2\n- Feature 3`;
+        mockContent = `# ${filePath}
+
+This is a markdown file with rich content.
+
+## Features
+
+- **Bold text** for emphasis
+- *Italic text* for style
+- \`inline code\` for technical terms
+
+### Code Example
+
+\`\`\`typescript
+function greet(name: string): string {
+  return \`Hello, \${name}!\`;
+}
+\`\`\`
+
+### Task List
+
+- [x] Design the layout
+- [x] Implement chat integration
+- [ ] Add real-time collaboration
+- [ ] Deploy to production`;
         break;
       default:
-        mockContent = `Content of ${filePath}\n\nThis is sample file content.`;
+        mockContent = `Content of ${filePath}
+
+This is sample file content.
+You can edit this file using Claude Code.
+
+Lines of code...
+More lines...
+Even more lines...`;
     }
 
     setFileContent(mockContent);
@@ -106,483 +146,199 @@ export default function ProjectDetailPage() {
     }
   };
 
-  return (
-    <div
-      style={{
-        height: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        fontFamily: "system-ui, -apple-system, sans-serif",
-      }}
-    >
-      {/* Header */}
-      <header
-        style={{
-          padding: "16px 24px",
-          borderBottom: "1px solid rgba(156, 163, 175, 0.2)",
-          backgroundColor: "var(--background)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontSize: "20px",
-              fontWeight: "600",
-              margin: 0,
-              color: "var(--foreground)",
-            }}
-          >
-            Project: {projectId}
-          </h1>
-          <p
-            style={{
-              fontSize: "14px",
-              color: "rgba(156, 163, 175, 0.8)",
-              margin: "4px 0 0 0",
-            }}
-          >
-            Browse files and collaborate with Claude Code
-          </p>
-        </div>
+  // Handle resize for chat panel
+  const handleChatResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizingChat(true);
+  };
 
-        <nav style={{ display: "flex", gap: "12px" }}>
-          <button
-            onClick={() => window.history.back()}
-            style={{
-              padding: "8px 16px",
-              fontSize: "14px",
-              color: "rgba(156, 163, 175, 0.8)",
-              textDecoration: "none",
-              border: "1px solid rgba(156, 163, 175, 0.2)",
-              borderRadius: "4px",
-              backgroundColor: "transparent",
-              cursor: "pointer",
-            }}
-          >
-            ← Back to Projects
-          </button>
-        </nav>
+  // Handle resize for file explorer
+  const handleExplorerResize = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setIsResizingExplorer(true);
+  };
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (isResizingChat) {
+        const newWidth = Math.max(300, Math.min(600, e.clientX));
+        setChatWidth(newWidth);
+      }
+      if (isResizingExplorer) {
+        const newWidth = Math.max(200, Math.min(500, window.innerWidth - e.clientX));
+        setFileExplorerWidth(newWidth);
+      }
+    };
+
+    const handleMouseUp = () => {
+      setIsResizingChat(false);
+      setIsResizingExplorer(false);
+    };
+
+    if (isResizingChat || isResizingExplorer) {
+      document.addEventListener("mousemove", handleMouseMove);
+      document.addEventListener("mouseup", handleMouseUp);
+      return () => {
+        document.removeEventListener("mousemove", handleMouseMove);
+        document.removeEventListener("mouseup", handleMouseUp);
+      };
+    }
+  }, [isResizingChat, isResizingExplorer]);
+
+  return (
+    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900">
+      {/* Header */}
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-semibold text-gray-900 dark:text-white">
+              Project: {projectId}
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              Collaborate with Claude Code on your project files
+            </p>
+          </div>
+          <nav className="flex items-center gap-3">
+            <button
+              onClick={() => window.history.back()}
+              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-300 border border-gray-300 dark:border-gray-600 rounded-md hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+            >
+              ← Back to Projects
+            </button>
+          </nav>
+        </div>
       </header>
 
-      {/* Main Content */}
-      <div
-        style={{
-          flex: 1,
-          display: "grid",
-          gridTemplateColumns: showChat ? "300px 1fr 400px" : "300px 1fr",
-          gridTemplateRows: "1fr auto",
-          gap: "1px",
-          backgroundColor: "rgba(156, 163, 175, 0.1)",
-          overflow: "hidden",
-        }}
-      >
-        {/* File Explorer */}
-        <div
-          style={{
-            backgroundColor: "var(--background)",
-            overflow: "auto",
-            gridRow: "span 2",
-          }}
+      {/* Main Content Area - Three Column Layout */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Left Sidebar - Chat */}
+        <div 
+          className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col"
+          style={{ width: `${chatWidth}px` }}
         >
-          <div
-            style={{
-              padding: "12px 16px",
-              borderBottom: "1px solid rgba(156, 163, 175, 0.1)",
-              fontSize: "14px",
-              fontWeight: "500",
-              color: "var(--foreground)",
-            }}
-          >
-            📁 Project Files
+          <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              💬 Chat with Claude
+            </h2>
           </div>
-          <YjsFileExplorer
-            projectId={projectId}
-            onFileSelect={setSelectedFile}
-            selectedFile={selectedFile}
-            showMetadata={true}
-          />
+          <div className="flex-1 overflow-hidden">
+            <ChatWithAPI 
+              projectId={projectId}
+              sessionId={`session-${projectId}`}
+            />
+          </div>
         </div>
 
-        {/* Document Viewer */}
+        {/* Resize Handle for Chat */}
         <div
-          style={{
-            backgroundColor: "var(--background)",
-            overflow: "auto",
-            display: "flex",
-            flexDirection: "column",
-            gridColumn: showChat ? "span 1" : "span 1",
-          }}
-        >
-          <div
-            style={{
-              padding: "12px 16px",
-              borderBottom: "1px solid rgba(156, 163, 175, 0.1)",
-              fontSize: "14px",
-              fontWeight: "500",
-              color: "var(--foreground)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
-            <span>
-              {selectedFile ? `📄 ${selectedFile}` : "📄 Document Viewer"}
-            </span>
-            {selectedFile && (
-              <div
-                style={{ display: "flex", alignItems: "center", gap: "12px" }}
-              >
-                {showShareSuccess && (
-                  <span
-                    style={{
-                      fontSize: "12px",
-                      color: "#10b981",
-                      animation: "fadeIn 0.3s ease-in",
-                    }}
+          className="w-1 bg-gray-200 dark:bg-gray-700 hover:bg-blue-500 dark:hover:bg-blue-400 cursor-col-resize transition-colors"
+          onMouseDown={handleChatResize}
+        />
+
+        {/* Middle - Document Content */}
+        <div className="flex-1 bg-white dark:bg-gray-800 flex flex-col min-w-0">
+          {/* Document Header */}
+          <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 truncate">
+                {selectedFile ? `📄 ${selectedFile}` : "📄 Select a file to view"}
+              </h2>
+              {selectedFile && (
+                <div className="flex items-center gap-3">
+                  {showShareSuccess && (
+                    <span className="text-xs text-green-600 dark:text-green-400 animate-fade-in">
+                      ✓ Link copied!
+                    </span>
+                  )}
+                  <button
+                    onClick={handleShare}
+                    disabled={isSharing}
+                    className="px-3 py-1 text-xs text-blue-600 dark:text-blue-400 border border-blue-600 dark:border-blue-400 rounded hover:bg-blue-50 dark:hover:bg-blue-900/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    ✓ Link copied to clipboard!
-                  </span>
-                )}
-                <button
-                  onClick={handleShare}
-                  disabled={isSharing}
-                  style={{
-                    padding: "4px 12px",
-                    fontSize: "12px",
-                    color: "#3b82f6",
-                    backgroundColor: "transparent",
-                    border: "1px solid #3b82f6",
-                    borderRadius: "4px",
-                    cursor: isSharing ? "not-allowed" : "pointer",
-                    opacity: isSharing ? 0.5 : 1,
-                    transition: "all 0.2s ease",
-                  }}
-                  onMouseOver={(e) => {
-                    if (!isSharing) {
-                      e.currentTarget.style.backgroundColor = "#3b82f6";
-                      e.currentTarget.style.color = "white";
-                    }
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                    e.currentTarget.style.color = "#3b82f6";
-                  }}
-                >
-                  {isSharing ? "Sharing..." : "Share"}
-                </button>
-                <span
-                  style={{
-                    fontSize: "12px",
-                    color: "rgba(156, 163, 175, 0.6)",
-                  }}
-                >
-                  Read-only preview
-                </span>
-              </div>
-            )}
+                    {isSharing ? "Sharing..." : "Share"}
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div style={{ flex: 1, padding: "16px" }}>
+          {/* Document Content */}
+          <div className="flex-1 overflow-auto p-6">
             {loadingContent ? (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: "200px",
-                  color: "rgba(156, 163, 175, 0.6)",
-                  fontSize: "14px",
-                }}
-              >
-                Loading file content...
+              <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900 dark:border-white mx-auto mb-4"></div>
+                  <p className="text-sm">Loading file content...</p>
+                </div>
               </div>
             ) : selectedFile && fileContent ? (
-              <pre
-                style={{
-                  margin: 0,
-                  padding: "16px",
-                  backgroundColor: "rgba(156, 163, 175, 0.05)",
-                  border: "1px solid rgba(156, 163, 175, 0.1)",
-                  borderRadius: "6px",
-                  fontSize: "13px",
-                  fontFamily:
-                    'Monaco, "Cascadia Code", "Roboto Mono", Consolas, "Courier New", monospace',
-                  lineHeight: "1.5",
-                  color: "var(--foreground)",
-                  overflow: "auto",
-                  whiteSpace: "pre-wrap",
-                  wordBreak: "break-word",
-                }}
-              >
-                {fileContent}
-              </pre>
+              <div className="max-w-4xl mx-auto">
+                <pre className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 overflow-x-auto">
+                  <code className="text-sm text-gray-800 dark:text-gray-200 font-mono">
+                    {fileContent}
+                  </code>
+                </pre>
+              </div>
             ) : (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  height: "300px",
-                  color: "rgba(156, 163, 175, 0.6)",
-                  fontSize: "14px",
-                  textAlign: "center",
-                }}
-              >
-                <div style={{ fontSize: "48px", marginBottom: "16px" }}>📄</div>
-                <div style={{ marginBottom: "8px", fontWeight: "500" }}>
-                  Select a file to view its content
-                </div>
-                <div style={{ fontSize: "12px", maxWidth: "300px" }}>
-                  Click on any file in the explorer to see its content here. In
-                  the final implementation, this will show real file content
-                  from the YJS document.
+              <div className="flex items-center justify-center h-full text-gray-500 dark:text-gray-400">
+                <div className="text-center max-w-sm">
+                  <div className="text-6xl mb-4">📄</div>
+                  <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                    No file selected
+                  </h3>
+                  <p className="text-sm">
+                    Select a file from the explorer to view and edit its content with Claude Code
+                  </p>
                 </div>
               </div>
             )}
           </div>
         </div>
 
-        {/* Chat Panel */}
-        {showChat && (
-          <div
-            style={{
-              backgroundColor: "var(--background)",
-              overflow: "hidden",
-              display: "flex",
-              flexDirection: "column",
-              gridRow: "span 2",
-            }}
-          >
-            <div
-              style={{
-                padding: "12px 16px",
-                borderBottom: "1px solid rgba(156, 163, 175, 0.1)",
-                fontSize: "14px",
-                fontWeight: "500",
-                color: "var(--foreground)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-              }}
-            >
-              <span>💬 Chat with Claude</span>
-              <button
-                onClick={() => setShowChat(false)}
-                style={{
-                  padding: "4px 8px",
-                  fontSize: "12px",
-                  border: "none",
-                  background: "transparent",
-                  color: "rgba(156, 163, 175, 0.8)",
-                  cursor: "pointer",
-                }}
-              >
-                ✕
-              </button>
-            </div>
-
-            <div style={{ padding: "12px 16px" }}>
-              <ChatStatus
-                currentTurn={currentTurn}
-                sessionId={mockSession.id}
-                onInterrupt={() => {
-                  if (currentTurn) {
-                    setCurrentTurn({ ...currentTurn, status: "failed" });
-                    setTurns(
-                      turns.map((t) =>
-                        t.id === currentTurn.id
-                          ? { ...t, status: "failed" }
-                          : t,
-                      ),
-                    );
-                  }
-                }}
-              />
-            </div>
-
-            <div style={{ flex: 1, overflow: "auto" }}>
-              <SessionDisplay
-                turns={turns}
-                currentTurnId={currentTurn?.id}
-                onTurnClick={(turnId) => {
-                  const turn = turns.find((t) => t.id === turnId);
-                  setCurrentTurn(turn);
-                }}
-              />
-            </div>
-          </div>
-        )}
-
-        {/* Chat Input */}
+        {/* Resize Handle for Explorer */}
         <div
-          style={{
-            backgroundColor: "var(--background)",
-            borderTop: "1px solid rgba(156, 163, 175, 0.1)",
-            padding: "16px",
-            gridColumn: showChat ? "2" : "span 1",
-          }}
+          className="w-1 bg-gray-200 dark:bg-gray-700 hover:bg-blue-500 dark:hover:bg-blue-400 cursor-col-resize transition-colors"
+          onMouseDown={handleExplorerResize}
+        />
+
+        {/* Right Sidebar - File Explorer */}
+        <div 
+          className="bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col"
+          style={{ width: `${fileExplorerWidth}px` }}
         >
-          <div
-            style={{
-              display: "flex",
-              gap: "12px",
-              alignItems: "center",
-            }}
-          >
-            <div
-              style={{
-                flex: 1,
-                position: "relative",
-              }}
-            >
-              <textarea
-                placeholder="Ask Claude Code to modify your project files..."
-                style={{
-                  width: "100%",
-                  minHeight: "80px",
-                  padding: "12px",
-                  border: "2px solid rgba(156, 163, 175, 0.2)",
-                  borderRadius: "8px",
-                  fontSize: "14px",
-                  fontFamily: "inherit",
-                  backgroundColor: "var(--background)",
-                  color: "var(--foreground)",
-                  resize: "vertical",
-                  outline: "none",
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "rgba(59, 130, 246, 0.5)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "rgba(156, 163, 175, 0.2)";
-                }}
-              />
-            </div>
-            <div style={{ display: "flex", gap: "8px", alignSelf: "flex-end" }}>
-              {!showChat && (
-                <button
-                  onClick={() => setShowChat(true)}
-                  style={{
-                    padding: "12px 20px",
-                    backgroundColor: "transparent",
-                    color: "#3b82f6",
-                    border: "2px solid #3b82f6",
-                    borderRadius: "6px",
-                    fontSize: "14px",
-                    fontWeight: "500",
-                    cursor: "pointer",
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.backgroundColor = "#eff6ff";
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.backgroundColor = "transparent";
-                  }}
-                >
-                  Show Chat
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  // Simulate sending a message
-                  const textarea = document.querySelector(
-                    "textarea",
-                  ) as HTMLTextAreaElement;
-                  if (textarea?.value) {
-                    const newTurn: Turn = {
-                      id: `turn-new-${Date.now()}`,
-                      session_id: mockSession.id,
-                      user_prompt: textarea.value,
-                      status: "running",
-                      started_at: new Date().toISOString(),
-                      created_at: new Date().toISOString(),
-                      blocks: [],
-                      block_count: 0,
-                    };
-                    setTurns([...turns, newTurn]);
-                    setCurrentTurn(newTurn);
-                    setShowChat(true);
-                    textarea.value = "";
-
-                    // Simulate response after 2 seconds
-                    setTimeout(() => {
-                      setCurrentTurn(undefined);
-                      setTurns((prev) =>
-                        prev.map((t) =>
-                          t.id === newTurn.id
-                            ? {
-                                ...t,
-                                status: "completed",
-                                completed_at: new Date().toISOString(),
-                                blocks: [
-                                  {
-                                    id: `block-${Date.now()}`,
-                                    turn_id: newTurn.id,
-                                    type: "content",
-                                    content: {
-                                      text: "This is a simulated response from Claude.",
-                                    },
-                                    sequence_number: 0,
-                                  },
-                                ],
-                                block_count: 1,
-                              }
-                            : t,
-                        ),
-                      );
-                    }, 2000);
-                  }
-                }}
-                style={{
-                  padding: "12px 24px",
-                  backgroundColor: "#3b82f6",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  cursor: "pointer",
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.backgroundColor = "#2563eb";
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.backgroundColor = "#3b82f6";
-                }}
-              >
-                Send
-              </button>
-            </div>
+          <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
+            <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300">
+              📁 Project Files
+            </h2>
           </div>
+          <div className="flex-1 overflow-auto">
+            <YjsFileExplorer
+              projectId={projectId}
+              onFileSelect={setSelectedFile}
+              selectedFile={selectedFile}
+              showMetadata={true}
+            />
+          </div>
+        </div>
+      </div>
 
-          <div
-            style={{
-              marginTop: "8px",
-              fontSize: "12px",
-              color: "rgba(156, 163, 175, 0.6)",
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-            }}
-          >
-            <span>
-              💡 Try: &quot;Add error handling to the login function&quot; or
-              &quot;Create a new React component&quot;
-            </span>
-            <div
-              style={{
-                padding: "2px 6px",
-                backgroundColor: "rgba(156, 163, 175, 0.1)",
-                borderRadius: "3px",
-                fontSize: "11px",
-              }}
-            >
+      {/* Status Bar */}
+      <div className="bg-gray-100 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 px-4 py-2">
+        <div className="flex items-center justify-between text-xs text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-4">
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 bg-green-500 rounded-full"></span>
               Claude Code Ready
-            </div>
+            </span>
+            {selectedFile && (
+              <span>
+                Editing: {selectedFile}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-4">
+            <span>Project ID: {projectId}</span>
+            <span>UTF-8</span>
           </div>
         </div>
       </div>
