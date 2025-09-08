@@ -137,24 +137,7 @@ export function ChatWithAPI({
 
       {/* Chat Display */}
       <div className="flex-1 overflow-auto">
-        <SessionDisplay
-          session={{
-            ...session,
-            createdAt:
-              typeof session.createdAt === "string"
-                ? session.createdAt
-                : session.createdAt instanceof Date
-                  ? session.createdAt.toISOString()
-                  : new Date().toISOString(),
-            updatedAt:
-              typeof session.updatedAt === "string"
-                ? session.updatedAt
-                : session.updatedAt instanceof Date
-                  ? session.updatedAt.toISOString()
-                  : new Date().toISOString(),
-          }}
-          turns={turns}
-        />
+        <SessionDisplay turns={turns} />
       </div>
 
       {/* Input Area */}

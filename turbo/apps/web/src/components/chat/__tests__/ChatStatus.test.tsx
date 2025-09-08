@@ -19,7 +19,7 @@ describe("ChatStatus", () => {
       status: "pending",
       createdAt: new Date().toISOString(),
       blocks: [],
-      block_count: 0,
+      blockCount: 0,
       errorMessage: null,
     };
 
@@ -37,7 +37,7 @@ describe("ChatStatus", () => {
       startedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       blocks: [],
-      block_count: 0,
+      blockCount: 0,
       errorMessage: null,
     };
 
@@ -59,7 +59,7 @@ describe("ChatStatus", () => {
       completedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       blocks: [],
-      block_count: 0,
+      blockCount: 0,
       errorMessage: null,
     };
 
@@ -77,7 +77,7 @@ describe("ChatStatus", () => {
       status: "failed",
       createdAt: new Date().toISOString(),
       blocks: [],
-      block_count: 0,
+      blockCount: 0,
       errorMessage: null,
     };
 
@@ -105,7 +105,7 @@ describe("ChatStatus", () => {
       startedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       blocks: [],
-      block_count: 0,
+      blockCount: 0,
       errorMessage: null,
     };
 
@@ -128,7 +128,7 @@ describe("ChatStatus", () => {
       startedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       blocks: [],
-      block_count: 0,
+      blockCount: 0,
       errorMessage: null,
     };
 
@@ -145,7 +145,7 @@ describe("ChatStatus", () => {
       startedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       blocks: [],
-      block_count: 0,
+      blockCount: 0,
       errorMessage: null,
     };
 
@@ -166,7 +166,7 @@ describe("ChatStatus", () => {
       status: "pending",
       createdAt: new Date().toISOString(),
       blocks: [],
-      block_count: 0,
+      blockCount: 0,
       errorMessage: null,
     };
 
@@ -195,7 +195,7 @@ describe("ChatStatus", () => {
       startedAt: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       blocks: [],
-      block_count: 0,
+      blockCount: 0,
       errorMessage: null,
     };
 

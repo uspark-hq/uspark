@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import type {
-  BlockWithParsedContent,
-  ThinkingContent,
-  TextContent,
-  ToolUseContent,
-  ToolResultContent,
-} from "./types";
+  ThinkingBlockContent,
+  ContentBlockContent,
+  ToolUseBlockContent,
+  ToolResultBlockContent,
+} from "../../db/schema/sessions";
+import type { BlockWithParsedContent } from "./types";
 
 interface BlockDisplayProps {
   block: BlockWithParsedContent;
@@ -14,7 +14,7 @@ interface BlockDisplayProps {
 export function BlockDisplay({ block }: BlockDisplayProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
-  const renderThinkingBlock = (content: ThinkingContent) => {
+  const renderThinkingBlock = (content: ThinkingBlockContent) => {
     return (
       <div className="bg-purple-50 border border-purple-200 rounded-md p-3">
         <div className="flex items-center justify-between mb-2">
@@ -40,7 +40,7 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
     );
   };
 
-  const renderContentBlock = (content: TextContent) => {
+  const renderContentBlock = (content: ContentBlockContent) => {
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-md p-3">
         <div className="flex items-start gap-2">
@@ -53,7 +53,7 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
     );
   };
 
-  const renderToolUseBlock = (content: ToolUseContent) => {
+  const renderToolUseBlock = (content: ToolUseBlockContent) => {
     return (
       <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
         <div className="flex items-center justify-between mb-2">
@@ -81,7 +81,7 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
     );
   };
 
-  const renderToolResultBlock = (content: ToolResultContent) => {
+  const renderToolResultBlock = (content: ToolResultBlockContent) => {
     const isError = !!content.error;
     return (
       <div
@@ -131,13 +131,13 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
   const renderBlock = () => {
     switch (block.type) {
       case "thinking":
-        return renderThinkingBlock(block.content as ThinkingContent);
+        return renderThinkingBlock(block.content as ThinkingBlockContent);
       case "content":
-        return renderContentBlock(block.content as TextContent);
+        return renderContentBlock(block.content as ContentBlockContent);
       case "tool_use":
-        return renderToolUseBlock(block.content as ToolUseContent);
+        return renderToolUseBlock(block.content as ToolUseBlockContent);
       case "tool_result":
-        return renderToolResultBlock(block.content as ToolResultContent);
+        return renderToolResultBlock(block.content as ToolResultBlockContent);
       default:
         return (
           <div className="bg-gray-100 border border-gray-300 rounded-md p-3">

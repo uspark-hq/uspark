@@ -56,9 +56,9 @@ function initializeMockData() {
       id: "block-1-1",
       turnId: turn1Id,
       type: "thinking" as const,
-      content: {
+      content: JSON.stringify({
         text: "The user is asking about authentication in Next.js. I should explain the different options available and provide a comprehensive answer.",
-      },
+      }),
       sequenceNumber: 0,
       createdAt: new Date(Date.now() - 2994000),
     },
@@ -66,9 +66,9 @@ function initializeMockData() {
       id: "block-1-2",
       turnId: turn1Id,
       type: "content" as const,
-      content: {
+      content: JSON.stringify({
         text: "There are several ways to implement authentication in Next.js:\n\n1. **NextAuth.js** - The most popular solution\n2. **Clerk** - A modern, developer-friendly option\n3. **Supabase Auth** - If you're using Supabase\n4. **Custom JWT implementation** - For full control\n\nHere's a basic example with NextAuth.js...",
-      },
+      }),
       sequenceNumber: 1,
       createdAt: new Date(Date.now() - 2993000),
     },
@@ -86,9 +86,9 @@ function initializeMockData() {
       id: "block-2-1",
       turnId: turn2Id,
       type: "thinking" as const,
-      content: {
+      content: JSON.stringify({
         text: "The user wants a specific example with Clerk. I'll provide a complete implementation example.",
-      },
+      }),
       sequenceNumber: 0,
       createdAt: new Date(Date.now() - 54000),
     },
@@ -129,9 +129,9 @@ function startStreamingUpdates(turnId: string) {
         id: newBlockId,
         turnId,
         type: "content",
-        content: {
+        content: JSON.stringify({
           text: "Sure! Here's a complete example of implementing authentication with Clerk in Next.js:\n\n```typescript\n// app/layout.tsx\nimport { ClerkProvider } from '@clerk/nextjs'\n\nexport default function RootLayout({ children }) {\n  return (\n    <ClerkProvider>\n      {children}\n    </ClerkProvider>\n  )\n}\n```",
-        },
+        }),
         sequenceNumber: blockCount - 1,
         createdAt: new Date(),
       };
@@ -144,14 +144,14 @@ function startStreamingUpdates(turnId: string) {
         id: newBlockId,
         turnId,
         type: "tool_use",
-        content: {
+        content: JSON.stringify({
           name: "create_file",
           input: {
             path: "middleware.ts",
             content:
               "import { authMiddleware } from '@clerk/nextjs';\n\nexport default authMiddleware();\n\nexport const config = {\n  matcher: ['/((?!.+\\\\.[\\\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],\n};",
-          },
-        },
+          }),
+        }),
         sequenceNumber: blockCount - 1,
         createdAt: new Date(),
       };
@@ -164,10 +164,10 @@ function startStreamingUpdates(turnId: string) {
         id: newBlockId,
         turnId,
         type: "tool_result",
-        content: {
+        content: JSON.stringify({
           output: "File created successfully: middleware.ts",
           isError: false,
-        },
+        }),
         sequenceNumber: blockCount - 1,
         createdAt: new Date(),
       };
@@ -180,9 +180,9 @@ function startStreamingUpdates(turnId: string) {
         id: newBlockId,
         turnId,
         type: "content",
-        content: {
+        content: JSON.stringify({
           text: "I've created the middleware configuration for you. This setup will protect all routes by default. You can customize the `matcher` to exclude specific routes if needed.",
-        },
+        }),
         sequenceNumber: blockCount - 1,
         createdAt: new Date(),
       };

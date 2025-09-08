@@ -16,7 +16,7 @@ describe("SessionDisplay", () => {
       errorMessage: null,
       createdAt: new Date().toISOString(),
       blocks: [],
-      block_count: 0,
+      blockCount: 0,
     },
     {
       id: "turn_2",
@@ -28,7 +28,7 @@ describe("SessionDisplay", () => {
       errorMessage: null,
       createdAt: new Date().toISOString(),
       blocks: [],
-      block_count: 0,
+      blockCount: 0,
     },
   ];
 

@@ -113,9 +113,9 @@ export function TurnDisplay({
             <span className="text-sm text-gray-600">
               Claude&apos;s Response
             </span>
-            {turn.block_count && (
+            {turn.blockCount && (
               <span className="text-xs text-gray-400">
-                ({turn.block_count} blocks)
+                ({turn.blockCount} blocks)
               </span>
             )}
           </div>

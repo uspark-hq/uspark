@@ -1,6 +1,7 @@
 // Import types from the database schema for internal use
 import type {
   Turn,
+  Block,
   ThinkingBlockContent,
   ContentBlockContent,
   ToolUseBlockContent,

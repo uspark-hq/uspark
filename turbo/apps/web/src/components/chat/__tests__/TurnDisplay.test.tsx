@@ -23,7 +23,7 @@ describe("TurnDisplay", () => {
         sequenceNumber: 0,
       },
     ],
-    block_count: 1,
+    blockCount: 1,
   };
 
   it("renders turn number and user prompt", () => {
@@ -120,7 +120,7 @@ describe("TurnDisplay", () => {
   });
 
   it("shows empty message for completed turn with no blocks", () => {
-    const emptyTurn = { ...mockTurn, blocks: [], block_count: 0 };
+    const emptyTurn = { ...mockTurn, blocks: [], blockCount: 0 };
     render(<TurnDisplay turn={emptyTurn} turnNumber={1} />);
     expect(
       screen.getByText("No response blocks available"),

@@ -87,8 +87,9 @@ export function useSession(projectId: string, sessionId?: string) {
 
             // Fetch the updated turn data if status changed or new blocks added
             if (
-              existing.status !== turnUpdate.status ||
-              existing.block_count !== turnUpdate.block_count
+              existing &&
+              (existing.status !== turnUpdate.status ||
+                existing.blockCount !== turnUpdate.blockCount)
             ) {
               sessionAPI
                 .getTurn(projectId, sessionId!, turnUpdate.id)
