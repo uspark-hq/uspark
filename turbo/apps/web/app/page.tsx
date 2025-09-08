@@ -43,14 +43,6 @@ export default function Home() {
                 <button className={styles.primaryButton}>Join Waitlist</button>
               </SignUpButton>
             </div>
-
-            <div className={styles.heroTrust}>
-              <span>Trusted by 10,000+ teams</span>
-              <span className={styles.divider}>•</span>
-              <span>70% faster documentation</span>
-              <span className={styles.divider}>•</span>
-              <span>Free to start</span>
-            </div>
           </div>
 
           {/* Animated Demo */}
