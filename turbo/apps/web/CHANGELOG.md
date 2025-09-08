@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/uspark-hq/uspark/compare/web-v0.15.0...web-v0.16.0) (2025-09-08)
+
+
+### Features
+
+* implement share management functionality ([#173](https://github.com/uspark-hq/uspark/issues/173)) ([36dd0e4](https://github.com/uspark-hq/uspark/commit/36dd0e4d688fd002bbb67a5a98a4318f5496ed78))
+
 ## [0.15.0](https://github.com/uspark-hq/uspark/compare/web-v0.14.0...web-v0.15.0) (2025-09-07)
 
 
