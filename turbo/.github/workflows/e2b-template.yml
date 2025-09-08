@@ -5,12 +5,12 @@ on:
     branches:
       - main
     paths:
-      - "e2b/**"
-      - ".github/workflows/e2b-template.yml"
+      - "turbo/e2b/**"
+      - "turbo/.github/workflows/e2b-template.yml"
   pull_request:
     paths:
-      - "e2b/**"
-      - ".github/workflows/e2b-template.yml"
+      - "turbo/e2b/**"
+      - "turbo/.github/workflows/e2b-template.yml"
 
 jobs:
   build-e2b-template:
@@ -36,7 +36,7 @@ jobs:
           export E2B_ACCESS_TOKEN=$E2B_ACCESS_TOKEN
 
       - name: Build E2B template
-        working-directory: ./e2b
+        working-directory: ./turbo/e2b
         env:
           E2B_ACCESS_TOKEN: ${{ secrets.E2B_API_KEY }}
         run: |
@@ -45,7 +45,7 @@ jobs:
 
       - name: Test template build (PR only)
         if: github.event_name == 'pull_request'
-        working-directory: ./e2b
+        working-directory: ./turbo/e2b
         env:
           E2B_ACCESS_TOKEN: ${{ secrets.E2B_API_KEY }}
         run: |
@@ -54,7 +54,7 @@ jobs:
 
       - name: Push template to E2B (main branch only)
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        working-directory: ./e2b
+        working-directory: ./turbo/e2b
         env:
           E2B_ACCESS_TOKEN: ${{ secrets.E2B_API_KEY }}
         run: |
@@ -64,7 +64,7 @@ jobs:
 
       - name: Get template ID
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        working-directory: ./e2b
+        working-directory: ./turbo/e2b
         env:
           E2B_ACCESS_TOKEN: ${{ secrets.E2B_API_KEY }}
         run: |
