@@ -27,16 +27,17 @@ A comprehensive code review tool that analyzes commits and generates detailed re
 The command follows this automated workflow:
 
 1. **Parse Input**: Determine if input is PR ID, commit ID, or description
-2. **Generate Commit List**: Create `commit-list.md` with checkboxes for each commit
-3. **Review Each Commit**: For each commit, analyze:
+2. **Create Output Directory**: Create `codereviews/yyyymmdd` directory based on current date
+3. **Generate Commit List**: Create `codereviews/yyyymmdd/commit-list.md` with checkboxes for each commit
+4. **Review Each Commit**: For each commit, analyze:
    - New mocks and alternatives
    - Test coverage quality
    - Unnecessary try/catch blocks and over-engineering
    - Key interface changes
    - Timer and delay usage patterns
-4. **Generate Reviews**: Create individual `review-{commit}.md` files
-5. **Update Commit List**: Replace checkboxes with links to review files
-6. **Summary**: Generate overall review summary
+5. **Generate Reviews**: Create individual `codereviews/yyyymmdd/review-{commit}.md` files
+6. **Update Commit List**: Replace checkboxes with links to review files
+7. **Summary**: Generate overall review summary
 
 ## Review Criteria
 
@@ -71,10 +72,12 @@ Each commit is reviewed against these criteria:
 ## Output Structure
 
 ```
-commit-list.md           # Master checklist with links to reviews
-├── review-abc123.md     # Individual commit review
-├── review-def456.md     # Individual commit review
-└── ...                  # One review per commit
+codereviews/
+└── yyyymmdd/            # Date-based directory (e.g., 20250908)
+    ├── commit-list.md   # Master checklist with links to reviews
+    ├── review-abc123.md # Individual commit review
+    ├── review-def456.md # Individual commit review
+    └── ...              # One review per commit
 ```
 
 ## Implementation Notes
