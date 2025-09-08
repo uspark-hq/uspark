@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { sessionAPI, SessionPoller } from "../lib/api/sessions";
+import type { Session } from "../db/schema/sessions";
 import type {
-  Session,
   TurnWithBlocks,
   SessionUpdates,
 } from "../components/chat/types";

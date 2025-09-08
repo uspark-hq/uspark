@@ -3,6 +3,8 @@ import type {
   Session,
   Turn,
   Block,
+} from "../db/schema/sessions";
+import type {
   SessionUpdates,
 } from "../components/chat/types";
 

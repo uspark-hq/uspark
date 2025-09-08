@@ -1,22 +1,13 @@
-// Import types from the database schema
+// Import types from the database schema for internal use
 import type {
-  Session,
   Turn,
-  Block,
   ThinkingBlockContent,
   ContentBlockContent,
   ToolUseBlockContent,
   ToolResultBlockContent,
 } from "../../db/schema/sessions";
 
-// Re-export only the main types that are actually used
-export type { Session, Turn, Block } from "../../db/schema/sessions";
 
-// Type aliases for internal use
-type ThinkingContent = ThinkingBlockContent;
-type TextContent = ContentBlockContent;
-type ToolUseContent = ToolUseBlockContent;
-type ToolResultContent = ToolResultBlockContent;
 
 // Additional types for API responses that include nested data
 export interface TurnWithBlocks
@@ -39,11 +30,6 @@ export interface BlockWithParsedContent
   createdAt?: string;
 }
 
-interface SessionWithTurns extends Omit<Session, "createdAt" | "updatedAt"> {
-  turns?: TurnWithBlocks[];
-  createdAt: string;
-  updatedAt: string;
-}
 
 export interface SessionUpdates {
   session: {
