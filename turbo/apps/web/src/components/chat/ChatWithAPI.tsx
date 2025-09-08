@@ -117,12 +117,8 @@ export function ChatWithAPI({
             </div>
           </div>
           <ChatStatus
-            status={
-              currentTurn?.status ||
-              (turns.length > 0 ? turns[turns.length - 1].status : "idle")
-            }
-            isInterruptible={hasActiveTurns}
-            onInterrupt={handleInterrupt}
+            currentTurn={currentTurn}
+            onInterrupt={hasActiveTurns ? handleInterrupt : undefined}
           />
         </div>
       </div>
@@ -136,14 +132,14 @@ export function ChatWithAPI({
               typeof session.createdAt === "string"
                 ? session.createdAt
                 : session.createdAt instanceof Date
-                ? session.createdAt.toISOString()
-                : new Date().toISOString(),
+                  ? session.createdAt.toISOString()
+                  : new Date().toISOString(),
             updatedAt:
               typeof session.updatedAt === "string"
                 ? session.updatedAt
                 : session.updatedAt instanceof Date
-                ? session.updatedAt.toISOString()
-                : new Date().toISOString(),
+                  ? session.updatedAt.toISOString()
+                  : new Date().toISOString(),
           }}
           turns={turns}
         />
