@@ -1,0 +1,12 @@
+# e2b template configuration
+template_id = "claude-code-sandbox"
+dockerfile = "Dockerfile"
+template_name = "Claude Code Sandbox"
+
+# Sandbox configuration
+[sandbox]
+# Extend default timeout to 10 minutes for longer operations
+timeout_ms = 600000
+# CPU and memory configuration
+cpu_count = 2
+memory_mb = 2048

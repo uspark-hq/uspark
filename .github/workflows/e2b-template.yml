@@ -1,0 +1,97 @@
+name: E2B Template Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'e2b/**'
+      - '.github/workflows/e2b-template.yml'
+  pull_request:
+    paths:
+      - 'e2b/**'
+      - '.github/workflows/e2b-template.yml'
+
+jobs:
+  build-e2b-template:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install E2B CLI
+        run: npm install -g @e2b/cli
+
+      - name: Authenticate with E2B
+        env:
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+        run: |
+          echo "Setting up E2B authentication..."
+          export E2B_API_KEY=$E2B_API_KEY
+
+      - name: Build E2B template
+        working-directory: ./e2b
+        env:
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+        run: |
+          echo "Building E2B template..."
+          e2b template build --name "claude-code-sandbox" --dockerfile ./Dockerfile
+          
+      - name: Test template build (PR only)
+        if: github.event_name == 'pull_request'
+        working-directory: ./e2b
+        env:
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+        run: |
+          echo "✅ Template build successful (dry run for PR)"
+          echo "Template will be pushed when merged to main"
+
+      - name: Push template to E2B (main branch only)
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        working-directory: ./e2b
+        env:
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+        run: |
+          echo "Pushing template to E2B registry..."
+          e2b template push --name "claude-code-sandbox"
+          echo "✅ Template pushed successfully"
+
+      - name: Get template ID
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        working-directory: ./e2b
+        env:
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+        run: |
+          echo "Getting template ID..."
+          TEMPLATE_ID=$(e2b template list | grep "claude-code-sandbox" | awk '{print $1}')
+          echo "Template ID: $TEMPLATE_ID"
+          echo "TEMPLATE_ID=$TEMPLATE_ID" >> $GITHUB_ENV
+
+      - name: Create deployment summary
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: |
+          echo "## E2B Template Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Template Name:** claude-code-sandbox" >> $GITHUB_STEP_SUMMARY
+          echo "📦 **Template ID:** ${{ env.TEMPLATE_ID }}" >> $GITHUB_STEP_SUMMARY
+          echo "🚀 **Status:** Successfully deployed to E2B" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
+          echo "Update your code to use template ID: \`${{ env.TEMPLATE_ID }}\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: PR build summary
+        if: github.event_name == 'pull_request'
+        run: |
+          echo "## E2B Template Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Template Name:** claude-code-sandbox" >> $GITHUB_STEP_SUMMARY
+          echo "🔨 **Build Status:** Successful (dry run)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Note" >> $GITHUB_STEP_SUMMARY
+          echo "Template will be pushed to E2B when this PR is merged to main." >> $GITHUB_STEP_SUMMARY
