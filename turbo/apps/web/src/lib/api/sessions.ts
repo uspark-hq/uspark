@@ -1,8 +1,6 @@
 import type {
   Session,
-  Turn,
   TurnWithBlocks,
-  SessionWithTurns,
   SessionUpdates,
 } from "../../components/chat/types";
 

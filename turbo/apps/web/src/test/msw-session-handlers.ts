@@ -3,9 +3,6 @@ import type {
   Session,
   Turn,
   Block,
-  TurnWithBlocks,
-  BlockWithParsedContent,
-  SessionWithTurns,
   SessionUpdates,
 } from "../components/chat/types";
 
@@ -27,8 +24,8 @@ function initializeMockData() {
     id: sessionId,
     projectId,
     title: "Mock Chat Session",
-    createdAt: new Date(Date.now() - 3600000).toISOString() as any,
-    updatedAt: new Date().toISOString() as any,
+    createdAt: new Date(Date.now() - 3600000),
+    updatedAt: new Date(),
   });
 
   // Create some turns
@@ -40,9 +37,9 @@ function initializeMockData() {
     sessionId,
     userPrompt: "How do I implement authentication in Next.js?",
     status: "completed",
-    createdAt: new Date(Date.now() - 3000000).toISOString() as any,
-    startedAt: new Date(Date.now() - 2995000).toISOString() as any,
-    completedAt: new Date(Date.now() - 2900000).toISOString() as any,
+    createdAt: new Date(Date.now() - 3000000),
+    startedAt: new Date(Date.now() - 2995000),
+    completedAt: new Date(Date.now() - 2900000),
     errorMessage: null,
   });
 
@@ -51,8 +48,8 @@ function initializeMockData() {
     sessionId,
     userPrompt: "Can you show me an example with Clerk?",
     status: "running",
-    createdAt: new Date(Date.now() - 60000).toISOString() as any,
-    startedAt: new Date(Date.now() - 55000).toISOString() as any,
+    createdAt: new Date(Date.now() - 60000),
+    startedAt: new Date(Date.now() - 55000),
     completedAt: null,
     errorMessage: null,
   });
@@ -67,7 +64,7 @@ function initializeMockData() {
         text: "The user is asking about authentication in Next.js. I should explain the different options available and provide a comprehensive answer.",
       },
       sequenceNumber: 0,
-      createdAt: new Date(Date.now() - 2994000).toISOString() as any,
+      createdAt: new Date(Date.now() - 2994000),
     },
     {
       id: "block-1-2",
@@ -77,7 +74,7 @@ function initializeMockData() {
         text: "There are several ways to implement authentication in Next.js:\n\n1. **NextAuth.js** - The most popular solution\n2. **Clerk** - A modern, developer-friendly option\n3. **Supabase Auth** - If you're using Supabase\n4. **Custom JWT implementation** - For full control\n\nHere's a basic example with NextAuth.js...",
       },
       sequenceNumber: 1,
-      createdAt: new Date(Date.now() - 2993000).toISOString() as any,
+      createdAt: new Date(Date.now() - 2993000),
     },
   ];
 
@@ -94,7 +91,7 @@ function initializeMockData() {
         text: "The user wants a specific example with Clerk. I'll provide a complete implementation example.",
       },
       sequenceNumber: 0,
-      createdAt: new Date(Date.now() - 54000).toISOString() as any,
+      createdAt: new Date(Date.now() - 54000),
     },
   ];
 
@@ -134,7 +131,7 @@ function startStreamingUpdates(turnId: string) {
           text: "Sure! Here's a complete example of implementing authentication with Clerk in Next.js:\n\n```typescript\n// app/layout.tsx\nimport { ClerkProvider } from '@clerk/nextjs'\n\nexport default function RootLayout({ children }) {\n  return (\n    <ClerkProvider>\n      {children}\n    </ClerkProvider>\n  )\n}\n```",
         },
         sequenceNumber: blockCount - 1,
-        createdAt: new Date().toISOString() as any,
+        createdAt: new Date(),
       };
       mockDatabase.blocks.set(newBlockId, block);
       const currentBlocks = mockDatabase.blocksByTurn.get(turnId) || [];
@@ -153,7 +150,7 @@ function startStreamingUpdates(turnId: string) {
           },
         },
         sequenceNumber: blockCount - 1,
-        createdAt: new Date().toISOString() as any,
+        createdAt: new Date(),
       };
       mockDatabase.blocks.set(newBlockId, block);
       const currentBlocks = mockDatabase.blocksByTurn.get(turnId) || [];
@@ -169,7 +166,7 @@ function startStreamingUpdates(turnId: string) {
           isError: false,
         },
         sequenceNumber: blockCount - 1,
-        createdAt: new Date().toISOString() as any,
+        createdAt: new Date(),
       };
       mockDatabase.blocks.set(newBlockId, block);
       const currentBlocks = mockDatabase.blocksByTurn.get(turnId) || [];
@@ -184,7 +181,7 @@ function startStreamingUpdates(turnId: string) {
           text: "I've created the middleware configuration for you. This setup will protect all routes by default. You can customize the `matcher` to exclude specific routes if needed.",
         },
         sequenceNumber: blockCount - 1,
-        createdAt: new Date().toISOString() as any,
+        createdAt: new Date(),
       };
       mockDatabase.blocks.set(newBlockId, block);
       const currentBlocks = mockDatabase.blocksByTurn.get(turnId) || [];
@@ -194,7 +191,7 @@ function startStreamingUpdates(turnId: string) {
       const updatedTurn = {
         ...turn,
         status: "completed" as const,
-        completedAt: new Date().toISOString() as any,
+        completedAt: new Date(),
       };
       mockDatabase.turns.set(turnId, updatedTurn);
       
@@ -219,7 +216,7 @@ export const sessionHandlers = [
         project_id: session.projectId,
         title: session.title,
         created_at: session.createdAt.toISOString(),
-        updated_at: typeof session.updatedAt === 'string' ? session.updatedAt : session.updatedAt.toISOString(),
+        updated_at: session.updatedAt instanceof Date ? session.updatedAt.toISOString() : session.updatedAt,
       }));
     
     return HttpResponse.json(sessions);
@@ -236,8 +233,8 @@ export const sessionHandlers = [
       id: `session-${Date.now()}`,
       projectId: projectId as string,
       title: body.title || "New Session",
-      createdAt: new Date().toISOString() as any,
-      updatedAt: new Date().toISOString() as any,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
     
     mockDatabase.sessions.set(newSession.id, newSession);
@@ -271,8 +268,8 @@ export const sessionHandlers = [
       id: session.id,
       project_id: session.projectId,
       title: session.title,
-      created_at: typeof session.createdAt === 'string' ? session.createdAt : session.createdAt.toISOString(),
-      updated_at: typeof session.updatedAt === 'string' ? session.updatedAt : session.updatedAt.toISOString(),
+      created_at: session.createdAt instanceof Date ? session.createdAt.toISOString() : session.createdAt,
+      updated_at: session.updatedAt instanceof Date ? session.updatedAt.toISOString() : session.updatedAt,
       turn_ids: turnIds,
     });
   }),
@@ -293,16 +290,16 @@ export const sessionHandlers = [
           .filter((b): b is Block => b !== undefined)
           .map(block => ({
             ...block,
-            createdAt: block.createdAt ? (typeof block.createdAt === 'string' ? block.createdAt : block.createdAt.toISOString()) : undefined,
+            createdAt: block.createdAt ? (block.createdAt instanceof Date ? block.createdAt.toISOString() : block.createdAt) : undefined,
           }));
         
         return {
           ...turn,
           blocks,
           block_count: blocks.length,
-          createdAt: typeof turn.createdAt === 'string' ? turn.createdAt : turn.createdAt.toISOString(),
-          startedAt: turn.startedAt ? (typeof turn.startedAt === 'string' ? turn.startedAt : turn.startedAt.toISOString()) : null,
-          completedAt: turn.completedAt ? (typeof turn.completedAt === 'string' ? turn.completedAt : turn.completedAt.toISOString()) : null,
+          createdAt: turn.createdAt instanceof Date ? turn.createdAt.toISOString() : turn.createdAt,
+          startedAt: turn.startedAt ? (turn.startedAt instanceof Date ? turn.startedAt.toISOString() : turn.startedAt) : null,
+          completedAt: turn.completedAt ? (turn.completedAt instanceof Date ? turn.completedAt.toISOString() : turn.completedAt) : null,
         };
       });
     
@@ -321,8 +318,8 @@ export const sessionHandlers = [
       sessionId: sessionId as string,
       userPrompt: body.user_prompt,
       status: "running",
-      createdAt: new Date().toISOString() as any,
-      startedAt: new Date().toISOString() as any,
+      createdAt: new Date(),
+      startedAt: new Date(),
       completedAt: null,
       errorMessage: null,
     };
@@ -337,8 +334,8 @@ export const sessionHandlers = [
       session_id: newTurn.sessionId,
       user_prompt: newTurn.userPrompt,
       status: newTurn.status,
-      created_at: typeof newTurn.createdAt === 'string' ? newTurn.createdAt : newTurn.createdAt.toISOString(),
-      started_at: newTurn.startedAt ? (typeof newTurn.startedAt === 'string' ? newTurn.startedAt : newTurn.startedAt.toISOString()) : null,
+      created_at: newTurn.createdAt instanceof Date ? newTurn.createdAt.toISOString() : newTurn.createdAt,
+      started_at: newTurn.startedAt ? (newTurn.startedAt instanceof Date ? newTurn.startedAt.toISOString() : newTurn.startedAt) : null,
       completed_at: null,
       error_message: null,
       blocks: [],
@@ -370,9 +367,9 @@ export const sessionHandlers = [
       ...turn,
       blocks,
       block_count: blocks.length,
-      createdAt: typeof turn.createdAt === 'string' ? turn.createdAt : turn.createdAt.toISOString(),
-      startedAt: turn.startedAt ? (typeof turn.startedAt === 'string' ? turn.startedAt : turn.startedAt.toISOString()) : null,
-      completedAt: turn.completedAt ? (typeof turn.completedAt === 'string' ? turn.completedAt : turn.completedAt.toISOString()) : null,
+      createdAt: turn.createdAt instanceof Date ? turn.createdAt.toISOString() : turn.createdAt,
+      startedAt: turn.startedAt ? (turn.startedAt instanceof Date ? turn.startedAt.toISOString() : turn.startedAt) : null,
+      completedAt: turn.completedAt ? (turn.completedAt instanceof Date ? turn.completedAt.toISOString() : turn.completedAt) : null,
     });
   }),
 
@@ -405,7 +402,7 @@ export const sessionHandlers = [
     const updates: SessionUpdates = {
       session: {
         id: session.id,
-        updated_at: typeof session.updatedAt === 'string' ? session.updatedAt : session.updatedAt.toISOString(),
+        updated_at: session.updatedAt instanceof Date ? session.updatedAt.toISOString() : session.updatedAt,
       },
       updated_turns: turns,
       has_active_turns: hasActiveTurns,
@@ -434,7 +431,7 @@ export const sessionHandlers = [
         const updatedTurn = {
           ...turn,
           status: "interrupted" as const,
-          completedAt: new Date().toISOString() as any,
+          completedAt: new Date(),
           errorMessage: "User interrupted",
         };
         mockDatabase.turns.set(turn.id, updatedTurn);
@@ -461,7 +458,7 @@ export const sessionHandlers = [
     
     if (body.title !== undefined) {
       session.title = body.title;
-      session.updatedAt = new Date().toISOString() as any;
+      session.updatedAt = new Date();
       mockDatabase.sessions.set(sessionId as string, session);
     }
     
@@ -469,8 +466,8 @@ export const sessionHandlers = [
       id: session.id,
       project_id: session.projectId,
       title: session.title,
-      created_at: typeof session.createdAt === 'string' ? session.createdAt : session.createdAt.toISOString(),
-      updated_at: typeof session.updatedAt === 'string' ? session.updatedAt : session.updatedAt.toISOString(),
+      created_at: session.createdAt instanceof Date ? session.createdAt.toISOString() : session.createdAt,
+      updated_at: session.updatedAt instanceof Date ? session.updatedAt.toISOString() : session.updatedAt,
     });
   }),
 ];

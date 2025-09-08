@@ -150,7 +150,7 @@ describe("ChatWithAPI", () => {
             headers: { "Content-Type": "application/json" },
           });
         }),
-      } as any,
+      } as unknown,
     );
 
     render(<ChatWithAPI projectId="project-test-1" sessionId="error-session" />);

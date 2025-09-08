@@ -30,7 +30,6 @@ export function ChatWithAPI({ projectId, sessionId: initialSessionId, onSessionC
     createSession,
     sendMessage,
     interruptSession,
-    updateTitle,
   } = useSession(projectId, activeSessionId || "");
 
   // Create a session if none exists
