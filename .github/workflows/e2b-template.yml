@@ -23,7 +23,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "20"
+          node-version: "22"
 
       - name: Install E2B CLI
         run: npm install -g @e2b/cli
@@ -31,18 +31,9 @@ jobs:
       - name: Build E2B template
         working-directory: ./turbo/e2b
         env:
-          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+          E2B_ACCESS_TOKEN: ${{ secrets.E2B_ACCESS_TOKEN }}
         run: |
-          echo "Building E2B template..."
-          # Try with different authentication methods
-          export E2B_API_KEY="${E2B_API_KEY}"
-          export E2B_ACCESS_TOKEN="sk_${E2B_API_KEY}"
-          echo "Attempting to build with E2B CLI..."
-          e2b template build --name "claude-code-sandbox" --dockerfile ./Dockerfile || {
-            echo "First attempt failed, trying with API key directly..."
-            export E2B_ACCESS_TOKEN="${E2B_API_KEY}"
-            e2b template build --name "claude-code-sandbox" --dockerfile ./Dockerfile
-          }
+          e2b template build --name "claude-code-sandbox" --dockerfile ./Dockerfile
 
       - name: Test template build (PR only)
         if: github.event_name == 'pull_request'
@@ -55,10 +46,9 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         working-directory: ./turbo/e2b
         env:
-          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+          E2B_ACCESS_TOKEN: ${{ secrets.E2B_ACCESS_TOKEN }}
         run: |
           echo "Pushing template to E2B registry..."
-          export E2B_ACCESS_TOKEN="${E2B_API_KEY}"
           e2b template push --name "claude-code-sandbox"
           echo "✅ Template pushed successfully"
 
@@ -66,10 +56,9 @@ jobs:
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         working-directory: ./turbo/e2b
         env:
-          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+          E2B_ACCESS_TOKEN: ${{ secrets.E2B_ACCESS_TOKEN }}
         run: |
           echo "Getting template ID..."
-          export E2B_ACCESS_TOKEN="${E2B_API_KEY}"
           TEMPLATE_ID=$(e2b template list | grep "claude-code-sandbox" | awk '{print $1}')
           echo "Template ID: $TEMPLATE_ID"
           echo "TEMPLATE_ID=$TEMPLATE_ID" >> $GITHUB_ENV
