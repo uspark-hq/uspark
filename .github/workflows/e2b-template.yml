@@ -1,0 +1,44 @@
+name: E2B Template Build
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "e2b/**"
+      - ".github/workflows/e2b-template.yml"
+  pull_request:
+    paths:
+      - "e2b/**"
+      - ".github/workflows/e2b-template.yml"
+
+jobs:
+  build-e2b-template:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install E2B CLI
+        run: npm install -g @e2b/cli
+
+      - name: Build E2B template
+        working-directory: ./e2b
+        env:
+          E2B_ACCESS_TOKEN: ${{ secrets.E2B_ACCESS_TOKEN }}
+        run: |
+          e2b template build
+
+      - name: Push template to E2B
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        working-directory: ./e2b
+        env:
+          E2B_ACCESS_TOKEN: ${{ secrets.E2B_ACCESS_TOKEN }}
+        run: |
+          e2b template publish -y
