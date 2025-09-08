@@ -18,100 +18,70 @@ export default function Home() {
             <span className={styles.logoU}>u</span>
             <span className={styles.logoSpark}>Spark</span>
           </div>
-          <nav className={styles.nav}>
-            <a href="#features" className={styles.navLink}>Features</a>
-            <a href="#how-it-works" className={styles.navLink}>How It Works</a>
-            <a href="#pricing" className={styles.navLink}>Pricing</a>
-          </nav>
-          <div className={styles.headerCta}>
-            <SignUpButton mode="modal">
-              <button className={styles.signInButton}>Sign In</button>
-            </SignUpButton>
-          </div>
         </div>
       </header>
 
       {/* Hero Section */}
       <section className={styles.hero}>
-        <div className={styles.heroInner}>
-          <h1 className={styles.heroTitle}>
-            Your AI conversations,
-            <br />
-            <span className={styles.heroTitleGradient}>forever organized</span>
-          </h1>
-          <p className={styles.heroSubtitle}>
-            Stop losing brilliant ideas to chat history. uSpark transforms every
-            AI conversation into searchable, editable documents that grow with
-            your team.
-          </p>
+        <div className={styles.heroContent}>
+          <div className={styles.heroText}>
+            <h1 className={styles.heroTitle}>
+              Your AI conversations,
+              <br />
+              <span className={styles.heroTitleGradient}>
+                forever organized
+              </span>
+            </h1>
+            <p className={styles.heroSubtitle}>
+              Stop losing brilliant ideas to chat history. uSpark transforms
+              every AI conversation into searchable, editable documents that
+              grow with your team.
+            </p>
 
-          <div className={styles.heroCta}>
-            <SignUpButton mode="modal">
-              <button className={styles.primaryButton}>
-                Start Building Knowledge
-              </button>
-            </SignUpButton>
-            <button className={styles.secondaryButton}>See How It Works</button>
-          </div>
-
-          <div className={styles.heroTrust}>
-            <span>Trusted by 10,000+ teams</span>
-            <span className={styles.divider}>•</span>
-            <span>70% faster documentation</span>
-            <span className={styles.divider}>•</span>
-            <span>Free to start</span>
-          </div>
-        </div>
-
-        {/* Product Demo Visual */}
-        <div className={styles.heroDemo}>
-          <div className={styles.demoWindow}>
-            <div className={styles.windowHeader}>
-              <div className={styles.windowDots}>
-                <span></span>
-                <span></span>
-                <span></span>
-              </div>
-              <span className={styles.windowTitle}>uSpark</span>
+            <div className={styles.heroCta}>
+              <SignUpButton mode="modal">
+                <button className={styles.primaryButton}>Join Waitlist</button>
+              </SignUpButton>
             </div>
-            <div className={styles.demoContent}>
-              <div className={styles.chatSide}>
-                <div className={styles.chatBubble}>
-                  <p>Create a PRD for user authentication with SSO support</p>
-                </div>
-                <div className={styles.aiResponse}>
-                  <p>I&apos;ll create a comprehensive PRD for you...</p>
+
+            <div className={styles.heroTrust}>
+              <span>Trusted by 10,000+ teams</span>
+              <span className={styles.divider}>•</span>
+              <span>70% faster documentation</span>
+              <span className={styles.divider}>•</span>
+              <span>Free to start</span>
+            </div>
+          </div>
+
+          {/* Animated Demo */}
+          <div className={styles.heroAnimation}>
+            <div className={styles.animatedDemo}>
+              <div className={styles.demoStep} data-step="1">
+                <div className={styles.chatMessage}>
+                  <p>&quot;Create a PRD for user authentication with SSO support&quot;</p>
                 </div>
               </div>
-              <div className={styles.transformArrow}>
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none">
-                  <path
-                    d="M7 7l10 10M17 7v10H7"
-                    stroke="url(#gradient)"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                  />
-                  <defs>
-                    <linearGradient
-                      id="gradient"
-                      x1="0%"
-                      y1="0%"
-                      x2="100%"
-                      y2="100%"
-                    >
-                      <stop offset="0%" stopColor="#667eea" />
-                      <stop offset="100%" stopColor="#764ba2" />
-                    </linearGradient>
-                  </defs>
-                </svg>
+              <div className={styles.animatedArrow}>↓</div>
+              <div className={styles.demoStep} data-step="2">
+                <div className={styles.aiProcessing}>
+                  <p>AI is generating your document...</p>
+                  <div className={styles.loadingDots}>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
               </div>
-              <div className={styles.documentSide}>
-                <div className={styles.documentPreview}>
-                  <h3># User Authentication PRD</h3>
-                  <p>## Overview</p>
-                  <p>Single Sign-On implementation...</p>
-                  <p>## User Stories</p>
-                  <p>## Technical Requirements</p>
+              <div className={styles.animatedArrow}>↓</div>
+              <div className={styles.demoStep} data-step="3">
+                <div className={styles.generatedDoc}>
+                  <div className={styles.docHeader}>📄 user-auth-prd.md</div>
+                  <div className={styles.docContent}>
+                    <p># User Authentication PRD</p>
+                    <p>## Overview</p>
+                    <p>## User Stories</p>
+                    <p>## Technical Requirements</p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -221,7 +191,7 @@ export default function Home() {
           The Missing Link in Your AI Workflow
         </h2>
         <div className={styles.comparisonGrid}>
-          <div className={styles.comparisonCard}>
+          <div className={`${styles.comparisonCard} ${styles.grayedOut}`}>
             <h3>ChatGPT / Claude</h3>
             <div className={styles.comparisonContent}>
               <p className={styles.problem}>❌ Linear chat history</p>
@@ -230,7 +200,7 @@ export default function Home() {
               <p className={styles.problem}>❌ Lost after session ends</p>
             </div>
           </div>
-          <div className={styles.comparisonCard}>
+          <div className={`${styles.comparisonCard} ${styles.grayedOut}`}>
             <h3>Notion / Docs</h3>
             <div className={styles.comparisonContent}>
               <p className={styles.problem}>❌ AI is just a feature</p>
@@ -360,9 +330,7 @@ export default function Home() {
             disappear into the void.
           </p>
           <SignUpButton mode="modal">
-            <button className={styles.primaryButton}>
-              Start Building Knowledge
-            </button>
+            <button className={styles.primaryButton}>Join Waitlist</button>
           </SignUpButton>
           <p className={styles.finalCtaBottomText}>
             Free to start. No credit card required. Your documents stay yours
@@ -376,8 +344,8 @@ export default function Home() {
       <footer className={styles.footer}>
         <div className={styles.footerContent}>
           <div className={styles.footerLogo}>
-            <span className={styles.logoU}>u</span>
-            <span className={styles.logoSpark}>Spark</span>
+            <span className={styles.footerLogoU}>u</span>
+            <span className={styles.footerLogoSpark}>Spark</span>
           </div>
           <p className={styles.footerText}>
             © 2025 uSpark. Where conversations become knowledge.
