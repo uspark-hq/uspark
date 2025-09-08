@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.17.0](https://github.com/uspark-hq/uspark/compare/web-v0.16.0...web-v0.17.0) (2025-09-08)
+
+
+### Features
+
+* add E2B API key to deployment workflows ([#209](https://github.com/uspark-hq/uspark/issues/209)) ([bf3fd21](https://github.com/uspark-hq/uspark/commit/bf3fd212e6c755081762b2ad490c1981d407b885))
+* redesign homepage based on Product Hunt landing page insights ([#206](https://github.com/uspark-hq/uspark/issues/206)) ([b2428f7](https://github.com/uspark-hq/uspark/commit/b2428f7429dea786cc773969920339bf74aaa8ee))
+
+
+### Bug Fixes
+
+* align animated demo content to left for better visual consistency ([#211](https://github.com/uspark-hq/uspark/issues/211)) ([4a2cc72](https://github.com/uspark-hq/uspark/commit/4a2cc72bb29256dde9d649ff8524e257d1eaf7b9))
+* update all urls from app.uspark.com to uspark.ai ([#208](https://github.com/uspark-hq/uspark/issues/208)) ([5f50e4b](https://github.com/uspark-hq/uspark/commit/5f50e4b3588569d0000fd2873569d1780c4cfab5))
+
 ## [0.16.0](https://github.com/uspark-hq/uspark/compare/web-v0.15.0...web-v0.16.0) (2025-09-08)
 
 
