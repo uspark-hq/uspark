@@ -69,9 +69,7 @@ export async function getToken(): Promise<string | undefined> {
 export async function getApiUrl(): Promise<string> {
   if (overrideConfig !== null) {
     return (
-      overrideConfig.apiUrl ||
-      process.env.USPARK_API_URL ||
-      "https://app.uspark.com"
+      overrideConfig.apiUrl || process.env.USPARK_API_URL || "https://uspark.ai"
     );
   }
 
@@ -82,7 +80,7 @@ export async function getApiUrl(): Promise<string> {
     // Add protocol if missing
     return apiHost.startsWith("http") ? apiHost : `https://${apiHost}`;
   }
-  return config.apiUrl || "https://app.uspark.com";
+  return config.apiUrl || "https://uspark.ai";
 }
 
 export async function clearConfig(): Promise<void> {

@@ -59,7 +59,7 @@ export async function POST() {
   const response: DeviceAuthResponse = {
     device_code: deviceCode,
     user_code: deviceCode, // Same as device_code for simplicity
-    verification_url: "https://app.uspark.com/cli-auth",
+    verification_url: "https://uspark.ai/cli-auth",
     expires_in: expiresIn,
     interval: interval,
   };

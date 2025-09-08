@@ -1,8 +1,6 @@
 import chalk from "chalk";
 import { delay } from "signal-timers";
-import { saveConfig, clearConfig, loadConfig } from "./config";
-
-const API_BASE_URL = "https://app.uspark.com";
+import { saveConfig, clearConfig, loadConfig, getApiUrl } from "./config";
 
 async function requestDeviceCode(apiUrl: string): Promise<{
   device_code: string;
@@ -57,18 +55,19 @@ async function exchangeToken(
   }>;
 }
 
-export async function authenticate(
-  apiUrl: string = API_BASE_URL,
-): Promise<void> {
+export async function authenticate(apiUrl?: string): Promise<void> {
+  // Use provided apiUrl or get from config/env
+  const targetApiUrl = apiUrl || (await getApiUrl());
   console.log(chalk.blue("🔐 Initiating authentication..."));
 
   // Request device code
-  const deviceAuth = await requestDeviceCode(apiUrl);
+  const deviceAuth = await requestDeviceCode(targetApiUrl);
 
   console.log(chalk.green("\n✓ Device code generated"));
-  console.log(
-    chalk.cyan(`\nTo authenticate, visit: ${deviceAuth.verification_url}`),
-  );
+
+  // Construct verification URL from API URL
+  const verificationUrl = `${targetApiUrl}/cli-auth`;
+  console.log(chalk.cyan(`\nTo authenticate, visit: ${verificationUrl}`));
   console.log(
     chalk.yellow(`And enter this code: ${chalk.bold(deviceAuth.user_code)}`),
   );
@@ -88,13 +87,16 @@ export async function authenticate(
   while (Date.now() - startTime < maxWaitTime) {
     await delay(pollInterval); // Use dynamic polling interval
 
-    const tokenResult = await exchangeToken(apiUrl, deviceAuth.device_code);
+    const tokenResult = await exchangeToken(
+      targetApiUrl,
+      deviceAuth.device_code,
+    );
 
     if (tokenResult.access_token) {
       // Success! Store the token
       await saveConfig({
         token: tokenResult.access_token,
-        apiUrl: apiUrl,
+        apiUrl: targetApiUrl,
       });
 
       console.log(chalk.green("\n✓ Authentication successful!"));

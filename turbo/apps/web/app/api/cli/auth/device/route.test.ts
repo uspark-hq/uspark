@@ -29,9 +29,7 @@ describe("/api/cli/auth/device", () => {
 
       // Check all required fields are present
       expect(validData.user_code).toBe(validData.device_code);
-      expect(validData.verification_url).toBe(
-        "https://app.uspark.com/cli-auth",
-      );
+      expect(validData.verification_url).toBe("https://uspark.ai/cli-auth");
       expect(validData.expires_in).toBe(900); // 15 minutes
     }
   });
