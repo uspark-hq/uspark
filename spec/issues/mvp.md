@@ -106,6 +106,7 @@ This document defines the mid-term goals and user stories for the MVP release of
 5. ⏳ Chat interface component (UI only, no backend)
 6. [ ] Polling system for status updates
 7. [ ] Document change detection via YJS polling
+8. [ ] AWS Bedrock STS token generation for E2B Claude Code tasks
 
 ### Phase 5: Sharing Features (Story 3)
 
