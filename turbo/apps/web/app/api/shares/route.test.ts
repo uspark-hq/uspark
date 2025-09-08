@@ -1,11 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { GET } from "./route";
+import { POST as createProject } from "../projects/route";
 import { initServices } from "../../../src/lib/init-services";
 import { apiCall } from "../../../src/test/api-helpers";
 import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";
+import { NextRequest } from "next/server";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -67,21 +69,27 @@ describe("GET /api/shares", () => {
   });
 
   it("should return user's shares with correct structure", async () => {
-    // Create test project
-    const projectId = `test-project-${Date.now()}`;
+    // Create test project using API
+    const createProjectRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: "Test Project" }),
+    });
+    const projectResponse = await createProject(createProjectRequest);
+    expect(projectResponse.status).toBe(201);
+    const projectData = await projectResponse.json();
+    const projectId = projectData.id;
+
+    // Update project with test data
     const ydoc = new Y.Doc();
     const files = ydoc.getMap("files");
     files.set("test.ts", { hash: "abc123", mtime: Date.now() });
-
     const state = Y.encodeStateAsUpdate(ydoc);
     const base64Data = Buffer.from(state).toString("base64");
 
-    await globalThis.services.db.insert(PROJECTS_TBL).values({
-      id: projectId,
-      userId,
-      ydocData: base64Data,
-      version: 0,
-    });
+    await globalThis.services.db
+      .update(PROJECTS_TBL)
+      .set({ ydocData: base64Data })
+      .where(eq(PROJECTS_TBL.id, projectId));
 
     // Create test shares with unique IDs
     const timestamp = Date.now();
@@ -143,29 +151,29 @@ describe("GET /api/shares", () => {
   });
 
   it("should not return shares from other users", async () => {
-    // Create projects for different users
-    const myProjectId = `my-project-${Date.now()}`;
-    const otherProjectId = `other-project-${Date.now()}`;
+    // Create project for current user using API
+    const createMyProjectRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: "My Project" }),
+    });
+    const myProjectResponse = await createProject(createMyProjectRequest);
+    expect(myProjectResponse.status).toBe(201);
+    const myProjectData = await myProjectResponse.json();
+    const myProjectId = myProjectData.id;
 
+    // Create project for other user using direct DB (needed for different user)
+    const otherProjectId = `other-project-${Date.now()}`;
     const ydoc = new Y.Doc();
     const state = Y.encodeStateAsUpdate(ydoc);
     const base64Data = Buffer.from(state).toString("base64");
 
-    // Create both projects
-    await globalThis.services.db.insert(PROJECTS_TBL).values([
-      {
-        id: myProjectId,
-        userId,
-        ydocData: base64Data,
-        version: 0,
-      },
-      {
-        id: otherProjectId,
-        userId: otherUserId,
-        ydocData: base64Data,
-        version: 0,
-      },
-    ]);
+    // Direct DB insert needed here because we need to test with a different userId
+    await globalThis.services.db.insert(PROJECTS_TBL).values({
+      id: otherProjectId,
+      userId: otherUserId,
+      ydocData: base64Data,
+      version: 0,
+    });
 
     // Create shares for both users
     const timestamp = Date.now();
@@ -219,20 +227,33 @@ describe("GET /api/shares", () => {
   });
 
   it("should order shares by creation date descending", async () => {
-    // Create projects for the shares
-    const project1 = `project-1-${Date.now()}`;
-    const project2 = `project-2-${Date.now()}`;
-    const project3 = `project-3-${Date.now()}`;
+    // Create projects using API
+    const createProject1Request = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: "Project 1" }),
+    });
+    const project1Response = await createProject(createProject1Request);
+    expect(project1Response.status).toBe(201);
+    const project1Data = await project1Response.json();
+    const project1 = project1Data.id;
 
-    const ydoc = new Y.Doc();
-    const state = Y.encodeStateAsUpdate(ydoc);
-    const base64Data = Buffer.from(state).toString("base64");
+    const createProject2Request = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: "Project 2" }),
+    });
+    const project2Response = await createProject(createProject2Request);
+    expect(project2Response.status).toBe(201);
+    const project2Data = await project2Response.json();
+    const project2 = project2Data.id;
 
-    await globalThis.services.db.insert(PROJECTS_TBL).values([
-      { id: project1, userId, ydocData: base64Data, version: 0 },
-      { id: project2, userId, ydocData: base64Data, version: 0 },
-      { id: project3, userId, ydocData: base64Data, version: 0 },
-    ]);
+    const createProject3Request = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: "Project 3" }),
+    });
+    const project3Response = await createProject(createProject3Request);
+    expect(project3Response.status).toBe(201);
+    const project3Data = await project3Response.json();
+    const project3 = project3Data.id;
 
     const now = Date.now();
     const timestamp = now;

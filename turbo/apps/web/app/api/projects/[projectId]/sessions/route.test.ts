@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 import { GET, POST } from "./route";
+import { POST as createProject } from "../../route";
 import { initServices } from "../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import {
@@ -65,17 +66,20 @@ describe("/api/projects/:projectId/sessions", () => {
       .delete(PROJECTS_TBL)
       .where(eq(PROJECTS_TBL.id, projectId));
 
-    // Create test project
-    const ydoc = new Y.Doc();
-    const state = Y.encodeStateAsUpdate(ydoc);
-    const base64Data = Buffer.from(state).toString("base64");
-
-    await globalThis.services.db.insert(PROJECTS_TBL).values({
-      id: projectId,
-      userId,
-      ydocData: base64Data,
-      version: 0,
+    // Create test project using API
+    const createRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: "Test Project" }),
     });
+    const createResponse = await createProject(createRequest);
+    expect(createResponse.status).toBe(201);
+    const projectData = await createResponse.json();
+
+    // Update the project with our test ID for consistency
+    await globalThis.services.db
+      .update(PROJECTS_TBL)
+      .set({ id: projectId })
+      .where(eq(PROJECTS_TBL.id, projectData.id));
 
     testSessionIds = [];
   });
@@ -140,12 +144,13 @@ describe("/api/projects/:projectId/sessions", () => {
     });
 
     it("should return 404 when project belongs to another user", async () => {
-      // Create project for another user
+      // Create project for another user using direct DB (needed for different user)
       const otherProjectId = `proj_other_${Date.now()}`;
       const ydoc = new Y.Doc();
       const state = Y.encodeStateAsUpdate(ydoc);
       const base64Data = Buffer.from(state).toString("base64");
 
+      // Direct DB insert needed here because we need to test with a different userId
       await globalThis.services.db.insert(PROJECTS_TBL).values({
         id: otherProjectId,
         userId: "other-user",
@@ -253,32 +258,29 @@ describe("/api/projects/:projectId/sessions", () => {
     });
 
     it("should return sessions list ordered by creation date", async () => {
-      // Create multiple sessions
-      const session1 = await globalThis.services.db
-        .insert(SESSIONS_TBL)
-        .values({
-          id: `sess_test1_${Date.now()}`,
-          projectId,
-          title: "Session 1",
-        })
-        .returning();
+      // Create multiple sessions using API
+      const request1 = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ title: "Session 1" }),
+      });
+      const context = { params: Promise.resolve({ projectId }) };
+      const response1 = await POST(request1, context);
+      expect(response1.status).toBe(200);
+      const session1Data = await response1.json();
+      testSessionIds.push(session1Data.id);
 
       await new Promise((resolve) => setTimeout(resolve, 10)); // Ensure different timestamps
 
-      const session2 = await globalThis.services.db
-        .insert(SESSIONS_TBL)
-        .values({
-          id: `sess_test2_${Date.now()}`,
-          projectId,
-          title: "Session 2",
-        })
-        .returning();
-
-      testSessionIds.push(session1[0].id, session2[0].id);
+      const request2 = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ title: "Session 2" }),
+      });
+      const response2 = await POST(request2, context);
+      expect(response2.status).toBe(200);
+      const session2Data = await response2.json();
+      testSessionIds.push(session2Data.id);
 
       const request = new NextRequest("http://localhost:3000");
-      const context = { params: Promise.resolve({ projectId }) };
-
       const response = await GET(request, context);
 
       expect(response.status).toBe(200);
@@ -292,25 +294,24 @@ describe("/api/projects/:projectId/sessions", () => {
     });
 
     it("should support pagination with limit and offset", async () => {
-      // Create 5 sessions
+      // Create 5 sessions using API
       const sessionIds = [];
+      const context = { params: Promise.resolve({ projectId }) };
       for (let i = 0; i < 5; i++) {
-        const [session] = await globalThis.services.db
-          .insert(SESSIONS_TBL)
-          .values({
-            id: `sess_page_${i}_${Date.now()}`,
-            projectId,
-            title: `Session ${i}`,
-          })
-          .returning();
-        sessionIds.push(session.id);
-        testSessionIds.push(session.id);
+        const request = new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ title: `Session ${i}` }),
+        });
+        const response = await POST(request, context);
+        expect(response.status).toBe(200);
+        const sessionData = await response.json();
+        sessionIds.push(sessionData.id);
+        testSessionIds.push(sessionData.id);
         await new Promise((resolve) => setTimeout(resolve, 10));
       }
 
       // Test limit
       const request1 = new NextRequest("http://localhost:3000?limit=2");
-      const context = { params: Promise.resolve({ projectId }) };
       const response1 = await GET(request1, context);
       const data1 = await response1.json();
       expect(data1.sessions).toHaveLength(2);
@@ -335,36 +336,38 @@ describe("/api/projects/:projectId/sessions", () => {
     });
 
     it("should not return sessions from other projects", async () => {
-      // Create session for test project
-      const [session1] = await globalThis.services.db
-        .insert(SESSIONS_TBL)
-        .values({
-          id: `sess_proj1_${Date.now()}`,
-          projectId,
-          title: "My Session",
-        })
-        .returning();
-      testSessionIds.push(session1.id);
-
-      // Create another project and session
-      const otherProjectId = `proj_other_${Date.now()}`;
-      await globalThis.services.db.insert(PROJECTS_TBL).values({
-        id: otherProjectId,
-        userId,
-        ydocData: Buffer.from(Y.encodeStateAsUpdate(new Y.Doc())).toString(
-          "base64",
-        ),
-        version: 0,
+      // Create session for test project using API
+      const request1 = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ title: "My Session" }),
       });
+      const context1 = { params: Promise.resolve({ projectId }) };
+      const response1 = await POST(request1, context1);
+      expect(response1.status).toBe(200);
+      const session1Data = await response1.json();
+      testSessionIds.push(session1Data.id);
 
-      const [session2] = await globalThis.services.db
-        .insert(SESSIONS_TBL)
-        .values({
-          id: `sess_proj2_${Date.now()}`,
-          projectId: otherProjectId,
-          title: "Other Session",
-        })
-        .returning();
+      // Create another project using API
+      const otherProjectRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ name: "Other Test Project" }),
+      });
+      const otherProjectResponse = await createProject(otherProjectRequest);
+      expect(otherProjectResponse.status).toBe(201);
+      const otherProjectData = await otherProjectResponse.json();
+      const otherProjectId = otherProjectData.id;
+
+      // Create session for other project using API
+      const request2 = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ title: "Other Session" }),
+      });
+      const context2 = {
+        params: Promise.resolve({ projectId: otherProjectId }),
+      };
+      const response2 = await POST(request2, context2);
+      expect(response2.status).toBe(200);
+      const session2Data = await response2.json();
 
       const request = new NextRequest("http://localhost:3000");
       const context = { params: Promise.resolve({ projectId }) };
@@ -378,7 +381,7 @@ describe("/api/projects/:projectId/sessions", () => {
       // Clean up
       await globalThis.services.db
         .delete(SESSIONS_TBL)
-        .where(eq(SESSIONS_TBL.id, session2.id));
+        .where(eq(SESSIONS_TBL.id, session2Data.id));
       await globalThis.services.db
         .delete(PROJECTS_TBL)
         .where(eq(PROJECTS_TBL.id, otherProjectId));

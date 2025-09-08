@@ -69,28 +69,20 @@ describe("/api/projects", () => {
     });
 
     it("should return user's projects list", async () => {
-      // Create test projects
-      const project1Id = `test-project-1-${Date.now()}`;
-      const project2Id = `test-project-2-${Date.now()}`;
+      // Create test projects using API endpoint
+      const request1 = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ name: `test-project-1-${Date.now()}` }),
+      });
+      const response1 = await POST(request1);
+      const project1 = await response1.json();
 
-      const ydoc = new Y.Doc();
-      const state = Y.encodeStateAsUpdate(ydoc);
-      const base64Data = Buffer.from(state).toString("base64");
-
-      await globalThis.services.db.insert(PROJECTS_TBL).values([
-        {
-          id: project1Id,
-          userId,
-          ydocData: base64Data,
-          version: 0,
-        },
-        {
-          id: project2Id,
-          userId,
-          ydocData: base64Data,
-          version: 0,
-        },
-      ]);
+      const request2 = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ name: `test-project-2-${Date.now()}` }),
+      });
+      const response2 = await POST(request2);
+      const project2 = await response2.json();
 
       const response = await GET();
 
@@ -107,12 +99,13 @@ describe("/api/projects", () => {
 
       // Check that we got our test projects
       const projectIds = data.projects.map((p: { id: string }) => p.id);
-      expect(projectIds).toContain(project1Id);
-      expect(projectIds).toContain(project2Id);
+      expect(projectIds).toContain(project1.id);
+      expect(projectIds).toContain(project2.id);
     });
 
     it("should only return projects for the correct user", async () => {
-      // Create project for different user
+      // Create project for different user - need to use direct DB here
+      // as API would create project for current authenticated user
       const otherUserId = "other-user";
       const otherProjectId = `other-project-${Date.now()}`;
 

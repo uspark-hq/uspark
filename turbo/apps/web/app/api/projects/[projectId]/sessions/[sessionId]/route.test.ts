@@ -1,6 +1,9 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 import { GET, PATCH } from "./route";
+import { POST as createProject } from "../../../route";
+import { POST as createSession } from "../route";
+import { POST as createTurn } from "./turns/route";
 import { initServices } from "../../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../../src/db/schema/projects";
 import {
@@ -9,7 +12,6 @@ import {
   BLOCKS_TBL,
 } from "../../../../../../src/db/schema/sessions";
 import { eq } from "drizzle-orm";
-import * as Y from "yjs";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -37,29 +39,34 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
       .delete(PROJECTS_TBL)
       .where(eq(PROJECTS_TBL.id, projectId));
 
-    // Create test project
-    const ydoc = new Y.Doc();
-    const state = Y.encodeStateAsUpdate(ydoc);
-    const base64Data = Buffer.from(state).toString("base64");
-
-    await globalThis.services.db.insert(PROJECTS_TBL).values({
-      id: projectId,
-      userId,
-      ydocData: base64Data,
-      version: 0,
+    // Create test project using API
+    const createProjectRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: "Test Project" }),
     });
+    const projectResponse = await createProject(createProjectRequest);
+    expect(projectResponse.status).toBe(201);
+    const projectData = await projectResponse.json();
 
-    // Create test session
-    const [session] = await globalThis.services.db
-      .insert(SESSIONS_TBL)
-      .values({
-        id: `sess_detail_${Date.now()}`,
-        projectId,
-        title: "Test Session",
-      })
-      .returning();
+    // Update the project with our test ID for consistency
+    await globalThis.services.db
+      .update(PROJECTS_TBL)
+      .set({ id: projectId })
+      .where(eq(PROJECTS_TBL.id, projectData.id));
 
-    sessionId = session.id;
+    // Create test session using API
+    const createSessionRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ title: "Test Session" }),
+    });
+    const sessionContext = { params: Promise.resolve({ projectId }) };
+    const sessionResponse = await createSession(
+      createSessionRequest,
+      sessionContext,
+    );
+    expect(sessionResponse.status).toBe(200);
+    const sessionData = await sessionResponse.json();
+    sessionId = sessionData.id;
     createdTurnIds = [];
   });
 
@@ -151,30 +158,27 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
     });
 
     it("should return session details with turn_ids in order", async () => {
-      // Create turns
-      const turn1 = await globalThis.services.db
-        .insert(TURNS_TBL)
-        .values({
-          id: `turn_1_${Date.now()}`,
-          sessionId,
-          userPrompt: "First prompt",
-          status: "completed",
-        })
-        .returning();
+      // Create turns using API
+      const createTurn1Request = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ user_message: "First prompt" }),
+      });
+      const turnContext = { params: Promise.resolve({ projectId, sessionId }) };
+      const turn1Response = await createTurn(createTurn1Request, turnContext);
+      expect(turn1Response.status).toBe(200);
+      const turn1Data = await turn1Response.json();
+      createdTurnIds.push(turn1Data.id);
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      const turn2 = await globalThis.services.db
-        .insert(TURNS_TBL)
-        .values({
-          id: `turn_2_${Date.now()}`,
-          sessionId,
-          userPrompt: "Second prompt",
-          status: "running",
-        })
-        .returning();
-
-      createdTurnIds.push(turn1[0].id, turn2[0].id);
+      const createTurn2Request = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ user_message: "Second prompt" }),
+      });
+      const turn2Response = await createTurn(createTurn2Request, turnContext);
+      expect(turn2Response.status).toBe(200);
+      const turn2Data = await turn2Response.json();
+      createdTurnIds.push(turn2Data.id);
 
       const request = new NextRequest("http://localhost:3000");
       const context = { params: Promise.resolve({ projectId, sessionId }) };
@@ -184,8 +188,8 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.turn_ids).toHaveLength(2);
-      expect(data.turn_ids[0]).toBe(turn1[0].id);
-      expect(data.turn_ids[1]).toBe(turn2[0].id);
+      expect(data.turn_ids[0]).toBe(turn1Data.id);
+      expect(data.turn_ids[1]).toBe(turn2Data.id);
     });
   });
 
