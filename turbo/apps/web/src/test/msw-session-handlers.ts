@@ -19,7 +19,7 @@ function initializeMockData() {
   // Create a mock session
   const sessionId = "session-mock-1";
   const projectId = "project-test-1";
-  
+
   mockDatabase.sessions.set(sessionId, {
     id: sessionId,
     projectId,
@@ -31,7 +31,7 @@ function initializeMockData() {
   // Create some turns
   const turn1Id = "turn-mock-1";
   const turn2Id = "turn-mock-2";
-  
+
   mockDatabase.turns.set(turn1Id, {
     id: turn1Id,
     sessionId,
@@ -78,8 +78,11 @@ function initializeMockData() {
     },
   ];
 
-  blocks1.forEach(block => mockDatabase.blocks.set(block.id, block));
-  mockDatabase.blocksByTurn.set(turn1Id, blocks1.map(b => b.id));
+  blocks1.forEach((block) => mockDatabase.blocks.set(block.id, block));
+  mockDatabase.blocksByTurn.set(
+    turn1Id,
+    blocks1.map((b) => b.id),
+  );
 
   // Add initial blocks for turn2 (still running)
   const blocks2 = [
@@ -95,8 +98,11 @@ function initializeMockData() {
     },
   ];
 
-  blocks2.forEach(block => mockDatabase.blocks.set(block.id, block));
-  mockDatabase.blocksByTurn.set(turn2Id, blocks2.map(b => b.id));
+  blocks2.forEach((block) => mockDatabase.blocks.set(block.id, block));
+  mockDatabase.blocksByTurn.set(
+    turn2Id,
+    blocks2.map((b) => b.id),
+  );
 }
 
 // Initialize on first import
@@ -107,9 +113,9 @@ let streamingInterval: NodeJS.Timeout | null = null;
 
 function startStreamingUpdates(turnId: string) {
   if (streamingInterval) clearInterval(streamingInterval);
-  
+
   let blockCount = mockDatabase.blocksByTurn.get(turnId)?.length || 0;
-  
+
   streamingInterval = setInterval(() => {
     const turn = mockDatabase.turns.get(turnId);
     if (!turn || turn.status !== "running") {
@@ -120,7 +126,7 @@ function startStreamingUpdates(turnId: string) {
     // Add new blocks progressively
     blockCount++;
     const newBlockId = `block-${turnId}-${blockCount}`;
-    
+
     if (blockCount === 2) {
       // Add content block
       const block: Block = {
@@ -146,7 +152,8 @@ function startStreamingUpdates(turnId: string) {
           name: "create_file",
           input: {
             path: "middleware.ts",
-            content: "import { authMiddleware } from '@clerk/nextjs';\n\nexport default authMiddleware();\n\nexport const config = {\n  matcher: ['/((?!.+\\\\.[\\\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],\n};",
+            content:
+              "import { authMiddleware } from '@clerk/nextjs';\n\nexport default authMiddleware();\n\nexport const config = {\n  matcher: ['/((?!.+\\\\.[\\\\w]+$|_next).*)', '/', '/(api|trpc)(.*)'],\n};",
           },
         },
         sequenceNumber: blockCount - 1,
@@ -186,7 +193,7 @@ function startStreamingUpdates(turnId: string) {
       mockDatabase.blocks.set(newBlockId, block);
       const currentBlocks = mockDatabase.blocksByTurn.get(turnId) || [];
       mockDatabase.blocksByTurn.set(turnId, [...currentBlocks, newBlockId]);
-      
+
       // Complete the turn
       const updatedTurn = {
         ...turn,
@@ -194,7 +201,7 @@ function startStreamingUpdates(turnId: string) {
         completedAt: new Date(),
       };
       mockDatabase.turns.set(turnId, updatedTurn);
-      
+
       // Stop streaming
       if (streamingInterval) {
         clearInterval(streamingInterval);
@@ -209,267 +216,354 @@ export const sessionHandlers = [
   // GET /api/projects/:projectId/sessions - List sessions
   http.get("*/api/projects/:projectId/sessions", async () => {
     await delay(100); // Simulate network delay
-    
-    const sessions = Array.from(mockDatabase.sessions.values())
-      .map(session => ({
+
+    const sessions = Array.from(mockDatabase.sessions.values()).map(
+      (session) => ({
         id: session.id,
         project_id: session.projectId,
         title: session.title,
         created_at: session.createdAt.toISOString(),
-        updated_at: session.updatedAt instanceof Date ? session.updatedAt.toISOString() : session.updatedAt,
-      }));
-    
+        updated_at:
+          session.updatedAt instanceof Date
+            ? session.updatedAt.toISOString()
+            : session.updatedAt,
+      }),
+    );
+
     return HttpResponse.json(sessions);
   }),
 
   // POST /api/projects/:projectId/sessions - Create session
-  http.post("*/api/projects/:projectId/sessions", async ({ params, request }) => {
-    await delay(100);
-    
-    const { projectId } = params;
-    const body = await request.json() as { title?: string };
-    
-    const newSession: Session = {
-      id: `session-${Date.now()}`,
-      projectId: projectId as string,
-      title: body.title || "New Session",
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    
-    mockDatabase.sessions.set(newSession.id, newSession);
-    
-    return HttpResponse.json({
-      id: newSession.id,
-      project_id: newSession.projectId,
-      title: newSession.title,
-      created_at: newSession.createdAt.toISOString(),
-      updated_at: newSession.updatedAt.toISOString(),
-    });
-  }),
+  http.post(
+    "*/api/projects/:projectId/sessions",
+    async ({ params, request }) => {
+      await delay(100);
+
+      const { projectId } = params;
+      const body = (await request.json()) as { title?: string };
+
+      const newSession: Session = {
+        id: `session-${Date.now()}`,
+        projectId: projectId as string,
+        title: body.title || "New Session",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+
+      mockDatabase.sessions.set(newSession.id, newSession);
+
+      return HttpResponse.json({
+        id: newSession.id,
+        project_id: newSession.projectId,
+        title: newSession.title,
+        created_at: newSession.createdAt.toISOString(),
+        updated_at: newSession.updatedAt.toISOString(),
+      });
+    },
+  ),
 
   // GET /api/projects/:projectId/sessions/:sessionId - Get session with turns
-  http.get("*/api/projects/:projectId/sessions/:sessionId", async ({ params }) => {
-    await delay(100);
-    
-    const { sessionId } = params;
-    const session = mockDatabase.sessions.get(sessionId as string);
-    
-    if (!session) {
-      return HttpResponse.json({ error: "session_not_found" }, { status: 404 });
-    }
-    
-    const turnIds = Array.from(mockDatabase.turns.values())
-      .filter(turn => turn.sessionId === sessionId)
-      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-      .map(turn => turn.id);
-    
-    return HttpResponse.json({
-      id: session.id,
-      project_id: session.projectId,
-      title: session.title,
-      created_at: session.createdAt instanceof Date ? session.createdAt.toISOString() : session.createdAt,
-      updated_at: session.updatedAt instanceof Date ? session.updatedAt.toISOString() : session.updatedAt,
-      turn_ids: turnIds,
-    });
-  }),
+  http.get(
+    "*/api/projects/:projectId/sessions/:sessionId",
+    async ({ params }) => {
+      await delay(100);
+
+      const { sessionId } = params;
+      const session = mockDatabase.sessions.get(sessionId as string);
+
+      if (!session) {
+        return HttpResponse.json(
+          { error: "session_not_found" },
+          { status: 404 },
+        );
+      }
+
+      const turnIds = Array.from(mockDatabase.turns.values())
+        .filter((turn) => turn.sessionId === sessionId)
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+        .map((turn) => turn.id);
+
+      return HttpResponse.json({
+        id: session.id,
+        project_id: session.projectId,
+        title: session.title,
+        created_at:
+          session.createdAt instanceof Date
+            ? session.createdAt.toISOString()
+            : session.createdAt,
+        updated_at:
+          session.updatedAt instanceof Date
+            ? session.updatedAt.toISOString()
+            : session.updatedAt,
+        turn_ids: turnIds,
+      });
+    },
+  ),
 
   // GET /api/projects/:projectId/sessions/:sessionId/turns - Get turns with blocks
-  http.get("*/api/projects/:projectId/sessions/:sessionId/turns", async ({ params }) => {
-    await delay(100);
-    
-    const { sessionId } = params;
-    
-    const turns = Array.from(mockDatabase.turns.values())
-      .filter(turn => turn.sessionId === sessionId)
-      .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
-      .map(turn => {
-        const blockIds = mockDatabase.blocksByTurn.get(turn.id) || [];
-        const blocks = blockIds
-          .map(id => mockDatabase.blocks.get(id))
-          .filter((b): b is Block => b !== undefined)
-          .map(block => ({
-            ...block,
-            createdAt: block.createdAt ? (block.createdAt instanceof Date ? block.createdAt.toISOString() : block.createdAt) : undefined,
-          }));
-        
-        return {
-          ...turn,
-          blocks,
-          block_count: blocks.length,
-          createdAt: turn.createdAt instanceof Date ? turn.createdAt.toISOString() : turn.createdAt,
-          startedAt: turn.startedAt ? (turn.startedAt instanceof Date ? turn.startedAt.toISOString() : turn.startedAt) : null,
-          completedAt: turn.completedAt ? (turn.completedAt instanceof Date ? turn.completedAt.toISOString() : turn.completedAt) : null,
-        };
-      });
-    
-    return HttpResponse.json(turns);
-  }),
+  http.get(
+    "*/api/projects/:projectId/sessions/:sessionId/turns",
+    async ({ params }) => {
+      await delay(100);
+
+      const { sessionId } = params;
+
+      const turns = Array.from(mockDatabase.turns.values())
+        .filter((turn) => turn.sessionId === sessionId)
+        .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())
+        .map((turn) => {
+          const blockIds = mockDatabase.blocksByTurn.get(turn.id) || [];
+          const blocks = blockIds
+            .map((id) => mockDatabase.blocks.get(id))
+            .filter((b): b is Block => b !== undefined)
+            .map((block) => ({
+              ...block,
+              createdAt: block.createdAt
+                ? block.createdAt instanceof Date
+                  ? block.createdAt.toISOString()
+                  : block.createdAt
+                : undefined,
+            }));
+
+          return {
+            ...turn,
+            blocks,
+            block_count: blocks.length,
+            createdAt:
+              turn.createdAt instanceof Date
+                ? turn.createdAt.toISOString()
+                : turn.createdAt,
+            startedAt: turn.startedAt
+              ? turn.startedAt instanceof Date
+                ? turn.startedAt.toISOString()
+                : turn.startedAt
+              : null,
+            completedAt: turn.completedAt
+              ? turn.completedAt instanceof Date
+                ? turn.completedAt.toISOString()
+                : turn.completedAt
+              : null,
+          };
+        });
+
+      return HttpResponse.json(turns);
+    },
+  ),
 
   // POST /api/projects/:projectId/sessions/:sessionId/turns - Create turn
-  http.post("*/api/projects/:projectId/sessions/:sessionId/turns", async ({ params, request }) => {
-    await delay(100);
-    
-    const { sessionId } = params;
-    const body = await request.json() as { user_prompt: string };
-    
-    const newTurn: Turn = {
-      id: `turn-${Date.now()}`,
-      sessionId: sessionId as string,
-      userPrompt: body.user_prompt,
-      status: "running",
-      createdAt: new Date(),
-      startedAt: new Date(),
-      completedAt: null,
-      errorMessage: null,
-    };
-    
-    mockDatabase.turns.set(newTurn.id, newTurn);
-    
-    // Start simulating streaming updates
-    startStreamingUpdates(newTurn.id);
-    
-    return HttpResponse.json({
-      id: newTurn.id,
-      session_id: newTurn.sessionId,
-      user_prompt: newTurn.userPrompt,
-      status: newTurn.status,
-      created_at: newTurn.createdAt instanceof Date ? newTurn.createdAt.toISOString() : newTurn.createdAt,
-      started_at: newTurn.startedAt ? (newTurn.startedAt instanceof Date ? newTurn.startedAt.toISOString() : newTurn.startedAt) : null,
-      completed_at: null,
-      error_message: null,
-      blocks: [],
-      block_count: 0,
-    });
-  }),
+  http.post(
+    "*/api/projects/:projectId/sessions/:sessionId/turns",
+    async ({ params, request }) => {
+      await delay(100);
+
+      const { sessionId } = params;
+      const body = (await request.json()) as { user_prompt: string };
+
+      const newTurn: Turn = {
+        id: `turn-${Date.now()}`,
+        sessionId: sessionId as string,
+        userPrompt: body.user_prompt,
+        status: "running",
+        createdAt: new Date(),
+        startedAt: new Date(),
+        completedAt: null,
+        errorMessage: null,
+      };
+
+      mockDatabase.turns.set(newTurn.id, newTurn);
+
+      // Start simulating streaming updates
+      startStreamingUpdates(newTurn.id);
+
+      return HttpResponse.json({
+        id: newTurn.id,
+        session_id: newTurn.sessionId,
+        user_prompt: newTurn.userPrompt,
+        status: newTurn.status,
+        created_at:
+          newTurn.createdAt instanceof Date
+            ? newTurn.createdAt.toISOString()
+            : newTurn.createdAt,
+        started_at: newTurn.startedAt
+          ? newTurn.startedAt instanceof Date
+            ? newTurn.startedAt.toISOString()
+            : newTurn.startedAt
+          : null,
+        completed_at: null,
+        error_message: null,
+        blocks: [],
+        block_count: 0,
+      });
+    },
+  ),
 
   // GET /api/projects/:projectId/sessions/:sessionId/turns/:turnId - Get single turn
-  http.get("*/api/projects/:projectId/sessions/:sessionId/turns/:turnId", async ({ params }) => {
-    await delay(50);
-    
-    const { turnId } = params;
-    const turn = mockDatabase.turns.get(turnId as string);
-    
-    if (!turn) {
-      return HttpResponse.json({ error: "turn_not_found" }, { status: 404 });
-    }
-    
-    const blockIds = mockDatabase.blocksByTurn.get(turn.id) || [];
-    const blocks = blockIds
-      .map(id => mockDatabase.blocks.get(id))
-      .filter((b): b is Block => b !== undefined)
-      .map(block => ({
-        ...block,
-        createdAt: block.createdAt?.toISOString(),
-      }));
-    
-    return HttpResponse.json({
-      ...turn,
-      blocks,
-      block_count: blocks.length,
-      createdAt: turn.createdAt instanceof Date ? turn.createdAt.toISOString() : turn.createdAt,
-      startedAt: turn.startedAt ? (turn.startedAt instanceof Date ? turn.startedAt.toISOString() : turn.startedAt) : null,
-      completedAt: turn.completedAt ? (turn.completedAt instanceof Date ? turn.completedAt.toISOString() : turn.completedAt) : null,
-    });
-  }),
+  http.get(
+    "*/api/projects/:projectId/sessions/:sessionId/turns/:turnId",
+    async ({ params }) => {
+      await delay(50);
+
+      const { turnId } = params;
+      const turn = mockDatabase.turns.get(turnId as string);
+
+      if (!turn) {
+        return HttpResponse.json({ error: "turn_not_found" }, { status: 404 });
+      }
+
+      const blockIds = mockDatabase.blocksByTurn.get(turn.id) || [];
+      const blocks = blockIds
+        .map((id) => mockDatabase.blocks.get(id))
+        .filter((b): b is Block => b !== undefined)
+        .map((block) => ({
+          ...block,
+          createdAt: block.createdAt?.toISOString(),
+        }));
+
+      return HttpResponse.json({
+        ...turn,
+        blocks,
+        block_count: blocks.length,
+        createdAt:
+          turn.createdAt instanceof Date
+            ? turn.createdAt.toISOString()
+            : turn.createdAt,
+        startedAt: turn.startedAt
+          ? turn.startedAt instanceof Date
+            ? turn.startedAt.toISOString()
+            : turn.startedAt
+          : null,
+        completedAt: turn.completedAt
+          ? turn.completedAt instanceof Date
+            ? turn.completedAt.toISOString()
+            : turn.completedAt
+          : null,
+      });
+    },
+  ),
 
   // GET /api/projects/:projectId/sessions/:sessionId/updates - Poll for updates (SSE simulation)
-  http.get("*/api/projects/:projectId/sessions/:sessionId/updates", async ({ params }) => {
-    await delay(50);
-    
-    const { sessionId } = params;
-    const session = mockDatabase.sessions.get(sessionId as string);
-    
-    if (!session) {
-      return HttpResponse.json({ error: "session_not_found" }, { status: 404 });
-    }
-    
-    // Get turns with their current state
-    const turns = Array.from(mockDatabase.turns.values())
-      .filter(turn => turn.sessionId === sessionId)
-      .map(turn => {
-        const blockIds = mockDatabase.blocksByTurn.get(turn.id) || [];
-        return {
-          id: turn.id,
-          status: turn.status,
-          new_block_ids: blockIds.slice(-2), // Return last 2 block IDs as "new"
-          block_count: blockIds.length,
-        };
-      });
-    
-    const hasActiveTurns = turns.some(t => t.status === "running");
-    
-    const updates: SessionUpdates = {
-      session: {
-        id: session.id,
-        updated_at: session.updatedAt instanceof Date ? session.updatedAt.toISOString() : session.updatedAt,
-      },
-      updated_turns: turns,
-      has_active_turns: hasActiveTurns,
-    };
-    
-    return HttpResponse.json(updates);
-  }),
+  http.get(
+    "*/api/projects/:projectId/sessions/:sessionId/updates",
+    async ({ params }) => {
+      await delay(50);
+
+      const { sessionId } = params;
+      const session = mockDatabase.sessions.get(sessionId as string);
+
+      if (!session) {
+        return HttpResponse.json(
+          { error: "session_not_found" },
+          { status: 404 },
+        );
+      }
+
+      // Get turns with their current state
+      const turns = Array.from(mockDatabase.turns.values())
+        .filter((turn) => turn.sessionId === sessionId)
+        .map((turn) => {
+          const blockIds = mockDatabase.blocksByTurn.get(turn.id) || [];
+          return {
+            id: turn.id,
+            status: turn.status,
+            new_block_ids: blockIds.slice(-2), // Return last 2 block IDs as "new"
+            block_count: blockIds.length,
+          };
+        });
+
+      const hasActiveTurns = turns.some((t) => t.status === "running");
+
+      const updates: SessionUpdates = {
+        session: {
+          id: session.id,
+          updated_at:
+            session.updatedAt instanceof Date
+              ? session.updatedAt.toISOString()
+              : session.updatedAt,
+        },
+        updated_turns: turns,
+        has_active_turns: hasActiveTurns,
+      };
+
+      return HttpResponse.json(updates);
+    },
+  ),
 
   // POST /api/projects/:projectId/sessions/:sessionId/interrupt - Interrupt running turns
-  http.post("*/api/projects/:projectId/sessions/:sessionId/interrupt", async ({ params }) => {
-    await delay(100);
-    
-    const { sessionId } = params;
-    
-    // Stop any streaming updates
-    if (streamingInterval) {
-      clearInterval(streamingInterval);
-      streamingInterval = null;
-    }
-    
-    // Mark all running turns as interrupted
-    const interruptedTurns: string[] = [];
-    Array.from(mockDatabase.turns.values())
-      .filter(turn => turn.sessionId === sessionId && turn.status === "running")
-      .forEach(turn => {
-        const updatedTurn = {
-          ...turn,
-          status: "interrupted" as const,
-          completedAt: new Date(),
-          errorMessage: "User interrupted",
-        };
-        mockDatabase.turns.set(turn.id, updatedTurn);
-        interruptedTurns.push(turn.id);
+  http.post(
+    "*/api/projects/:projectId/sessions/:sessionId/interrupt",
+    async ({ params }) => {
+      await delay(100);
+
+      const { sessionId } = params;
+
+      // Stop any streaming updates
+      if (streamingInterval) {
+        clearInterval(streamingInterval);
+        streamingInterval = null;
+      }
+
+      // Mark all running turns as interrupted
+      const interruptedTurns: string[] = [];
+      Array.from(mockDatabase.turns.values())
+        .filter(
+          (turn) => turn.sessionId === sessionId && turn.status === "running",
+        )
+        .forEach((turn) => {
+          const updatedTurn = {
+            ...turn,
+            status: "interrupted" as const,
+            completedAt: new Date(),
+            errorMessage: "User interrupted",
+          };
+          mockDatabase.turns.set(turn.id, updatedTurn);
+          interruptedTurns.push(turn.id);
+        });
+
+      return HttpResponse.json({
+        interrupted_turn_ids: interruptedTurns,
       });
-    
-    return HttpResponse.json({
-      interrupted_turn_ids: interruptedTurns,
-    });
-  }),
+    },
+  ),
 
   // PATCH /api/projects/:projectId/sessions/:sessionId - Update session
-  http.patch("*/api/projects/:projectId/sessions/:sessionId", async ({ params, request }) => {
-    await delay(100);
-    
-    const { sessionId } = params;
-    const session = mockDatabase.sessions.get(sessionId as string);
-    
-    if (!session) {
-      return HttpResponse.json({ error: "session_not_found" }, { status: 404 });
-    }
-    
-    const body = await request.json() as { title?: string };
-    
-    if (body.title !== undefined) {
-      session.title = body.title;
-      session.updatedAt = new Date();
-      mockDatabase.sessions.set(sessionId as string, session);
-    }
-    
-    return HttpResponse.json({
-      id: session.id,
-      project_id: session.projectId,
-      title: session.title,
-      created_at: session.createdAt instanceof Date ? session.createdAt.toISOString() : session.createdAt,
-      updated_at: session.updatedAt instanceof Date ? session.updatedAt.toISOString() : session.updatedAt,
-    });
-  }),
+  http.patch(
+    "*/api/projects/:projectId/sessions/:sessionId",
+    async ({ params, request }) => {
+      await delay(100);
+
+      const { sessionId } = params;
+      const session = mockDatabase.sessions.get(sessionId as string);
+
+      if (!session) {
+        return HttpResponse.json(
+          { error: "session_not_found" },
+          { status: 404 },
+        );
+      }
+
+      const body = (await request.json()) as { title?: string };
+
+      if (body.title !== undefined) {
+        session.title = body.title;
+        session.updatedAt = new Date();
+        mockDatabase.sessions.set(sessionId as string, session);
+      }
+
+      return HttpResponse.json({
+        id: session.id,
+        project_id: session.projectId,
+        title: session.title,
+        created_at:
+          session.createdAt instanceof Date
+            ? session.createdAt.toISOString()
+            : session.createdAt,
+        updated_at:
+          session.updatedAt instanceof Date
+            ? session.updatedAt.toISOString()
+            : session.updatedAt,
+      });
+    },
+  ),
 ];
 
 // Export function to reset mock data (useful for tests)

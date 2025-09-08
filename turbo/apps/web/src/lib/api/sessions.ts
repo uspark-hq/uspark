@@ -21,10 +21,7 @@ export class SessionAPIError extends Error {
 }
 
 // Helper for API calls
-async function apiCall<T>(
-  url: string,
-  options?: RequestInit,
-): Promise<T> {
+async function apiCall<T>(url: string, options?: RequestInit): Promise<T> {
   const response = await fetch(url, {
     ...options,
     headers: {
@@ -34,7 +31,9 @@ async function apiCall<T>(
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ error: "unknown_error" }));
+    const error = await response
+      .json()
+      .catch(() => ({ error: "unknown_error" }));
     throw new SessionAPIError(
       error.error || "API request failed",
       response.status,
@@ -61,7 +60,10 @@ export const sessionAPI = {
   },
 
   // Get session details with turn IDs
-  async getSession(projectId: string, sessionId: string): Promise<Session & { turn_ids: string[] }> {
+  async getSession(
+    projectId: string,
+    sessionId: string,
+  ): Promise<Session & { turn_ids: string[] }> {
     return apiCall<Session & { turn_ids: string[] }>(
       `/api/projects/${projectId}/sessions/${sessionId}`,
     );
@@ -83,7 +85,10 @@ export const sessionAPI = {
   },
 
   // Get all turns with blocks for a session
-  async getTurns(projectId: string, sessionId: string): Promise<TurnWithBlocks[]> {
+  async getTurns(
+    projectId: string,
+    sessionId: string,
+  ): Promise<TurnWithBlocks[]> {
     return apiCall<TurnWithBlocks[]>(
       `/api/projects/${projectId}/sessions/${sessionId}/turns`,
     );
@@ -160,7 +165,10 @@ export class SessionPoller {
       if (this.abortController?.signal.aborted) return;
 
       try {
-        const updates = await sessionAPI.getUpdates(this.projectId, this.sessionId);
+        const updates = await sessionAPI.getUpdates(
+          this.projectId,
+          this.sessionId,
+        );
         this.onUpdate(updates);
 
         // Stop polling if no active turns

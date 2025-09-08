@@ -1,8 +1,19 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
-import { describe, it, expect, beforeAll, afterAll, afterEach, vi } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  afterAll,
+  afterEach,
+  vi,
+} from "vitest";
 import { setupServer } from "msw/node";
 import { ChatWithAPI } from "../ChatWithAPI";
-import { sessionHandlers, resetMockSessionData } from "../../../test/msw-session-handlers";
+import {
+  sessionHandlers,
+  resetMockSessionData,
+} from "../../../test/msw-session-handlers";
 
 // Set up MSW server for this test file
 const server = setupServer(...sessionHandlers);
@@ -42,7 +53,9 @@ describe("ChatWithAPI", () => {
   });
 
   it("should load existing session with turns", async () => {
-    render(<ChatWithAPI projectId="project-test-1" sessionId="session-mock-1" />);
+    render(
+      <ChatWithAPI projectId="project-test-1" sessionId="session-mock-1" />,
+    );
 
     // Wait for session to load
     await waitFor(() => {
@@ -54,15 +67,21 @@ describe("ChatWithAPI", () => {
 
     // Should display existing turns (from mock data)
     await waitFor(() => {
-      expect(screen.getByText("How do I implement authentication in Next.js?")).toBeInTheDocument();
+      expect(
+        screen.getByText("How do I implement authentication in Next.js?"),
+      ).toBeInTheDocument();
     });
 
     // Should show AI response
-    expect(screen.getByText(/There are several ways to implement authentication/)).toBeInTheDocument();
+    expect(
+      screen.getByText(/There are several ways to implement authentication/),
+    ).toBeInTheDocument();
   });
 
   it("should send a message and receive streaming response", async () => {
-    render(<ChatWithAPI projectId="project-test-1" sessionId="session-mock-1" />);
+    render(
+      <ChatWithAPI projectId="project-test-1" sessionId="session-mock-1" />,
+    );
 
     // Wait for initial load
     await waitFor(() => {
@@ -94,7 +113,9 @@ describe("ChatWithAPI", () => {
     });
 
     // Should show AI is generating response
-    expect(screen.getByText("AI is generating a response...")).toBeInTheDocument();
+    expect(
+      screen.getByText("AI is generating a response..."),
+    ).toBeInTheDocument();
 
     // Wait for streaming updates (mocked to complete after ~7.5 seconds in our handler)
     // We'll just check for the first update
@@ -103,12 +124,14 @@ describe("ChatWithAPI", () => {
         // Should show thinking block
         expect(screen.getByText(/analyzing|thinking/i)).toBeInTheDocument();
       },
-      { timeout: 3000 }
+      { timeout: 3000 },
     );
   });
 
   it("should handle interrupt action", async () => {
-    render(<ChatWithAPI projectId="project-test-1" sessionId="session-mock-1" />);
+    render(
+      <ChatWithAPI projectId="project-test-1" sessionId="session-mock-1" />,
+    );
 
     // Wait for initial load
     await waitFor(() => {
@@ -121,13 +144,17 @@ describe("ChatWithAPI", () => {
     expect(statusElement).toBeInTheDocument();
 
     // Find and click interrupt button (if visible)
-    const interruptButton = screen.queryByRole("button", { name: /interrupt|stop/i });
+    const interruptButton = screen.queryByRole("button", {
+      name: /interrupt|stop/i,
+    });
     if (interruptButton) {
       fireEvent.click(interruptButton);
 
       // Wait for interrupt to process
       await waitFor(() => {
-        expect(screen.queryByText("AI is generating a response...")).not.toBeInTheDocument();
+        expect(
+          screen.queryByText("AI is generating a response..."),
+        ).not.toBeInTheDocument();
       });
     }
   });
@@ -153,7 +180,9 @@ describe("ChatWithAPI", () => {
       } as unknown,
     );
 
-    render(<ChatWithAPI projectId="project-test-1" sessionId="error-session" />);
+    render(
+      <ChatWithAPI projectId="project-test-1" sessionId="error-session" />,
+    );
 
     // Should show error message
     await waitFor(() => {
@@ -162,7 +191,9 @@ describe("ChatWithAPI", () => {
   });
 
   it("should disable input while sending", async () => {
-    render(<ChatWithAPI projectId="project-test-1" sessionId="session-mock-1" />);
+    render(
+      <ChatWithAPI projectId="project-test-1" sessionId="session-mock-1" />,
+    );
 
     // Wait for initial load
     await waitFor(() => {
@@ -190,7 +221,9 @@ describe("ChatWithAPI", () => {
   });
 
   it("should handle Enter key to send message", async () => {
-    render(<ChatWithAPI projectId="project-test-1" sessionId="session-mock-1" />);
+    render(
+      <ChatWithAPI projectId="project-test-1" sessionId="session-mock-1" />,
+    );
 
     // Wait for initial load
     await waitFor(() => {
@@ -217,7 +250,9 @@ describe("ChatWithAPI", () => {
   });
 
   it("should not send empty messages", async () => {
-    render(<ChatWithAPI projectId="project-test-1" sessionId="session-mock-1" />);
+    render(
+      <ChatWithAPI projectId="project-test-1" sessionId="session-mock-1" />,
+    );
 
     // Wait for initial load
     await waitFor(() => {

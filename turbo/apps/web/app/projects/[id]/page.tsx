@@ -8,16 +8,16 @@ import { ChatWithAPI } from "../../../src/components/chat";
 export default function ProjectDetailPage() {
   const params = useParams();
   const projectId = params.id as string;
-  
+
   // File explorer state
   const [selectedFile, setSelectedFile] = useState<string>();
   const [fileContent, setFileContent] = useState<string>();
   const [loadingContent, setLoadingContent] = useState(false);
-  
+
   // Share functionality
   const [isSharing, setIsSharing] = useState(false);
   const [showShareSuccess, setShowShareSuccess] = useState(false);
-  
+
   // Layout state
   const [chatWidth, setChatWidth] = useState(400);
   const [fileExplorerWidth, setFileExplorerWidth] = useState(280);
@@ -55,7 +55,7 @@ export function Component() {
             description: `Content for ${filePath}`,
             dependencies: {
               react: "^18.0.0",
-              "next": "^14.0.0",
+              next: "^14.0.0",
             },
           },
           null,
@@ -165,7 +165,10 @@ Even more lines...`;
         setChatWidth(newWidth);
       }
       if (isResizingExplorer) {
-        const newWidth = Math.max(200, Math.min(500, window.innerWidth - e.clientX));
+        const newWidth = Math.max(
+          200,
+          Math.min(500, window.innerWidth - e.clientX),
+        );
         setFileExplorerWidth(newWidth);
       }
     };
@@ -212,7 +215,7 @@ Even more lines...`;
       {/* Main Content Area - Three Column Layout */}
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Chat */}
-        <div 
+        <div
           className="bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 flex flex-col"
           style={{ width: `${chatWidth}px` }}
         >
@@ -222,7 +225,7 @@ Even more lines...`;
             </h2>
           </div>
           <div className="flex-1 overflow-hidden">
-            <ChatWithAPI 
+            <ChatWithAPI
               projectId={projectId}
               sessionId={`session-${projectId}`}
             />
@@ -241,7 +244,9 @@ Even more lines...`;
           <div className="border-b border-gray-200 dark:border-gray-700 px-4 py-3">
             <div className="flex items-center justify-between">
               <h2 className="text-sm font-semibold text-gray-700 dark:text-gray-300 truncate">
-                {selectedFile ? `📄 ${selectedFile}` : "📄 Select a file to view"}
+                {selectedFile
+                  ? `📄 ${selectedFile}`
+                  : "📄 Select a file to view"}
               </h2>
               {selectedFile && (
                 <div className="flex items-center gap-3">
@@ -287,7 +292,8 @@ Even more lines...`;
                     No file selected
                   </h3>
                   <p className="text-sm">
-                    Select a file from the explorer to view and edit its content with Claude Code
+                    Select a file from the explorer to view and edit its content
+                    with Claude Code
                   </p>
                 </div>
               </div>
@@ -302,7 +308,7 @@ Even more lines...`;
         />
 
         {/* Right Sidebar - File Explorer */}
-        <div 
+        <div
           className="bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col"
           style={{ width: `${fileExplorerWidth}px` }}
         >
@@ -330,11 +336,7 @@ Even more lines...`;
               <span className="w-2 h-2 bg-green-500 rounded-full"></span>
               Claude Code Ready
             </span>
-            {selectedFile && (
-              <span>
-                Editing: {selectedFile}
-              </span>
-            )}
+            {selectedFile && <span>Editing: {selectedFile}</span>}
           </div>
           <div className="flex items-center gap-4">
             <span>Project ID: {projectId}</span>

@@ -210,4 +210,8 @@ const shareHandlers = [
 ];
 
 // Export all handlers
-export const handlers = [...clerkHandlers, ...shareHandlers, ...sessionHandlers];
+export const handlers = [
+  ...clerkHandlers,
+  ...shareHandlers,
+  ...sessionHandlers,
+];

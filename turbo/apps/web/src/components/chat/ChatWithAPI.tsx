@@ -15,10 +15,14 @@ interface ChatWithAPIProps {
  * Chat component that uses real API calls (works with MSW mocking)
  * This demonstrates how the chat interface works with actual backend APIs
  */
-export function ChatWithAPI({ projectId, sessionId: initialSessionId, onSessionCreated }: ChatWithAPIProps) {
+export function ChatWithAPI({
+  projectId,
+  sessionId: initialSessionId,
+  onSessionCreated,
+}: ChatWithAPIProps) {
   const [activeSessionId, setActiveSessionId] = useState(initialSessionId);
   const [inputValue, setInputValue] = useState("");
-  
+
   const {
     session,
     turns,
@@ -35,12 +39,14 @@ export function ChatWithAPI({ projectId, sessionId: initialSessionId, onSessionC
   // Create a session if none exists
   useEffect(() => {
     if (!activeSessionId && !isLoading) {
-      createSession("New Chat Session").then((newSession) => {
-        setActiveSessionId(newSession.id);
-        if (onSessionCreated) {
-          onSessionCreated(newSession.id);
-        }
-      }).catch(console.error);
+      createSession("New Chat Session")
+        .then((newSession) => {
+          setActiveSessionId(newSession.id);
+          if (onSessionCreated) {
+            onSessionCreated(newSession.id);
+          }
+        })
+        .catch(console.error);
     }
   }, [activeSessionId, isLoading, createSession, onSessionCreated]);
 
@@ -49,7 +55,7 @@ export function ChatWithAPI({ projectId, sessionId: initialSessionId, onSessionC
 
     const message = inputValue;
     setInputValue("");
-    
+
     try {
       await sendMessage(message);
     } catch (err) {
@@ -60,7 +66,7 @@ export function ChatWithAPI({ projectId, sessionId: initialSessionId, onSessionC
 
   const handleInterrupt = async () => {
     if (!hasActiveTurns) return;
-    
+
     try {
       await interruptSession();
     } catch (err) {
@@ -111,7 +117,10 @@ export function ChatWithAPI({ projectId, sessionId: initialSessionId, onSessionC
             </div>
           </div>
           <ChatStatus
-            status={currentTurn?.status || (turns.length > 0 ? turns[turns.length - 1].status : "idle")}
+            status={
+              currentTurn?.status ||
+              (turns.length > 0 ? turns[turns.length - 1].status : "idle")
+            }
             isInterruptible={hasActiveTurns}
             onInterrupt={handleInterrupt}
           />
@@ -123,8 +132,18 @@ export function ChatWithAPI({ projectId, sessionId: initialSessionId, onSessionC
         <SessionDisplay
           session={{
             ...session,
-            createdAt: typeof session.createdAt === "string" ? session.createdAt : session.createdAt.toISOString(),
-            updatedAt: typeof session.updatedAt === "string" ? session.updatedAt : session.updatedAt.toISOString(),
+            createdAt:
+              typeof session.createdAt === "string"
+                ? session.createdAt
+                : session.createdAt instanceof Date
+                ? session.createdAt.toISOString()
+                : new Date().toISOString(),
+            updatedAt:
+              typeof session.updatedAt === "string"
+                ? session.updatedAt
+                : session.updatedAt instanceof Date
+                ? session.updatedAt.toISOString()
+                : new Date().toISOString(),
           }}
           turns={turns}
         />
