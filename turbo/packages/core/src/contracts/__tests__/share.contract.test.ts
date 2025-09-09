@@ -56,7 +56,7 @@ describe("Share Contract Schemas", () => {
     it("should validate valid response", () => {
       const validResponse = {
         id: "share-123",
-        url: "https://uspark.dev/share/abc123def456ghi789jkl012mno345pqr678stu901vwx234yz",
+        url: "https://uspark.ai/share/abc123def456ghi789jkl012mno345pqr678stu901vwx234yz",
         token: "abc123def456ghi789jkl012mno345pqr678stu901vwx234yz", // 32+ chars
       };
 

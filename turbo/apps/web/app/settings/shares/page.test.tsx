@@ -137,7 +137,7 @@ describe("SharesPage", () => {
     }
 
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-      "https://uspark.dev/share/token-1",
+      "https://uspark.ai/share/token-1",
     );
   });
 

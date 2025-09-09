@@ -8,6 +8,11 @@ function initEnv() {
       CLERK_SECRET_KEY: z.string().min(1),
       BLOB_READ_WRITE_TOKEN: z.string().min(1),
       E2B_API_KEY: z.string().min(1).optional(),
+      APP_URL: z.string().url().default(
+        process.env.NODE_ENV === "production" 
+          ? "https://uspark.ai" 
+          : "http://localhost:3000"
+      ),
     },
     client: {
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
@@ -17,6 +22,7 @@ function initEnv() {
       CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
       BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
       E2B_API_KEY: process.env.E2B_API_KEY,
+      APP_URL: process.env.APP_URL,
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
         process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
     },

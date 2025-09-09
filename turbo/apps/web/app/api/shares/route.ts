@@ -4,6 +4,7 @@ import { initServices } from "../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
 import { eq, desc } from "drizzle-orm";
 import { type ListSharesResponse, type ShareError } from "@uspark/core";
+import { env } from "../../../src/env";
 
 /**
  * GET /api/shares
@@ -35,7 +36,7 @@ export async function GET() {
     .orderBy(desc(SHARE_LINKS_TBL.createdAt));
 
   // Transform to include full URLs
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://uspark.dev";
+  const baseUrl = env().APP_URL;
 
   const response: ListSharesResponse = {
     shares: shares.map((share) => ({
