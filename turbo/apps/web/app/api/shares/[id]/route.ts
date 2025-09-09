@@ -26,9 +26,7 @@ export async function DELETE(
   const [share] = await globalThis.services.db
     .select()
     .from(SHARE_LINKS_TBL)
-    .where(
-      and(eq(SHARE_LINKS_TBL.id, id), eq(SHARE_LINKS_TBL.userId, userId)),
-    );
+    .where(and(eq(SHARE_LINKS_TBL.id, id), eq(SHARE_LINKS_TBL.userId, userId)));
 
   if (!share) {
     return NextResponse.json({ error: "share_not_found" }, { status: 404 });

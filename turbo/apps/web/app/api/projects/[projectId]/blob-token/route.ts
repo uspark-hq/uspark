@@ -5,10 +5,7 @@ import { initServices } from "../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
 import { env } from "../../../../../src/env";
-import {
-  type BlobTokenResponse,
-  type BlobTokenError,
-} from "@uspark/core";
+import { type BlobTokenResponse, type BlobTokenError } from "@uspark/core";
 
 /**
  * GET /api/projects/:projectId/blob-token
@@ -23,7 +20,7 @@ export async function GET(
   if (!userId) {
     const error: BlobTokenError = {
       error: "unauthorized",
-      error_description: "Authentication required"
+      error_description: "Authentication required",
     };
     return NextResponse.json(error, { status: 401 });
   }
@@ -42,7 +39,7 @@ export async function GET(
   if (!project) {
     const error: BlobTokenError = {
       error: "project_not_found",
-      error_description: "Project not found"
+      error_description: "Project not found",
     };
     return NextResponse.json(error, { status: 404 });
   }
@@ -52,7 +49,7 @@ export async function GET(
   if (!readWriteToken) {
     const error: BlobTokenError = {
       error: "blob_storage_not_configured",
-      error_description: "Blob storage is not configured"
+      error_description: "Blob storage is not configured",
     };
     return NextResponse.json(error, { status: 500 });
   }
@@ -79,7 +76,7 @@ export async function GET(
     console.error("Failed to generate client token:", error);
     const errorResponse: BlobTokenError = {
       error: "token_generation_failed",
-      error_description: "Failed to generate client token"
+      error_description: "Failed to generate client token",
     };
     return NextResponse.json(errorResponse, { status: 500 });
   }

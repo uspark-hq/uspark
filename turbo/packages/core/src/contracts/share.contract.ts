@@ -85,7 +85,11 @@ export const ShareItemSchema = z.object({
   filePath: z.string().nullable().describe("Shared file path"),
   createdAt: z.date().or(z.string()).describe("Creation timestamp"),
   accessedCount: z.number().describe("Number of times accessed"),
-  lastAccessedAt: z.date().or(z.string()).nullable().describe("Last access timestamp"),
+  lastAccessedAt: z
+    .date()
+    .or(z.string())
+    .nullable()
+    .describe("Last access timestamp"),
   url: z.string().url().describe("Full shareable URL"),
 });
 
@@ -108,7 +112,10 @@ export const DeleteShareResponseSchema = z.object({
  */
 export const ShareErrorSchema = z.object({
   error: z.string().describe("Error code"),
-  error_description: z.string().optional().describe("Human-readable error description"),
+  error_description: z
+    .string()
+    .optional()
+    .describe("Human-readable error description"),
 });
 
 // Type exports

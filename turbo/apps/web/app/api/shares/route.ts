@@ -36,7 +36,7 @@ export async function GET() {
 
   // Transform to include full URLs
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://uspark.dev";
-  
+
   const response: ListSharesResponse = {
     shares: shares.map((share) => ({
       id: share.id,
@@ -45,7 +45,9 @@ export async function GET() {
       filePath: share.filePath || null,
       createdAt: share.createdAt.toISOString(),
       accessedCount: share.accessedCount,
-      lastAccessedAt: share.lastAccessedAt ? share.lastAccessedAt.toISOString() : null,
+      lastAccessedAt: share.lastAccessedAt
+        ? share.lastAccessedAt.toISOString()
+        : null,
       url: `${baseUrl}/share/${share.token}`,
     })),
   };

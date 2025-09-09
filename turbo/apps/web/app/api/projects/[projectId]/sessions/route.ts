@@ -40,9 +40,9 @@ export async function POST(
     );
 
   if (!project) {
-    const error: SessionErrorResponse = { 
+    const error: SessionErrorResponse = {
       error: "project_not_found",
-      error_description: "Project not found" 
+      error_description: "Project not found",
     };
     return NextResponse.json(error, { status: 404 });
   }
@@ -50,11 +50,11 @@ export async function POST(
   // Parse and validate request body
   const body = await request.json();
   const parseResult = CreateSessionRequestSchema.safeParse(body);
-  
+
   if (!parseResult.success) {
-    const error: SessionErrorResponse = { 
+    const error: SessionErrorResponse = {
       error: "invalid_request",
-      error_description: parseResult.error.issues[0]?.message 
+      error_description: parseResult.error.issues[0]?.message,
     };
     return NextResponse.json(error, { status: 400 });
   }
@@ -76,7 +76,7 @@ export async function POST(
   if (!newSession) {
     const error: SessionErrorResponse = {
       error: "failed_to_create_session",
-      error_description: "Failed to create session"
+      error_description: "Failed to create session",
     };
     return NextResponse.json(error, { status: 500 });
   }
@@ -121,7 +121,7 @@ export async function GET(
   if (!project) {
     const error: SessionErrorResponse = {
       error: "project_not_found",
-      error_description: "Project not found"
+      error_description: "Project not found",
     };
     return NextResponse.json(error, { status: 404 });
   }
@@ -132,16 +132,16 @@ export async function GET(
     limit: url.searchParams.get("limit") || "20",
     offset: url.searchParams.get("offset") || "0",
   };
-  
+
   const parseResult = ListSessionsQuerySchema.safeParse(queryParams);
   if (!parseResult.success) {
     const error: SessionErrorResponse = {
       error: "invalid_query",
-      error_description: parseResult.error.issues[0]?.message
+      error_description: parseResult.error.issues[0]?.message,
     };
     return NextResponse.json(error, { status: 400 });
   }
-  
+
   const { limit, offset } = parseResult.data;
 
   // Get sessions
@@ -167,7 +167,7 @@ export async function GET(
   const total = countResult[0]?.count ?? 0;
 
   const response: ListSessionsResponse = {
-    sessions: sessions.map(s => ({
+    sessions: sessions.map((s) => ({
       id: s.id,
       title: s.title,
       created_at: s.created_at.toISOString(),

@@ -22,14 +22,14 @@ export async function GET(
   context: { params: Promise<{ name: string }> },
 ) {
   const params = await context.params;
-  
+
   // Validate path parameters
   const pathValidation = PathParamsSchema.safeParse(params);
   if (!pathValidation.success) {
     return NextResponse.json(
-      { 
+      {
         error: "Invalid path parameters",
-        details: pathValidation.error.issues 
+        details: pathValidation.error.issues,
       },
       { status: 400 },
     );
@@ -40,13 +40,13 @@ export async function GET(
   const queryParams = {
     lang: searchParams.get("lang"),
   };
-  
+
   const queryValidation = QueryParamsSchema.safeParse(queryParams);
   if (!queryValidation.success) {
     return NextResponse.json(
-      { 
+      {
         error: "Invalid query parameters",
-        details: queryValidation.error.issues 
+        details: queryValidation.error.issues,
       },
       { status: 400 },
     );

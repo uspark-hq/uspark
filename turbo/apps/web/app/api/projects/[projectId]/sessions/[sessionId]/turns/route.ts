@@ -46,7 +46,7 @@ export async function POST(
   if (!project) {
     const error: TurnErrorResponse = {
       error: "project_not_found",
-      error_description: "Project not found"
+      error_description: "Project not found",
     };
     return NextResponse.json(error, { status: 404 });
   }
@@ -65,7 +65,7 @@ export async function POST(
   if (!session) {
     const error: TurnErrorResponse = {
       error: "session_not_found",
-      error_description: "Session not found"
+      error_description: "Session not found",
     };
     return NextResponse.json(error, { status: 404 });
   }
@@ -73,21 +73,22 @@ export async function POST(
   // Parse and validate request body
   const body = await request.json();
   const parseResult = CreateTurnRequestSchema.safeParse(body);
-  
+
   if (!parseResult.success) {
     // Check if the specific error is about missing user_message
     const firstIssue = parseResult.error.issues[0];
-    const errorCode = firstIssue?.path[0] === 'user_message' 
-      ? "user_message_required" 
-      : "invalid_request";
-    
+    const errorCode =
+      firstIssue?.path[0] === "user_message"
+        ? "user_message_required"
+        : "invalid_request";
+
     const error: TurnErrorResponse = {
       error: errorCode,
-      error_description: firstIssue?.message || "Invalid request"
+      error_description: firstIssue?.message || "Invalid request",
     };
     return NextResponse.json(error, { status: 400 });
   }
-  
+
   const { user_message } = parseResult.data;
 
   // Create new turn
@@ -106,7 +107,7 @@ export async function POST(
   if (!newTurn) {
     const error: TurnErrorResponse = {
       error: "failed_to_create_turn",
-      error_description: "Failed to create turn"
+      error_description: "Failed to create turn",
     };
     return NextResponse.json(error, { status: 500 });
   }
@@ -115,7 +116,12 @@ export async function POST(
     id: newTurn.id,
     session_id: newTurn.sessionId,
     user_message: newTurn.userPrompt,
-    status: newTurn.status as "pending" | "in_progress" | "completed" | "failed" | "interrupted",
+    status: newTurn.status as
+      | "pending"
+      | "in_progress"
+      | "completed"
+      | "failed"
+      | "interrupted",
     created_at: newTurn.createdAt.toISOString(),
   };
 
@@ -151,7 +157,7 @@ export async function GET(
   if (!project) {
     const error: TurnErrorResponse = {
       error: "project_not_found",
-      error_description: "Project not found"
+      error_description: "Project not found",
     };
     return NextResponse.json(error, { status: 404 });
   }
@@ -170,7 +176,7 @@ export async function GET(
   if (!session) {
     const error: TurnErrorResponse = {
       error: "session_not_found",
-      error_description: "Session not found"
+      error_description: "Session not found",
     };
     return NextResponse.json(error, { status: 404 });
   }
@@ -181,16 +187,16 @@ export async function GET(
     limit: url.searchParams.get("limit") || "20",
     offset: url.searchParams.get("offset") || "0",
   };
-  
+
   const parseResult = ListTurnsQuerySchema.safeParse(queryParams);
   if (!parseResult.success) {
     const error: TurnErrorResponse = {
       error: "invalid_query",
-      error_description: parseResult.error.issues[0]?.message
+      error_description: parseResult.error.issues[0]?.message,
     };
     return NextResponse.json(error, { status: 400 });
   }
-  
+
   const { limit, offset } = parseResult.data;
 
   // Get turns with block counts
@@ -235,10 +241,15 @@ export async function GET(
   const total = countResult[0]?.count ?? 0;
 
   const response: ListTurnsResponse = {
-    turns: turnsWithBlocks.map(t => ({
+    turns: turnsWithBlocks.map((t) => ({
       id: t.id,
       user_prompt: t.user_prompt,
-      status: t.status as "pending" | "in_progress" | "completed" | "failed" | "interrupted",
+      status: t.status as
+        | "pending"
+        | "in_progress"
+        | "completed"
+        | "failed"
+        | "interrupted",
       started_at: t.started_at ? t.started_at.toISOString() : null,
       completed_at: t.completed_at ? t.completed_at.toISOString() : null,
       created_at: t.created_at.toISOString(),

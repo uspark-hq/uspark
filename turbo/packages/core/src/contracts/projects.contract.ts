@@ -64,7 +64,10 @@ export const BlobTokenResponseSchema = z.object({
   token: z.string().describe("Client token for blob storage access"),
   expiresAt: z.string().datetime().describe("Token expiration time"),
   uploadUrl: z.string().url().describe("URL for uploading blobs"),
-  downloadUrlPrefix: z.string().url().describe("URL prefix for downloading blobs"),
+  downloadUrlPrefix: z
+    .string()
+    .url()
+    .describe("URL prefix for downloading blobs"),
 });
 
 /**

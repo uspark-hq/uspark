@@ -47,7 +47,7 @@ export const ListSessionsResponseSchema = z.object({
       title: z.string().nullable(),
       created_at: z.date().or(z.string()),
       updated_at: z.date().or(z.string()),
-    })
+    }),
   ),
   total: z.number(),
 });
@@ -82,14 +82,18 @@ export const InterruptSessionResponseSchema = z.object({
   success: z.boolean(),
   message: z.string().optional(),
 });
-export type InterruptSessionResponse = z.infer<typeof InterruptSessionResponseSchema>;
+export type InterruptSessionResponse = z.infer<
+  typeof InterruptSessionResponseSchema
+>;
 
 // Session updates response (for polling)
 export const SessionUpdatesResponseSchema = z.object({
   hasUpdates: z.boolean(),
   updatedAt: z.date().or(z.string()).optional(),
 });
-export type SessionUpdatesResponse = z.infer<typeof SessionUpdatesResponseSchema>;
+export type SessionUpdatesResponse = z.infer<
+  typeof SessionUpdatesResponseSchema
+>;
 
 // Error response
 export const SessionErrorResponseSchema = z.object({

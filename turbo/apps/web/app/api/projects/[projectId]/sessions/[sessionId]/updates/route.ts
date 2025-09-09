@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../../../../src/lib/init-services";
-import { SESSIONS_TBL, TURNS_TBL } from "../../../../../../../src/db/schema/sessions";
+import {
+  SESSIONS_TBL,
+  TURNS_TBL,
+  BLOCKS_TBL,
+} from "../../../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
 import { eq, and, asc } from "drizzle-orm";
 
@@ -49,47 +53,69 @@ export async function GET(
     return NextResponse.json({ error: "session_not_found" }, { status: 404 });
   }
 
-  // Get query parameters
+  // Parse query parameters
   const url = new URL(request.url);
-  const lastTurnIndex = url.searchParams.get("last_turn_index");
-  const sinceTimestamp = url.searchParams.get("since");
+  const lastTurnIndex = parseInt(
+    url.searchParams.get("last_turn_index") || "-1",
+  );
+  const lastBlockIndex = parseInt(
+    url.searchParams.get("last_block_index") || "-1",
+  );
 
-  // Get all turns for the session ordered by creation time
+  // Get all turns
   const allTurns = await globalThis.services.db
     .select({
       id: TURNS_TBL.id,
       status: TURNS_TBL.status,
       createdAt: TURNS_TBL.createdAt,
-      updatedAt: TURNS_TBL.updatedAt,
     })
     .from(TURNS_TBL)
     .where(eq(TURNS_TBL.sessionId, sessionId))
     .orderBy(asc(TURNS_TBL.createdAt));
 
-  // Determine which turns are new based on last_turn_index
-  let newTurnIds: string[] = [];
-  let updatedTurns: Array<{ id: string; status: string }> = [];
-  
-  if (lastTurnIndex !== null) {
-    const index = parseInt(lastTurnIndex || "-1");
-    newTurnIds = allTurns.slice(index + 1).map(t => t.id);
-  } else {
-    // If no last_turn_index, all turns are new
-    newTurnIds = allTurns.map(t => t.id);
+  // Determine new turns (after the last known index)
+  const newTurnIds = allTurns.slice(lastTurnIndex + 1).map((turn) => turn.id);
+
+  // For the last known turn, check for new blocks
+  const updatedTurns: Array<{
+    id: string;
+    status: string;
+    new_block_ids: string[];
+    block_count: number;
+  }> = [];
+
+  if (lastTurnIndex >= 0 && lastTurnIndex < allTurns.length) {
+    const lastKnownTurn = allTurns[lastTurnIndex];
+
+    if (lastKnownTurn) {
+      const blocks = await globalThis.services.db
+        .select({ id: BLOCKS_TBL.id })
+        .from(BLOCKS_TBL)
+        .where(eq(BLOCKS_TBL.turnId, lastKnownTurn.id))
+        .orderBy(asc(BLOCKS_TBL.sequenceNumber));
+
+      const newBlockIds = blocks
+        .slice(lastBlockIndex + 1)
+        .map((block) => block.id);
+
+      if (newBlockIds.length > 0 || lastKnownTurn.status !== "pending") {
+        updatedTurns.push({
+          id: lastKnownTurn.id,
+          status: lastKnownTurn.status,
+          new_block_ids: newBlockIds,
+          block_count: blocks.length,
+        });
+      }
+    }
   }
 
-  // Check if there are any active turns (pending, running, or in_progress)
+  // Check if there are any active (running) turns
   const hasActiveTurns = allTurns.some(
-    t => t.status === "pending" || t.status === "running" || t.status === "in_progress"
+    (turn) =>
+      turn.status === "running" ||
+      turn.status === "pending" ||
+      turn.status === "in_progress",
   );
-
-  // If since timestamp is provided, find turns updated after that time
-  if (sinceTimestamp) {
-    const since = new Date(sinceTimestamp);
-    updatedTurns = allTurns
-      .filter(t => t.updatedAt > since)
-      .map(t => ({ id: t.id, status: t.status }));
-  }
 
   return NextResponse.json({
     session: {
