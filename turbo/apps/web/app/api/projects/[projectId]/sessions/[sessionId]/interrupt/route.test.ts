@@ -235,7 +235,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
       expect(updatedPending!.completedAt).toBeNull();
     });
 
-
     it("should handle case when no running turns exist", async () => {
       // Create only completed and pending turns
       const [completedTurn] = await globalThis.services.db

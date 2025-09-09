@@ -445,6 +445,5 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         originalStartTime.toISOString(),
       );
     });
-
   });
 });
