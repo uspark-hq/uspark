@@ -5,6 +5,13 @@ import { SESSIONS_TBL } from "../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { eq, and, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import {
+  CreateSessionRequestSchema,
+  type CreateSessionResponse,
+  ListSessionsQuerySchema,
+  type ListSessionsResponse,
+  type SessionErrorResponse,
+} from "@uspark/core";
 
 /**
  * POST /api/projects/:projectId/sessions
@@ -17,7 +24,8 @@ export async function POST(
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    const error: SessionErrorResponse = { error: "unauthorized" };
+    return NextResponse.json(error, { status: 401 });
   }
 
   initServices();
@@ -32,12 +40,26 @@ export async function POST(
     );
 
   if (!project) {
-    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
+    const error: SessionErrorResponse = { 
+      error: "project_not_found",
+      error_description: "Project not found" 
+    };
+    return NextResponse.json(error, { status: 404 });
   }
 
-  // Parse request body
+  // Parse and validate request body
   const body = await request.json();
-  const { title } = body;
+  const parseResult = CreateSessionRequestSchema.safeParse(body);
+  
+  if (!parseResult.success) {
+    const error: SessionErrorResponse = { 
+      error: "invalid_request",
+      error_description: parseResult.error.issues[0]?.message 
+    };
+    return NextResponse.json(error, { status: 400 });
+  }
+
+  const { title } = parseResult.data;
 
   // Create new session
   const sessionId = `sess_${randomUUID()}`;
@@ -52,19 +74,22 @@ export async function POST(
 
   const newSession = result[0];
   if (!newSession) {
-    return NextResponse.json(
-      { error: "failed_to_create_session" },
-      { status: 500 },
-    );
+    const error: SessionErrorResponse = {
+      error: "failed_to_create_session",
+      error_description: "Failed to create session"
+    };
+    return NextResponse.json(error, { status: 500 });
   }
 
-  return NextResponse.json({
+  const response: CreateSessionResponse = {
     id: newSession.id,
     project_id: newSession.projectId,
     title: newSession.title,
-    created_at: newSession.createdAt,
-    updated_at: newSession.updatedAt,
-  });
+    created_at: newSession.createdAt.toISOString(),
+    updated_at: newSession.updatedAt.toISOString(),
+  };
+
+  return NextResponse.json(response);
 }
 
 /**
@@ -78,7 +103,8 @@ export async function GET(
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    const error: SessionErrorResponse = { error: "unauthorized" };
+    return NextResponse.json(error, { status: 401 });
   }
 
   initServices();
@@ -93,13 +119,30 @@ export async function GET(
     );
 
   if (!project) {
-    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
+    const error: SessionErrorResponse = {
+      error: "project_not_found",
+      error_description: "Project not found"
+    };
+    return NextResponse.json(error, { status: 404 });
   }
 
-  // Parse query parameters
+  // Parse and validate query parameters
   const url = new URL(request.url);
-  const limit = parseInt(url.searchParams.get("limit") || "20");
-  const offset = parseInt(url.searchParams.get("offset") || "0");
+  const queryParams = {
+    limit: url.searchParams.get("limit") || "20",
+    offset: url.searchParams.get("offset") || "0",
+  };
+  
+  const parseResult = ListSessionsQuerySchema.safeParse(queryParams);
+  if (!parseResult.success) {
+    const error: SessionErrorResponse = {
+      error: "invalid_query",
+      error_description: parseResult.error.issues[0]?.message
+    };
+    return NextResponse.json(error, { status: 400 });
+  }
+  
+  const { limit, offset } = parseResult.data;
 
   // Get sessions
   const sessions = await globalThis.services.db
@@ -123,8 +166,15 @@ export async function GET(
 
   const total = countResult[0]?.count ?? 0;
 
-  return NextResponse.json({
-    sessions,
+  const response: ListSessionsResponse = {
+    sessions: sessions.map(s => ({
+      id: s.id,
+      title: s.title,
+      created_at: s.created_at.toISOString(),
+      updated_at: s.updated_at.toISOString(),
+    })),
     total,
-  });
+  };
+
+  return NextResponse.json(response);
 }

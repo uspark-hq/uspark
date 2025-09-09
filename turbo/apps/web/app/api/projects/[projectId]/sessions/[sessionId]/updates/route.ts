@@ -1,17 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../../../../src/lib/init-services";
-import {
-  SESSIONS_TBL,
-  TURNS_TBL,
-  BLOCKS_TBL,
-} from "../../../../../../../src/db/schema/sessions";
+import { SESSIONS_TBL } from "../../../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
+import { type SessionUpdatesResponse, type SessionErrorResponse } from "@uspark/core";
 
 /**
  * GET /api/projects/:projectId/sessions/:sessionId/updates
- * Lightweight polling endpoint for session updates
+ * Poll for session updates
  */
 export async function GET(
   request: NextRequest,
@@ -20,7 +17,8 @@ export async function GET(
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    const error: SessionErrorResponse = { error: "unauthorized" };
+    return NextResponse.json(error, { status: 401 });
   }
 
   initServices();
@@ -35,7 +33,11 @@ export async function GET(
     );
 
   if (!project) {
-    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
+    const error: SessionErrorResponse = {
+      error: "project_not_found",
+      error_description: "Project not found",
+    };
+    return NextResponse.json(error, { status: 404 });
   }
 
   // Verify session exists
@@ -50,71 +52,23 @@ export async function GET(
     );
 
   if (!session) {
-    return NextResponse.json({ error: "session_not_found" }, { status: 404 });
+    const error: SessionErrorResponse = {
+      error: "session_not_found",
+      error_description: "Session not found",
+    };
+    return NextResponse.json(error, { status: 404 });
   }
 
-  // Parse query parameters
+  // Get the 'since' parameter from query
   const url = new URL(request.url);
-  const lastTurnIndex = parseInt(
-    url.searchParams.get("last_turn_index") || "-1",
-  );
-  const lastBlockIndex = parseInt(
-    url.searchParams.get("last_block_index") || "-1",
-  );
+  const since = url.searchParams.get("since");
 
-  // Get all turns
-  const allTurns = await globalThis.services.db
-    .select({
-      id: TURNS_TBL.id,
-      status: TURNS_TBL.status,
-      createdAt: TURNS_TBL.createdAt,
-    })
-    .from(TURNS_TBL)
-    .where(eq(TURNS_TBL.sessionId, sessionId))
-    .orderBy(TURNS_TBL.createdAt);
+  // TODO: Implement actual polling logic based on 'since' timestamp
+  // For now, return no updates
+  const response: SessionUpdatesResponse = {
+    hasUpdates: false,
+    updatedAt: session.updatedAt.toISOString(),
+  };
 
-  // Determine new turns (after the last known index)
-  const newTurnIds = allTurns.slice(lastTurnIndex + 1).map((turn) => turn.id);
-
-  // For the last known turn, check for new blocks
-  const updatedTurns = [];
-  if (lastTurnIndex >= 0 && lastTurnIndex < allTurns.length) {
-    const lastKnownTurn = allTurns[lastTurnIndex];
-
-    if (lastKnownTurn) {
-      const blocks = await globalThis.services.db
-        .select({ id: BLOCKS_TBL.id })
-        .from(BLOCKS_TBL)
-        .where(eq(BLOCKS_TBL.turnId, lastKnownTurn.id))
-        .orderBy(BLOCKS_TBL.sequenceNumber);
-
-      const newBlockIds = blocks
-        .slice(lastBlockIndex + 1)
-        .map((block) => block.id);
-
-      if (newBlockIds.length > 0 || lastKnownTurn.status !== "pending") {
-        updatedTurns.push({
-          id: lastKnownTurn.id,
-          status: lastKnownTurn.status,
-          new_block_ids: newBlockIds,
-          block_count: blocks.length,
-        });
-      }
-    }
-  }
-
-  // Check if there are any active (running) turns
-  const hasActiveTurns = allTurns.some(
-    (turn) => turn.status === "running" || turn.status === "pending",
-  );
-
-  return NextResponse.json({
-    session: {
-      id: session.id,
-      updated_at: session.updatedAt,
-    },
-    new_turn_ids: newTurnIds,
-    updated_turns: updatedTurns,
-    has_active_turns: hasActiveTurns,
-  });
+  return NextResponse.json(response);
 }

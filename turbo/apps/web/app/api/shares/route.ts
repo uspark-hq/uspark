@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
 import { eq, desc } from "drizzle-orm";
+import { type ListSharesResponse, type ShareError } from "@uspark/core";
 
 /**
  * GET /api/shares
@@ -12,7 +13,8 @@ export async function GET() {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    const error: ShareError = { error: "unauthorized" };
+    return NextResponse.json(error, { status: 401 });
   }
 
   initServices();
@@ -34,10 +36,19 @@ export async function GET() {
 
   // Transform to include full URLs
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://uspark.dev";
-  const sharesWithUrls = shares.map((share) => ({
-    ...share,
-    url: `${baseUrl}/share/${share.token}`,
-  }));
+  
+  const response: ListSharesResponse = {
+    shares: shares.map((share) => ({
+      id: share.id,
+      token: share.token,
+      projectId: share.projectId,
+      filePath: share.filePath || null,
+      createdAt: share.createdAt.toISOString(),
+      accessedCount: share.accessedCount,
+      lastAccessedAt: share.lastAccessedAt ? share.lastAccessedAt.toISOString() : null,
+      url: `${baseUrl}/share/${share.token}`,
+    })),
+  };
 
-  return NextResponse.json({ shares: sharesWithUrls });
+  return NextResponse.json(response);
 }

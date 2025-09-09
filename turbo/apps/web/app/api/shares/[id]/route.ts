@@ -3,10 +3,11 @@ import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
 import { eq, and } from "drizzle-orm";
+import { type DeleteShareResponse, type ShareError } from "@uspark/core";
 
 /**
  * DELETE /api/shares/:id
- * Revoke a share link
+ * Delete a share link
  */
 export async function DELETE(
   _request: NextRequest,
@@ -15,26 +16,37 @@ export async function DELETE(
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    const error: ShareError = { error: "unauthorized" };
+    return NextResponse.json(error, { status: 401 });
   }
 
   initServices();
   const { id } = await context.params;
 
-  // Check if the share exists and belongs to the user
-  const [shareLink] = await globalThis.services.db
+  // Verify share exists and belongs to user
+  const [share] = await globalThis.services.db
     .select()
     .from(SHARE_LINKS_TBL)
-    .where(and(eq(SHARE_LINKS_TBL.id, id), eq(SHARE_LINKS_TBL.userId, userId)));
+    .where(
+      and(eq(SHARE_LINKS_TBL.id, id), eq(SHARE_LINKS_TBL.userId, userId)),
+    );
 
-  if (!shareLink) {
-    return NextResponse.json({ error: "share_not_found" }, { status: 404 });
+  if (!share) {
+    const error: ShareError = {
+      error: "share_not_found",
+      error_description: "Share link not found or access denied",
+    };
+    return NextResponse.json(error, { status: 404 });
   }
 
   // Delete the share link
   await globalThis.services.db
     .delete(SHARE_LINKS_TBL)
-    .where(and(eq(SHARE_LINKS_TBL.id, id), eq(SHARE_LINKS_TBL.userId, userId)));
+    .where(eq(SHARE_LINKS_TBL.id, id));
 
-  return NextResponse.json({ success: true });
+  const response: DeleteShareResponse = {
+    success: true,
+  };
+
+  return NextResponse.json(response);
 }

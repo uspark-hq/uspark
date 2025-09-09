@@ -57,6 +57,28 @@ export type ProjectError = z.infer<typeof ProjectErrorSchema>;
 /**
  * Projects API Contract
  */
+/**
+ * Blob Token Response Schema
+ */
+export const BlobTokenResponseSchema = z.object({
+  token: z.string().describe("Client token for blob storage access"),
+  expiresAt: z.string().datetime().describe("Token expiration time"),
+  uploadUrl: z.string().url().describe("URL for uploading blobs"),
+  downloadUrlPrefix: z.string().url().describe("URL prefix for downloading blobs"),
+});
+
+/**
+ * Blob Token Error Schema
+ */
+export const BlobTokenErrorSchema = z.object({
+  error: z.string().describe("Error code"),
+  error_description: z.string().describe("Human-readable error description"),
+});
+
+// Type exports for blob token
+export type BlobTokenResponse = z.infer<typeof BlobTokenResponseSchema>;
+export type BlobTokenError = z.infer<typeof BlobTokenErrorSchema>;
+
 export const projectsContract = c.router({
   /**
    * List all projects for the authenticated user
@@ -164,5 +186,32 @@ export const projectsContract = c.router({
     summary: "Update project YJS state",
     description:
       "Applies incremental YJS updates to the stored document with optimistic locking",
+  },
+
+  /**
+   * Get blob storage token for project
+   * Returns a temporary client token for direct blob storage access
+   */
+  getBlobToken: {
+    method: "GET",
+    path: "/api/projects/:projectId/blob-token",
+    pathParams: z.object({
+      projectId: z.string().describe("Project identifier"),
+    }),
+    responses: {
+      200: BlobTokenResponseSchema,
+      401: z.object({
+        error: z.literal("unauthorized"),
+        error_description: z.string().optional(),
+      }),
+      404: z.object({
+        error: z.literal("project_not_found"),
+        error_description: z.string(),
+      }),
+      500: BlobTokenErrorSchema,
+    },
+    summary: "Get blob storage token",
+    description:
+      "Returns a temporary client token for direct Vercel Blob Storage access with project-scoped permissions",
   },
 });
