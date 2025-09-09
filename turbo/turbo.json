@@ -11,7 +11,9 @@
     "USPARK_TOKEN",
     "VERCEL_BLOB_UPLOAD_URL",
     "VERCEL_BLOB_URL",
-    "E2B_API_KEY"
+    "E2B_API_KEY",
+    "NODE_ENV",
+    "APP_URL"
   ],
   "tasks": {
     "build": {
