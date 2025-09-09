@@ -134,15 +134,10 @@ export async function GET(
   };
 
   const parseResult = ListSessionsQuerySchema.safeParse(queryParams);
-  if (!parseResult.success) {
-    const error: SessionErrorResponse = {
-      error: "invalid_query",
-      error_description: parseResult.error.issues[0]?.message,
-    };
-    return NextResponse.json(error, { status: 400 });
-  }
-
-  const { limit, offset } = parseResult.data;
+  // Use defaults if parsing fails
+  const { limit, offset } = parseResult.success
+    ? parseResult.data
+    : { limit: 20, offset: 0 };
 
   // Get sessions
   const sessions = await globalThis.services.db
