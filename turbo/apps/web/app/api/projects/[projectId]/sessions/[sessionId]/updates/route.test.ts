@@ -165,8 +165,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         })
         .returning();
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
       const turn2 = await globalThis.services.db
         .insert(TURNS_TBL)
         .values({
@@ -176,8 +174,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
           status: "completed",
         })
         .returning();
-
-      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const turn3 = await globalThis.services.db
         .insert(TURNS_TBL)

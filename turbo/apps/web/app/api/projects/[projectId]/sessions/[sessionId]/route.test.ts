@@ -169,8 +169,6 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
       const turn1Data = await turn1Response.json();
       createdTurnIds.push(turn1Data.id);
 
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
       const createTurn2Request = new NextRequest("http://localhost:3000", {
         method: "POST",
         body: JSON.stringify({ user_message: "Second prompt" }),
