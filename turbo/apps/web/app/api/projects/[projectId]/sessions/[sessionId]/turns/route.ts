@@ -9,6 +9,13 @@ import {
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import {
+  CreateTurnRequestSchema,
+  type CreateTurnResponse,
+  ListTurnsQuerySchema,
+  type ListTurnsResponse,
+  type TurnErrorResponse,
+} from "@uspark/core";
 
 /**
  * POST /api/projects/:projectId/sessions/:sessionId/turns
@@ -21,7 +28,8 @@ export async function POST(
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    const error: TurnErrorResponse = { error: "unauthorized" };
+    return NextResponse.json(error, { status: 401 });
   }
 
   initServices();
@@ -36,7 +44,11 @@ export async function POST(
     );
 
   if (!project) {
-    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
+    const error: TurnErrorResponse = {
+      error: "project_not_found",
+      error_description: "Project not found",
+    };
+    return NextResponse.json(error, { status: 404 });
   }
 
   // Verify session exists
@@ -51,19 +63,33 @@ export async function POST(
     );
 
   if (!session) {
-    return NextResponse.json({ error: "session_not_found" }, { status: 404 });
+    const error: TurnErrorResponse = {
+      error: "session_not_found",
+      error_description: "Session not found",
+    };
+    return NextResponse.json(error, { status: 404 });
   }
 
-  // Parse request body
+  // Parse and validate request body
   const body = await request.json();
-  const { user_message } = body;
+  const parseResult = CreateTurnRequestSchema.safeParse(body);
 
-  if (!user_message) {
-    return NextResponse.json(
-      { error: "user_message_required" },
-      { status: 400 },
-    );
+  if (!parseResult.success) {
+    // Check if the specific error is about missing user_message
+    const firstIssue = parseResult.error.issues[0];
+    const errorCode =
+      firstIssue?.path[0] === "user_message"
+        ? "user_message_required"
+        : "invalid_request";
+
+    const error: TurnErrorResponse = {
+      error: errorCode,
+      error_description: firstIssue?.message || "Invalid request",
+    };
+    return NextResponse.json(error, { status: 400 });
   }
+
+  const { user_message } = parseResult.data;
 
   // Create new turn
   const turnId = `turn_${randomUUID()}`;
@@ -79,19 +105,27 @@ export async function POST(
 
   const newTurn = result[0];
   if (!newTurn) {
-    return NextResponse.json(
-      { error: "failed_to_create_turn" },
-      { status: 500 },
-    );
+    const error: TurnErrorResponse = {
+      error: "failed_to_create_turn",
+      error_description: "Failed to create turn",
+    };
+    return NextResponse.json(error, { status: 500 });
   }
 
-  return NextResponse.json({
+  const response: CreateTurnResponse = {
     id: newTurn.id,
     session_id: newTurn.sessionId,
     user_message: newTurn.userPrompt,
-    status: newTurn.status,
-    created_at: newTurn.createdAt,
-  });
+    status: newTurn.status as
+      | "pending"
+      | "in_progress"
+      | "completed"
+      | "failed"
+      | "interrupted",
+    created_at: newTurn.createdAt.toISOString(),
+  };
+
+  return NextResponse.json(response);
 }
 
 /**
@@ -105,7 +139,8 @@ export async function GET(
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    const error: TurnErrorResponse = { error: "unauthorized" };
+    return NextResponse.json(error, { status: 401 });
   }
 
   initServices();
@@ -120,7 +155,11 @@ export async function GET(
     );
 
   if (!project) {
-    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
+    const error: TurnErrorResponse = {
+      error: "project_not_found",
+      error_description: "Project not found",
+    };
+    return NextResponse.json(error, { status: 404 });
   }
 
   // Verify session exists
@@ -135,13 +174,30 @@ export async function GET(
     );
 
   if (!session) {
-    return NextResponse.json({ error: "session_not_found" }, { status: 404 });
+    const error: TurnErrorResponse = {
+      error: "session_not_found",
+      error_description: "Session not found",
+    };
+    return NextResponse.json(error, { status: 404 });
   }
 
-  // Parse query parameters
+  // Parse and validate query parameters
   const url = new URL(request.url);
-  const limit = parseInt(url.searchParams.get("limit") || "20");
-  const offset = parseInt(url.searchParams.get("offset") || "0");
+  const queryParams = {
+    limit: url.searchParams.get("limit") || "20",
+    offset: url.searchParams.get("offset") || "0",
+  };
+
+  const parseResult = ListTurnsQuerySchema.safeParse(queryParams);
+  if (!parseResult.success) {
+    const error: TurnErrorResponse = {
+      error: "invalid_query",
+      error_description: parseResult.error.issues[0]?.message,
+    };
+    return NextResponse.json(error, { status: 400 });
+  }
+
+  const { limit, offset } = parseResult.data;
 
   // Get turns with block counts
   const turns = await globalThis.services.db
@@ -184,8 +240,24 @@ export async function GET(
 
   const total = countResult[0]?.count ?? 0;
 
-  return NextResponse.json({
-    turns: turnsWithBlocks,
+  const response: ListTurnsResponse = {
+    turns: turnsWithBlocks.map((t) => ({
+      id: t.id,
+      user_prompt: t.user_prompt,
+      status: t.status as
+        | "pending"
+        | "in_progress"
+        | "completed"
+        | "failed"
+        | "interrupted",
+      started_at: t.started_at ? t.started_at.toISOString() : null,
+      completed_at: t.completed_at ? t.completed_at.toISOString() : null,
+      created_at: t.created_at.toISOString(),
+      block_count: t.block_count,
+      block_ids: t.block_ids,
+    })),
     total,
-  });
+  };
+
+  return NextResponse.json(response);
 }

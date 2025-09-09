@@ -5,6 +5,7 @@ import { initServices } from "../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
 import { env } from "../../../../../src/env";
+import { type BlobTokenResponse, type BlobTokenError } from "@uspark/core";
 
 /**
  * GET /api/projects/:projectId/blob-token
@@ -17,7 +18,11 @@ export async function GET(
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    const error: BlobTokenError = {
+      error: "unauthorized",
+      error_description: "Authentication required",
+    };
+    return NextResponse.json(error, { status: 401 });
   }
 
   initServices();
@@ -32,22 +37,21 @@ export async function GET(
     );
 
   if (!project) {
-    return NextResponse.json(
-      { error: "project_not_found", error_description: "Project not found" },
-      { status: 404 },
-    );
+    const error: BlobTokenError = {
+      error: "project_not_found",
+      error_description: "Project not found",
+    };
+    return NextResponse.json(error, { status: 404 });
   }
 
   // Generate client token for Vercel Blob access
   const readWriteToken = env().BLOB_READ_WRITE_TOKEN;
   if (!readWriteToken) {
-    return NextResponse.json(
-      {
-        error: "blob_storage_not_configured",
-        error_description: "Blob storage is not configured",
-      },
-      { status: 500 },
-    );
+    const error: BlobTokenError = {
+      error: "blob_storage_not_configured",
+      error_description: "Blob storage is not configured",
+    };
+    return NextResponse.json(error, { status: 500 });
   }
 
   try {
@@ -60,7 +64,7 @@ export async function GET(
     });
 
     // Return the client token with upload/download URLs
-    const response = {
+    const response: BlobTokenResponse = {
       token: clientToken,
       expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
       uploadUrl: "https://blob.vercel-storage.com/upload",
@@ -70,12 +74,10 @@ export async function GET(
     return NextResponse.json(response);
   } catch (error) {
     console.error("Failed to generate client token:", error);
-    return NextResponse.json(
-      {
-        error: "token_generation_failed",
-        error_description: "Failed to generate client token",
-      },
-      { status: 500 },
-    );
+    const errorResponse: BlobTokenError = {
+      error: "token_generation_failed",
+      error_description: "Failed to generate client token",
+    };
+    return NextResponse.json(errorResponse, { status: 500 });
   }
 }

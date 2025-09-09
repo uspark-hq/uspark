@@ -7,11 +7,11 @@ import {
   BLOCKS_TBL,
 } from "../../../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
-import { eq, and } from "drizzle-orm";
+import { eq, and, asc } from "drizzle-orm";
 
 /**
  * GET /api/projects/:projectId/sessions/:sessionId/updates
- * Lightweight polling endpoint for session updates
+ * Poll for session updates
  */
 export async function GET(
   request: NextRequest,
@@ -71,13 +71,19 @@ export async function GET(
     })
     .from(TURNS_TBL)
     .where(eq(TURNS_TBL.sessionId, sessionId))
-    .orderBy(TURNS_TBL.createdAt);
+    .orderBy(asc(TURNS_TBL.createdAt));
 
   // Determine new turns (after the last known index)
   const newTurnIds = allTurns.slice(lastTurnIndex + 1).map((turn) => turn.id);
 
   // For the last known turn, check for new blocks
-  const updatedTurns = [];
+  const updatedTurns: Array<{
+    id: string;
+    status: string;
+    new_block_ids: string[];
+    block_count: number;
+  }> = [];
+
   if (lastTurnIndex >= 0 && lastTurnIndex < allTurns.length) {
     const lastKnownTurn = allTurns[lastTurnIndex];
 
@@ -86,7 +92,7 @@ export async function GET(
         .select({ id: BLOCKS_TBL.id })
         .from(BLOCKS_TBL)
         .where(eq(BLOCKS_TBL.turnId, lastKnownTurn.id))
-        .orderBy(BLOCKS_TBL.sequenceNumber);
+        .orderBy(asc(BLOCKS_TBL.sequenceNumber));
 
       const newBlockIds = blocks
         .slice(lastBlockIndex + 1)
@@ -105,13 +111,16 @@ export async function GET(
 
   // Check if there are any active (running) turns
   const hasActiveTurns = allTurns.some(
-    (turn) => turn.status === "running" || turn.status === "pending",
+    (turn) =>
+      turn.status === "running" ||
+      turn.status === "pending" ||
+      turn.status === "in_progress",
   );
 
   return NextResponse.json({
     session: {
-      id: session.id,
-      updated_at: session.updatedAt,
+      id: sessionId,
+      updated_at: session.updatedAt.toISOString(),
     },
     new_turn_ids: newTurnIds,
     updated_turns: updatedTurns,
