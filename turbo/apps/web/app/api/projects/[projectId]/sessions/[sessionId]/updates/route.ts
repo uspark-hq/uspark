@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../../../../src/lib/init-services";
-import { SESSIONS_TBL } from "../../../../../../../src/db/schema/sessions";
+import { SESSIONS_TBL, TURNS_TBL } from "../../../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
-import { eq, and } from "drizzle-orm";
-import { type SessionUpdatesResponse, type SessionErrorResponse } from "@uspark/core";
+import { eq, and, asc } from "drizzle-orm";
 
 /**
  * GET /api/projects/:projectId/sessions/:sessionId/updates
@@ -17,8 +16,7 @@ export async function GET(
   const { userId } = await auth();
 
   if (!userId) {
-    const error: SessionErrorResponse = { error: "unauthorized" };
-    return NextResponse.json(error, { status: 401 });
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   initServices();
@@ -33,11 +31,7 @@ export async function GET(
     );
 
   if (!project) {
-    const error: SessionErrorResponse = {
-      error: "project_not_found",
-      error_description: "Project not found",
-    };
-    return NextResponse.json(error, { status: 404 });
+    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
   }
 
   // Verify session exists
@@ -52,23 +46,58 @@ export async function GET(
     );
 
   if (!session) {
-    const error: SessionErrorResponse = {
-      error: "session_not_found",
-      error_description: "Session not found",
-    };
-    return NextResponse.json(error, { status: 404 });
+    return NextResponse.json({ error: "session_not_found" }, { status: 404 });
   }
 
-  // Get the 'since' parameter from query
-  // const url = new URL(request.url);
-  // const since = url.searchParams.get("since");
+  // Get query parameters
+  const url = new URL(request.url);
+  const lastTurnIndex = url.searchParams.get("last_turn_index");
+  const sinceTimestamp = url.searchParams.get("since");
 
-  // TODO: Implement actual polling logic based on 'since' timestamp
-  // For now, return no updates
-  const response: SessionUpdatesResponse = {
-    hasUpdates: false,
-    updatedAt: session.updatedAt.toISOString(),
-  };
+  // Get all turns for the session ordered by creation time
+  const allTurns = await globalThis.services.db
+    .select({
+      id: TURNS_TBL.id,
+      status: TURNS_TBL.status,
+      createdAt: TURNS_TBL.createdAt,
+      updatedAt: TURNS_TBL.updatedAt,
+    })
+    .from(TURNS_TBL)
+    .where(eq(TURNS_TBL.sessionId, sessionId))
+    .orderBy(asc(TURNS_TBL.createdAt));
 
-  return NextResponse.json(response);
+  // Determine which turns are new based on last_turn_index
+  let newTurnIds: string[] = [];
+  let updatedTurns: Array<{ id: string; status: string }> = [];
+  
+  if (lastTurnIndex !== null) {
+    const index = parseInt(lastTurnIndex || "-1");
+    newTurnIds = allTurns.slice(index + 1).map(t => t.id);
+  } else {
+    // If no last_turn_index, all turns are new
+    newTurnIds = allTurns.map(t => t.id);
+  }
+
+  // Check if there are any active turns (pending, running, or in_progress)
+  const hasActiveTurns = allTurns.some(
+    t => t.status === "pending" || t.status === "running" || t.status === "in_progress"
+  );
+
+  // If since timestamp is provided, find turns updated after that time
+  if (sinceTimestamp) {
+    const since = new Date(sinceTimestamp);
+    updatedTurns = allTurns
+      .filter(t => t.updatedAt > since)
+      .map(t => ({ id: t.id, status: t.status }));
+  }
+
+  return NextResponse.json({
+    session: {
+      id: sessionId,
+      updated_at: session.updatedAt.toISOString(),
+    },
+    new_turn_ids: newTurnIds,
+    updated_turns: updatedTurns,
+    has_active_turns: hasActiveTurns,
+  });
 }

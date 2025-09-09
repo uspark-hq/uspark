@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../../../../src/lib/init-services";
-import { SESSIONS_TBL } from "../../../../../../../src/db/schema/sessions";
+import { SESSIONS_TBL, TURNS_TBL } from "../../../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
-import { type InterruptSessionResponse, type SessionErrorResponse } from "@uspark/core";
+import { type SessionErrorResponse } from "@uspark/core";
 
 /**
  * POST /api/projects/:projectId/sessions/:sessionId/interrupt
@@ -59,12 +59,33 @@ export async function POST(
     return NextResponse.json(error, { status: 404 });
   }
 
-  // TODO: Implement actual session interruption logic
-  // For now, just return success
-  const response: InterruptSessionResponse = {
-    success: true,
-    message: "Session interrupted successfully",
-  };
+  // Update all running turns to failed status
+  await globalThis.services.db
+    .update(TURNS_TBL)
+    .set({
+      status: "failed",
+      errorMessage: "Session interrupted by user",
+      completedAt: new Date(),
+    })
+    .where(
+      and(
+        eq(TURNS_TBL.sessionId, sessionId),
+        eq(TURNS_TBL.status, "running"),
+      ),
+    );
 
-  return NextResponse.json(response);
+  // Update session status
+  await globalThis.services.db
+    .update(SESSIONS_TBL)
+    .set({
+      status: "interrupted",
+      updatedAt: new Date(),
+    })
+    .where(eq(SESSIONS_TBL.id, sessionId));
+
+  // Return the updated session info
+  return NextResponse.json({
+    id: sessionId,
+    status: "interrupted",
+  });
 }

@@ -3,7 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
 import { eq, and } from "drizzle-orm";
-import { type DeleteShareResponse, type ShareError } from "@uspark/core";
+import { type DeleteShareResponse } from "@uspark/core";
 
 /**
  * DELETE /api/shares/:id
@@ -16,8 +16,7 @@ export async function DELETE(
   const { userId } = await auth();
 
   if (!userId) {
-    const error: ShareError = { error: "unauthorized" };
-    return NextResponse.json(error, { status: 401 });
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   initServices();
@@ -32,11 +31,7 @@ export async function DELETE(
     );
 
   if (!share) {
-    const error: ShareError = {
-      error: "share_not_found",
-      error_description: "Share link not found or access denied",
-    };
-    return NextResponse.json(error, { status: 404 });
+    return NextResponse.json({ error: "share_not_found" }, { status: 404 });
   }
 
   // Delete the share link

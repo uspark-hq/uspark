@@ -75,9 +75,15 @@ export async function POST(
   const parseResult = CreateTurnRequestSchema.safeParse(body);
   
   if (!parseResult.success) {
+    // Check if the specific error is about missing user_message
+    const firstIssue = parseResult.error.issues[0];
+    const errorCode = firstIssue?.path[0] === 'user_message' 
+      ? "user_message_required" 
+      : "invalid_request";
+    
     const error: TurnErrorResponse = {
-      error: "invalid_request",
-      error_description: parseResult.error.issues[0]?.message || "Invalid request"
+      error: errorCode,
+      error_description: firstIssue?.message || "Invalid request"
     };
     return NextResponse.json(error, { status: 400 });
   }
