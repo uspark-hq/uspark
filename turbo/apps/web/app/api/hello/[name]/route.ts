@@ -38,7 +38,7 @@ export async function GET(
   // Validate query parameters
   const searchParams = request.nextUrl.searchParams;
   const queryParams = {
-    lang: searchParams.get("lang"),
+    lang: searchParams.get("lang") || undefined,
   };
 
   const queryValidation = QueryParamsSchema.safeParse(queryParams);
