@@ -109,7 +109,7 @@ export async function POST(
     id: newTurn.id,
     session_id: newTurn.sessionId,
     user_message: newTurn.userPrompt,
-    status: newTurn.status as any,
+    status: newTurn.status as "pending" | "in_progress" | "completed" | "failed" | "interrupted",
     created_at: newTurn.createdAt.toISOString(),
   };
 
@@ -232,7 +232,7 @@ export async function GET(
     turns: turnsWithBlocks.map(t => ({
       id: t.id,
       user_prompt: t.user_prompt,
-      status: t.status as any,
+      status: t.status as "pending" | "in_progress" | "completed" | "failed" | "interrupted",
       started_at: t.started_at ? t.started_at.toISOString() : null,
       completed_at: t.completed_at ? t.completed_at.toISOString() : null,
       created_at: t.created_at.toISOString(),

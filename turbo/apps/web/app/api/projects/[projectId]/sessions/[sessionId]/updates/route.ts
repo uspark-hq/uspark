@@ -60,8 +60,8 @@ export async function GET(
   }
 
   // Get the 'since' parameter from query
-  const url = new URL(request.url);
-  const since = url.searchParams.get("since");
+  // const url = new URL(request.url);
+  // const since = url.searchParams.get("since");
 
   // TODO: Implement actual polling logic based on 'since' timestamp
   // For now, return no updates
