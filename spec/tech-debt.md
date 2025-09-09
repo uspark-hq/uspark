@@ -55,7 +55,7 @@ await db.transaction(async (tx) => {
 - Internal service calls
 
 ## Hardcoded URL Configuration
-**Issue:** Using `process.env.NEXT_PUBLIC_APP_URL || "https://uspark.dev"` in API routes instead of centralized configuration.
+**Issue:** Using `process.env.NEXT_PUBLIC_APP_URL || "https://uspark.ai"` in API routes instead of centralized configuration.
 **Source:** Code review commit d50b99c
 **Status:** 🔴 Not Started
 **Current usage:** `/api/shares/route.ts` uses hardcoded fallback URL

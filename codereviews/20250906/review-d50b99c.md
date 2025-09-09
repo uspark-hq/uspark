@@ -98,7 +98,7 @@ Comment indicates awareness: `// Mock content based on file extension (no artifi
 
 2. **Hardcoded Fallback URL**
    ```typescript
-   process.env.NEXT_PUBLIC_APP_URL || "https://uspark.dev"
+   process.env.NEXT_PUBLIC_APP_URL || "https://uspark.ai"
    ```
    - Could be centralized in config
 

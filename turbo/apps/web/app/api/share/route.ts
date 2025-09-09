@@ -8,6 +8,7 @@ import {
   type CreateShareError,
 } from "@uspark/core";
 import { initServices } from "../../../src/lib/init-services";
+import { env } from "../../../src/env";
 import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
@@ -84,7 +85,7 @@ export async function POST(request: NextRequest) {
   });
 
   // Construct the full URL
-  const baseUrl = request.headers.get("origin") || "https://uspark.dev";
+  const baseUrl = request.headers.get("origin") || env().APP_URL;
   const url = `${baseUrl}/share/${token}`;
 
   const response: CreateShareResponse = {
