@@ -2,30 +2,57 @@
 
 ## Overview
 
-This document defines the mid-term goals and user stories for the MVP release of Uspark. The MVP focuses on delivering core functionality for document synchronization, AI-assisted editing, and document sharing.
+This document defines the mid-term goals and user stories for the MVP release of Uspark. The MVP focuses on delivering core functionality for GitHub bidirectional synchronization, AI-assisted editing, and document sharing.
 
 ## User Stories
 
-### Story 1: Developer Document Synchronization
+### Story 1: GitHub Bidirectional Synchronization (For Human Users)
 
 **As a** developer  
-**I want to** use the `uspark` command line to pull a project to local and push files back to remote  
-**So that** my documents stay synchronized with the cloud
+**I want to** sync uSpark documents with GitHub repositories using standard git workflows  
+**So that** I can edit with my preferred tools while maintaining version control and team collaboration
 
 #### Acceptance Criteria
 
-- [ ] `uspark pull --project-id <id>` downloads entire project to local directory
-- [ ] `uspark pull <file-path> --project-id <id>` downloads specific files
-- [ ] `uspark push <file-path> --project-id <id>` uploads local changes to remote
-- [ ] `uspark push --all --project-id <id>` uploads all modified files
-- [ ] Authentication via CLI token or enviro`nment variable
+- [ ] One-click GitHub OAuth authorization
+- [ ] Automatic creation of dedicated docs repository (`{workspace}-docs`)
+- [ ] Web edits automatically commit and push to GitHub
+- [ ] Git pushes automatically sync to uSpark (via webhooks)
+- [ ] Sync completes within 5 seconds
+- [ ] Full commit history preserved
+- [ ] Standard git commands work (clone, pull, push)
+- [ ] No manual conflict resolution needed
+
+#### Technical Requirements
+
+- GitHub API integration for repository management
+- Webhook handlers for push events
+- Optimistic locking to prevent conflicts
+- Support for large documents (>1MB)
+- UTF-8 encoding for all markdown files
+- Automatic pull before allowing new web edits
+
+### Story 1b: uSpark CLI for E2B Container Synchronization (For AI Agents)
+
+**As an** AI agent running in E2B container  
+**I want to** use uspark CLI to sync project files between container and uSpark  
+**So that** I can modify files and have changes automatically reflected in the main project
+
+#### Acceptance Criteria
+
+- [x] `uspark pull --project-id <id>` downloads entire project to container
+- [x] `uspark push <file-path> --project-id <id>` uploads changes immediately
+- [x] `uspark watch-claude` monitors Claude output and syncs file changes
+- [x] Authentication via environment variable (USPARK_TOKEN)
+- [ ] E2B container pre-configured with uspark CLI
 
 #### Technical Requirements
 
 - YJS-based synchronization protocol
 - Vercel Blob storage for file content
-- Binary diff/patch for efficient transfers
-- Local file system integration
+- Real-time file change detection via watch-claude
+- Container initialization scripts
+- Status monitoring through JSON output parsing
 
 ### Story 2: Web-based AI Document Editing
 
@@ -82,12 +109,25 @@ This document defines the mid-term goals and user stories for the MVP release of
 4. ✅ CLI environment variable authentication
 5. ✅ Blob STS token API for direct access
 
-### Phase 2: Developer Tools (Story 1)
+### Phase 2: Synchronization Features
+
+#### Phase 2a: GitHub Integration (Story 1)
+
+1. [ ] GitHub OAuth flow implementation
+2. [ ] Repository creation API
+3. [ ] Webhook endpoint for GitHub push events
+4. [ ] Git operations wrapper for web edits
+5. [ ] Conflict prevention mechanism
+6. [ ] Sync status UI indicators
+
+#### Phase 2b: uSpark CLI for E2B (Story 1b)
 
 1. ✅ Complete `uspark pull` command
 2. ✅ Implement `uspark push` command
-3. ✅ Implement `uspark push --all` command
+3. ✅ Implement `uspark watch-claude` command
 4. ✅ Update FileSystem class for direct blob access
+5. [ ] E2B container configuration with pre-installed CLI
+6. [ ] Container initialization scripts
 
 ### Phase 3: Web Interface Foundation (Story 2 - Part 1)
 

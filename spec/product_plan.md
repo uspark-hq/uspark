@@ -34,6 +34,49 @@ AI Power Users (knowledge workers with AI service subscriptions):
 - **File Content**: Amazon S3 (content-addressed storage)
 - **Metadata**: YJS documents (CRDT collaboration support)
 
+# **AI First Data Structure Philosophy**
+
+## **Why Data Structure Matters for AI Native**
+
+**AI First means starting with AI-optimized data structures, not retrofitting AI onto existing formats.**
+
+In AI practice, we've discovered that AI's understanding and modification capabilities vary dramatically across different document formats. Markdown stands out as the most AI-friendly format:
+
+- **Natural semantic structure**: Headers, lists, code blocks have clear meaning
+- **Plain text based**: No binary encoding or proprietary formats to decode
+- **Human-readable**: AI can reason about content the same way humans do
+- **Precise editability**: Line-based structure allows accurate modifications
+- **Version control friendly**: Changes are trackable and mergeable
+
+## **From Data Format to Product Design**
+
+**uSpark's architecture is derived from AI-first principles, not traditional document paradigms.**
+
+Traditional approach (Notion, Google Docs):
+1. Start with human UI requirements
+2. Design complex nested data structures
+3. Retrofit AI capabilities (with limited success)
+
+uSpark's approach:
+1. Start with AI-optimal data format (Markdown)
+2. Build collaboration primitives that preserve AI-friendliness
+3. Design human interfaces that enhance, not obscure, the AI-readable structure
+
+This fundamental difference means:
+- **AI can understand the entire document context**, not just fragments
+- **Modifications are precise and predictable**, not approximate
+- **Document relationships are semantic**, not just structural
+- **Version history is meaningful to AI**, enabling learning from changes
+
+## **Implications for Collaboration**
+
+By choosing AI-first data structures, we enable new collaboration patterns:
+
+- **AI as first-class participant**: AI understands documents as well as humans
+- **Semantic merging**: AI can intelligently resolve conflicts based on meaning
+- **Context preservation**: Every edit maintains full semantic context
+- **Knowledge accumulation**: AI learns from the entire corpus, not just current state
+
 # **Product Moat**
 
 ## **Artifact Ownership Strategy**
