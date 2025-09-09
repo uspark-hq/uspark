@@ -248,10 +248,10 @@ describe("Blocks Database Functions", () => {
         .where(eq(BLOCKS_TBL.id, blockId));
 
       expect(block).toBeDefined();
-      expect(block.turnId).toBe(turnId);
-      expect(block.type).toBe("thinking");
-      expect(block.sequenceNumber).toBe(0);
-      expect(JSON.parse(block.content)).toEqual(content);
+      expect(block!.turnId).toBe(turnId);
+      expect(block!.type).toBe("thinking");
+      expect(block!.sequenceNumber).toBe(0);
+      expect(JSON.parse(block!.content)).toEqual(content);
     });
 
     it("should handle complex content objects", async () => {
@@ -272,9 +272,9 @@ describe("Blocks Database Functions", () => {
         .from(BLOCKS_TBL)
         .where(eq(BLOCKS_TBL.id, blockId));
 
-      expect(block.type).toBe("tool_use");
-      expect(block.sequenceNumber).toBe(5);
-      expect(JSON.parse(block.content)).toEqual(content);
+      expect(block!.type).toBe("tool_use");
+      expect(block!.sequenceNumber).toBe(5);
+      expect(JSON.parse(block!.content)).toEqual(content);
     });
 
     it("should throw error if turn doesn't exist", async () => {
@@ -308,19 +308,19 @@ describe("Blocks Database Functions", () => {
         .orderBy(BLOCKS_TBL.sequenceNumber);
 
       expect(dbBlocks).toHaveLength(3);
-      expect(dbBlocks[0].type).toBe("thinking");
-      expect(dbBlocks[0].sequenceNumber).toBe(0);
-      expect(JSON.parse(dbBlocks[0].content)).toEqual({ text: "Thinking..." });
+      expect(dbBlocks[0]!.type).toBe("thinking");
+      expect(dbBlocks[0]!.sequenceNumber).toBe(0);
+      expect(JSON.parse(dbBlocks[0]!.content)).toEqual({ text: "Thinking..." });
 
-      expect(dbBlocks[1].type).toBe("content");
-      expect(dbBlocks[1].sequenceNumber).toBe(1);
-      expect(JSON.parse(dbBlocks[1].content)).toEqual({
+      expect(dbBlocks[1]!.type).toBe("content");
+      expect(dbBlocks[1]!.sequenceNumber).toBe(1);
+      expect(JSON.parse(dbBlocks[1]!.content)).toEqual({
         text: "The answer is 42",
       });
 
-      expect(dbBlocks[2].type).toBe("content");
-      expect(dbBlocks[2].sequenceNumber).toBe(2);
-      expect(JSON.parse(dbBlocks[2].content)).toEqual({
+      expect(dbBlocks[2]!.type).toBe("content");
+      expect(dbBlocks[2]!.sequenceNumber).toBe(2);
+      expect(JSON.parse(dbBlocks[2]!.content)).toEqual({
         text: "Here's why...",
       });
     });
@@ -340,8 +340,8 @@ describe("Blocks Database Functions", () => {
         .where(eq(BLOCKS_TBL.turnId, turnId))
         .orderBy(BLOCKS_TBL.sequenceNumber);
 
-      expect(dbBlocks[0].sequenceNumber).toBe(10);
-      expect(dbBlocks[1].sequenceNumber).toBe(11);
+      expect(dbBlocks[0]!.sequenceNumber).toBe(10);
+      expect(dbBlocks[1]!.sequenceNumber).toBe(11);
     });
 
     it("should handle empty array", async () => {
@@ -400,25 +400,25 @@ describe("Blocks Database Functions", () => {
       expect(dbBlocks).toHaveLength(4);
 
       // Verify thinking block
-      expect(dbBlocks[0].type).toBe("thinking");
-      const thinking = JSON.parse(dbBlocks[0].content);
+      expect(dbBlocks[0]!.type).toBe("thinking");
+      const thinking = JSON.parse(dbBlocks[0]!.content);
       expect(thinking.text).toBe("Let me search for that file...");
 
       // Verify tool_use block
-      expect(dbBlocks[1].type).toBe("tool_use");
-      const toolUse = JSON.parse(dbBlocks[1].content);
+      expect(dbBlocks[1]!.type).toBe("tool_use");
+      const toolUse = JSON.parse(dbBlocks[1]!.content);
       expect(toolUse.tool_name).toBe("read_file");
       expect(toolUse.tool_use_id).toBe("tool_read_1");
 
       // Verify tool_result block
-      expect(dbBlocks[2].type).toBe("tool_result");
-      const toolResult = JSON.parse(dbBlocks[2].content);
+      expect(dbBlocks[2]!.type).toBe("tool_result");
+      const toolResult = JSON.parse(dbBlocks[2]!.content);
       expect(toolResult.tool_use_id).toBe("tool_read_1");
       expect(toolResult.result).toContain("README");
 
       // Verify content block
-      expect(dbBlocks[3].type).toBe("content");
-      const content = JSON.parse(dbBlocks[3].content);
+      expect(dbBlocks[3]!.type).toBe("content");
+      const content = JSON.parse(dbBlocks[3]!.content);
       expect(content.text).toContain("found the README file");
     });
   });

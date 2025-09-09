@@ -202,11 +202,11 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
         .where(eq(TURNS_TBL.id, data.id));
 
       expect(turn).toBeDefined();
-      expect(turn.sessionId).toBe(sessionId);
-      expect(turn.userPrompt).toBe(userMessage);
-      expect(turn.status).toBe("pending");
-      expect(turn.startedAt).toBeNull();
-      expect(turn.completedAt).toBeNull();
+      expect(turn!.sessionId).toBe(sessionId);
+      expect(turn!.userPrompt).toBe(userMessage);
+      expect(turn!.status).toBe("pending");
+      expect(turn!.startedAt).toBeNull();
+      expect(turn!.completedAt).toBeNull();
     });
   });
 
@@ -300,7 +300,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
         })
         .returning();
 
-      createdBlockIds.push(block1.id, block2.id);
+      createdBlockIds.push(block1!.id, block2!.id);
 
       const request = new NextRequest("http://localhost:3000");
       const response = await GET(request, context);
@@ -315,18 +315,18 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
         (t: { id: string }) => t.id === turn1Data.id,
       );
       expect(firstTurn).toBeDefined();
-      expect(firstTurn.block_count).toBe(2);
-      expect(firstTurn.block_ids).toHaveLength(2);
-      expect(firstTurn.block_ids).toContain(block1.id);
-      expect(firstTurn.block_ids).toContain(block2.id);
+      expect(firstTurn!.block_count).toBe(2);
+      expect(firstTurn!.block_ids).toHaveLength(2);
+      expect(firstTurn!.block_ids).toContain(block1!.id);
+      expect(firstTurn!.block_ids).toContain(block2!.id);
 
       // Check second turn has no blocks
       const secondTurn = data.turns.find(
         (t: { id: string }) => t.id === turn2Data.id,
       );
       expect(secondTurn).toBeDefined();
-      expect(secondTurn.block_count).toBe(0);
-      expect(secondTurn.block_ids).toEqual([]);
+      expect(secondTurn!.block_count).toBe(0);
+      expect(secondTurn!.block_ids).toEqual([]);
     });
 
     it("should support pagination", async () => {

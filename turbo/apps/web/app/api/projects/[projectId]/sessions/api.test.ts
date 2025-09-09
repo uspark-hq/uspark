@@ -287,7 +287,7 @@ describe("Claude Session Management API Integration", () => {
       const completedTurn = turns.find(
         (t: { user_prompt: string }) => t.user_prompt === "Completed message",
       );
-      expect(completedTurn.status).toBe("completed");
+      expect(completedTurn!.status).toBe("completed");
     });
   });
 

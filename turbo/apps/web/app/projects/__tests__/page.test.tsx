@@ -1,15 +1,79 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import {
+  describe,
+  expect,
+  it,
+  vi,
+  beforeEach,
+  beforeAll,
+  afterAll,
+  afterEach,
+} from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { useRouter } from "next/navigation";
 import ProjectsListPage from "../page";
+import { setupServer } from "msw/node";
+import { http, HttpResponse } from "msw";
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
 }));
 
+// Setup MSW server
+const server = setupServer(
+  // Default handler for GET /api/projects
+  http.get("*/api/projects", () => {
+    return HttpResponse.json({
+      projects: [
+        {
+          id: "demo-project-123",
+          name: "Demo Project",
+          created_at: new Date(
+            Date.now() - 7 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+          updated_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        },
+        {
+          id: "web-app-456",
+          name: "Web Application",
+          created_at: new Date(
+            Date.now() - 14 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+          updated_at: new Date(
+            Date.now() - 1 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+        },
+        {
+          id: "api-service-789",
+          name: "API Service",
+          created_at: new Date(
+            Date.now() - 30 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+          updated_at: new Date(
+            Date.now() - 3 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+        },
+      ],
+    });
+  }),
+  // Handler for POST /api/projects
+  http.post("*/api/projects", async ({ request }) => {
+    const body = (await request.json()) as { name: string };
+    const newProject = {
+      id: `project-${Date.now()}`,
+      name: body.name,
+      created_at: new Date().toISOString(),
+    };
+    return HttpResponse.json(newProject, { status: 201 });
+  }),
+);
+
 describe("Projects List Page", () => {
   const mockPush = vi.fn();
+
+  beforeAll(() => server.listen());
+  afterEach(() => server.resetHandlers());
+  afterAll(() => server.close());
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -18,8 +82,15 @@ describe("Projects List Page", () => {
     });
   });
 
-  it("renders page header correctly", () => {
+  it("renders page header correctly", async () => {
     render(<ProjectsListPage />);
+
+    // Wait for page to load
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading your projects..."),
+      ).not.toBeInTheDocument();
+    });
 
     expect(
       screen.getByRole("heading", { name: "Your Projects" }),
@@ -35,38 +106,43 @@ describe("Projects List Page", () => {
   });
 
   it("shows loading state initially", () => {
-    // Since loading is now instantaneous, we can't reliably test the loading state
-    // This test becomes less relevant but we can still render and check it doesn't crash
     render(<ProjectsListPage />);
 
-    // The component should render without errors
-    expect(
-      screen.getByRole("heading", { name: "Your Projects" }),
-    ).toBeInTheDocument();
+    // Should show loading state initially
+    expect(screen.getByText("Loading your projects...")).toBeInTheDocument();
   });
 
-  it("displays mock projects after loading", async () => {
+  it("displays projects after loading from API", async () => {
     render(<ProjectsListPage />);
 
-    // Loading is now instantaneous, so projects should be immediately available
-    // Wait for React to finish rendering
+    // Wait for projects to load from API
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading your projects..."),
+      ).not.toBeInTheDocument();
+    });
 
-    // Check that mock projects are displayed
+    // Check that projects from API are displayed
     expect(screen.getByText("Demo Project")).toBeInTheDocument();
     expect(screen.getByText("Web Application")).toBeInTheDocument();
     expect(screen.getByText("API Service")).toBeInTheDocument();
   });
 
-  it("shows project metadata", () => {
+  it("shows project metadata", async () => {
     render(<ProjectsListPage />);
 
-    // Check file counts and sizes are displayed (immediately available)
-    expect(screen.getByText("7 files")).toBeInTheDocument();
-    expect(screen.getByText("23 files")).toBeInTheDocument();
-    expect(screen.getByText("12 files")).toBeInTheDocument();
+    // Wait for projects to load
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading your projects..."),
+      ).not.toBeInTheDocument();
+    });
 
-    // Check that size information is displayed
-    expect(screen.getAllByText(/KB|MB|B/)).toHaveLength(3);
+    // Check file counts are displayed (now showing 0 files since we're using real API)
+    expect(screen.getAllByText("0 files")).toHaveLength(3);
+
+    // Check that size information is displayed (all should be 0 B)
+    expect(screen.getAllByText("0 B")).toHaveLength(3);
   });
 
   it("navigates to project detail when clicking on project card", async () => {
@@ -111,8 +187,15 @@ describe("Projects List Page", () => {
     ).toBeInTheDocument();
   });
 
-  it("handles project creation", async () => {
+  it("handles project creation with API", async () => {
     render(<ProjectsListPage />);
+
+    // Wait for initial load
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading your projects..."),
+      ).not.toBeInTheDocument();
+    });
 
     // Open create dialog
     const newProjectButton = screen.getByRole("button", {
@@ -130,7 +213,7 @@ describe("Projects List Page", () => {
 
     fireEvent.click(createButton);
 
-    // Project creation should happen immediately and navigate
+    // Wait for API call and navigation
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalledWith(
         expect.stringMatching(/^\/projects\/project-\d+$/),
@@ -217,7 +300,7 @@ describe("Projects List Page", () => {
   it("submits on enter key", async () => {
     render(<ProjectsListPage />);
 
-    // Wait for loading to complete (no artificial delays now)
+    // Wait for loading to complete
     await waitFor(() => {
       expect(
         screen.queryByText("Loading your projects..."),
@@ -236,9 +319,51 @@ describe("Projects List Page", () => {
     // Press enter
     fireEvent.keyDown(nameInput, { key: "Enter" });
 
-    // Router.push should be called immediately (no delays)
+    // Wait for API call and navigation
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalled();
     });
+  });
+
+  it("handles API errors gracefully", async () => {
+    // Override handler to return error
+    server.use(
+      http.get("*/api/projects", () => {
+        return HttpResponse.json({ error: "Server error" }, { status: 500 });
+      }),
+    );
+
+    render(<ProjectsListPage />);
+
+    // Wait for error to appear
+    await waitFor(() => {
+      expect(screen.getByText("Failed to load projects")).toBeInTheDocument();
+    });
+  });
+
+  it("handles empty projects list", async () => {
+    // Override handler to return empty list
+    server.use(
+      http.get("*/api/projects", () => {
+        return HttpResponse.json({ projects: [] });
+      }),
+    );
+
+    render(<ProjectsListPage />);
+
+    // Wait for loading to complete
+    await waitFor(() => {
+      expect(
+        screen.queryByText("Loading your projects..."),
+      ).not.toBeInTheDocument();
+    });
+
+    // Should show empty state
+    expect(screen.getByText("No projects yet")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Create your first project to start collaborating with Claude Code",
+      ),
+    ).toBeInTheDocument();
   });
 });

@@ -178,10 +178,10 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
         .returning();
 
       createdTurnIds.push(
-        runningTurn1.id,
-        runningTurn2.id,
-        completedTurn.id,
-        pendingTurn.id,
+        runningTurn1!.id,
+        runningTurn2!.id,
+        completedTurn!.id,
+        pendingTurn!.id,
       );
 
       const request = new NextRequest("http://localhost:3000", {
@@ -200,39 +200,39 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
       const [updatedRunning1] = await globalThis.services.db
         .select()
         .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, runningTurn1.id));
+        .where(eq(TURNS_TBL.id, runningTurn1!.id));
 
-      expect(updatedRunning1.status).toBe("failed");
-      expect(updatedRunning1.errorMessage).toBe("Session interrupted by user");
-      expect(updatedRunning1.completedAt).not.toBeNull();
+      expect(updatedRunning1!.status).toBe("failed");
+      expect(updatedRunning1!.errorMessage).toBe("Session interrupted by user");
+      expect(updatedRunning1!.completedAt).not.toBeNull();
 
       const [updatedRunning2] = await globalThis.services.db
         .select()
         .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, runningTurn2.id));
+        .where(eq(TURNS_TBL.id, runningTurn2!.id));
 
-      expect(updatedRunning2.status).toBe("failed");
-      expect(updatedRunning2.errorMessage).toBe("Session interrupted by user");
-      expect(updatedRunning2.completedAt).not.toBeNull();
+      expect(updatedRunning2!.status).toBe("failed");
+      expect(updatedRunning2!.errorMessage).toBe("Session interrupted by user");
+      expect(updatedRunning2!.completedAt).not.toBeNull();
 
       // Verify completed turn is unchanged
       const [updatedCompleted] = await globalThis.services.db
         .select()
         .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, completedTurn.id));
+        .where(eq(TURNS_TBL.id, completedTurn!.id));
 
-      expect(updatedCompleted.status).toBe("completed");
-      expect(updatedCompleted.errorMessage).toBeNull();
+      expect(updatedCompleted!.status).toBe("completed");
+      expect(updatedCompleted!.errorMessage).toBeNull();
 
       // Verify pending turn is unchanged
       const [updatedPending] = await globalThis.services.db
         .select()
         .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, pendingTurn.id));
+        .where(eq(TURNS_TBL.id, pendingTurn!.id));
 
-      expect(updatedPending.status).toBe("pending");
-      expect(updatedPending.errorMessage).toBeNull();
-      expect(updatedPending.completedAt).toBeNull();
+      expect(updatedPending!.status).toBe("pending");
+      expect(updatedPending!.errorMessage).toBeNull();
+      expect(updatedPending!.completedAt).toBeNull();
     });
 
     it("should update session updatedAt timestamp", async () => {
@@ -242,7 +242,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
         .from(SESSIONS_TBL)
         .where(eq(SESSIONS_TBL.id, sessionId));
 
-      const originalUpdatedAt = originalSession.updatedAt;
+      const originalUpdatedAt = originalSession!.updatedAt;
 
       await new Promise((resolve) => setTimeout(resolve, 10));
 
@@ -259,7 +259,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
         .from(SESSIONS_TBL)
         .where(eq(SESSIONS_TBL.id, sessionId));
 
-      expect(updatedSession.updatedAt.getTime()).toBeGreaterThan(
+      expect(updatedSession!.updatedAt.getTime()).toBeGreaterThan(
         originalUpdatedAt.getTime(),
       );
     });
@@ -288,7 +288,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
         })
         .returning();
 
-      createdTurnIds.push(completedTurn.id, pendingTurn.id);
+      createdTurnIds.push(completedTurn!.id, pendingTurn!.id);
 
       const request = new NextRequest("http://localhost:3000", {
         method: "POST",
@@ -306,18 +306,18 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
       const [unchangedCompleted] = await globalThis.services.db
         .select()
         .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, completedTurn.id));
+        .where(eq(TURNS_TBL.id, completedTurn!.id));
 
-      expect(unchangedCompleted.status).toBe("completed");
-      expect(unchangedCompleted.errorMessage).toBeNull();
+      expect(unchangedCompleted!.status).toBe("completed");
+      expect(unchangedCompleted!.errorMessage).toBeNull();
 
       const [unchangedPending] = await globalThis.services.db
         .select()
         .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, pendingTurn.id));
+        .where(eq(TURNS_TBL.id, pendingTurn!.id));
 
-      expect(unchangedPending.status).toBe("pending");
-      expect(unchangedPending.errorMessage).toBeNull();
+      expect(unchangedPending!.status).toBe("pending");
+      expect(unchangedPending!.errorMessage).toBeNull();
     });
 
     it("should not affect turns from other sessions", async () => {
@@ -333,7 +333,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
         })
         .returning();
 
-      createdTurnIds.push(runningTurn.id);
+      createdTurnIds.push(runningTurn!.id);
 
       // Create another session with running turn
       const otherSessionId = `sess_other_${Date.now()}`;
@@ -365,25 +365,25 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
       const [updatedTurn] = await globalThis.services.db
         .select()
         .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, runningTurn.id));
+        .where(eq(TURNS_TBL.id, runningTurn!.id));
 
-      expect(updatedTurn.status).toBe("failed");
-      expect(updatedTurn.errorMessage).toBe("Session interrupted by user");
+      expect(updatedTurn!.status).toBe("failed");
+      expect(updatedTurn!.errorMessage).toBe("Session interrupted by user");
 
       // Verify other session turn was not affected
       const [otherTurn] = await globalThis.services.db
         .select()
         .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, otherRunningTurn.id));
+        .where(eq(TURNS_TBL.id, otherRunningTurn!.id));
 
-      expect(otherTurn.status).toBe("running");
-      expect(otherTurn.errorMessage).toBeNull();
-      expect(otherTurn.completedAt).toBeNull();
+      expect(otherTurn!.status).toBe("running");
+      expect(otherTurn!.errorMessage).toBeNull();
+      expect(otherTurn!.completedAt).toBeNull();
 
       // Clean up
       await globalThis.services.db
         .delete(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, otherRunningTurn.id));
+        .where(eq(TURNS_TBL.id, otherRunningTurn!.id));
       await globalThis.services.db
         .delete(SESSIONS_TBL)
         .where(eq(SESSIONS_TBL.id, otherSessionId));

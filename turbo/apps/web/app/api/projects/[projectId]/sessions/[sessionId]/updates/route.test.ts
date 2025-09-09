@@ -189,7 +189,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         })
         .returning();
 
-      createdTurnIds.push(turn1[0].id, turn2[0].id, turn3[0].id);
+      createdTurnIds.push(turn1[0]!.id, turn2[0]!.id, turn3[0]!.id);
 
       // Client has seen first turn only (index 0)
       const request = new NextRequest(
@@ -202,8 +202,8 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.new_turn_ids).toHaveLength(2);
-      expect(data.new_turn_ids).toContain(turn2[0].id);
-      expect(data.new_turn_ids).toContain(turn3[0].id);
+      expect(data.new_turn_ids).toContain(turn2[0]!.id);
+      expect(data.new_turn_ids).toContain(turn3[0]!.id);
       expect(data.has_active_turns).toBe(true); // turn3 is running
     });
 
@@ -223,7 +223,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         .insert(BLOCKS_TBL)
         .values({
           id: `block_1_${Date.now()}`,
-          turnId: turn.id,
+          turnId: turn!.id,
           type: "thinking",
           content: JSON.stringify({ text: "Thinking..." }),
           sequenceNumber: 0,
@@ -234,15 +234,15 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         .insert(BLOCKS_TBL)
         .values({
           id: `block_2_${Date.now()}`,
-          turnId: turn.id,
+          turnId: turn!.id,
           type: "content",
           content: JSON.stringify({ text: "Answer..." }),
           sequenceNumber: 1,
         })
         .returning();
 
-      createdTurnIds.push(turn.id);
-      createdBlockIds.push(block1.id, block2.id);
+      createdTurnIds.push(turn!.id);
+      createdBlockIds.push(block1!.id, block2!.id);
 
       // Client has seen turn but only first block (index 0)
       const request = new NextRequest(
@@ -256,11 +256,11 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
       const data = await response.json();
       expect(data.new_turn_ids).toEqual([]); // No new turns
       expect(data.updated_turns).toHaveLength(1);
-      expect(data.updated_turns[0]).toHaveProperty("id", turn.id);
+      expect(data.updated_turns[0]).toHaveProperty("id", turn!.id);
       expect(data.updated_turns[0]).toHaveProperty("status", "running");
       expect(data.updated_turns[0]).toHaveProperty("new_block_ids");
       expect(data.updated_turns[0].new_block_ids).toHaveLength(1);
-      expect(data.updated_turns[0].new_block_ids).toContain(block2.id);
+      expect(data.updated_turns[0].new_block_ids).toContain(block2!.id);
       expect(data.updated_turns[0].block_count).toBe(2);
       expect(data.has_active_turns).toBe(true);
     });
@@ -277,7 +277,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         })
         .returning();
 
-      createdTurnIds.push(turn.id);
+      createdTurnIds.push(turn!.id);
 
       // Client has seen turn when it was pending
       const request = new NextRequest(
@@ -290,7 +290,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.updated_turns).toHaveLength(1);
-      expect(data.updated_turns[0]).toHaveProperty("id", turn.id);
+      expect(data.updated_turns[0]).toHaveProperty("id", turn!.id);
       expect(data.updated_turns[0]).toHaveProperty("status", "completed");
       expect(data.has_active_turns).toBe(false);
     });
@@ -338,10 +338,10 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         .returning();
 
       createdTurnIds.push(
-        pendingTurn.id,
-        runningTurn.id,
-        completedTurn.id,
-        failedTurn.id,
+        pendingTurn!.id,
+        runningTurn!.id,
+        completedTurn!.id,
+        failedTurn!.id,
       );
 
       const request = new NextRequest("http://localhost:3000");
@@ -380,15 +380,15 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         .insert(BLOCKS_TBL)
         .values({
           id: `block_${Date.now()}`,
-          turnId: turn2.id,
+          turnId: turn2!.id,
           type: "content",
           content: JSON.stringify({ text: "Done" }),
           sequenceNumber: 0,
         })
         .returning();
 
-      createdTurnIds.push(turn1.id, turn2.id);
-      createdBlockIds.push(block.id);
+      createdTurnIds.push(turn1!.id, turn2!.id);
+      createdBlockIds.push(block!.id);
 
       // Client has seen everything (2 turns, last turn has 1 block)
       const request = new NextRequest(
@@ -404,7 +404,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
       // Note: Current implementation always reports completed turns as updated
       // This could be optimized in the future to track client's last seen status
       expect(data.updated_turns).toHaveLength(1);
-      expect(data.updated_turns[0].id).toBe(turn2.id);
+      expect(data.updated_turns[0].id).toBe(turn2!.id);
       expect(data.updated_turns[0].new_block_ids).toEqual([]);
       expect(data.has_active_turns).toBe(false);
     });
@@ -421,7 +421,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         })
         .returning();
 
-      createdTurnIds.push(turn.id);
+      createdTurnIds.push(turn!.id);
 
       // Invalid parameters
       const request = new NextRequest(
@@ -435,7 +435,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
       const data = await response.json();
       // Should treat as -1 (no turns seen)
       expect(data.new_turn_ids).toHaveLength(1);
-      expect(data.new_turn_ids).toContain(turn.id);
+      expect(data.new_turn_ids).toContain(turn!.id);
     });
   });
 });

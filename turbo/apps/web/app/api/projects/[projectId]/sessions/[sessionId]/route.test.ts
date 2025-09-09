@@ -271,9 +271,9 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
         .from(SESSIONS_TBL)
         .where(eq(SESSIONS_TBL.id, sessionId));
 
-      expect(updatedSession.title).toBe("Updated Session Title");
-      expect(updatedSession.updatedAt.getTime()).toBeGreaterThan(
-        updatedSession.createdAt.getTime(),
+      expect(updatedSession!.title).toBe("Updated Session Title");
+      expect(updatedSession!.updatedAt.getTime()).toBeGreaterThan(
+        updatedSession!.createdAt.getTime(),
       );
     });
 
@@ -296,7 +296,7 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
         .from(SESSIONS_TBL)
         .where(eq(SESSIONS_TBL.id, sessionId));
 
-      expect(updatedSession.title).toBeNull();
+      expect(updatedSession!.title).toBeNull();
     });
 
     it("should not change title when not provided", async () => {
@@ -318,7 +318,7 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
         .from(SESSIONS_TBL)
         .where(eq(SESSIONS_TBL.id, sessionId));
 
-      expect(updatedSession.title).toBe("Test Session");
+      expect(updatedSession!.title).toBe("Test Session");
     });
   });
 });
