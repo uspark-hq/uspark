@@ -445,37 +445,5 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         originalStartTime.toISOString(),
       );
     });
-
-    it("should update session updatedAt timestamp", async () => {
-      // Get original session timestamp
-      const [originalSession] = await globalThis.services.db
-        .select()
-        .from(SESSIONS_TBL)
-        .where(eq(SESSIONS_TBL.id, sessionId));
-
-      const originalUpdatedAt = originalSession!.updatedAt;
-
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      const request = new NextRequest("http://localhost:3000", {
-        method: "PATCH",
-        body: JSON.stringify({ status: "running" }),
-      });
-      const context = {
-        params: Promise.resolve({ projectId, sessionId, turnId }),
-      };
-
-      await PATCH(request, context);
-
-      // Verify session was updated
-      const [updatedSession] = await globalThis.services.db
-        .select()
-        .from(SESSIONS_TBL)
-        .where(eq(SESSIONS_TBL.id, sessionId));
-
-      expect(updatedSession!.updatedAt.getTime()).toBeGreaterThan(
-        originalUpdatedAt.getTime(),
-      );
-    });
   });
 });

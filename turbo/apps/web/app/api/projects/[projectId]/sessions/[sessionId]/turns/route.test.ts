@@ -350,8 +350,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
           .update(TURNS_TBL)
           .set({ status: "completed" })
           .where(eq(TURNS_TBL.id, turnData.id));
-
-        await new Promise((resolve) => setTimeout(resolve, 10));
       }
 
       // Test limit
@@ -392,8 +390,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       const turn1Data = await response1.json();
       createdTurnIds.push(turn1Data.id);
 
-      await new Promise((resolve) => setTimeout(resolve, 20));
-
       const request2 = new NextRequest("http://localhost:3000", {
         method: "POST",
         body: JSON.stringify({ user_message: "Second" }),
@@ -402,8 +398,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       expect(response2.status).toBe(200);
       const turn2Data = await response2.json();
       createdTurnIds.push(turn2Data.id);
-
-      await new Promise((resolve) => setTimeout(resolve, 20));
 
       const request3 = new NextRequest("http://localhost:3000", {
         method: "POST",

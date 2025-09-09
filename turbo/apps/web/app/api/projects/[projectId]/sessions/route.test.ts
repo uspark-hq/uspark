@@ -269,8 +269,6 @@ describe("/api/projects/:projectId/sessions", () => {
       const session1Data = await response1.json();
       testSessionIds.push(session1Data.id);
 
-      await new Promise((resolve) => setTimeout(resolve, 10)); // Ensure different timestamps
-
       const request2 = new NextRequest("http://localhost:3000", {
         method: "POST",
         body: JSON.stringify({ title: "Session 2" }),
@@ -307,7 +305,6 @@ describe("/api/projects/:projectId/sessions", () => {
         const sessionData = await response.json();
         sessionIds.push(sessionData.id);
         testSessionIds.push(sessionData.id);
-        await new Promise((resolve) => setTimeout(resolve, 10));
       }
 
       // Test limit

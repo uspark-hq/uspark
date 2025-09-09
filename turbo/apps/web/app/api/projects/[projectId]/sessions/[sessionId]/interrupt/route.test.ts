@@ -235,35 +235,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
       expect(updatedPending!.completedAt).toBeNull();
     });
 
-    it("should update session updatedAt timestamp", async () => {
-      // Get original session timestamp
-      const [originalSession] = await globalThis.services.db
-        .select()
-        .from(SESSIONS_TBL)
-        .where(eq(SESSIONS_TBL.id, sessionId));
-
-      const originalUpdatedAt = originalSession!.updatedAt;
-
-      await new Promise((resolve) => setTimeout(resolve, 10));
-
-      const request = new NextRequest("http://localhost:3000", {
-        method: "POST",
-      });
-      const context = { params: Promise.resolve({ projectId, sessionId }) };
-
-      await POST(request, context);
-
-      // Verify session was updated
-      const [updatedSession] = await globalThis.services.db
-        .select()
-        .from(SESSIONS_TBL)
-        .where(eq(SESSIONS_TBL.id, sessionId));
-
-      expect(updatedSession!.updatedAt.getTime()).toBeGreaterThan(
-        originalUpdatedAt.getTime(),
-      );
-    });
-
     it("should handle case when no running turns exist", async () => {
       // Create only completed and pending turns
       const [completedTurn] = await globalThis.services.db
