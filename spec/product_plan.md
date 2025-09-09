@@ -1,6 +1,6 @@
 # **Product Positioning**
 
-**uSpark is an AI-powered knowledge work platform** that generates and manages Markdown documents through conversational interaction, transforming AI-created content into editable, manageable, and reusable knowledge assets.
+**uSpark is The First Real AI Native Workspace** that generates and manages Markdown documents through conversational interaction, transforming AI-created content into editable, manageable, and reusable knowledge assets.
 
 # **Core Value**
 

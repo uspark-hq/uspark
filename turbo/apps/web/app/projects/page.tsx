@@ -3,14 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-interface Project {
-  id: string;
-  name: string;
-  created_at: string;
-  updated_at: string;
-  fileCount?: number;
-  totalSize?: number;
-}
+import type { Project } from "@uspark/core";
 
 export default function ProjectsListPage() {
   const router = useRouter();
@@ -21,48 +14,26 @@ export default function ProjectsListPage() {
   const [newProjectName, setNewProjectName] = useState("");
   const [creating, setCreating] = useState(false);
 
-  // Mock projects data for now
+  // Load projects from API
   useEffect(() => {
-    // Load mock projects immediately
-    const mockProjects: Project[] = [
-      {
-        id: "demo-project-123",
-        name: "Demo Project",
-        created_at: new Date(
-          Date.now() - 7 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-        updated_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        fileCount: 7,
-        totalSize: 830,
-      },
-      {
-        id: "web-app-456",
-        name: "Web Application",
-        created_at: new Date(
-          Date.now() - 14 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-        updated_at: new Date(
-          Date.now() - 1 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-        fileCount: 23,
-        totalSize: 1024 * 15,
-      },
-      {
-        id: "api-service-789",
-        name: "API Service",
-        created_at: new Date(
-          Date.now() - 30 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-        updated_at: new Date(
-          Date.now() - 3 * 24 * 60 * 60 * 1000,
-        ).toISOString(),
-        fileCount: 12,
-        totalSize: 1024 * 8,
-      },
-    ];
+    const loadProjects = async () => {
+      try {
+        const response = await fetch("/api/projects");
+        if (!response.ok) {
+          throw new Error("Failed to load projects");
+        }
+        const data = await response.json();
+        setProjects(data.projects || []);
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to load projects",
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
 
-    setProjects(mockProjects);
-    setLoading(false);
+    loadProjects();
   }, []);
 
   const handleCreateProject = async () => {
@@ -71,24 +42,35 @@ export default function ProjectsListPage() {
     setCreating(true);
 
     try {
-      // Create project immediately (no artificial delay)
-      const newProject: Project = {
-        id: `project-${Date.now()}`,
-        name: newProjectName.trim(),
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-        fileCount: 0,
-        totalSize: 0,
-      };
+      const response = await fetch("/api/projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: newProjectName.trim() }),
+      });
 
-      setProjects((prev) => [newProject, ...prev]);
+      if (!response.ok) {
+        throw new Error("Failed to create project");
+      }
+
+      const newProject = await response.json();
+
+      // Add to projects list with default updated_at same as created_at
+      setProjects((prev) => [
+        {
+          ...newProject,
+          updated_at: newProject.created_at,
+        },
+        ...prev,
+      ]);
       setNewProjectName("");
       setShowCreateDialog(false);
 
       // Navigate to the new project
       router.push(`/projects/${newProject.id}`);
-    } catch {
-      setError("Failed to create project");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to create project");
     } finally {
       setCreating(false);
     }
@@ -301,8 +283,8 @@ export default function ProjectsListPage() {
                   borderTop: "1px solid rgba(156, 163, 175, 0.1)",
                 }}
               >
-                <span>{project.fileCount || 0} files</span>
-                <span>{formatFileSize(project.totalSize || 0)}</span>
+                <span>0 files</span>
+                <span>{formatFileSize(0)}</span>
               </div>
             </div>
           ))}

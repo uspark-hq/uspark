@@ -257,7 +257,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         })
         .returning();
 
-      createdBlockIds.push(block1.id, block2.id, block3.id, block4.id);
+      createdBlockIds.push(block1!.id, block2!.id, block3!.id, block4!.id);
 
       const request = new NextRequest("http://localhost:3000");
       const context = {
@@ -336,9 +336,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         .from(TURNS_TBL)
         .where(eq(TURNS_TBL.id, turnId));
 
-      expect(updatedTurn.status).toBe("running");
-      expect(updatedTurn.startedAt).not.toBeNull();
-      expect(updatedTurn.completedAt).toBeNull();
+      expect(updatedTurn!.status).toBe("running");
+      expect(updatedTurn!.startedAt).not.toBeNull();
+      expect(updatedTurn!.completedAt).toBeNull();
     });
 
     it("should update turn status to completed and set completedAt", async () => {
@@ -373,9 +373,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         .from(TURNS_TBL)
         .where(eq(TURNS_TBL.id, turnId));
 
-      expect(updatedTurn.status).toBe("completed");
-      expect(updatedTurn.startedAt).not.toBeNull();
-      expect(updatedTurn.completedAt).not.toBeNull();
+      expect(updatedTurn!.status).toBe("completed");
+      expect(updatedTurn!.startedAt).not.toBeNull();
+      expect(updatedTurn!.completedAt).not.toBeNull();
     });
 
     it("should update turn status to failed with error message", async () => {
@@ -407,9 +407,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         .from(TURNS_TBL)
         .where(eq(TURNS_TBL.id, turnId));
 
-      expect(updatedTurn.status).toBe("failed");
-      expect(updatedTurn.errorMessage).toBe(errorMessage);
-      expect(updatedTurn.completedAt).not.toBeNull();
+      expect(updatedTurn!.status).toBe("failed");
+      expect(updatedTurn!.errorMessage).toBe(errorMessage);
+      expect(updatedTurn!.completedAt).not.toBeNull();
     });
 
     it("should not override startedAt if already set", async () => {
@@ -441,7 +441,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         .from(TURNS_TBL)
         .where(eq(TURNS_TBL.id, turnId));
 
-      expect(updatedTurn.startedAt?.toISOString()).toBe(
+      expect(updatedTurn!.startedAt?.toISOString()).toBe(
         originalStartTime.toISOString(),
       );
     });

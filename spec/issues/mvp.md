@@ -18,7 +18,7 @@ This document defines the mid-term goals and user stories for the MVP release of
 - [ ] `uspark pull <file-path> --project-id <id>` downloads specific files
 - [ ] `uspark push <file-path> --project-id <id>` uploads local changes to remote
 - [ ] `uspark push --all --project-id <id>` uploads all modified files
-- [ ] Authentication via CLI token or environment variable
+- [ ] Authentication via CLI token or enviro`nment variable
 
 #### Technical Requirements
 

@@ -4,12 +4,15 @@ import { NextRequest } from "next/server";
  * Helper function to make API calls in tests
  * Simulates HTTP requests to API route handlers
  */
-type Handler = (...args: unknown[]) => Promise<Response>;
+type Handler<TParams = Record<string, unknown>> = (
+  request: NextRequest,
+  context: { params: Promise<TParams> },
+) => Promise<Response>;
 
-export async function apiCall(
-  handler: Handler,
+export async function apiCall<TParams = Record<string, unknown>>(
+  handler: Handler<TParams>,
   method: string,
-  params: Record<string, unknown> = {},
+  params: TParams = {} as TParams,
   body: unknown = null,
 ) {
   const url = new URL("http://localhost:3000");
@@ -41,9 +44,9 @@ export async function apiCall(
 /**
  * Helper to make GET requests with query parameters
  */
-export async function apiCallWithQuery(
-  handler: Handler,
-  params: Record<string, unknown> = {},
+export async function apiCallWithQuery<TParams = Record<string, unknown>>(
+  handler: Handler<TParams>,
+  params: TParams = {} as TParams,
   queryParams: Record<string, string> = {},
 ) {
   const url = new URL("http://localhost:3000");

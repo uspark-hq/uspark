@@ -154,7 +154,7 @@ describe("DELETE /api/shares/[id]", () => {
       .from(SHARE_LINKS_TBL)
       .where(eq(SHARE_LINKS_TBL.id, shareId));
     expect(shareAfter).toBeDefined();
-    expect(shareAfter.userId).toBe(otherUserId);
+    expect(shareAfter!.userId).toBe(otherUserId);
 
     // Clean up
     await globalThis.services.db

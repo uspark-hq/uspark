@@ -205,8 +205,8 @@ describe("/api/projects/:projectId/sessions", () => {
         .where(eq(SESSIONS_TBL.id, data.id));
 
       expect(session).toBeDefined();
-      expect(session.projectId).toBe(projectId);
-      expect(session.title).toBe("My Test Session");
+      expect(session!.projectId).toBe(projectId);
+      expect(session!.title).toBe("My Test Session");
     });
 
     it("should create session without title", async () => {
