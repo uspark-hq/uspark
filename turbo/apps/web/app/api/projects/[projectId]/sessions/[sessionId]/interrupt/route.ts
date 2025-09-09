@@ -74,11 +74,10 @@ export async function POST(
       and(eq(TURNS_TBL.sessionId, sessionId), eq(TURNS_TBL.status, "running")),
     );
 
-  // Update session status
+  // Update session's updatedAt timestamp
   await globalThis.services.db
     .update(SESSIONS_TBL)
     .set({
-      status: "interrupted",
       updatedAt: new Date(),
     })
     .where(eq(SESSIONS_TBL.id, sessionId));
