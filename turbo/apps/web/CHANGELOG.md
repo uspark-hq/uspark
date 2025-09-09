@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/uspark-hq/uspark/compare/web-v0.17.0...web-v0.17.1) (2025-09-08)
+
+
+### Bug Fixes
+
+* install claude-code cli properly in e2b dockerfile ([#214](https://github.com/uspark-hq/uspark/issues/214)) ([7f9e068](https://github.com/uspark-hq/uspark/commit/7f9e068c9effb246dc6d7c28ed52c6debd62f28f))
+
 ## [0.17.0](https://github.com/uspark-hq/uspark/compare/web-v0.16.0...web-v0.17.0) (2025-09-08)
 
 

@@ -17,7 +17,7 @@ if echo "$COMMAND" | grep -qE "git\s+push"; then
     export SKIP_VERCEL_CHECK=1
     
     # Run the CI check script, redirect output to stderr
-    if /workspaces/uspark2/scripts/ci-check.sh >&2; then
+    if "$(dirname "$0")/ci-check.sh" >&2; then
         echo "✅ CI checks passed, allowing git push" >&2
         # Return correct format for Claude Code hook
         echo '{
