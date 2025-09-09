@@ -212,7 +212,7 @@ const projectsHandlers = [
 
   // POST /api/projects - Create a new project
   http.post("*/api/projects", async ({ request }) => {
-    const body = await request.json() as { name: string };
+    const body = (await request.json()) as { name: string };
     const newProject = {
       id: `project-${Date.now()}`,
       name: body.name,
@@ -259,4 +259,8 @@ const shareHandlers = [
 ];
 
 // Export all handlers
-export const handlers = [...clerkHandlers, ...projectsHandlers, ...shareHandlers];
+export const handlers = [
+  ...clerkHandlers,
+  ...projectsHandlers,
+  ...shareHandlers,
+];

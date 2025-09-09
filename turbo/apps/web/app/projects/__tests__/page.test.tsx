@@ -1,4 +1,13 @@
-import { describe, expect, it, vi, beforeEach, beforeAll, afterAll, afterEach } from "vitest";
+import {
+  describe,
+  expect,
+  it,
+  vi,
+  beforeEach,
+  beforeAll,
+  afterAll,
+  afterEach,
+} from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { useRouter } from "next/navigation";
 import ProjectsListPage from "../page";
@@ -49,7 +58,7 @@ const server = setupServer(
   }),
   // Handler for POST /api/projects
   http.post("*/api/projects", async ({ request }) => {
-    const body = await request.json() as { name: string };
+    const body = (await request.json()) as { name: string };
     const newProject = {
       id: `project-${Date.now()}`,
       name: body.name,
@@ -78,7 +87,9 @@ describe("Projects List Page", () => {
 
     // Wait for page to load
     await waitFor(() => {
-      expect(screen.queryByText("Loading your projects...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading your projects..."),
+      ).not.toBeInTheDocument();
     });
 
     expect(
@@ -106,7 +117,9 @@ describe("Projects List Page", () => {
 
     // Wait for projects to load from API
     await waitFor(() => {
-      expect(screen.queryByText("Loading your projects...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading your projects..."),
+      ).not.toBeInTheDocument();
     });
 
     // Check that projects from API are displayed
@@ -120,7 +133,9 @@ describe("Projects List Page", () => {
 
     // Wait for projects to load
     await waitFor(() => {
-      expect(screen.queryByText("Loading your projects...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading your projects..."),
+      ).not.toBeInTheDocument();
     });
 
     // Check file counts are displayed (now showing 0 files since we're using real API)
@@ -177,7 +192,9 @@ describe("Projects List Page", () => {
 
     // Wait for initial load
     await waitFor(() => {
-      expect(screen.queryByText("Loading your projects...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading your projects..."),
+      ).not.toBeInTheDocument();
     });
 
     // Open create dialog
@@ -312,10 +329,7 @@ describe("Projects List Page", () => {
     // Override handler to return error
     server.use(
       http.get("*/api/projects", () => {
-        return HttpResponse.json(
-          { error: "Server error" },
-          { status: 500 },
-        );
+        return HttpResponse.json({ error: "Server error" }, { status: 500 });
       }),
     );
 
@@ -339,11 +353,17 @@ describe("Projects List Page", () => {
 
     // Wait for loading to complete
     await waitFor(() => {
-      expect(screen.queryByText("Loading your projects...")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("Loading your projects..."),
+      ).not.toBeInTheDocument();
     });
 
     // Should show empty state
     expect(screen.getByText("No projects yet")).toBeInTheDocument();
-    expect(screen.getByText("Create your first project to start collaborating with Claude Code")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "Create your first project to start collaborating with Claude Code",
+      ),
+    ).toBeInTheDocument();
   });
 });

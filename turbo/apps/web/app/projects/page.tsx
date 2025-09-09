@@ -25,7 +25,9 @@ export default function ProjectsListPage() {
         const data = await response.json();
         setProjects(data.projects || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Failed to load projects");
+        setError(
+          err instanceof Error ? err.message : "Failed to load projects",
+        );
       } finally {
         setLoading(false);
       }
@@ -53,7 +55,7 @@ export default function ProjectsListPage() {
       }
 
       const newProject = await response.json();
-      
+
       // Add to projects list with default updated_at same as created_at
       setProjects((prev) => [
         {
