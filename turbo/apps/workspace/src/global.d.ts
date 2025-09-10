@@ -3,3 +3,5 @@ declare global {
     __vitest_index__?: unknown
   }
 }
+
+export {}

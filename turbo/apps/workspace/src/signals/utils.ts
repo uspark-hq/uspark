@@ -49,16 +49,6 @@ export function fibonacci(n: number): number {
   return fibonacci(n - 1) + fibonacci(n - 2)
 }
 
-export function download(dump: Uint8Array, name: string): void {
-  const blob = new Blob([dump], { type: 'application/octet-stream' })
-  const url = URL.createObjectURL(blob)
-  const a = document.createElement('a')
-  a.href = url
-  a.download = name
-  a.click()
-  URL.revokeObjectURL(url)
-}
-
 type GeometryStyle = Pick<
   CSSProperties,
   | 'width'
