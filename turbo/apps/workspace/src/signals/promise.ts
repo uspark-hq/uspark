@@ -3,7 +3,6 @@ import { logger } from './log'
 import { throwIfNotAbort } from './utils'
 
 export enum Reason {
-  Daemon = 'daemon',
   DomCallback = 'dom_callback',
   Entrance = 'entrance',
   Deferred = 'deferred',

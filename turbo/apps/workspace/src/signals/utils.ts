@@ -35,20 +35,6 @@ export function throwIfNotAbort(e: unknown) {
   }
 }
 
-// eslint-disable-next-line moxt/no-package-variable
-const _fibCache: number[] = []
-export function fibonacci(n: number): number {
-  if (_fibCache[n]) {
-    return _fibCache[n]
-  }
-
-  if (n <= 1) {
-    return n
-  }
-
-  return fibonacci(n - 1) + fibonacci(n - 2)
-}
-
 type GeometryStyle = Pick<
   CSSProperties,
   | 'width'

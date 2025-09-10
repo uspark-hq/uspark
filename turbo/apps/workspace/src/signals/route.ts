@@ -37,7 +37,7 @@ export const pathParams$ = computed((get) => {
   return result ? result.params : undefined
 })
 
-interface Route {
+export interface Route {
   path: string
   setup: Command<Promise<void> | void, [AbortSignal]>
 }

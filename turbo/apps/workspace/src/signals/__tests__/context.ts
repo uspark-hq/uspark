@@ -3,25 +3,17 @@ import { command, createStore, type Store } from 'ccstate'
 import { afterEach, assert } from 'vitest'
 import { setupRouter } from '../../views/main'
 import { bootstrap$ } from '../bootstrap'
+import { mockLocation } from '../location'
 import { logger } from '../log'
 import { enableDebugLogger } from './utils'
 
 const L = logger('Test')
 
-export interface TestFixtureConfig {
+interface TestFixtureConfig {
   store: Store
   signal: AbortSignal
 
-  docId?: string
   debugLoggers?: string[]
-
-  /**
-   * withoutRender 对于调试一些 React 引起的 Bug 会很有用
-   * 因为默认情况下 setupDesignPage 会渲染整个设计页面，
-   * 开启 withoutRender 后会跳过渲染步骤，这时我们可以 render 自己单独的组件，
-   * 同时也可以拿到整个 store 中的状态
-   */
-  withoutRender?: boolean
 }
 
 export const prepareFixture$ = command(
@@ -40,10 +32,6 @@ export async function bootstrap(config: TestFixtureConfig) {
     bootstrap$,
     () => {
       setupRouter(store, (el) => {
-        if (config.withoutRender) {
-          return
-        }
-
         const { unmount } = render(el)
         signal.addEventListener('abort', () => {
           unmount()
@@ -85,4 +73,18 @@ export function testContext() {
   })
 
   return Object.freeze(context)
+}
+
+export async function setupPage(url: string, config: TestFixtureConfig) {
+  config.store.set(prepareFixture$, config)
+
+  mockLocation(
+    {
+      pathname: url,
+      search: '',
+    },
+    config.signal,
+  )
+
+  await bootstrap(config)
 }
