@@ -200,7 +200,3 @@ export function resetLoggerForTest() {
     }
   }
 }
-
-export function listLoggers() {
-  return Object.keys(LOGGERS)
-}

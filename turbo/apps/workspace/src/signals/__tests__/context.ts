@@ -16,7 +16,7 @@ interface TestFixtureConfig {
   debugLoggers?: string[]
 }
 
-export const prepareFixture$ = command(
+const prepareFixture$ = command(
   ({}, config: Omit<TestFixtureConfig, 'store'>) => {
     if (config.debugLoggers?.length) {
       enableDebugLogger(...config.debugLoggers)
@@ -25,7 +25,7 @@ export const prepareFixture$ = command(
 )
 
 // eslint-disable-next-line custom/no-store-in-params -- Test bootstrap needs config with store for app initialization
-export async function bootstrap(config: TestFixtureConfig) {
+async function bootstrap(config: TestFixtureConfig) {
   const { store, signal } = config
 
   await store.set(

@@ -2,7 +2,7 @@ import { command, state, type Command } from 'ccstate'
 import type { CSSProperties, SyntheticEvent } from 'react'
 import { detach, Reason } from './promise'
 
-export const isAbortError = (error: unknown): boolean => {
+const isAbortError = (error: unknown): boolean => {
   if (
     (error instanceof Error || error instanceof DOMException) &&
     error.name === 'AbortError'
@@ -21,12 +21,6 @@ export const isAbortError = (error: unknown): boolean => {
   }
 
   return false
-}
-
-export function throwIfAbort(e: unknown) {
-  if (isAbortError(e)) {
-    throw e
-  }
 }
 
 export function throwIfNotAbort(e: unknown) {
@@ -100,22 +94,6 @@ export function geometryStyle(geometry: {
   }
 
   return ret
-}
-
-function onDomEvent<T extends Element, E extends Event, Args extends unknown[]>(
-  command$: Command<void | Promise<void>, [E, AbortSignal, ...Args]>,
-) {
-  return command(
-    ({ set }, e: SyntheticEvent<T, E>, signal: AbortSignal, ...args: Args) => {
-      detach(set(command$, e.nativeEvent, signal, ...args), Reason.DomCallback)
-    },
-  )
-}
-
-export function onPointerEvent<T extends Element, Args extends unknown[]>(
-  command$: Command<void | Promise<void>, [PointerEvent, AbortSignal, ...Args]>,
-) {
-  return onDomEvent<T, PointerEvent, Args>(command$)
 }
 
 export function onDomEventFn<T>(callback: (e: T) => void | Promise<void>) {

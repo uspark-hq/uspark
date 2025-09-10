@@ -94,15 +94,6 @@ export async function clearAllDetached() {
   return settledResult
 }
 
-export function parallel<T extends readonly unknown[]>(
-  signal: AbortSignal,
-  ...promises: T
-): Promise<{ -readonly [P in keyof T]: Awaited<T[P]> }> {
-  const ret = Promise.all(promises)
-  signal.throwIfAborted()
-  return ret
-}
-
 export function createDeferredPromise<T>(signal: AbortSignal): {
   promise: Promise<T>
   resolve: (value: T) => void
