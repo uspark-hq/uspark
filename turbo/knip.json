@@ -3,7 +3,7 @@
   "workspaces": {
     ".": {
       "entry": [],
-      "project": ["*.config.{js,ts,mjs}"]
+      "project": []
     },
     "apps/web": {
       "entry": [
