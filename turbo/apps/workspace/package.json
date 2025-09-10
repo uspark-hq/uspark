@@ -3,7 +3,10 @@
   "version": "1.0.0",
   "type": "module",
   "private": true,
-  "scripts": {},
+  "scripts": {
+    "lint": "eslint .",
+    "check-types": "tsc --noEmit"
+  },
   "dependencies": {
     "ccstate": "^5.0.0",
     "ccstate-react": "^5.0.0",
