@@ -27,17 +27,10 @@
       "ignoreDependencies": []
     },
     "apps/workspace": {
-      "entry": [
-        "src/main.ts",
-        "**/*.{test,btest}.ts?(x)",
-        "vitest.setup.*.ts"
-      ],
+      "entry": ["src/main.ts", "**/*.{test,btest}.ts?(x)", "vitest.setup.*.ts"],
       "project": ["**/*.{ts,tsx}!"],
       "ignore": ["src/views/shadcn/components/ui/**/*.tsx", "scripts/**"],
-      "ignoreDependencies": [
-        "@typescript-eslint/parser",
-        "tailwindcss"
-      ]
+      "ignoreDependencies": ["@typescript-eslint/parser", "tailwindcss"]
     },
     "packages/core": {
       "entry": [],
