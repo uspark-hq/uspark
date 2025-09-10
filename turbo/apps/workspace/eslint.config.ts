@@ -30,7 +30,7 @@ export default config(
         'error',
         {
           dict: {
-            moxt: 'MoXT',
+            uspark: 'uSpark',
           },
         },
       ],
@@ -40,7 +40,7 @@ export default config(
   {
     files: ['**/*.{ts,tsx}'],
     plugins: {
-      moxt: customPlugin,
+      custom: customPlugin,
     },
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     rules: {
@@ -167,7 +167,7 @@ export default config(
       'src/signals/feature-switch/**',
     ],
     rules: {
-      'moxt/no-package-variable': [
+      'custom/no-package-variable': [
         'error',
         {
           allowedMutableTypes: [
@@ -213,7 +213,7 @@ export default config(
       '**/__tests__/**/*.{ts,tsx}',
     ],
     rules: {
-      'moxt/signal-check-await': 'off',
+      'custom/signal-check-await': 'off',
     },
   },
   {

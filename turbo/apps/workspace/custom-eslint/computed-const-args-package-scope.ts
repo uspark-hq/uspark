@@ -1,4 +1,4 @@
-/* eslint-disable moxt/no-catch-abort -- This rule uses catch blocks for property inspection failures, not abort errors */
+/* eslint-disable custom/no-catch-abort -- This rule uses catch blocks for property inspection failures, not abort errors */
 import {
   AST_NODE_TYPES,
   ESLintUtils,

@@ -15,10 +15,7 @@ interface RuleDocs {
 }
 
 // oxlint-disable-next-line new-cap
-export const createRule = ESLintUtils.RuleCreator<RuleDocs>(
-  (name) =>
-    `https://jihulab.com/yuanli/moxt/-/blob/main/web/eslint/docs/${name}.md`,
-)
+export const createRule = ESLintUtils.RuleCreator<RuleDocs>(() => '')
 
 function isEmptyObjectLiteral(type: Type, checker: TypeChecker): boolean {
   return checker.typeToString(type) === '{}'

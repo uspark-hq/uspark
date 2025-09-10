@@ -3,7 +3,7 @@ import { command, computed, state } from 'ccstate'
 const innerRootSignal$ = state<AbortSignal | undefined>(undefined)
 
 export const rootSignal$ = computed((get) => {
-  // eslint-disable-next-line moxt/no-get-signal
+  // eslint-disable-next-line custom/no-get-signal
   const signal = get(innerRootSignal$)
   if (!signal) {
     throw new Error('No root signal')

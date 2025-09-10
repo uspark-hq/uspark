@@ -24,7 +24,7 @@ export const prepareFixture$ = command(
   },
 )
 
-// eslint-disable-next-line moxt/no-store-in-params -- Test bootstrap needs config with store for app initialization
+// eslint-disable-next-line custom/no-store-in-params -- Test bootstrap needs config with store for app initialization
 export async function bootstrap(config: TestFixtureConfig) {
   const { store, signal } = config
 

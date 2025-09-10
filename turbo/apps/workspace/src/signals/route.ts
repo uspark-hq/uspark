@@ -138,7 +138,7 @@ export const navigateInReact$ = command(
       searchParams?: URLSearchParams
     },
   ) => {
-    // eslint-disable-next-line moxt/no-get-signal
+    // eslint-disable-next-line custom/no-get-signal
     const signal = get(rootSignal$)
 
     detach(

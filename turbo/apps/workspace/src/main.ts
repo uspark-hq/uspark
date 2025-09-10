@@ -16,7 +16,7 @@ async function setupMockServer(signal: AbortSignal) {
   signal.throwIfAborted()
 }
 
-// eslint-disable-next-line moxt/no-store-in-params -- main function is the app entry point
+// eslint-disable-next-line custom/no-store-in-params -- main function is the app entry point
 async function main(rootEl: HTMLDivElement, store: Store, signal: AbortSignal) {
   if (import.meta.env.VITE_MOCK_SERVER === '1') {
     await setupMockServer(signal)
