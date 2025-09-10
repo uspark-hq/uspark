@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "useDefineForClassFields": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable", "ES2021.Intl"],
+    "module": "ESNext",
+    "declaration": false,
+    "allowJs": false,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "forceConsistentCasingInFileNames": true,
+    "noImplicitReturns": true,
+    "verbatimModuleSyntax": true,
+
+    // vitest 3.1.1 之后 tsc -b 会遇到 happy-dom 的类型错误
+    // 找不到解决方法，只能跳过依赖包的类型检查
+    "skipLibCheck": true
+  },
+  "include": [
+    "src",
+    "vitest.setup.ts",
+    "vitest.setup.browser.ts",
+    "vitest.setup.node.ts",
+    "scripts",
+    "vite-config"
+  ]
+}

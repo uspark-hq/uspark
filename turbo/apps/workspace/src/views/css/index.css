@@ -1,0 +1,13 @@
+@import 'tailwindcss';
+
+@layer base {
+  html,
+  body {
+    overscroll-behavior: none;
+  }
+
+  a,
+  img {
+    -webkit-user-drag: none;
+  }
+}

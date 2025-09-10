@@ -147,3 +147,6 @@ settings.local.json
 
 .pnpm-store
 .vercel
+.certs/
+
+vitest-report.json
