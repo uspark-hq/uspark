@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { createDeferredPromise } from '../promise'
+import { createDeferredPromise } from '../utils'
 
 describe('promise', () => {
   it('createDeferred', async () => {
@@ -10,6 +10,6 @@ describe('promise', () => {
     defer.resolve(42)
     expect(defer.settled()).toBeTruthy()
 
-    expect(await defer.promise).toBe(42)
+    await expect(defer.promise).resolves.toBe(42)
   })
 })

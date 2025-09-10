@@ -2,7 +2,7 @@ import '@testing-library/jest-dom/vitest'
 import { afterEach, beforeEach, vi } from 'vitest'
 import { setPathname, setSearch } from './src/signals/location'
 import { resetLoggerForTest } from './src/signals/log'
-import { clearAllDetached } from './src/signals/promise'
+import { clearAllDetached } from './src/signals/utils'
 
 beforeEach(() => {
   resetLoggerForTest()

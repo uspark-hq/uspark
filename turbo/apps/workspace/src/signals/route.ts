@@ -2,9 +2,8 @@ import { command, computed, state, type Command } from 'ccstate'
 import { match } from 'path-to-regexp'
 import type { RoutePath } from '../types/route'
 import { pathname, search } from './location'
-import { detach, Reason } from './promise'
 import { rootSignal$ } from './root-signal'
-import { onDomEventFn, resetSignal } from './utils'
+import { detach, onDomEventFn, Reason, resetSignal } from './utils'
 
 const reloadPathname$ = state(0)
 export const pathname$ = computed((get) => {

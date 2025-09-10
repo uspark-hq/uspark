@@ -2,7 +2,7 @@ import './polyfill'
 import { createStore, type Store } from 'ccstate'
 import { createRoot } from 'react-dom/client'
 import { bootstrap$ } from './signals/bootstrap'
-import { detach, Reason } from './signals/promise'
+import { detach, Reason } from './signals/utils'
 import { setupRouter } from './views/main'
 
 async function setupMockServer(signal: AbortSignal) {

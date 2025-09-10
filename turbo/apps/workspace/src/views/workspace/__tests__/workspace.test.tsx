@@ -14,6 +14,8 @@ describe('homePage', () => {
   })
 
   it('renders homepage basic UI structure', async () => {
-    expect(await screen.findByText('Workspace Page')).toBeInTheDocument()
+    await expect(
+      screen.findByText('Workspace Page'),
+    ).resolves.toBeInTheDocument()
   })
 })

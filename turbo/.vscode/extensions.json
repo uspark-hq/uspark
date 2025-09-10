@@ -2,6 +2,7 @@
   "recommendations": [
     "mtxr.sqltools-driver-pg",
     "vitest.explorer",
-    "dbaeumer.vscode-eslint"
+    "dbaeumer.vscode-eslint",
+    "oxc.oxc-vscode"
   ]
 }

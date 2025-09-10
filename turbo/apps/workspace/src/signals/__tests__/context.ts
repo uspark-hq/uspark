@@ -1,3 +1,5 @@
+// oxlint-disable no-export
+
 import { render, screen } from '@testing-library/react'
 import { command, createStore, type Store } from 'ccstate'
 import { afterEach, assert } from 'vitest'
@@ -17,7 +19,7 @@ interface TestFixtureConfig {
 }
 
 const prepareFixture$ = command(
-  ({}, config: Omit<TestFixtureConfig, 'store'>) => {
+  (_, config: Omit<TestFixtureConfig, 'store'>) => {
     if (config.debugLoggers?.length) {
       enableDebugLogger(...config.debugLoggers)
     }
