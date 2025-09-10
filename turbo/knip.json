@@ -3,7 +3,7 @@
   "workspaces": {
     ".": {
       "entry": [],
-      "project": []
+      "project": ["*.config.{js,ts,mjs}"]
     },
     "apps/web": {
       "entry": [
@@ -40,7 +40,7 @@
     },
     "packages/eslint-config": {
       "entry": [],
-      "project": ["**/*.ts"]
+      "project": ["**/*.js"]
     },
     "packages/typescript-config": {
       "entry": [],
