@@ -11,15 +11,15 @@
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
-    "@uspark/eslint-config": "workspace:*",
-    "@uspark/typescript-config": "workspace:*",
     "@types/node": "^24.3.0",
     "@types/react": "^19.1.12",
+    "@uspark/eslint-config": "workspace:*",
+    "@uspark/typescript-config": "workspace:*",
     "eslint": "^9.34.0",
+    "jiti": "^2.5.1",
     "typescript": "5.9.2"
   },
   "dependencies": {
-    "react": "^19.1.1",
     "react": "^19.1.1"
   }
 }
