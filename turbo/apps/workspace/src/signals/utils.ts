@@ -1,4 +1,6 @@
-import type { CSSProperties } from 'react'
+import { command, state, type Command } from 'ccstate'
+import type { CSSProperties, SyntheticEvent } from 'react'
+import { detach, Reason } from './promise'
 
 export const isAbortError = (error: unknown): boolean => {
   if (
@@ -122,4 +124,38 @@ export function geometryStyle(geometry: {
   }
 
   return ret
+}
+
+function onDomEvent<T extends Element, E extends Event, Args extends unknown[]>(
+  command$: Command<void | Promise<void>, [E, AbortSignal, ...Args]>,
+) {
+  return command(
+    ({ set }, e: SyntheticEvent<T, E>, signal: AbortSignal, ...args: Args) => {
+      detach(set(command$, e.nativeEvent, signal, ...args), Reason.DomCallback)
+    },
+  )
+}
+
+export function onPointerEvent<T extends Element, Args extends unknown[]>(
+  command$: Command<void | Promise<void>, [PointerEvent, AbortSignal, ...Args]>,
+) {
+  return onDomEvent<T, PointerEvent, Args>(command$)
+}
+
+export function onDomEventFn<T>(callback: (e: T) => void | Promise<void>) {
+  return function (e: T) {
+    detach(callback(e), Reason.DomCallback)
+  }
+}
+
+export function resetSignal(): Command<AbortSignal, AbortSignal[]> {
+  const controller$ = state<AbortController | undefined>(undefined)
+
+  return command(({ get, set }, ...signals: AbortSignal[]) => {
+    get(controller$)?.abort()
+    const controller = new AbortController()
+    set(controller$, controller)
+
+    return AbortSignal.any([controller.signal, ...signals])
+  })
 }
