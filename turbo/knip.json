@@ -1,10 +1,6 @@
 {
   "$schema": "https://unpkg.com/knip@5/schema.json",
   "workspaces": {
-    ".": {
-      "entry": [],
-      "project": ["*.config.{js,ts,mjs}"]
-    },
     "apps/web": {
       "entry": [
         "app/**/page.{ts,tsx}",
@@ -34,12 +30,14 @@
       "entry": [
         "src/main.ts",
         "**/*.{test,btest}.ts?(x)",
-        "scripts/*.ts",
-        "vitest.setup.ts",
         "vitest.setup.*.ts"
       ],
       "project": ["**/*.{ts,tsx}!"],
-      "ignore": ["src/views/shadcn/components/ui/**/*.tsx", "scripts/**"]
+      "ignore": ["src/views/shadcn/components/ui/**/*.tsx", "scripts/**"],
+      "ignoreDependencies": [
+        "@typescript-eslint/parser",
+        "tailwindcss"
+      ]
     },
     "packages/core": {
       "entry": [],
