@@ -4,9 +4,9 @@
   "type": "module",
   "private": true,
   "exports": {
-    "./base": "./base.js",
-    "./next-js": "./next.js",
-    "./react-internal": "./react-internal.js"
+    "./base": "./base.ts",
+    "./next-js": "./next.ts",
+    "./react-internal": "./react-internal.ts"
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",

@@ -40,7 +40,7 @@
     },
     "packages/eslint-config": {
       "entry": [],
-      "project": ["**/*.js"]
+      "project": ["**/*.ts"]
     },
     "packages/typescript-config": {
       "entry": [],
