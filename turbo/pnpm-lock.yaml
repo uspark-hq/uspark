@@ -306,9 +306,6 @@ importers:
       eslint-plugin-case-police:
         specifier: ^2.0.0
         version: 2.0.0(eslint@9.34.0(jiti@2.5.1))(typescript@5.9.2)
-      eslint-plugin-formatjs:
-        specifier: ^5.3.1
-        version: 5.4.0(eslint@9.34.0(jiti@2.5.1))(typescript@5.9.2)
       eslint-plugin-react:
         specifier: ^7.37.5
         version: 7.37.5(eslint@9.34.0(jiti@2.5.1))
@@ -1016,28 +1013,8 @@ packages:
   '@floating-ui/utils@0.2.10':
     resolution: {integrity: sha512-aGTxbpbg8/b5JfU1HXSrbH3wXZuLPJcNEcZQFMxLs3oSzgtVu6nFPkbbGGUvBcUjKV2YyB9Wxxabo+HEH9tcRQ==}
 
-  '@formatjs/ecma402-abstract@2.3.4':
-    resolution: {integrity: sha512-qrycXDeaORzIqNhBOx0btnhpD1c+/qFIHAN9znofuMJX6QBwtbrmlpWfD4oiUUD2vJUOIYFA/gYtg2KAMGG7sA==}
-
-  '@formatjs/fast-memoize@2.2.7':
-    resolution: {integrity: sha512-Yabmi9nSvyOMrlSeGGWDiH7rf3a7sIwplbvo/dlz9WCIjzIQAfy1RMf4S0X3yG724n5Ghu2GmEl5NJIV6O9sZQ==}
-
-  '@formatjs/icu-messageformat-parser@2.11.2':
-    resolution: {integrity: sha512-AfiMi5NOSo2TQImsYAg8UYddsNJ/vUEv/HaNqiFjnI3ZFfWihUtD5QtuX6kHl8+H+d3qvnE/3HZrfzgdWpsLNA==}
-
-  '@formatjs/icu-skeleton-parser@1.8.14':
-    resolution: {integrity: sha512-i4q4V4qslThK4Ig8SxyD76cp3+QJ3sAqr7f6q9VVfeGtxG9OhiAk3y9XF6Q41OymsKzsGQ6OQQoJNY4/lI8TcQ==}
-
   '@formatjs/intl-localematcher@0.6.1':
     resolution: {integrity: sha512-ePEgLgVCqi2BBFnTMWPfIghu6FkbZnnBVhO2sSxvLfrdFw7wCHAHiDoM2h4NRgjbaY7+B7HgOLZGkK187pZTZg==}
-
-  '@formatjs/ts-transformer@3.14.0':
-    resolution: {integrity: sha512-sWV+gLu3N/Fqb6Jh4cSbKAOIO/bumATZvyF8+TGFW+sAhmedvgQXpnUwiy4qJpU6buEq3Ap5jFGfmDRf0V6HYQ==}
-    peerDependencies:
-      ts-jest: ^29
-    peerDependenciesMeta:
-      ts-jest:
-        optional: true
 
   '@humanfs/core@0.19.1':
     resolution: {integrity: sha512-5DyQ4+1JEUzejeK1JGICcideyfUbGixgS9jNgex5nqkW+cY7WZhxBigmieN5Qnw9ZosSNVC9KQKyb+GUaGyKUA==}
@@ -2390,9 +2367,6 @@ packages:
   '@types/deep-eql@4.0.2':
     resolution: {integrity: sha512-c9h9dVVMigMPc4bwTvC5dxqtqJZwQPePsWjPlpSOnojbor6pGqdk541lfA7AqFQr5pB1BRdq0juY9db81BwyFw==}
 
-  '@types/eslint@9.6.1':
-    resolution: {integrity: sha512-FXx2pKgId/WyYo2jXw63kk7/+TY7u7AziEJxJAnSFzHlqTAS3Ync6SvgYAN/k4/PQpnnVuzoMuVnByKK2qp0ag==}
-
   '@types/estree-jsx@1.0.5':
     resolution: {integrity: sha512-52CcUVNFyfb1A2ALocQw/Dd1BQFNmSdkuC3BkZ6iqhdMfQz7JWOFRuJFloOzjk+6WijU56m9oKXFAXc7o3Towg==}
 
@@ -2404,10 +2378,6 @@ packages:
 
   '@types/json-schema@7.0.15':
     resolution: {integrity: sha512-5+fP8P8MFNC+AyZCDxrB2pkZFPGzqQWUzpSeuuVLvm8VMcorNYavBqoFcxK8bQz4Qsbn4oUEEem4wDLfcysGHA==}
-
-  '@types/json-stable-stringify@1.2.0':
-    resolution: {integrity: sha512-PEHY3ohqolHqAzDyB1+31tFaAMnoLN7x/JgdcGmNZ2uvtEJ6rlFCUYNQc0Xe754xxCYLNGZbLUGydSE6tS4S9A==}
-    deprecated: This is a stub types definition. json-stable-stringify provides its own type definitions, so you do not need this installed.
 
   '@types/mdast@4.0.4':
     resolution: {integrity: sha512-kGaNbPh1k7AFzgpud/gMdvIm5xuECykRR+JnWKQno9TAXVa6WIVCGTPvYGekIDL4uwCZQSYbUxNBSb1aUo79oA==}
@@ -2429,9 +2399,6 @@ packages:
 
   '@types/pg@8.15.5':
     resolution: {integrity: sha512-LF7lF6zWEKxuT3/OR8wAZGzkg4ENGXFNyiV/JeOt9z5B+0ZVwbql9McqX5c/WStFq1GaGso7H1AzP/qSzmlCKQ==}
-
-  '@types/picomatch@3.0.2':
-    resolution: {integrity: sha512-n0i8TD3UDB7paoMMxA3Y65vUncFJXjcUf7lQY7YyKGl6031FNjfsLs6pdLFCy2GNFxItPJG8GvvpbZc2skH7WA==}
 
   '@types/react-dom@19.1.9':
     resolution: {integrity: sha512-qXRuZaOsAdXKFyOhRBg6Lqqc0yay13vN7KrIg4L7N4aaHN68ma9OK3NE1BoDFgFOTfM7zg+3/8+2n8rLUH3OKQ==}
@@ -3267,10 +3234,6 @@ packages:
   electron-to-chromium@1.5.211:
     resolution: {integrity: sha512-IGBvimJkotaLzFnwIVgW9/UD/AOJ2tByUmeOrtqBfACSbAw5b1G0XpvdaieKyc7ULmbwXVx+4e4Be8pOPBrYkw==}
 
-  emoji-regex-xs@2.0.1:
-    resolution: {integrity: sha512-1QFuh8l7LqUcKe24LsPUNzjrzJQ7pgRwp1QMcZ5MX6mFplk2zQ08NVCM84++1cveaUUYtcCYHmeFEuNg16sU4g==}
-    engines: {node: '>=10.0.0'}
-
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
 
@@ -3385,11 +3348,6 @@ packages:
     resolution: {integrity: sha512-8QTPWpCOqBn9nScjsHWje9PPiIjO7Vi8ZPdEoPB8HGaVyTFTYB4kzY1JXXok+FXY/YjQbFfPIByzc0LYuhvmzg==}
     peerDependencies:
       eslint: ^9.9.0
-
-  eslint-plugin-formatjs@5.4.0:
-    resolution: {integrity: sha512-ezZdP9i8qjOqZP1PdIjjwL6kLPYFWcqkvlhm/sBbFWkf1xZ00wurXr2+p9YQi+dXQdZvJN4KtvOFHU/hfqx2BQ==}
-    peerDependencies:
-      eslint: ^9.23.0
 
   eslint-plugin-only-warn@1.1.0:
     resolution: {integrity: sha512-2tktqUAT+Q3hCAU0iSf4xAN1k9zOpjK5WO8104mB0rT/dGhOa09582HN5HlbxNbPRZ0THV7nLGvzugcNOSjzfA==}
@@ -4067,10 +4025,6 @@ packages:
   json-stable-stringify-without-jsonify@1.0.1:
     resolution: {integrity: sha512-Bdboy+l7tA3OGW6FjyFHWkP5LuByj1Tk33Ljyq0axyzdk9//JSi2u3fP1QSmd1KNwq6VOKYGlAu87CisVir6Pw==}
 
-  json-stable-stringify@1.3.0:
-    resolution: {integrity: sha512-qtYiSSFlwot9XHtF9bD9c7rwKjr+RecWT//ZnPvSmEjpV5mmPOCN4j8UjY5hbjNkOwZ/jQv3J6R1/pL7RwgMsg==}
-    engines: {node: '>= 0.4'}
-
   json5@2.2.3:
     resolution: {integrity: sha512-XmOWe7eyHYH14cLdVPoyg+GOH3rYX++KpzrylJwSW98t3Nk+U8XOl8FWKOgwtzdb8lXGf6zYwDUzeHMWfxasyg==}
     engines: {node: '>=6'}
@@ -4080,9 +4034,6 @@ packages:
     resolution: {integrity: sha512-N/ITv3Yw9Za8cGxuQqSqrq6RHnlaHWZkAFavcfpH/R52522c26EbihMxnY7A1chxfXJ4d+cEFIsyTgfi9GihrA==}
     engines: {node: '>=0.10.0'}
     hasBin: true
-
-  jsonify@0.0.1:
-    resolution: {integrity: sha512-2/Ki0GcmuqSrgFyelQq9M05y7PS0mEwuIzrf3f1fPqkVDVRvZrPZtVSMHxdgo8Aq0sxAOb/cr2aqqA3LeWHVPg==}
 
   jsx-ast-utils@3.3.5:
     resolution: {integrity: sha512-ZZow9HBI5O6EPgSJLUb8n2NKgmVWTwCvHGwFuJlMjvLFqlGG6pjirPhtdsseaLZjSibD8eegzmYpUZwoIlj2cQ==}
@@ -5498,9 +5449,6 @@ packages:
     resolution: {integrity: sha512-raqeBD6NQK4SkWhQzeYKd1KmIG6dllBOTt55Rmkt4HtI9mwdWtJljnrXjAFUBLTSN67HWrOIZ3EPF4kjUw80Bg==}
     engines: {node: '>=14.0'}
 
-  unicode-emoji-utils@1.3.1:
-    resolution: {integrity: sha512-6PiQxmnlsOsqzZCZz0sykSyMy/r1HiJiOWWXV98+BDva583DU4CtBeyDNsi4wMYUIbjUtMs4RgAuyft0EKLoVw==}
-
   unified@11.0.5:
     resolution: {integrity: sha512-xKvGhPWw3k84Qjh8bI3ZeJjqnyadK+GEFtazSfZv/rKeTkTjOJho6mFqh2SM96iIcZokxiOpg78GazTSg8+KHA==}
 
@@ -6288,41 +6236,9 @@ snapshots:
 
   '@floating-ui/utils@0.2.10': {}
 
-  '@formatjs/ecma402-abstract@2.3.4':
-    dependencies:
-      '@formatjs/fast-memoize': 2.2.7
-      '@formatjs/intl-localematcher': 0.6.1
-      decimal.js: 10.6.0
-      tslib: 2.8.1
-
-  '@formatjs/fast-memoize@2.2.7':
-    dependencies:
-      tslib: 2.8.1
-
-  '@formatjs/icu-messageformat-parser@2.11.2':
-    dependencies:
-      '@formatjs/ecma402-abstract': 2.3.4
-      '@formatjs/icu-skeleton-parser': 1.8.14
-      tslib: 2.8.1
-
-  '@formatjs/icu-skeleton-parser@1.8.14':
-    dependencies:
-      '@formatjs/ecma402-abstract': 2.3.4
-      tslib: 2.8.1
-
   '@formatjs/intl-localematcher@0.6.1':
     dependencies:
       tslib: 2.8.1
-
-  '@formatjs/ts-transformer@3.14.0':
-    dependencies:
-      '@formatjs/icu-messageformat-parser': 2.11.2
-      '@types/json-stable-stringify': 1.2.0
-      '@types/node': 22.18.0
-      chalk: 4.1.2
-      json-stable-stringify: 1.3.0
-      tslib: 2.8.1
-      typescript: 5.9.2
 
   '@humanfs/core@0.19.1': {}
 
@@ -7488,11 +7404,6 @@ snapshots:
 
   '@types/deep-eql@4.0.2': {}
 
-  '@types/eslint@9.6.1':
-    dependencies:
-      '@types/estree': 1.0.8
-      '@types/json-schema': 7.0.15
-
   '@types/estree-jsx@1.0.5':
     dependencies:
       '@types/estree': 1.0.8
@@ -7504,10 +7415,6 @@ snapshots:
       '@types/unist': 3.0.3
 
   '@types/json-schema@7.0.15': {}
-
-  '@types/json-stable-stringify@1.2.0':
-    dependencies:
-      json-stable-stringify: 1.3.0
 
   '@types/mdast@4.0.4':
     dependencies:
@@ -7534,8 +7441,6 @@ snapshots:
       '@types/node': 24.3.0
       pg-protocol: 1.10.3
       pg-types: 2.2.0
-
-  '@types/picomatch@3.0.2': {}
 
   '@types/react-dom@19.1.9(@types/react@19.1.12)':
     dependencies:
@@ -7953,6 +7858,15 @@ snapshots:
       msw: 2.11.1(@types/node@22.18.0)(typescript@5.9.2)
       vite: 6.3.6(@types/node@22.18.0)(jiti@2.5.1)(lightningcss@1.30.1)(tsx@4.20.5)
 
+  '@vitest/mocker@3.2.4(msw@2.11.1(@types/node@22.18.0)(typescript@5.9.2))(vite@7.1.3(@types/node@22.18.0)(jiti@2.5.1)(lightningcss@1.30.1)(tsx@4.20.5))':
+    dependencies:
+      '@vitest/spy': 3.2.4
+      estree-walker: 3.0.3
+      magic-string: 0.30.18
+    optionalDependencies:
+      msw: 2.11.1(@types/node@22.18.0)(typescript@5.9.2)
+      vite: 7.1.3(@types/node@22.18.0)(jiti@2.5.1)(lightningcss@1.30.1)(tsx@4.20.5)
+
   '@vitest/mocker@3.2.4(msw@2.11.1(@types/node@24.3.0)(typescript@5.9.2))(vite@7.1.3(@types/node@24.3.0)(jiti@2.5.1)(lightningcss@1.30.1)(tsx@4.20.5))':
     dependencies:
       '@vitest/spy': 3.2.4
@@ -7991,7 +7905,7 @@ snapshots:
       sirv: 3.0.1
       tinyglobby: 0.2.14
       tinyrainbow: 2.0.0
-      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@22.18.0)(@vitest/browser@3.2.4)(@vitest/ui@3.2.4)(happy-dom@18.0.1)(jiti@2.5.1)(jsdom@26.1.0)(lightningcss@1.30.1)(msw@2.11.1(@types/node@22.18.0)(typescript@5.9.2))(tsx@4.20.5)
+      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(@vitest/browser@3.2.4)(@vitest/ui@3.2.4)(happy-dom@18.0.1)(jiti@2.5.1)(jsdom@26.1.0)(lightningcss@1.30.1)(msw@2.11.1(@types/node@24.3.0)(typescript@5.9.2))(tsx@4.20.5)
 
   '@vitest/utils@3.2.4':
     dependencies:
@@ -8418,8 +8332,6 @@ snapshots:
 
   electron-to-chromium@1.5.211: {}
 
-  emoji-regex-xs@2.0.1: {}
-
   emoji-regex@8.0.0: {}
 
   emoji-regex@9.2.2: {}
@@ -8647,23 +8559,6 @@ snapshots:
       synckit: 0.10.4
     transitivePeerDependencies:
       - supports-color
-      - typescript
-
-  eslint-plugin-formatjs@5.4.0(eslint@9.34.0(jiti@2.5.1))(typescript@5.9.2):
-    dependencies:
-      '@formatjs/icu-messageformat-parser': 2.11.2
-      '@formatjs/ts-transformer': 3.14.0
-      '@types/eslint': 9.6.1
-      '@types/picomatch': 3.0.2
-      '@typescript-eslint/utils': 8.41.0(eslint@9.34.0(jiti@2.5.1))(typescript@5.9.2)
-      eslint: 9.34.0(jiti@2.5.1)
-      magic-string: 0.30.18
-      picomatch: 4.0.3
-      tslib: 2.8.1
-      unicode-emoji-utils: 1.3.1
-    transitivePeerDependencies:
-      - supports-color
-      - ts-jest
       - typescript
 
   eslint-plugin-only-warn@1.1.0: {}
@@ -9475,19 +9370,9 @@ snapshots:
 
   json-stable-stringify-without-jsonify@1.0.1: {}
 
-  json-stable-stringify@1.3.0:
-    dependencies:
-      call-bind: 1.0.8
-      call-bound: 1.0.4
-      isarray: 2.0.5
-      jsonify: 0.0.1
-      object-keys: 1.1.1
-
   json5@2.2.3: {}
 
   json@11.0.0: {}
-
-  jsonify@0.0.1: {}
 
   jsx-ast-utils@3.3.5:
     dependencies:
@@ -11300,10 +11185,6 @@ snapshots:
     dependencies:
       '@fastify/busboy': 2.1.1
 
-  unicode-emoji-utils@1.3.1:
-    dependencies:
-      emoji-regex-xs: 2.0.1
-
   unified@11.0.5:
     dependencies:
       '@types/unist': 3.0.3
@@ -11478,6 +11359,21 @@ snapshots:
       lightningcss: 1.30.1
       tsx: 4.20.5
 
+  vite@7.1.3(@types/node@22.18.0)(jiti@2.5.1)(lightningcss@1.30.1)(tsx@4.20.5):
+    dependencies:
+      esbuild: 0.25.9
+      fdir: 6.5.0(picomatch@4.0.3)
+      picomatch: 4.0.3
+      postcss: 8.5.6
+      rollup: 4.49.0
+      tinyglobby: 0.2.14
+    optionalDependencies:
+      '@types/node': 22.18.0
+      fsevents: 2.3.3
+      jiti: 2.5.1
+      lightningcss: 1.30.1
+      tsx: 4.20.5
+
   vite@7.1.3(@types/node@24.3.0)(jiti@2.5.1)(lightningcss@1.30.1)(tsx@4.20.5):
     dependencies:
       esbuild: 0.25.9
@@ -11497,7 +11393,7 @@ snapshots:
     dependencies:
       '@types/chai': 5.2.2
       '@vitest/expect': 3.2.4
-      '@vitest/mocker': 3.2.4(msw@2.11.1(@types/node@22.18.0)(typescript@5.9.2))(vite@6.3.6(@types/node@22.18.0)(jiti@2.5.1)(lightningcss@1.30.1)(tsx@4.20.5))
+      '@vitest/mocker': 3.2.4(msw@2.11.1(@types/node@22.18.0)(typescript@5.9.2))(vite@7.1.3(@types/node@22.18.0)(jiti@2.5.1)(lightningcss@1.30.1)(tsx@4.20.5))
       '@vitest/pretty-format': 3.2.4
       '@vitest/runner': 3.2.4
       '@vitest/snapshot': 3.2.4
@@ -11515,7 +11411,7 @@ snapshots:
       tinyglobby: 0.2.14
       tinypool: 1.1.1
       tinyrainbow: 2.0.0
-      vite: 6.3.6(@types/node@22.18.0)(jiti@2.5.1)(lightningcss@1.30.1)(tsx@4.20.5)
+      vite: 7.1.3(@types/node@22.18.0)(jiti@2.5.1)(lightningcss@1.30.1)(tsx@4.20.5)
       vite-node: 3.2.4(@types/node@22.18.0)(jiti@2.5.1)(lightningcss@1.30.1)(tsx@4.20.5)
       why-is-node-running: 2.3.0
     optionalDependencies:

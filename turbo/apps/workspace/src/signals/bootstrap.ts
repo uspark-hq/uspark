@@ -2,7 +2,7 @@ import { command, type Command } from 'ccstate'
 import { setPageSignal$ } from './page-signal'
 import { setupProjectPage$ } from './project/project-page'
 import { setRootSignal$ } from './root-signal'
-import { initRoutes$, type Route } from './route'
+import { initRoutes$ } from './route'
 import { setupWorkspacePage$ } from './workspace/workspace-page'
 
 const setupPageWrapper = (fn: Command<Promise<void> | void, [AbortSignal]>) => {
@@ -21,7 +21,7 @@ const setupAuthPageWrapper = (
   })
 }
 
-const ROUTE_CONFIG: Route[] = [
+const ROUTE_CONFIG = [
   {
     path: '/workspace',
     setup: setupAuthPageWrapper(setupWorkspacePage$),

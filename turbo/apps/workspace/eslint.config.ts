@@ -1,5 +1,4 @@
 import casePolice from 'eslint-plugin-case-police'
-import formatjs from 'eslint-plugin-formatjs'
 import react from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactRefresh from 'eslint-plugin-react-refresh'
@@ -104,35 +103,17 @@ export default config(
       'react-refresh': reactRefresh,
       react,
     },
+    settings: {
+      react: {
+        version: 'detect',
+      },
+    },
     rules: {
       ...reactHooks.configs.recommended.rules,
       'react/function-component-definition': ['error'],
       'react-refresh/only-export-components': [
         'warn',
         { allowConstantExport: true },
-      ],
-    },
-  },
-  {
-    files: ['**/*.{ts,tsx}'],
-    ignores: [
-      '**/{__tests__, __benchmarks__}/**/*.{ts,tsx}',
-      '**/*.{test,btest,bench}.{ts,tsx}',
-      'src/views/pages/playground.tsx',
-    ],
-    plugins: {
-      formatjs,
-    },
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    rules: {
-      // @ts-expect-error eslint-plugin-formatjs
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-      ...formatjs.configs.strict.rules,
-      'formatjs/enforce-id': [
-        'error',
-        {
-          idInterpolationPattern: '[sha512:contenthash:base64:10]',
-        },
       ],
     },
   },
@@ -160,11 +141,8 @@ export default config(
     ignores: [
       '**/*.test.{ts,tsx}',
       '**/*.btest.{ts,tsx}',
-      '**/*.bench.{ts,tsx}',
-      '**/js-call/impl/*.ts',
       'src/mocks/**/*.ts',
-      '**/{__tests__, __benchmarks__}/**/*.{ts,tsx}', // 添加这个以匹配 __tests__ 目录下的文件
-      'src/signals/feature-switch/**',
+      '**/__tests__/**/*.{ts,tsx}',
     ],
     rules: {
       'custom/no-package-variable': [
@@ -223,17 +201,6 @@ export default config(
     },
   },
   {
-    ignores: [
-      'dist',
-      'public',
-      'coverage',
-      'src/signals/wasm/moxt-wasm-app.js',
-      'src/signals/wasm/moxt-wasm-app.d.ts',
-      'src/signals/wasm/wasm-call/**/*.ts',
-      'src/proto/*.js',
-      'src/proto/*.ts',
-      'src/wasm/viewstate/index.ts',
-      'moxt-eslint/examples/**/*',
-    ],
+    ignores: ['dist', 'public', 'coverage'],
   },
 )

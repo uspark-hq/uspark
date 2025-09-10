@@ -29,6 +29,7 @@
     "vitest.config.ts",
     "uspark-eslint",
     "eslint.config.ts",
-    "vitest.setup.eslint.ts"
+    "vitest.setup.eslint.ts",
+    "custom-eslint"
   ]
 }

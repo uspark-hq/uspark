@@ -75,6 +75,7 @@ export function testContext() {
   return Object.freeze(context)
 }
 
+// eslint-disable-next-line custom/no-store-in-params -- Test bootstrap needs config with store for app initialization
 export async function setupPage(url: string, config: TestFixtureConfig) {
   config.store.set(prepareFixture$, config)
 

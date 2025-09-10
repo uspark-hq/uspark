@@ -37,7 +37,7 @@ export const pathParams$ = computed((get) => {
   return result ? result.params : undefined
 })
 
-export interface Route {
+interface Route {
   path: string
   setup: Command<Promise<void> | void, [AbortSignal]>
 }
@@ -155,8 +155,8 @@ export const navigateInReact$ = command(
 
 // extract params from path
 // /projects/:id => { id: string }
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type ExtractParams<T extends string> =
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   T extends `/${infer _Start}/:${infer Param}`
     ? Record<Param, string>
     : undefined
@@ -168,7 +168,7 @@ export const generateRouterPath = <T extends RoutePath>(
   if (!pathParams || Object.keys(pathParams).length === 0) {
     return path
   }
-  let _path = path.toString()
+  let _path = path as string
   for (const [key, value] of Object.entries(pathParams)) {
     _path = _path.replace(`:${key}`, value)
   }
