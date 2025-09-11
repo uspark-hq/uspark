@@ -82,7 +82,6 @@ const testContract = c.router({
 const BASE_URL = "http://localhost";
 
 describe("contractFetch with MSW", () => {
-
   describe("GET requests", () => {
     it("should make GET request and return typed response", async () => {
       const mockResponse = { id: "123", name: "Test Item", count: 5 };
