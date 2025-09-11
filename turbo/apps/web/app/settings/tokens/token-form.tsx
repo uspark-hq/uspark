@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useActionState } from "react";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@uspark/ui";
 import { type GenerateTokenResult } from "./actions";
 
 interface TokenFormProps {
@@ -29,24 +30,11 @@ export function TokenForm({ action }: TokenFormProps) {
   return (
     <>
       <form action={formAction}>
-        <div
-          style={{
-            backgroundColor: "var(--background)",
-            border: "1px solid #e5e5e5",
-            borderRadius: "8px",
-            padding: "24px",
-            marginBottom: "20px",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "1.25rem",
-              marginBottom: "16px",
-              color: "var(--foreground)",
-            }}
-          >
-            Generate New Token
-          </h2>
+        <Card className="mb-5">
+          <CardHeader>
+            <CardTitle>Generate New Token</CardTitle>
+          </CardHeader>
+          <CardContent>
 
           <div style={{ marginBottom: "16px" }}>
             <label
@@ -81,22 +69,9 @@ export function TokenForm({ action }: TokenFormProps) {
 
           <input name="expires_in_days" type="hidden" value="90" />
 
-          <button
-            type="submit"
-            disabled={isPending}
-            style={{
-              backgroundColor: isPending ? "#ccc" : "#0070f3",
-              color: "white",
-              border: "none",
-              padding: "10px 20px",
-              borderRadius: "4px",
-              fontSize: "14px",
-              cursor: isPending ? "not-allowed" : "pointer",
-              transition: "background-color 0.2s",
-            }}
-          >
+          <Button type="submit" disabled={isPending}>
             {isPending ? "Generating..." : "Generate Token"}
-          </button>
+          </Button>
 
           {error && (
             <div
@@ -112,27 +87,16 @@ export function TokenForm({ action }: TokenFormProps) {
               {error}
             </div>
           )}
-        </div>
+          </CardContent>
+        </Card>
       </form>
 
       {token && (
-        <div
-          style={{
-            backgroundColor: "var(--background)",
-            border: "1px solid #e5e5e5",
-            borderRadius: "8px",
-            padding: "24px",
-          }}
-        >
-          <h2
-            style={{
-              fontSize: "1.25rem",
-              marginBottom: "16px",
-              color: "var(--foreground)",
-            }}
-          >
-            Your New Token
-          </h2>
+        <Card>
+          <CardHeader>
+            <CardTitle>Your New Token</CardTitle>
+          </CardHeader>
+          <CardContent>
 
           <div
             style={{
@@ -150,22 +114,13 @@ export function TokenForm({ action }: TokenFormProps) {
             {token}
           </div>
 
-          <button
+          <Button
             onClick={() => copyToClipboard(token)}
-            style={{
-              backgroundColor: copySuccess ? "#28a745" : "#6c757d",
-              color: "white",
-              border: "none",
-              padding: "8px 16px",
-              borderRadius: "4px",
-              fontSize: "14px",
-              cursor: "pointer",
-              marginRight: "12px",
-              transition: "background-color 0.2s",
-            }}
+            variant={copySuccess ? "default" : "secondary"}
+            className="mr-3"
           >
             {copySuccess ? "✓ Copied!" : "Copy Token"}
-          </button>
+          </Button>
 
           <div
             style={{
@@ -181,7 +136,8 @@ export function TokenForm({ action }: TokenFormProps) {
             sure to copy it now and store it securely. You can use it by setting
             the <code>USPARK_TOKEN</code> environment variable.
           </div>
-        </div>
+          </CardContent>
+        </Card>
       )}
     </>
   );

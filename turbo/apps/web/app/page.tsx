@@ -1,6 +1,7 @@
 "use client";
 
 import { SignUpButton } from "@clerk/nextjs";
+import { Button } from "@uspark/ui";
 import {
   AINetworkIllustration,
   DataFlowIllustration,
@@ -40,7 +41,9 @@ export default function Home() {
 
             <div className={styles.heroCta}>
               <SignUpButton mode="modal">
-                <button className={styles.primaryButton}>Join Waitlist</button>
+                <Button size="lg" className={styles.primaryButton}>
+                  Join Waitlist
+                </Button>
               </SignUpButton>
             </div>
           </div>
@@ -325,7 +328,9 @@ export default function Home() {
             disappear into the void.
           </p>
           <SignUpButton mode="modal">
-            <button className={styles.primaryButton}>Join Waitlist</button>
+            <Button size="lg" className={styles.primaryButton}>
+              Join Waitlist
+            </Button>
           </SignUpButton>
           <p className={styles.finalCtaBottomText}>
             Free to start. No credit card required. Your documents stay yours
