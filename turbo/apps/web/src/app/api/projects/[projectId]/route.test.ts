@@ -3,8 +3,8 @@ import { NextRequest } from "next/server";
 import { GET, PATCH } from "./route";
 import { POST as createProject } from "../route";
 import * as Y from "yjs";
-import { initServices } from "../../../../src/lib/init-services";
-import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
+import { initServices } from "@/lib/init-services";
+import { PROJECTS_TBL } from "@/db/schema/projects";
 import { eq, and } from "drizzle-orm";
 
 // Mock Clerk authentication

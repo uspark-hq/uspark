@@ -5,8 +5,8 @@ import {
   type GenerateTokenError,
   GenerateTokenRequestSchema,
 } from "@uspark/core";
-import { initServices } from "../../../../../src/lib/init-services";
-import { CLI_TOKENS_TBL } from "../../../../../src/db/schema/cli-tokens";
+import { initServices } from "@/lib/init-services";
+import { CLI_TOKENS_TBL } from "@/db/schema/cli-tokens";
 import { eq, and, gt } from "drizzle-orm";
 import crypto from "crypto";
 

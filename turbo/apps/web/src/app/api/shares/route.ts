@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { initServices } from "../../../src/lib/init-services";
-import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
+import { initServices } from "@/lib/init-services";
+import { SHARE_LINKS_TBL } from "@/db/schema/share-links";
 import { eq, desc } from "drizzle-orm";
 import { type ListSharesResponse, type ShareError } from "@uspark/core";
-import { env } from "../../../src/env";
+import { env } from "@/env";
 
 /**
  * GET /api/shares

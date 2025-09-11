@@ -1,9 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { POST } from "./route";
 import { DeviceAuthResponseSchema } from "@uspark/core";
-import { DEVICE_CODES_TBL } from "../../../../../src/db/schema/device-codes";
+import { DEVICE_CODES_TBL } from "@/db/schema/device-codes";
 import { eq } from "drizzle-orm";
-import { initServices } from "../../../../../src/lib/init-services";
+import { initServices } from "@/lib/init-services";
 
 describe("/api/cli/auth/device", () => {
   it("should return a valid DeviceAuthResponse with correct device_code format", async () => {

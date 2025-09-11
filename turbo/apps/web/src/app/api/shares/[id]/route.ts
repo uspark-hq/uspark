@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { initServices } from "../../../../src/lib/init-services";
-import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
+import { initServices } from "@/lib/init-services";
+import { SHARE_LINKS_TBL } from "@/db/schema/share-links";
 import { eq, and } from "drizzle-orm";
 import { type DeleteShareResponse } from "@uspark/core";
 

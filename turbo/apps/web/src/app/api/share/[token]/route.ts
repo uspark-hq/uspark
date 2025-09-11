@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import * as Y from "yjs";
 import { type AccessShareError, type AccessShareResponse } from "@uspark/core";
-import { initServices } from "../../../../src/lib/init-services";
-import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
-import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
+import { initServices } from "@/lib/init-services";
+import { SHARE_LINKS_TBL } from "@/db/schema/share-links";
+import { PROJECTS_TBL } from "@/db/schema/projects";
 import { eq } from "drizzle-orm";
-import { getPublicBlobUrl } from "../../../../src/lib/blob/utils";
-import { env } from "../../../../src/env";
+import { getPublicBlobUrl } from "@/lib/blob/utils";
+import { env } from "@/env";
 
 /**
  * GET /api/share/:token

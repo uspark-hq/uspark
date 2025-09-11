@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { POST } from "./route";
 import { POST as createProject } from "../projects/route";
-import { initServices } from "../../../src/lib/init-services";
-import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
-import { PROJECTS_TBL } from "../../../src/db/schema/projects";
+import { initServices } from "@/lib/init-services";
+import { SHARE_LINKS_TBL } from "@/db/schema/share-links";
+import { PROJECTS_TBL } from "@/db/schema/projects";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";
 

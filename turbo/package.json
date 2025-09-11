@@ -28,9 +28,5 @@
   "packageManager": "pnpm@10.15.0",
   "engines": {
     "node": ">=20"
-  },
-  "dependencies": {
-    "@octokit/rest": "^22.0.0",
-    "web": "^0.0.2"
   }
 }

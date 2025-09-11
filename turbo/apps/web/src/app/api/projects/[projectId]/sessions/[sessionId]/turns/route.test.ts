@@ -3,13 +3,13 @@ import { NextRequest } from "next/server";
 import { GET, POST } from "./route";
 import { POST as createProject } from "../../../../route";
 import { POST as createSession } from "../../route";
-import { initServices } from "../../../../../../../src/lib/init-services";
-import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
+import { initServices } from "@/lib/init-services";
+import { PROJECTS_TBL } from "@/db/schema/projects";
 import {
   SESSIONS_TBL,
   TURNS_TBL,
   BLOCKS_TBL,
-} from "../../../../../../../src/db/schema/sessions";
+} from "@/db/schema/sessions";
 import { eq } from "drizzle-orm";
 
 // Mock Clerk authentication

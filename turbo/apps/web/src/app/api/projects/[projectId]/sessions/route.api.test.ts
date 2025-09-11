@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { apiCall, apiCallWithQuery } from "../../../../../src/test/api-helpers";
+import { apiCall, apiCallWithQuery } from "@/test/api-helpers";
 import { GET, POST } from "./route";
 import { POST as createProject } from "../../route";
 

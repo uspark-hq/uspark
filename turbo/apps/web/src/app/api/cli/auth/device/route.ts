@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { type DeviceAuthResponse } from "@uspark/core";
-import { initServices } from "../../../../../src/lib/init-services";
-import { DEVICE_CODES_TBL } from "../../../../../src/db/schema/device-codes";
+import { initServices } from "@/lib/init-services";
+import { DEVICE_CODES_TBL } from "@/db/schema/device-codes";
 import crypto from "crypto";
 
 /**

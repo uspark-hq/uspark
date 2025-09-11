@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { generateClientTokenFromReadWriteToken } from "@vercel/blob/client";
-import { initServices } from "../../../../../src/lib/init-services";
-import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
+import { initServices } from "@/lib/init-services";
+import { PROJECTS_TBL } from "@/db/schema/projects";
 import { eq, and } from "drizzle-orm";
-import { env } from "../../../../../src/env";
+import { env } from "@/env";
 import { type BlobTokenResponse, type BlobTokenError } from "@uspark/core";
 
 /**

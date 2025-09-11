@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { GET, POST } from "./route";
 import * as Y from "yjs";
-import { initServices } from "../../../src/lib/init-services";
-import { PROJECTS_TBL } from "../../../src/db/schema/projects";
-import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
+import { initServices } from "@/lib/init-services";
+import { PROJECTS_TBL } from "@/db/schema/projects";
+import { SHARE_LINKS_TBL } from "@/db/schema/share-links";
 import { eq } from "drizzle-orm";
 
 // Mock Clerk authentication

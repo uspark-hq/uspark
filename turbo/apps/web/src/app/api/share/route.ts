@@ -7,10 +7,10 @@ import {
   type CreateShareResponse,
   type CreateShareError,
 } from "@uspark/core";
-import { initServices } from "../../../src/lib/init-services";
-import { env } from "../../../src/env";
-import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
-import { PROJECTS_TBL } from "../../../src/db/schema/projects";
+import { initServices } from "@/lib/init-services";
+import { env } from "@/env";
+import { SHARE_LINKS_TBL } from "@/db/schema/share-links";
+import { PROJECTS_TBL } from "@/db/schema/projects";
 import { eq, and } from "drizzle-orm";
 
 /**

@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { GET } from "./route";
 import { POST as createProject } from "../../route";
-import { initServices } from "../../../../../src/lib/init-services";
-import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
+import { initServices } from "@/lib/init-services";
+import { PROJECTS_TBL } from "@/db/schema/projects";
 import { NextRequest } from "next/server";
 import { like } from "drizzle-orm";
 

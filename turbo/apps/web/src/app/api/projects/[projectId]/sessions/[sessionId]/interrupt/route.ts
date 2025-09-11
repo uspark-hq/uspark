@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { initServices } from "../../../../../../../src/lib/init-services";
+import { initServices } from "@/lib/init-services";
 import {
   SESSIONS_TBL,
   TURNS_TBL,
-} from "../../../../../../../src/db/schema/sessions";
-import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
+} from "@/db/schema/sessions";
+import { PROJECTS_TBL } from "@/db/schema/projects";
 import { eq, and } from "drizzle-orm";
 import { type SessionErrorResponse } from "@uspark/core";
 

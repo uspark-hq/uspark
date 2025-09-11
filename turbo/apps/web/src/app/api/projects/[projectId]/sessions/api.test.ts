@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { apiCall, apiCallWithQuery } from "../../../../../src/test/api-helpers";
+import { apiCall, apiCallWithQuery } from "@/test/api-helpers";
 import { POST as createSession, GET as listSessions } from "./route";
 import { GET as getSession, PATCH as updateSession } from "./[sessionId]/route";
 import {

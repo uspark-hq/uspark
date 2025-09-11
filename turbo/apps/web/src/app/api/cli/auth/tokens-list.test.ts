@@ -1,9 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { POST } from "./generate-token/route";
 import { NextRequest } from "next/server";
-import { CLI_TOKENS_TBL } from "../../../../src/db/schema/cli-tokens";
+import { CLI_TOKENS_TBL } from "@/db/schema/cli-tokens";
 import { eq, and, gt } from "drizzle-orm";
-import { initServices } from "../../../../src/lib/init-services";
+import { initServices } from "@/lib/init-services";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({

@@ -5,9 +5,9 @@ import {
   type TokenExchangeError,
   TokenExchangeRequestSchema,
 } from "@uspark/core";
-import { initServices } from "../../../../../src/lib/init-services";
+import { initServices } from "@/lib/init-services";
 import { eq } from "drizzle-orm";
-import { DEVICE_CODES_TBL } from "../../../../../src/db/schema/device-codes";
+import { DEVICE_CODES_TBL } from "@/db/schema/device-codes";
 
 /**
  * POST /api/cli/auth/token
