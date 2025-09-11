@@ -1,8 +1,12 @@
 {
   "extends": "@uspark/typescript-config/react-library.json",
   "compilerOptions": {
-    "outDir": "dist"
+    "outDir": "dist",
+    "types": ["vitest/globals"],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
   },
-  "include": ["src"],
+  "include": ["src", "vitest.config.ts"],
   "exclude": ["node_modules", "dist"]
 }
