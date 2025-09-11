@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Webhooks } from "@octokit/webhooks";
-import { initServices } from "~/lib/init-services";
-import { githubInstallations } from "~/db/schema/github";
+import { initServices } from "../../../../src/lib/init-services";
+import { githubInstallations } from "../../../../src/db/schema/github";
 import { eq } from "drizzle-orm";
 
 /**
@@ -14,7 +14,10 @@ export async function POST(request: NextRequest) {
   const webhookSecret = globalThis.services.env.GH_WEBHOOK_SECRET;
   if (!webhookSecret) {
     console.error("GitHub webhook secret not configured");
-    return NextResponse.json({ error: "Webhook not configured" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Webhook not configured" },
+      { status: 500 },
+    );
   }
 
   try {
@@ -23,7 +26,10 @@ export async function POST(request: NextRequest) {
     const eventType = request.headers.get("x-github-event");
 
     if (!signature || !eventType) {
-      return NextResponse.json({ error: "Missing required headers" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing required headers" },
+        { status: 400 },
+      );
     }
 
     // Verify webhook signature
@@ -59,14 +65,20 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Webhook processed" });
   } catch (error) {
     console.error("Webhook processing error:", error);
-    return NextResponse.json({ error: "Webhook processing failed" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Webhook processing failed" },
+      { status: 500 },
+    );
   }
 }
 
 /**
  * Handle installation events (created, deleted, suspend, unsuspend)
  */
-async function handleInstallationEvent(payload: { action: string; installation: { id: number; account: { login: string } } }) {
+async function handleInstallationEvent(payload: {
+  action: string;
+  installation: { id: number; account: { login: string } };
+}) {
   const { action, installation } = payload;
   const installationId = installation.id;
   const accountName = installation.account.login;
@@ -100,20 +112,30 @@ async function handleInstallationEvent(payload: { action: string; installation: 
 /**
  * Handle installation repositories events (added, removed)
  */
-async function handleInstallationRepositoriesEvent(payload: { action: string; installation: { id: number }; repositories_added?: { name: string }[]; repositories_removed?: { name: string }[] }) {
-  const { action, installation, repositories_added, repositories_removed } = payload;
+async function handleInstallationRepositoriesEvent(payload: {
+  action: string;
+  installation: { id: number };
+  repositories_added?: { name: string }[];
+  repositories_removed?: { name: string }[];
+}) {
+  const { action, installation, repositories_added, repositories_removed } =
+    payload;
   const installationId = installation.id;
 
   switch (action) {
     case "added":
-      console.log(`Repositories added to installation ${installationId}:`, 
-        repositories_added?.map((repo) => repo.name));
+      console.log(
+        `Repositories added to installation ${installationId}:`,
+        repositories_added?.map((repo) => repo.name),
+      );
       // TODO: Handle repository access added (future feature)
       break;
 
     case "removed":
-      console.log(`Repositories removed from installation ${installationId}:`, 
-        repositories_removed?.map((repo) => repo.name));
+      console.log(
+        `Repositories removed from installation ${installationId}:`,
+        repositories_removed?.map((repo) => repo.name),
+      );
       // TODO: Handle repository access removed (future feature)
       break;
   }

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { initServices } from "~/lib/init-services";
-import { githubInstallations } from "~/db/schema/github";
+import { initServices } from "../../../../src/lib/init-services";
+import { githubInstallations } from "../../../../src/db/schema/github";
 
 /**
  * Handles GitHub App installation setup callback
@@ -9,7 +9,7 @@ import { githubInstallations } from "~/db/schema/github";
  */
 export async function GET(request: NextRequest) {
   initServices();
-  
+
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.redirect("/sign-in");
@@ -22,18 +22,22 @@ export async function GET(request: NextRequest) {
 
   // Verify state parameter matches current user (if provided)
   if (state && state !== userId) {
-    return NextResponse.redirect("/settings?github=error&message=invalid_state");
+    return NextResponse.redirect(
+      "/settings?github=error&message=invalid_state",
+    );
   }
 
   switch (setupAction) {
     case "install": {
       if (!installationIdStr) {
-        return NextResponse.redirect("/settings?github=error&message=missing_installation_id");
+        return NextResponse.redirect(
+          "/settings?github=error&message=missing_installation_id",
+        );
       }
-      
+
       const installationId = parseInt(installationIdStr, 10);
       const placeholderAccountName = `installation-${installationId}`;
-      
+
       try {
         // For MVP, we'll store the installation with a placeholder account name
         // In Task 4, we'll implement proper GitHub API calls to get the real account name
@@ -58,7 +62,9 @@ export async function GET(request: NextRequest) {
         return NextResponse.redirect("/settings?github=connected");
       } catch (error) {
         console.error("Failed to store GitHub installation:", error);
-        return NextResponse.redirect("/settings?github=error&message=installation_failed");
+        return NextResponse.redirect(
+          "/settings?github=error&message=installation_failed",
+        );
       }
     }
 
@@ -71,7 +77,8 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect("/settings?github=updated");
 
     default:
-      return NextResponse.redirect("/settings?github=error&message=unknown_action");
+      return NextResponse.redirect(
+        "/settings?github=error&message=unknown_action",
+      );
   }
 }
-
