@@ -7,7 +7,8 @@
         "app/**/layout.{ts,tsx}",
         "app/api/**/route.{ts,tsx}",
         "middleware.{ts,tsx}",
-        "scripts/*.ts"
+        "scripts/*.ts",
+        "src/lib/sessions/index.ts"
       ],
       "project": ["**/*.{ts,tsx}", "scripts/**/*.ts"],
       "next": {
