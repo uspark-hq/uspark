@@ -171,37 +171,3 @@ export class ContractFetchError<T = unknown> extends Error {
   }
 }
 
-/**
- * 带自动重试的合约 fetch
- */
-export async function contractFetchWithRetry<T extends AppRoute>(
-  route: T,
-  options: Parameters<typeof contractFetch>[1] & {
-    maxRetries?: number;
-    retryDelay?: number;
-  } = {}
-): Promise<InferSuccessResponse<T>> {
-  const { maxRetries = 3, retryDelay = 1000, ...fetchOptions } = options;
-  
-  let lastError: unknown;
-  
-  for (let i = 0; i <= maxRetries; i++) {
-    try {
-      return await contractFetch(route, fetchOptions);
-    } catch (error) {
-      lastError = error;
-      
-      // 不重试客户端错误（4xx）
-      if (error instanceof ContractFetchError && error.status >= 400 && error.status < 500) {
-        throw error;
-      }
-      
-      // 如果还有重试次数，等待后重试
-      if (i < maxRetries) {
-        await new Promise(resolve => setTimeout(resolve, retryDelay * (i + 1)));
-      }
-    }
-  }
-  
-  throw lastError;
-}
