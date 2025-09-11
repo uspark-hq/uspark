@@ -8,6 +8,10 @@ function initEnv() {
       CLERK_SECRET_KEY: z.string().min(1),
       BLOB_READ_WRITE_TOKEN: z.string().min(1),
       E2B_API_KEY: z.string().min(1).optional(),
+      GITHUB_CLIENT_ID: z.string().min(1).optional(),
+      GITHUB_CLIENT_SECRET: z.string().min(1).optional(),
+      GITHUB_WEBHOOK_SECRET: z.string().min(1).optional(),
+      ENCRYPTION_KEY: z.string().length(32).optional(),
       APP_URL: z
         .string()
         .url()
@@ -25,6 +29,10 @@ function initEnv() {
       CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
       BLOB_READ_WRITE_TOKEN: process.env.BLOB_READ_WRITE_TOKEN,
       E2B_API_KEY: process.env.E2B_API_KEY,
+      GITHUB_CLIENT_ID: process.env.GITHUB_CLIENT_ID,
+      GITHUB_CLIENT_SECRET: process.env.GITHUB_CLIENT_SECRET,
+      GITHUB_WEBHOOK_SECRET: process.env.GITHUB_WEBHOOK_SECRET,
+      ENCRYPTION_KEY: process.env.ENCRYPTION_KEY,
       APP_URL: process.env.APP_URL,
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
         process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
