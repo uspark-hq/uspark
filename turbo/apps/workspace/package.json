@@ -5,7 +5,11 @@
   "private": true,
   "scripts": {
     "lint": "oxlint && eslint .",
-    "check-types": "tsc --noEmit"
+    "check-types": "tsc --noEmit",
+    "test": "vitest --run",
+    "test:watch": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage"
   },
   "dependencies": {
     "ccstate": "^5.0.0",

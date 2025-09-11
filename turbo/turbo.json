@@ -27,6 +27,11 @@
     "check-types": {
       "dependsOn": ["^check-types"]
     },
+    "test": {
+      "dependsOn": ["^test"],
+      "inputs": ["$TURBO_DEFAULT$", ".env*"],
+      "outputs": ["coverage/**", "vitest-report.json"]
+    },
     "knip": {
       "cache": false
     },

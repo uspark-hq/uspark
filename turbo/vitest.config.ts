@@ -23,12 +23,5 @@ export default defineConfig({
     },
 
     reporters: process.env.CI ? ["default", "github-actions"] : ["default"],
-
-    // Using the modern projects field instead of deprecated workspace file
-    projects: [
-      "./apps/cli/vitest.config.ts",
-      "./apps/web/vitest.config.ts",
-      "./packages/core/vitest.config.ts",
-    ],
   },
 });
