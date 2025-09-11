@@ -1,20 +1,18 @@
 import * as Y from "yjs";
 import { createHash } from "crypto";
-import type { FileNode, BlobInfo, BlobStore } from "@uspark/core";
+import type { FileNode, BlobInfo } from "@uspark/core";
 
 export class FileSystem {
   private ydoc: Y.Doc;
   private files: Y.Map<FileNode>;
   private blobs: Y.Map<BlobInfo>;
-  private blobStore: BlobStore;
+  private blobCache: Map<string, string>;
 
-  constructor(blobStore?: BlobStore) {
+  constructor() {
     this.ydoc = new Y.Doc();
     this.files = this.ydoc.getMap("files");
     this.blobs = this.ydoc.getMap("blobs");
-
-    // Mock blob store for now
-    this.blobStore = blobStore || new MockBlobStore();
+    this.blobCache = new Map();
   }
 
   getFilesMap(): Y.Map<FileNode> {
@@ -57,8 +55,8 @@ export class FileSystem {
       };
       this.blobs.set(hash, blobInfo);
 
-      // Store actual content
-      this.blobStore.set(hash, content);
+      // Cache content locally for immediate access
+      this.blobCache.set(hash, content);
     }
   }
 
@@ -68,7 +66,7 @@ export class FileSystem {
       throw new Error(`File not found: ${path}`);
     }
 
-    const content = this.blobStore.get(fileNode.hash);
+    const content = this.blobCache.get(fileNode.hash);
     if (!content) {
       throw new Error(`Content not found for hash: ${fileNode.hash}`);
     }
@@ -85,11 +83,11 @@ export class FileSystem {
   }
 
   getBlob(hash: string): string | undefined {
-    return this.blobStore.get(hash);
+    return this.blobCache.get(hash);
   }
 
   setBlob(hash: string, content: string): void {
-    this.blobStore.set(hash, content);
+    this.blobCache.set(hash, content);
   }
 
   applyUpdate(update: Uint8Array): void {
@@ -107,14 +105,3 @@ export class FileSystem {
   }
 }
 
-class MockBlobStore implements BlobStore {
-  private store = new Map<string, string>();
-
-  get(hash: string): string | undefined {
-    return this.store.get(hash);
-  }
-
-  set(hash: string, content: string): void {
-    this.store.set(hash, content);
-  }
-}
