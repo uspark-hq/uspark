@@ -14,9 +14,9 @@
     "E2B_API_KEY",
     "NODE_ENV",
     "APP_URL",
-    "GITHUB_APP_ID",
-    "GITHUB_APP_PRIVATE_KEY",
-    "GITHUB_WEBHOOK_SECRET"
+    "GH_APP_ID",
+    "GH_APP_PRIVATE_KEY",
+    "GH_WEBHOOK_SECRET"
   ],
   "tasks": {
     "build": {
