@@ -15,6 +15,11 @@ process.env.CLERK_SECRET_KEY = "sk_test_mock_secret_key_for_testing";
 // Format: vercel_blob_rw_[STORE_ID]_[SECRET]
 process.env.BLOB_READ_WRITE_TOKEN = "vercel_blob_rw_test-store_secret-key";
 
+// Mock GitHub App environment variables for testing
+process.env.GH_APP_ID = "test_github_app_id";
+process.env.GH_APP_PRIVATE_KEY = "test_github_app_private_key";
+process.env.GH_WEBHOOK_SECRET = "test_github_webhook_secret";
+
 // Verify required environment variables are set
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL environment variable is required for tests");

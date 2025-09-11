@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../src/lib/init-services";
-import { githubInstallations } from "../../../../src/db/schema/github";
 
 /**
  * Handles GitHub App installation setup callback
  * GET /api/github/setup?setup_action=install&installation_id=123
+ *
+ * This endpoint only handles redirects - no side effects.
+ * The actual installation data is saved by the frontend via POST /api/github/installation
  */
 export async function GET(request: NextRequest) {
   initServices();
@@ -35,37 +37,13 @@ export async function GET(request: NextRequest) {
         );
       }
 
-      const installationId = parseInt(installationIdStr, 10);
-      const placeholderAccountName = `installation-${installationId}`;
+      // Redirect to settings with installation data - let frontend handle the POST
+      const params = new URLSearchParams({
+        github: "install",
+        installation_id: installationIdStr,
+      });
 
-      try {
-        // For MVP, we'll store the installation with a placeholder account name
-        // In Task 4, we'll implement proper GitHub API calls to get the real account name
-
-        // Store installation in database
-        await globalThis.services.db
-          .insert(githubInstallations)
-          .values({
-            userId,
-            installationId,
-            accountName: placeholderAccountName,
-          })
-          .onConflictDoUpdate({
-            target: githubInstallations.installationId,
-            set: {
-              userId,
-              accountName: placeholderAccountName,
-              updatedAt: new Date(),
-            },
-          });
-
-        return NextResponse.redirect("/settings?github=connected");
-      } catch (error) {
-        console.error("Failed to store GitHub installation:", error);
-        return NextResponse.redirect(
-          "/settings?github=error&message=installation_failed",
-        );
-      }
+      return NextResponse.redirect(`/settings?${params.toString()}`);
     }
 
     case "request":
