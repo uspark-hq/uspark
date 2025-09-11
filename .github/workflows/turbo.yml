@@ -123,6 +123,9 @@ jobs:
           DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/postgres"
           CLERK_SECRET_KEY: "test_clerk_secret_key"
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "test_clerk_publishable_key"
+          GH_APP_ID: "test_github_app_id"
+          GH_APP_PRIVATE_KEY: "test_github_app_private_key"
+          GH_WEBHOOK_SECRET: "test_github_webhook_secret"
 
   # Deploy web application with database
   deploy-web:
