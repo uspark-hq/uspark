@@ -2,7 +2,7 @@ import type { AppRoute } from "@ts-rest/core";
 
 // DOM 类型定义（用于 Node.js 环境）
 type HeadersInit = Record<string, string> | Headers;
-type BodyInit =
+type RequestBodyInit =
   | string
   | ArrayBuffer
   | Uint8Array
@@ -95,7 +95,7 @@ export async function contractFetch<T extends AppRoute>(
   }
 
   // 构建请求配置
-  const requestInit: RequestInit = {
+  const requestInit: any = {
     method: route.method,
     headers: { ...headers },
     signal,
@@ -105,7 +105,7 @@ export async function contractFetch<T extends AppRoute>(
   if (body !== undefined) {
     if (body instanceof Uint8Array || body instanceof ArrayBuffer) {
       // 二进制数据
-      requestInit.body = body as BodyInit;
+      requestInit.body = body;
     } else if (typeof body === "object") {
       // JSON 数据
       requestInit.body = JSON.stringify(body);
@@ -115,7 +115,7 @@ export async function contractFetch<T extends AppRoute>(
       };
     } else {
       // 字符串或其他数据
-      requestInit.body = body as BodyInit;
+      requestInit.body = body;
     }
   }
 

@@ -5,7 +5,11 @@ import { useRouter } from "next/navigation";
 
 import type { Project } from "@uspark/core";
 import { contractFetch } from "@uspark/core/contract-fetch";
-import { projectsContract } from "@uspark/core/contracts/projects.contract";
+import { 
+  projectsContract, 
+  type ListProjectsResponse, 
+  type CreateProjectResponse 
+} from "@uspark/core/contracts/projects.contract";
 
 export default function ProjectsListPage() {
   const router = useRouter();
@@ -20,7 +24,7 @@ export default function ProjectsListPage() {
   useEffect(() => {
     const loadProjects = async () => {
       try {
-        const data = await contractFetch(projectsContract.listProjects);
+        const data: ListProjectsResponse = await contractFetch(projectsContract.listProjects as any, {});
         setProjects(data.projects || []);
       } catch (err) {
         setError(
@@ -40,7 +44,7 @@ export default function ProjectsListPage() {
     setCreating(true);
 
     try {
-      const newProject = await contractFetch(projectsContract.createProject, {
+      const newProject: CreateProjectResponse = await contractFetch(projectsContract.createProject as any, {
         body: { name: newProjectName.trim() },
       });
 
