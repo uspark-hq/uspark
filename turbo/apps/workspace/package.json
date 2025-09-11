@@ -46,7 +46,7 @@
     "happy-dom": "^18.0.1",
     "knip": "^5.59.1",
     "msw": "^2.9.0",
-    "oxlint": "^1.9.0",
+    "oxlint": "^1.14.0",
     "tailwindcss": "^4.1.8",
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",

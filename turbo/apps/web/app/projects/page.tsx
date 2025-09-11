@@ -18,6 +18,12 @@ import {
 } from "@uspark/ui";
 
 import type { Project } from "@uspark/core";
+import { contractFetch } from "@uspark/core/contract-fetch";
+import {
+  projectsContract,
+  type ListProjectsResponse,
+  type CreateProjectResponse,
+} from "@uspark/core/contracts/projects.contract";
 
 export default function ProjectsListPage() {
   const router = useRouter();
@@ -32,11 +38,11 @@ export default function ProjectsListPage() {
   useEffect(() => {
     const loadProjects = async () => {
       try {
-        const response = await fetch("/api/projects");
-        if (!response.ok) {
-          throw new Error("Failed to load projects");
-        }
-        const data = await response.json();
+        const data: ListProjectsResponse = await contractFetch(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          projectsContract.listProjects as any,
+          {},
+        );
         setProjects(data.projects || []);
       } catch (err) {
         setError(
@@ -56,19 +62,13 @@ export default function ProjectsListPage() {
     setCreating(true);
 
     try {
-      const response = await fetch("/api/projects", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const newProject: CreateProjectResponse = await contractFetch(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        projectsContract.createProject as any,
+        {
+          body: { name: newProjectName.trim() },
         },
-        body: JSON.stringify({ name: newProjectName.trim() }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to create project");
-      }
-
-      const newProject = await response.json();
+      );
 
       // Add to projects list with default updated_at same as created_at
       setProjects((prev) => [
