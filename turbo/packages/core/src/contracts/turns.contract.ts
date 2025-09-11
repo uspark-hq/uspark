@@ -91,14 +91,6 @@ export const GetTurnResponseSchema = z.object({
 });
 export type GetTurnResponse = z.infer<typeof GetTurnResponseSchema>;
 
-// Update turn request
-export const UpdateTurnRequestSchema = z.object({
-  status: TurnStatusSchema.optional(),
-  started_at: z.date().or(z.string()).optional(),
-  completed_at: z.date().or(z.string()).optional(),
-});
-export type UpdateTurnRequest = z.infer<typeof UpdateTurnRequestSchema>;
-
 // Delete turn response
 export const DeleteTurnResponseSchema = z.object({
   success: z.boolean(),
@@ -164,23 +156,6 @@ export const turnsContract = c.router({
       404: TurnErrorResponseSchema,
     },
     summary: "Get a specific turn with its blocks",
-  },
-
-  updateTurn: {
-    method: "PATCH",
-    path: "/api/projects/:projectId/sessions/:sessionId/turns/:turnId",
-    pathParams: z.object({
-      projectId: z.string().startsWith("proj_"),
-      sessionId: z.string().startsWith("sess_"),
-      turnId: z.string().startsWith("turn_"),
-    }),
-    body: UpdateTurnRequestSchema,
-    responses: {
-      200: GetTurnResponseSchema,
-      401: TurnErrorResponseSchema,
-      404: TurnErrorResponseSchema,
-    },
-    summary: "Update a turn",
   },
 
   deleteTurn: {

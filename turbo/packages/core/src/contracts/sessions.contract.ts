@@ -64,13 +64,6 @@ export const GetSessionResponseSchema = z.object({
 });
 export type GetSessionResponse = z.infer<typeof GetSessionResponseSchema>;
 
-// Update session request
-export const UpdateSessionRequestSchema = z.object({
-  title: z.string().optional(),
-  status: SessionStatusSchema.optional(),
-});
-export type UpdateSessionRequest = z.infer<typeof UpdateSessionRequestSchema>;
-
 // Delete session response
 export const DeleteSessionResponseSchema = z.object({
   success: z.boolean(),
@@ -150,22 +143,6 @@ export const sessionsContract = c.router({
       404: SessionErrorResponseSchema,
     },
     summary: "Get a specific session",
-  },
-
-  updateSession: {
-    method: "PATCH",
-    path: "/api/projects/:projectId/sessions/:sessionId",
-    pathParams: z.object({
-      projectId: z.string().startsWith("proj_"),
-      sessionId: z.string().startsWith("sess_"),
-    }),
-    body: UpdateSessionRequestSchema,
-    responses: {
-      200: GetSessionResponseSchema,
-      401: SessionErrorResponseSchema,
-      404: SessionErrorResponseSchema,
-    },
-    summary: "Update a session",
   },
 
   deleteSession: {
