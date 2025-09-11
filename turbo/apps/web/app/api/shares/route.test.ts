@@ -92,7 +92,7 @@ describe("GET /api/shares", () => {
       .where(eq(PROJECTS_TBL.id, projectId));
 
     // Create test shares with unique IDs
-    const timestamp = Date.now();
+    const timestamp = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const share1 = {
       id: `share-1-${timestamp}`,
       token: `token-1-${timestamp}`,
@@ -162,7 +162,7 @@ describe("GET /api/shares", () => {
     const myProjectId = myProjectData.id;
 
     // Create project for other user using direct DB (needed for different user)
-    const otherProjectId = `other-project-${Date.now()}`;
+    const otherProjectId = `other-project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const ydoc = new Y.Doc();
     const state = Y.encodeStateAsUpdate(ydoc);
     const base64Data = Buffer.from(state).toString("base64");
@@ -176,7 +176,7 @@ describe("GET /api/shares", () => {
     });
 
     // Create shares for both users
-    const timestamp = Date.now();
+    const timestamp = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     await globalThis.services.db.insert(SHARE_LINKS_TBL).values([
       {
         id: `my-share-${timestamp}`,
@@ -256,7 +256,7 @@ describe("GET /api/shares", () => {
     const project3 = project3Data.id;
 
     const now = Date.now();
-    const timestamp = now;
+    const timestamp = `${now}-${Math.random().toString(36).substr(2, 9)}`;
     const shares = [
       {
         id: `old-share-${timestamp}`,
