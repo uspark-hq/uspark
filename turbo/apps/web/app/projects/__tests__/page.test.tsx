@@ -4,83 +4,78 @@ import {
   it,
   vi,
   beforeEach,
-  beforeAll,
-  afterAll,
   afterEach,
 } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { useRouter } from "next/navigation";
 import ProjectsListPage from "../page";
-import { setupServer } from "msw/node";
-import { http, HttpResponse } from "msw";
+import { server, http, HttpResponse } from "@/test/msw-setup";
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
 }));
 
-// Setup MSW server
-const server = setupServer(
-  // Default handler for GET /api/projects
-  http.get("*/api/projects", () => {
-    return HttpResponse.json({
-      projects: [
-        {
-          id: "demo-project-123",
-          name: "Demo Project",
-          created_at: new Date(
-            Date.now() - 7 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          updated_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-        },
-        {
-          id: "web-app-456",
-          name: "Web Application",
-          created_at: new Date(
-            Date.now() - 14 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          updated_at: new Date(
-            Date.now() - 1 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-        },
-        {
-          id: "api-service-789",
-          name: "API Service",
-          created_at: new Date(
-            Date.now() - 30 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-          updated_at: new Date(
-            Date.now() - 3 * 24 * 60 * 60 * 1000,
-          ).toISOString(),
-        },
-      ],
-    });
-  }),
-  // Handler for POST /api/projects
-  http.post("*/api/projects", async ({ request }) => {
-    const body = (await request.json()) as { name: string };
-    const newProject = {
-      id: `project-${Date.now()}`,
-      name: body.name,
-      created_at: new Date().toISOString(),
-    };
-    return HttpResponse.json(newProject, { status: 201 });
-  }),
-);
-
 describe("Projects List Page", () => {
   const mockPush = vi.fn();
-
-  beforeAll(() => server.listen());
-  afterEach(() => server.resetHandlers());
-  afterAll(() => server.close());
 
   beforeEach(() => {
     vi.clearAllMocks();
     (useRouter as ReturnType<typeof vi.fn>).mockReturnValue({
       push: mockPush,
     });
+
+    // Set up default handlers for this test suite
+    server.use(
+      // Default handler for GET /api/projects
+      http.get("*/api/projects", () => {
+        return HttpResponse.json({
+          projects: [
+            {
+              id: "demo-project-123",
+              name: "Demo Project",
+              created_at: new Date(
+                Date.now() - 7 * 24 * 60 * 60 * 1000,
+              ).toISOString(),
+              updated_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            },
+            {
+              id: "web-app-456",
+              name: "Web Application",
+              created_at: new Date(
+                Date.now() - 14 * 24 * 60 * 60 * 1000,
+              ).toISOString(),
+              updated_at: new Date(
+                Date.now() - 1 * 24 * 60 * 60 * 1000,
+              ).toISOString(),
+            },
+            {
+              id: "api-service-789",
+              name: "API Service",
+              created_at: new Date(
+                Date.now() - 30 * 24 * 60 * 60 * 1000,
+              ).toISOString(),
+              updated_at: new Date(
+                Date.now() - 3 * 24 * 60 * 60 * 1000,
+              ).toISOString(),
+            },
+          ],
+        });
+      }),
+      // Handler for POST /api/projects
+      http.post("*/api/projects", async ({ request }) => {
+        const body = (await request.json()) as { name: string };
+        const newProject = {
+          id: `project-${Date.now()}`,
+          name: body.name,
+          created_at: new Date().toISOString(),
+        };
+        return HttpResponse.json(newProject, { status: 201 });
+      }),
+    );
   });
+
+  afterEach(() => server.resetHandlers());
 
   it("renders page header correctly", async () => {
     render(<ProjectsListPage />);
