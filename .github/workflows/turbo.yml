@@ -18,6 +18,7 @@ jobs:
       web-changed: ${{ steps.detect.outputs.web-changed }}
       docs-changed: ${{ steps.detect.outputs.docs-changed }}
       cli-changed: ${{ steps.detect.outputs.cli-changed }}
+      workspace-changed: ${{ steps.detect.outputs.workspace-changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -35,6 +36,7 @@ jobs:
             echo "web-changed=true" >> $GITHUB_OUTPUT
             echo "docs-changed=true" >> $GITHUB_OUTPUT
             echo "cli-changed=true" >> $GITHUB_OUTPUT
+            echo "workspace-changed=true" >> $GITHUB_OUTPUT
             exit 0
           fi
           
@@ -69,6 +71,16 @@ jobs:
           else
             echo "Changes detected in CLI app"
             echo "cli-changed=true" >> $GITHUB_OUTPUT
+          fi
+          
+          # Check workspace app
+          cd ../workspace
+          if npx turbo-ignore; then
+            echo "No changes detected in workspace app"
+            echo "workspace-changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in workspace app"
+            echo "workspace-changed=true" >> $GITHUB_OUTPUT
           fi
 
   lint:
@@ -183,6 +195,34 @@ jobs:
           vercel-project-id: ${{ vars.VERCEL_PROJECT_ID_DOCS }}
           environment: preview
           deployment-env: docs
+          meta-branch: ${{ github.head_ref }}
+          meta-pr: ${{ github.event.pull_request.number }}
+
+  # Deploy workspace application
+  deploy-workspace:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
+    needs: [change-detection]
+    # Only deploy if it's a PR and workspace changed
+    if: github.event_name == 'pull_request' && needs.change-detection.outputs.workspace-changed == 'true'
+    permissions:
+      contents: read
+      pull-requests: write
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/toolchain-init
+
+      - name: Deploy Workspace to Vercel
+        id: deploy
+        uses: ./.github/actions/vercel-deploy
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ vars.VERCEL_TEAM_ID }}
+          vercel-project-id: ${{ vars.VERCEL_PROJECT_ID_WORKSPACE }}
+          environment: preview
+          deployment-env: workspace
           meta-branch: ${{ github.head_ref }}
           meta-pr: ${{ github.event.pull_request.number }}
 
