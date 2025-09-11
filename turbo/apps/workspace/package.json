@@ -4,6 +4,8 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "dev": "vite",
+    "build": "vite build",
     "lint": "oxlint && eslint .",
     "check-types": "tsc --noEmit"
   },
