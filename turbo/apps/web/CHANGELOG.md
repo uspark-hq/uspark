@@ -2,113 +2,98 @@
 
 ## [0.17.1](https://github.com/uspark-hq/uspark/compare/web-v0.17.0...web-v0.17.1) (2025-09-08)
 
-
 ### Bug Fixes
 
-* install claude-code cli properly in e2b dockerfile ([#214](https://github.com/uspark-hq/uspark/issues/214)) ([7f9e068](https://github.com/uspark-hq/uspark/commit/7f9e068c9effb246dc6d7c28ed52c6debd62f28f))
+- install claude-code cli properly in e2b dockerfile ([#214](https://github.com/uspark-hq/uspark/issues/214)) ([7f9e068](https://github.com/uspark-hq/uspark/commit/7f9e068c9effb246dc6d7c28ed52c6debd62f28f))
 
 ## [0.17.0](https://github.com/uspark-hq/uspark/compare/web-v0.16.0...web-v0.17.0) (2025-09-08)
 
-
 ### Features
 
-* add E2B API key to deployment workflows ([#209](https://github.com/uspark-hq/uspark/issues/209)) ([bf3fd21](https://github.com/uspark-hq/uspark/commit/bf3fd212e6c755081762b2ad490c1981d407b885))
-* redesign homepage based on Product Hunt landing page insights ([#206](https://github.com/uspark-hq/uspark/issues/206)) ([b2428f7](https://github.com/uspark-hq/uspark/commit/b2428f7429dea786cc773969920339bf74aaa8ee))
-
+- add E2B API key to deployment workflows ([#209](https://github.com/uspark-hq/uspark/issues/209)) ([bf3fd21](https://github.com/uspark-hq/uspark/commit/bf3fd212e6c755081762b2ad490c1981d407b885))
+- redesign homepage based on Product Hunt landing page insights ([#206](https://github.com/uspark-hq/uspark/issues/206)) ([b2428f7](https://github.com/uspark-hq/uspark/commit/b2428f7429dea786cc773969920339bf74aaa8ee))
 
 ### Bug Fixes
 
-* align animated demo content to left for better visual consistency ([#211](https://github.com/uspark-hq/uspark/issues/211)) ([4a2cc72](https://github.com/uspark-hq/uspark/commit/4a2cc72bb29256dde9d649ff8524e257d1eaf7b9))
-* update all urls from app.uspark.com to uspark.ai ([#208](https://github.com/uspark-hq/uspark/issues/208)) ([5f50e4b](https://github.com/uspark-hq/uspark/commit/5f50e4b3588569d0000fd2873569d1780c4cfab5))
+- align animated demo content to left for better visual consistency ([#211](https://github.com/uspark-hq/uspark/issues/211)) ([4a2cc72](https://github.com/uspark-hq/uspark/commit/4a2cc72bb29256dde9d649ff8524e257d1eaf7b9))
+- update all urls from app.uspark.com to uspark.ai ([#208](https://github.com/uspark-hq/uspark/issues/208)) ([5f50e4b](https://github.com/uspark-hq/uspark/commit/5f50e4b3588569d0000fd2873569d1780c4cfab5))
 
 ## [0.16.0](https://github.com/uspark-hq/uspark/compare/web-v0.15.0...web-v0.16.0) (2025-09-08)
 
-
 ### Features
 
-* implement share management functionality ([#173](https://github.com/uspark-hq/uspark/issues/173)) ([36dd0e4](https://github.com/uspark-hq/uspark/commit/36dd0e4d688fd002bbb67a5a98a4318f5496ed78))
+- implement share management functionality ([#173](https://github.com/uspark-hq/uspark/issues/173)) ([36dd0e4](https://github.com/uspark-hq/uspark/commit/36dd0e4d688fd002bbb67a5a98a4318f5496ed78))
 
 ## [0.15.0](https://github.com/uspark-hq/uspark/compare/web-v0.14.0...web-v0.15.0) (2025-09-07)
 
-
 ### Features
 
-* update claude workflow to use project toolchain container ([#192](https://github.com/uspark-hq/uspark/issues/192)) ([33a0991](https://github.com/uspark-hq/uspark/commit/33a0991aed4ce2ad3b08e3ead71df28a653a2ab1))
+- update claude workflow to use project toolchain container ([#192](https://github.com/uspark-hq/uspark/issues/192)) ([33a0991](https://github.com/uspark-hq/uspark/commit/33a0991aed4ce2ad3b08e3ead71df28a653a2ab1))
 
 ## [0.14.0](https://github.com/uspark-hq/uspark/compare/web-v0.13.0...web-v0.14.0) (2025-09-06)
 
-
 ### Features
 
-* implement claude session management system ([#175](https://github.com/uspark-hq/uspark/issues/175)) ([4685547](https://github.com/uspark-hq/uspark/commit/4685547f5b7368655ec11ce73219fb01c2f2617d))
-* implement complete document share management system ([#171](https://github.com/uspark-hq/uspark/issues/171)) ([d50b99c](https://github.com/uspark-hq/uspark/commit/d50b99c6a64706793c6802a98d88c4bef8eaabbe))
-* implement complete document share management system ([#185](https://github.com/uspark-hq/uspark/issues/185)) ([4ade8bc](https://github.com/uspark-hq/uspark/commit/4ade8bca9ff5f97c7bce3b848742288bb0890ce2))
-
+- implement claude session management system ([#175](https://github.com/uspark-hq/uspark/issues/175)) ([4685547](https://github.com/uspark-hq/uspark/commit/4685547f5b7368655ec11ce73219fb01c2f2617d))
+- implement complete document share management system ([#171](https://github.com/uspark-hq/uspark/issues/171)) ([d50b99c](https://github.com/uspark-hq/uspark/commit/d50b99c6a64706793c6802a98d88c4bef8eaabbe))
+- implement complete document share management system ([#185](https://github.com/uspark-hq/uspark/issues/185)) ([4ade8bc](https://github.com/uspark-hq/uspark/commit/4ade8bca9ff5f97c7bce3b848742288bb0890ce2))
 
 ### Bug Fixes
 
-* correct technical debt cleanup keeping ts-rest/core ([#177](https://github.com/uspark-hq/uspark/issues/177)) ([87c676f](https://github.com/uspark-hq/uspark/commit/87c676f57a5a5c51ceb22d7f9d2600e521f6518c))
-
+- correct technical debt cleanup keeping ts-rest/core ([#177](https://github.com/uspark-hq/uspark/issues/177)) ([87c676f](https://github.com/uspark-hq/uspark/commit/87c676f57a5a5c51ceb22d7f9d2600e521f6518c))
 
 ### Dependencies
 
-* The following workspace dependencies were updated
-  * dependencies
-    * @uspark/core bumped to 0.9.2
+- The following workspace dependencies were updated
+  - dependencies
+    - @uspark/core bumped to 0.9.2
 
 ## [0.13.0](https://github.com/uspark-hq/uspark/compare/web-v0.12.0...web-v0.13.0) (2025-09-05)
 
-
 ### Features
 
-* implement blob storage security with project isolation ([#159](https://github.com/uspark-hq/uspark/issues/159)) ([ea6c094](https://github.com/uspark-hq/uspark/commit/ea6c0945c39b908666a176c8d3385e6b76b580ef))
+- implement blob storage security with project isolation ([#159](https://github.com/uspark-hq/uspark/issues/159)) ([ea6c094](https://github.com/uspark-hq/uspark/commit/ea6c0945c39b908666a176c8d3385e6b76b580ef))
 
 ## [0.12.0](https://github.com/uspark-hq/uspark/compare/web-v0.11.1...web-v0.12.0) (2025-09-05)
 
-
 ### Features
 
-* **cli:** enhance push command with batch upload support ([#113](https://github.com/uspark-hq/uspark/issues/113)) ([be8f842](https://github.com/uspark-hq/uspark/commit/be8f842929d1c2f8cd45073083f92a159ec8be88))
+- **cli:** enhance push command with batch upload support ([#113](https://github.com/uspark-hq/uspark/issues/113)) ([be8f842](https://github.com/uspark-hq/uspark/commit/be8f842929d1c2f8cd45073083f92a159ec8be88))
 
 ## [0.11.1](https://github.com/uspark-hq/uspark/compare/web-v0.11.0...web-v0.11.1) (2025-09-05)
 
-
 ### Bug Fixes
 
-* replace hardcoded delay with dynamic polling interval in cli auth ([#132](https://github.com/uspark-hq/uspark/issues/132)) ([e5a6aed](https://github.com/uspark-hq/uspark/commit/e5a6aeda27cdf0678c0dc56ce4c16435621d1c47))
-* replace hardcoded userId with Clerk authentication in project API ([#131](https://github.com/uspark-hq/uspark/issues/131)) ([12dcb26](https://github.com/uspark-hq/uspark/commit/12dcb261180fc424afbf67c6c0efcc77da4c45bd))
-
+- replace hardcoded delay with dynamic polling interval in cli auth ([#132](https://github.com/uspark-hq/uspark/issues/132)) ([e5a6aed](https://github.com/uspark-hq/uspark/commit/e5a6aeda27cdf0678c0dc56ce4c16435621d1c47))
+- replace hardcoded userId with Clerk authentication in project API ([#131](https://github.com/uspark-hq/uspark/issues/131)) ([12dcb26](https://github.com/uspark-hq/uspark/commit/12dcb261180fc424afbf67c6c0efcc77da4c45bd))
 
 ### Dependencies
 
-* The following workspace dependencies were updated
-  * dependencies
-    * @uspark/core bumped to 0.9.1
+- The following workspace dependencies were updated
+  - dependencies
+    - @uspark/core bumped to 0.9.1
 
 ## [0.11.0](https://github.com/uspark-hq/uspark/compare/web-v0.10.0...web-v0.11.0) (2025-09-04)
 
-
 ### Features
 
-* add agent_sessions and share_links database tables ([#102](https://github.com/uspark-hq/uspark/issues/102)) ([7799ed0](https://github.com/uspark-hq/uspark/commit/7799ed070cfbfd1834cedf3aa4f8f2109e24bc7c))
-* add cli token management page ([#103](https://github.com/uspark-hq/uspark/issues/103)) ([ca4cd76](https://github.com/uspark-hq/uspark/commit/ca4cd76b54435d6f6145c48e34ad7cad019a6178))
-* implement document sharing apis with single-file support ([#101](https://github.com/uspark-hq/uspark/issues/101)) ([8b39a74](https://github.com/uspark-hq/uspark/commit/8b39a74c78858480a09b55873fc2313c0ed27900))
-* implement file explorer component with YJS integration ([#107](https://github.com/uspark-hq/uspark/issues/107)) ([9b8f8ed](https://github.com/uspark-hq/uspark/commit/9b8f8ed515fc943d989ed66d256a096293f073e3))
-* implement project management apis with client-side file parsing ([#99](https://github.com/uspark-hq/uspark/issues/99)) ([f5aef77](https://github.com/uspark-hq/uspark/commit/f5aef7756b699ef3c4c69b422fb8fab093fa5012))
-* implement public document share viewer page ([#106](https://github.com/uspark-hq/uspark/issues/106)) ([41e4ac8](https://github.com/uspark-hq/uspark/commit/41e4ac84f76c49aa780f7b5b4ead52dc4a820e6d))
-
+- add agent_sessions and share_links database tables ([#102](https://github.com/uspark-hq/uspark/issues/102)) ([7799ed0](https://github.com/uspark-hq/uspark/commit/7799ed070cfbfd1834cedf3aa4f8f2109e24bc7c))
+- add cli token management page ([#103](https://github.com/uspark-hq/uspark/issues/103)) ([ca4cd76](https://github.com/uspark-hq/uspark/commit/ca4cd76b54435d6f6145c48e34ad7cad019a6178))
+- implement document sharing apis with single-file support ([#101](https://github.com/uspark-hq/uspark/issues/101)) ([8b39a74](https://github.com/uspark-hq/uspark/commit/8b39a74c78858480a09b55873fc2313c0ed27900))
+- implement file explorer component with YJS integration ([#107](https://github.com/uspark-hq/uspark/issues/107)) ([9b8f8ed](https://github.com/uspark-hq/uspark/commit/9b8f8ed515fc943d989ed66d256a096293f073e3))
+- implement project management apis with client-side file parsing ([#99](https://github.com/uspark-hq/uspark/issues/99)) ([f5aef77](https://github.com/uspark-hq/uspark/commit/f5aef7756b699ef3c4c69b422fb8fab093fa5012))
+- implement public document share viewer page ([#106](https://github.com/uspark-hq/uspark/issues/106)) ([41e4ac8](https://github.com/uspark-hq/uspark/commit/41e4ac84f76c49aa780f7b5b4ead52dc4a820e6d))
 
 ### Bug Fixes
 
-* improve test stability by fixing cleanup and assertions ([#124](https://github.com/uspark-hq/uspark/issues/124)) ([39488b8](https://github.com/uspark-hq/uspark/commit/39488b8465a9b835485c2798cb73591fc07ff28d))
-* remove hardcoded delays from production code and tests ([#117](https://github.com/uspark-hq/uspark/issues/117)) ([a1ef57b](https://github.com/uspark-hq/uspark/commit/a1ef57befdd10f3a2006e9f136a9195938d84a1b))
-
+- improve test stability by fixing cleanup and assertions ([#124](https://github.com/uspark-hq/uspark/issues/124)) ([39488b8](https://github.com/uspark-hq/uspark/commit/39488b8465a9b835485c2798cb73591fc07ff28d))
+- remove hardcoded delays from production code and tests ([#117](https://github.com/uspark-hq/uspark/issues/117)) ([a1ef57b](https://github.com/uspark-hq/uspark/commit/a1ef57befdd10f3a2006e9f136a9195938d84a1b))
 
 ### Dependencies
 
-* The following workspace dependencies were updated
-  * dependencies
-    * @uspark/core bumped to 0.9.0
+- The following workspace dependencies were updated
+  - dependencies
+    - @uspark/core bumped to 0.9.0
 
 ## [0.10.0](https://github.com/uspark-hq/uspark/compare/web-v0.9.0...web-v0.10.0) (2025-09-04)
 
