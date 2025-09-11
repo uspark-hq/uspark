@@ -43,21 +43,25 @@ const simpleContract = c.router({
 describe("contractFetch simple test", () => {
   it("should have correct type inference", () => {
     // 这个测试只验证类型推断，不执行实际的 fetch
-    type GetUserResult = Awaited<ReturnType<typeof contractFetch<typeof simpleContract.getUser>>>;
-    type CreateUserResult = Awaited<ReturnType<typeof contractFetch<typeof simpleContract.createUser>>>;
-    
+    type GetUserResult = Awaited<
+      ReturnType<typeof contractFetch<typeof simpleContract.getUser>>
+    >;
+    type CreateUserResult = Awaited<
+      ReturnType<typeof contractFetch<typeof simpleContract.createUser>>
+    >;
+
     // 验证类型推断是否正确
     const assertGetUserType: GetUserResult = {
       id: "123",
       name: "Test User",
     };
-    
+
     const assertCreateUserType: CreateUserResult = {
       id: "456",
       name: "New User",
       email: "test@example.com",
     };
-    
+
     expect(assertGetUserType).toBeDefined();
     expect(assertCreateUserType).toBeDefined();
   });
@@ -75,15 +79,15 @@ describe("contractFetch simple test", () => {
       expect(error).toBeDefined();
     }
   });
-  
+
   it("should handle ContractFetchError type", () => {
     const error = new ContractFetchError(
       "Test error",
       404,
       { error: "not_found" },
-      new Response()
+      new Response(),
     );
-    
+
     expect(error).toBeInstanceOf(ContractFetchError);
     expect(error.status).toBe(404);
     expect(error.data).toEqual({ error: "not_found" });

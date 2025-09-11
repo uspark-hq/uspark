@@ -27,16 +27,18 @@ const testContract = c.router({
     pathParams: z.object({
       id: z.string(),
     }),
-    query: z.object({
-      include: z.string().optional(),
-      limit: z.number().optional(),
-    }).optional(),
+    query: z
+      .object({
+        include: z.string().optional(),
+        limit: z.number().optional(),
+      })
+      .optional(),
     responses: {
       200: TestResponseSchema,
       404: TestErrorSchema,
     },
   },
-  
+
   // POST endpoint
   createItem: {
     method: "POST",
@@ -50,7 +52,7 @@ const testContract = c.router({
       400: TestErrorSchema,
     },
   },
-  
+
   // Binary response endpoint
   getBinary: {
     method: "GET",
@@ -62,7 +64,7 @@ const testContract = c.router({
       200: z.any(), // Binary data
     },
   },
-  
+
   // PATCH with binary body
   updateBinary: {
     method: "PATCH",
@@ -86,22 +88,22 @@ const server = setupServer();
 describe("contractFetch with MSW", () => {
   // 启动 MSW server
   beforeAll(() => server.listen());
-  
+
   // 每个测试后重置 handlers
   afterEach(() => server.resetHandlers());
-  
+
   // 关闭 server
   afterAll(() => server.close());
 
   describe("GET requests", () => {
     it("should make GET request and return typed response", async () => {
       const mockResponse = { id: "123", name: "Test Item", count: 5 };
-      
+
       // 设置 MSW handler
       server.use(
         http.get(`${BASE_URL}/api/items/123`, () => {
           return HttpResponse.json(mockResponse);
-        })
+        }),
       );
 
       const result = await contractFetch(testContract.getItem, {
@@ -118,19 +120,19 @@ describe("contractFetch with MSW", () => {
 
     it("should handle query parameters", async () => {
       const mockResponse = { id: "1", name: "Test", count: 10 };
-      
+
       server.use(
         http.get(`${BASE_URL}/api/items/1`, ({ request }) => {
           const url = new URL(request.url);
           const include = url.searchParams.get("include");
           const limit = url.searchParams.get("limit");
-          
+
           // 验证查询参数
           expect(include).toBe("details");
           expect(limit).toBe("10");
-          
+
           return HttpResponse.json(mockResponse);
-        })
+        }),
       );
 
       const result = await contractFetch(testContract.getItem, {
@@ -144,11 +146,11 @@ describe("contractFetch with MSW", () => {
 
     it("should work with different baseUrl", async () => {
       const mockResponse = { id: "1", name: "Test", count: 1 };
-      
+
       server.use(
         http.get("https://api.example.com/api/items/1", () => {
           return HttpResponse.json(mockResponse);
-        })
+        }),
       );
 
       const result = await contractFetch(testContract.getItem, {
@@ -164,16 +166,16 @@ describe("contractFetch with MSW", () => {
     it("should make POST request with JSON body", async () => {
       const requestBody = { name: "New Item", count: 42 };
       const mockResponse = { id: "456", name: "New Item", count: 42 };
-      
+
       server.use(
         http.post(`${BASE_URL}/api/items`, async ({ request }) => {
           const body = await request.json();
-          
+
           // 验证请求体
           expect(body).toEqual(requestBody);
-          
+
           return HttpResponse.json(mockResponse, { status: 201 });
-        })
+        }),
       );
 
       const result = await contractFetch(testContract.createItem, {
@@ -188,18 +190,18 @@ describe("contractFetch with MSW", () => {
 
     it("should include custom headers", async () => {
       const mockResponse = { id: "1", name: "Test", count: 1 };
-      
+
       server.use(
         http.post(`${BASE_URL}/api/items`, async ({ request }) => {
           const authHeader = request.headers.get("Authorization");
           const customHeader = request.headers.get("X-Custom-Header");
-          
+
           // 验证自定义 headers
           expect(authHeader).toBe("Bearer token123");
           expect(customHeader).toBe("custom-value");
-          
+
           return HttpResponse.json(mockResponse, { status: 201 });
-        })
+        }),
       );
 
       const result = await contractFetch(testContract.createItem, {
@@ -218,11 +220,11 @@ describe("contractFetch with MSW", () => {
   describe("Path parameters", () => {
     it("should replace path parameters correctly", async () => {
       const mockResponse = { id: "abc", name: "Test", count: 1 };
-      
+
       server.use(
         http.get(`${BASE_URL}/api/items/abc`, () => {
           return HttpResponse.json(mockResponse);
-        })
+        }),
       );
 
       const result = await contractFetch(testContract.getItem, {
@@ -235,12 +237,12 @@ describe("contractFetch with MSW", () => {
 
     it("should encode special characters in path parameters", async () => {
       const mockResponse = { id: "test/123", name: "Test", count: 1 };
-      
+
       server.use(
         // MSW 会自动解码，所以我们匹配解码后的路径
         http.get(`${BASE_URL}/api/items/test%2F123`, () => {
           return HttpResponse.json(mockResponse);
-        })
+        }),
       );
 
       const result = await contractFetch(testContract.getItem, {
@@ -262,14 +264,14 @@ describe("contractFetch with MSW", () => {
       server.use(
         http.get(`${BASE_URL}/api/items/999`, () => {
           return HttpResponse.json(errorResponse, { status: 404 });
-        })
+        }),
       );
 
       await expect(
         contractFetch(testContract.getItem, {
           baseUrl: BASE_URL,
           params: { id: "999" },
-        })
+        }),
       ).rejects.toThrow(ContractFetchError);
 
       try {
@@ -296,14 +298,14 @@ describe("contractFetch with MSW", () => {
       server.use(
         http.post(`${BASE_URL}/api/items`, () => {
           return HttpResponse.json(errorResponse, { status: 400 });
-        })
+        }),
       );
 
       await expect(
         contractFetch(testContract.createItem, {
           baseUrl: BASE_URL,
           body: { name: "", count: -1 },
-        })
+        }),
       ).rejects.toThrow(ContractFetchError);
     });
 
@@ -314,7 +316,7 @@ describe("contractFetch with MSW", () => {
             status: 500,
             headers: { "Content-Type": "text/plain" },
           });
-        })
+        }),
       );
 
       try {
@@ -335,13 +337,13 @@ describe("contractFetch with MSW", () => {
   describe("Binary data", () => {
     it("should handle binary response", async () => {
       const binaryData = new Uint8Array([1, 2, 3, 4, 5]);
-      
+
       server.use(
         http.get(`${BASE_URL}/api/binary/binary123`, () => {
           return new HttpResponse(binaryData, {
             headers: { "Content-Type": "application/octet-stream" },
           });
-        })
+        }),
       );
 
       const result = await contractFetch(testContract.getBinary, {
@@ -357,17 +359,17 @@ describe("contractFetch with MSW", () => {
 
     it("should handle binary request body", async () => {
       const binaryData = new Uint8Array([10, 20, 30]);
-      
+
       server.use(
         http.patch(`${BASE_URL}/api/binary/bin456`, async ({ request }) => {
           const body = await request.arrayBuffer();
           const view = new Uint8Array(body);
-          
+
           // 验证二进制请求体
           expect(view).toEqual(binaryData);
-          
+
           return HttpResponse.json({ success: true });
-        })
+        }),
       );
 
       const result = await contractFetch(testContract.updateBinary, {
@@ -383,13 +385,13 @@ describe("contractFetch with MSW", () => {
   describe("Abort signal", () => {
     it("should handle request cancellation", async () => {
       const controller = new AbortController();
-      
+
       server.use(
         http.get(`${BASE_URL}/api/items/slow`, async () => {
           // 模拟慢速响应
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise((resolve) => setTimeout(resolve, 100));
           return HttpResponse.json({ id: "slow", name: "Slow", count: 1 });
-        })
+        }),
       );
 
       // 立即取消请求
@@ -400,7 +402,7 @@ describe("contractFetch with MSW", () => {
           baseUrl: BASE_URL,
           params: { id: "slow" },
           signal: controller.signal,
-        })
+        }),
       ).rejects.toThrow();
     });
   });
@@ -410,7 +412,7 @@ describe("contractFetch with MSW", () => {
       server.use(
         http.get(`${BASE_URL}/api/items/1`, () => {
           return HttpResponse.json({ id: "1", name: "Test", count: 5 });
-        })
+        }),
       );
 
       const result = await contractFetch(testContract.getItem, {
@@ -423,7 +425,7 @@ describe("contractFetch with MSW", () => {
       expect(typeof result.id).toBe("string");
       expect(typeof result.name).toBe("string");
       expect(typeof result.count).toBe("number");
-      
+
       // 验证值
       expect(result.id).toBe("1");
       expect(result.name).toBe("Test");
@@ -439,15 +441,18 @@ describe("contractFetch with MSW", () => {
         name: "My Project",
         created_at: new Date().toISOString(),
       };
-      
+
       server.use(
         http.post(`${BASE_URL}/api/projects`, async ({ request }) => {
-          const body = await request.json() as { name: string };
-          return HttpResponse.json({
-            ...projectResponse,
-            name: body.name,
-          }, { status: 201 });
-        })
+          const body = (await request.json()) as { name: string };
+          return HttpResponse.json(
+            {
+              ...projectResponse,
+              name: body.name,
+            },
+            { status: 201 },
+          );
+        }),
       );
 
       // 创建一个简化的项目合约用于测试

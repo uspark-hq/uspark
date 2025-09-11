@@ -2,7 +2,13 @@ import type { AppRoute } from "@ts-rest/core";
 
 // DOM 类型定义（用于 Node.js 环境）
 type HeadersInit = Record<string, string> | Headers;
-type BodyInit = string | ArrayBuffer | Uint8Array | Blob | FormData | URLSearchParams;
+type BodyInit =
+  | string
+  | ArrayBuffer
+  | Uint8Array
+  | Blob
+  | FormData
+  | URLSearchParams;
 
 /**
  * 从合约响应中推断成功响应类型
@@ -15,31 +21,30 @@ type InferSuccessResponse<T extends AppRoute> = T["responses"] extends {
   ? R200 extends object
     ? R200
     : R201 extends object
-    ? R201
-    : R204 extends object
-    ? R204
-    : never
+      ? R201
+      : R204 extends object
+        ? R204
+        : never
   : never;
-
 
 /**
  * 执行 fetch 并自动反序列化为合约定义的类型
- * 
+ *
  * @example
  * ```typescript
  * import { contractFetch } from "@uspark/core/contract-fetch";
  * import { projectsContract } from "@uspark/core/contracts/projects.contract";
- * 
+ *
  * // 简单调用 - 返回类型安全的响应
  * const projects = await contractFetch(projectsContract.listProjects);
  * console.log(projects.projects); // 完全类型安全
- * 
+ *
  * // 带参数调用
  * const project = await contractFetch(projectsContract.createProject, {
  *   body: { name: "My Project" }
  * });
  * console.log(project.id); // 类型安全的 CreateProjectResponse
- * 
+ *
  * // 带错误处理
  * try {
  *   const data = await contractFetch(projectsContract.getProjectSnapshot, {
@@ -61,7 +66,7 @@ export async function contractFetch<T extends AppRoute>(
     query?: Record<string, unknown>;
     headers?: HeadersInit;
     signal?: AbortSignal;
-  } = {}
+  } = {},
 ): Promise<InferSuccessResponse<T>> {
   const { baseUrl = "", body, params, query, headers = {}, signal } = options;
 
@@ -119,16 +124,16 @@ export async function contractFetch<T extends AppRoute>(
 
   // 处理响应
   const contentType = response.headers.get("content-type");
-  
+
   // 对于成功响应
   if (response.ok) {
     // 如果是二进制数据
     if (!contentType || !contentType.includes("application/json")) {
       // 对于二进制响应（如 YJS 数据），直接返回 ArrayBuffer
       // 对于二进制响应，返回 ArrayBuffer，类型系统会处理
-      return await response.arrayBuffer() as InferSuccessResponse<T>;
+      return (await response.arrayBuffer()) as InferSuccessResponse<T>;
     }
-    
+
     // JSON 响应
     const data = await response.json();
     return data as InferSuccessResponse<T>;
@@ -136,7 +141,7 @@ export async function contractFetch<T extends AppRoute>(
 
   // 对于错误响应，抛出包含类型信息的错误
   let errorData: unknown = { error: "request_failed" };
-  
+
   if (contentType?.includes("application/json")) {
     try {
       errorData = await response.json();
@@ -150,9 +155,9 @@ export async function contractFetch<T extends AppRoute>(
     `Request failed with status ${response.status}`,
     response.status,
     errorData,
-    response
+    response,
   );
-  
+
   throw error;
 }
 
@@ -164,10 +169,9 @@ export class ContractFetchError<T = unknown> extends Error {
     message: string,
     public status: number,
     public data: T,
-    public response: Response
+    public response: Response,
   ) {
     super(message);
     this.name = "ContractFetchError";
   }
 }
-
