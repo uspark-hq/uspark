@@ -25,6 +25,7 @@ export default function ProjectsListPage() {
     const loadProjects = async () => {
       try {
         const data: ListProjectsResponse = await contractFetch(
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           projectsContract.listProjects as any,
           {},
         );
@@ -48,6 +49,7 @@ export default function ProjectsListPage() {
 
     try {
       const newProject: CreateProjectResponse = await contractFetch(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         projectsContract.createProject as any,
         {
           body: { name: newProjectName.trim() },

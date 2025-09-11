@@ -90,9 +90,9 @@ export async function contractFetch<T extends AppRoute>(
   // 构建请求配置
   const requestInit: {
     method: string;
-    headers: Record<string, string>;
+    headers: HeadersInit;
     signal?: AbortSignal;
-    body?: unknown;
+    body?: BodyInit | null;
   } = {
     method: route.method,
     headers: { ...headers },
@@ -103,7 +103,7 @@ export async function contractFetch<T extends AppRoute>(
   if (body !== undefined) {
     if (body instanceof Uint8Array || body instanceof ArrayBuffer) {
       // 二进制数据
-      requestInit.body = body;
+      requestInit.body = body as BodyInit;
     } else if (typeof body === "object") {
       // JSON 数据
       requestInit.body = JSON.stringify(body);
@@ -113,7 +113,7 @@ export async function contractFetch<T extends AppRoute>(
       };
     } else {
       // 字符串或其他数据
-      requestInit.body = body;
+      requestInit.body = body as BodyInit;
     }
   }
 
