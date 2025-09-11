@@ -23,7 +23,7 @@ const setupAuthPageWrapper = (
 
 const ROUTE_CONFIG = [
   {
-    path: '/workspace',
+    path: '/',
     setup: setupAuthPageWrapper(setupWorkspacePage$),
   },
   {

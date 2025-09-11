@@ -4,7 +4,7 @@ export function ProjectPage() {
   return (
     <>
       <div>Project Page</div>
-      <Link pathname="/workspace">Go to Workspace</Link>
+      <Link pathname="/">Go to Workspace</Link>
     </>
   )
 }

@@ -6,7 +6,7 @@ const context = testContext()
 
 describe('homePage', () => {
   beforeEach(async () => {
-    await setupPage('/workspace', context)
+    await setupPage('/', context)
   })
 
   afterEach(() => {
