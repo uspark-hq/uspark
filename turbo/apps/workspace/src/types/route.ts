@@ -1,1 +1,1 @@
-export type RoutePath = '/workspace' | '/projects/:id'
+export type RoutePath = '/' | '/projects/:id'

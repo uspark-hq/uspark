@@ -21,6 +21,6 @@ describe('projectPage', () => {
     expect(back).toBeInTheDocument()
     await user.click(back)
 
-    expect(context.store.get(pathname$)).toBe('/workspace')
+    expect(context.store.get(pathname$)).toBe('/')
   })
 })
