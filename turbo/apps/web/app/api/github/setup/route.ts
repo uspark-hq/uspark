@@ -12,7 +12,8 @@ export async function GET(request: NextRequest) {
 
   const { userId } = await auth();
   if (!userId) {
-    return NextResponse.redirect("/sign-in");
+    const redirectUrl = new URL("/sign-in", request.url);
+    return NextResponse.redirect(redirectUrl);
   }
 
   const { searchParams } = new URL(request.url);
@@ -22,63 +23,68 @@ export async function GET(request: NextRequest) {
 
   // Verify state parameter matches current user (if provided)
   if (state && state !== userId) {
-    return NextResponse.redirect(
+    const redirectUrl = new URL(
       "/settings?github=error&message=invalid_state",
+      request.url,
     );
+    return NextResponse.redirect(redirectUrl);
   }
 
   switch (setupAction) {
     case "install": {
       if (!installationIdStr) {
-        return NextResponse.redirect(
+        const redirectUrl = new URL(
           "/settings?github=error&message=missing_installation_id",
+          request.url,
         );
+        return NextResponse.redirect(redirectUrl);
       }
 
       const installationId = parseInt(installationIdStr, 10);
       const placeholderAccountName = `installation-${installationId}`;
 
-      try {
-        // For MVP, we'll store the installation with a placeholder account name
-        // In Task 4, we'll implement proper GitHub API calls to get the real account name
+      // For MVP, we'll store the installation with a placeholder account name
+      // In Task 4, we'll implement proper GitHub API calls to get the real account name
 
-        // Store installation in database (idempotent operation)
-        await globalThis.services.db
-          .insert(githubInstallations)
-          .values({
+      // Store installation in database (idempotent operation)
+      await globalThis.services.db
+        .insert(githubInstallations)
+        .values({
+          userId,
+          installationId,
+          accountName: placeholderAccountName,
+        })
+        .onConflictDoUpdate({
+          target: githubInstallations.installationId,
+          set: {
             userId,
-            installationId,
             accountName: placeholderAccountName,
-          })
-          .onConflictDoUpdate({
-            target: githubInstallations.installationId,
-            set: {
-              userId,
-              accountName: placeholderAccountName,
-              updatedAt: new Date(),
-            },
-          });
+            updatedAt: new Date(),
+          },
+        });
 
-        return NextResponse.redirect("/settings?github=connected");
-      } catch (error) {
-        console.error("Failed to store GitHub installation:", error);
-        return NextResponse.redirect(
-          "/settings?github=error&message=installation_failed",
-        );
-      }
+      const successUrl = new URL("/settings?github=connected", request.url);
+      return NextResponse.redirect(successUrl);
     }
 
-    case "request":
+    case "request": {
       // Organization admin needs to approve the installation
-      return NextResponse.redirect("/settings?github=pending");
+      const pendingUrl = new URL("/settings?github=pending", request.url);
+      return NextResponse.redirect(pendingUrl);
+    }
 
-    case "update":
+    case "update": {
       // Installation permissions were updated
-      return NextResponse.redirect("/settings?github=updated");
+      const updatedUrl = new URL("/settings?github=updated", request.url);
+      return NextResponse.redirect(updatedUrl);
+    }
 
-    default:
-      return NextResponse.redirect(
+    default: {
+      const errorUrl = new URL(
         "/settings?github=error&message=unknown_action",
+        request.url,
       );
+      return NextResponse.redirect(errorUrl);
+    }
   }
 }
