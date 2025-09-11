@@ -2,13 +2,6 @@ import type { AppRoute } from "@ts-rest/core";
 
 // DOM 类型定义（用于 Node.js 环境）
 type HeadersInit = Record<string, string> | Headers;
-type RequestBodyInit =
-  | string
-  | ArrayBuffer
-  | Uint8Array
-  | Blob
-  | FormData
-  | URLSearchParams;
 
 /**
  * 从合约响应中推断成功响应类型
@@ -95,7 +88,12 @@ export async function contractFetch<T extends AppRoute>(
   }
 
   // 构建请求配置
-  const requestInit: any = {
+  const requestInit: {
+    method: string;
+    headers: Record<string, string>;
+    signal?: AbortSignal;
+    body?: unknown;
+  } = {
     method: route.method,
     headers: { ...headers },
     signal,
