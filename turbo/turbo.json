@@ -13,7 +13,10 @@
     "VERCEL_BLOB_URL",
     "E2B_API_KEY",
     "NODE_ENV",
-    "APP_URL"
+    "APP_URL",
+    "GH_APP_ID",
+    "GH_APP_PRIVATE_KEY",
+    "GH_WEBHOOK_SECRET"
   ],
   "tasks": {
     "build": {
