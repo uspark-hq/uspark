@@ -40,7 +40,7 @@
     "@types/react-dom": "^19.1.9",
     "@uspark/eslint-config": "workspace:*",
     "@uspark/typescript-config": "workspace:*",
-    "@vitejs/plugin-react": "^4.4.3",
+    "@vitejs/plugin-react": "^4.7.0",
     "dotenv": "^17.2.2",
     "drizzle-kit": "^0.31.4",
     "e2b": "^2.1.2",
@@ -49,6 +49,7 @@
     "msw": "^2.11.1",
     "tsx": "^4.20.5",
     "typescript": "5.9.2",
+    "vite": "^6.3.6",
     "vitest": "^3.2.4"
   }
 }
