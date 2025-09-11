@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
 import type { Project } from "@uspark/core";
+import { contractFetch } from "@uspark/core/contract-fetch";
+import { projectsContract } from "@uspark/core/contracts/projects.contract";
 
 export default function ProjectsListPage() {
   const router = useRouter();
@@ -18,11 +20,7 @@ export default function ProjectsListPage() {
   useEffect(() => {
     const loadProjects = async () => {
       try {
-        const response = await fetch("/api/projects");
-        if (!response.ok) {
-          throw new Error("Failed to load projects");
-        }
-        const data = await response.json();
+        const data = await contractFetch(projectsContract.listProjects);
         setProjects(data.projects || []);
       } catch (err) {
         setError(
@@ -42,19 +40,9 @@ export default function ProjectsListPage() {
     setCreating(true);
 
     try {
-      const response = await fetch("/api/projects", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name: newProjectName.trim() }),
+      const newProject = await contractFetch(projectsContract.createProject, {
+        body: { name: newProjectName.trim() },
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to create project");
-      }
-
-      const newProject = await response.json();
 
       // Add to projects list with default updated_at same as created_at
       setProjects((prev) => [
