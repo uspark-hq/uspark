@@ -14,14 +14,6 @@ export async function GET() {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  const appId = globalThis.services.env.GH_APP_ID;
-  if (!appId) {
-    return NextResponse.json(
-      { error: "GitHub App not configured" },
-      { status: 500 },
-    );
-  }
-
   // GitHub App installation URL
   const installUrl = `https://github.com/apps/uspark-sync/installations/new`;
 

@@ -12,13 +12,6 @@ export async function POST(request: NextRequest) {
   initServices();
 
   const webhookSecret = globalThis.services.env.GH_WEBHOOK_SECRET;
-  if (!webhookSecret) {
-    console.error("GitHub webhook secret not configured");
-    return NextResponse.json(
-      { error: "Webhook not configured" },
-      { status: 500 },
-    );
-  }
 
   try {
     const body = await request.text();
