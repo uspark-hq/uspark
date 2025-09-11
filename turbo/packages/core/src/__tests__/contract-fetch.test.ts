@@ -1,9 +1,8 @@
-import { describe, it, expect, beforeAll, afterEach, afterAll } from "vitest";
-import { http, HttpResponse } from "msw";
-import { setupServer } from "msw/node";
+import { describe, it, expect } from "vitest";
 import { initContract } from "@ts-rest/core";
 import { z } from "zod";
 import { contractFetch, ContractFetchError } from "../contract-fetch";
+import { server, http, HttpResponse } from "../test/msw-setup";
 
 // 创建测试合约
 const c = initContract();
@@ -82,18 +81,7 @@ const testContract = c.router({
 // Base URL for tests
 const BASE_URL = "http://localhost";
 
-// 设置 MSW server
-const server = setupServer();
-
 describe("contractFetch with MSW", () => {
-  // 启动 MSW server
-  beforeAll(() => server.listen());
-
-  // 每个测试后重置 handlers
-  afterEach(() => server.resetHandlers());
-
-  // 关闭 server
-  afterAll(() => server.close());
 
   describe("GET requests", () => {
     it("should make GET request and return typed response", async () => {
