@@ -48,7 +48,9 @@ export async function updateTurnStatus(
 
   // Set completedAt when transitioning to a terminal state
   if (
-    (status === "completed" || status === "failed" || status === "interrupted") &&
+    (status === "completed" ||
+      status === "failed" ||
+      status === "interrupted") &&
     !turn.completedAt
   ) {
     updateData.completedAt = new Date();
@@ -104,3 +106,4 @@ export async function failTurn(
 export async function interruptTurn(turnId: string): Promise<void> {
   await updateTurnStatus(turnId, "interrupted");
 }
+

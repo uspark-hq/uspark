@@ -48,3 +48,4 @@ export async function touchSession(sessionId: string): Promise<void> {
     })
     .where(eq(SESSIONS_TBL.id, sessionId));
 }
+
