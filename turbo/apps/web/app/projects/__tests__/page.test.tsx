@@ -1,11 +1,4 @@
-import {
-  describe,
-  expect,
-  it,
-  vi,
-  beforeEach,
-  afterEach,
-} from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { useRouter } from "next/navigation";
 import ProjectsListPage from "../page";
@@ -37,7 +30,9 @@ describe("Projects List Page", () => {
               created_at: new Date(
                 Date.now() - 7 * 24 * 60 * 60 * 1000,
               ).toISOString(),
-              updated_at: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+              updated_at: new Date(
+                Date.now() - 2 * 60 * 60 * 1000,
+              ).toISOString(),
             },
             {
               id: "web-app-456",
