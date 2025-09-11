@@ -2,6 +2,20 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@uspark/ui";
 
 import type { Project } from "@uspark/core";
 
@@ -166,31 +180,10 @@ export default function ProjectsListPage() {
               </p>
             </div>
 
-            <button
-              onClick={() => setShowCreateDialog(true)}
-              style={{
-                padding: "12px 24px",
-                backgroundColor: "#3b82f6",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "16px",
-                fontWeight: "500",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = "#2563eb";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = "#3b82f6";
-              }}
-            >
+            <Button onClick={() => setShowCreateDialog(true)} size="lg">
               <span>+</span>
               New Project
-            </button>
+            </Button>
           </div>
         </div>
       </header>
@@ -220,73 +213,29 @@ export default function ProjectsListPage() {
           }}
         >
           {projects.map((project) => (
-            <div
+            <Card
               key={project.id}
+              className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5"
               onClick={() => router.push(`/projects/${project.id}`)}
-              style={{
-                border: "1px solid rgba(156, 163, 175, 0.2)",
-                borderRadius: "12px",
-                padding: "24px",
-                backgroundColor: "var(--background)",
-                cursor: "pointer",
-                transition: "all 0.2s ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(59, 130, 246, 0.4)";
-                e.currentTarget.style.transform = "translateY(-2px)";
-                e.currentTarget.style.boxShadow =
-                  "0 8px 25px rgba(0, 0, 0, 0.1)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(156, 163, 175, 0.2)";
-                e.currentTarget.style.transform = "translateY(0)";
-                e.currentTarget.style.boxShadow = "none";
-              }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  marginBottom: "16px",
-                }}
-              >
-                <div style={{ fontSize: "32px", marginRight: "12px" }}>📁</div>
-                <div>
-                  <h3
-                    style={{
-                      fontSize: "18px",
-                      fontWeight: "600",
-                      margin: "0 0 4px 0",
-                    }}
-                  >
-                    {project.name}
-                  </h3>
-                  <p
-                    style={{
-                      fontSize: "12px",
-                      color: "rgba(156, 163, 175, 0.6)",
-                      margin: 0,
-                    }}
-                  >
-                    Updated {formatDate(project.updated_at)}
-                  </p>
+              <CardHeader>
+                <div className="flex items-center">
+                  <div className="text-3xl mr-3">📁</div>
+                  <div>
+                    <CardTitle>{project.name}</CardTitle>
+                    <CardDescription>
+                      Updated {formatDate(project.updated_at)}
+                    </CardDescription>
+                  </div>
                 </div>
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  fontSize: "14px",
-                  color: "rgba(156, 163, 175, 0.8)",
-                  paddingTop: "16px",
-                  borderTop: "1px solid rgba(156, 163, 175, 0.1)",
-                }}
-              >
-                <span>0 files</span>
-                <span>{formatFileSize(0)}</span>
-              </div>
-            </div>
+              </CardHeader>
+              <CardContent>
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>0 files</span>
+                  <span>{formatFileSize(0)}</span>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
 
@@ -305,150 +254,60 @@ export default function ProjectsListPage() {
             <p style={{ fontSize: "16px", marginBottom: "32px" }}>
               Create your first project to start collaborating with Claude Code
             </p>
-            <button
-              onClick={() => setShowCreateDialog(true)}
-              style={{
-                padding: "12px 24px",
-                backgroundColor: "#3b82f6",
-                color: "white",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "16px",
-                cursor: "pointer",
-              }}
-            >
+            <Button onClick={() => setShowCreateDialog(true)} size="lg">
               Create Project
-            </button>
+            </Button>
           </div>
         )}
       </main>
 
       {/* Create Project Dialog */}
-      {showCreateDialog && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            backgroundColor: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-          }}
-        >
-          <div
-            style={{
-              backgroundColor: "var(--background)",
-              borderRadius: "12px",
-              padding: "32px",
-              width: "400px",
-              maxWidth: "90vw",
-              border: "1px solid rgba(156, 163, 175, 0.2)",
-            }}
-          >
-            <h3
-              style={{
-                fontSize: "20px",
-                fontWeight: "600",
-                margin: "0 0 16px 0",
-              }}
-            >
-              Create New Project
-            </h3>
-
-            <div style={{ marginBottom: "24px" }}>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  marginBottom: "8px",
-                  color: "var(--foreground)",
-                }}
-              >
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+            <DialogDescription>
+              Give your project a name to get started.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="name" className="text-sm font-medium">
                 Project Name
               </label>
               <input
+                id="name"
                 type="text"
                 value={newProjectName}
                 onChange={(e) => setNewProjectName(e.target.value)}
                 placeholder="Enter project name..."
-                style={{
-                  width: "100%",
-                  padding: "12px",
-                  border: "2px solid rgba(156, 163, 175, 0.2)",
-                  borderRadius: "6px",
-                  fontSize: "16px",
-                  backgroundColor: "var(--background)",
-                  color: "var(--foreground)",
-                  outline: "none",
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "rgba(59, 130, 246, 0.5)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "rgba(156, 163, 175, 0.2)";
-                }}
+                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !creating) {
                     handleCreateProject();
-                  } else if (e.key === "Escape") {
-                    setShowCreateDialog(false);
                   }
                 }}
                 autoFocus
               />
             </div>
-
-            <div
-              style={{
-                display: "flex",
-                gap: "12px",
-                justifyContent: "flex-end",
-              }}
-            >
-              <button
-                onClick={() => setShowCreateDialog(false)}
-                disabled={creating}
-                style={{
-                  padding: "10px 20px",
-                  border: "1px solid rgba(156, 163, 175, 0.2)",
-                  borderRadius: "6px",
-                  fontSize: "14px",
-                  backgroundColor: "transparent",
-                  color: "var(--foreground)",
-                  cursor: creating ? "not-allowed" : "pointer",
-                  opacity: creating ? 0.5 : 1,
-                }}
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateProject}
-                disabled={!newProjectName.trim() || creating}
-                style={{
-                  padding: "10px 20px",
-                  backgroundColor: "#3b82f6",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  fontSize: "14px",
-                  cursor:
-                    !newProjectName.trim() || creating
-                      ? "not-allowed"
-                      : "pointer",
-                  opacity: !newProjectName.trim() || creating ? 0.5 : 1,
-                }}
-              >
-                {creating ? "Creating..." : "Create Project"}
-              </button>
-            </div>
           </div>
-        </div>
-      )}
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCreateDialog(false)}
+              disabled={creating}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleCreateProject}
+              disabled={!newProjectName.trim() || creating}
+            >
+              {creating ? "Creating..." : "Create Project"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

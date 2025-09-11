@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { Button } from "@uspark/ui";
 
 interface Share {
   id: string;
@@ -243,57 +244,21 @@ export default function SharesPage() {
                     gap: "8px",
                   }}
                 >
-                  <button
+                  <Button
                     onClick={() => handleCopyLink(share.url)}
-                    style={{
-                      padding: "6px 12px",
-                      fontSize: "12px",
-                      color: "#3b82f6",
-                      backgroundColor: "transparent",
-                      border: "1px solid #3b82f6",
-                      borderRadius: "4px",
-                      cursor: "pointer",
-                      transition: "all 0.2s ease",
-                    }}
-                    onMouseOver={(e) => {
-                      e.currentTarget.style.backgroundColor = "#3b82f6";
-                      e.currentTarget.style.color = "white";
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                      e.currentTarget.style.color = "#3b82f6";
-                    }}
+                    variant="outline"
+                    size="sm"
                   >
                     Copy Link
-                  </button>
-                  <button
+                  </Button>
+                  <Button
                     onClick={() => handleDelete(share.id)}
                     disabled={deletingId === share.id}
-                    style={{
-                      padding: "6px 12px",
-                      fontSize: "12px",
-                      color: "#ef4444",
-                      backgroundColor: "transparent",
-                      border: "1px solid #ef4444",
-                      borderRadius: "4px",
-                      cursor:
-                        deletingId === share.id ? "not-allowed" : "pointer",
-                      opacity: deletingId === share.id ? 0.5 : 1,
-                      transition: "all 0.2s ease",
-                    }}
-                    onMouseOver={(e) => {
-                      if (deletingId !== share.id) {
-                        e.currentTarget.style.backgroundColor = "#ef4444";
-                        e.currentTarget.style.color = "white";
-                      }
-                    }}
-                    onMouseOut={(e) => {
-                      e.currentTarget.style.backgroundColor = "transparent";
-                      e.currentTarget.style.color = "#ef4444";
-                    }}
+                    variant="destructive"
+                    size="sm"
                   >
                     {deletingId === share.id ? "Revoking..." : "Revoke"}
-                  </button>
+                  </Button>
                 </div>
               </div>
 

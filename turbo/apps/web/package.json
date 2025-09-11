@@ -20,6 +20,7 @@
     "@neondatabase/serverless": "^1.0.1",
     "@t3-oss/env-nextjs": "^0.13.8",
     "@uspark/core": "workspace:*",
+    "@uspark/ui": "workspace:*",
     "@vercel/blob": "^1.1.1",
     "drizzle-orm": "^0.44.5",
     "nanoid": "^5.1.5",
