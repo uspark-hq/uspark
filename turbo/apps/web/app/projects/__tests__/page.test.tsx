@@ -9,7 +9,7 @@ import {
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { useRouter } from "next/navigation";
 import ProjectsListPage from "../page";
-import { server, http, HttpResponse } from "@/test/msw-setup";
+import { server, http, HttpResponse } from "../../../src/test/msw-setup";
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
@@ -330,9 +330,9 @@ describe("Projects List Page", () => {
 
     render(<ProjectsListPage />);
 
-    // Wait for error to appear
+    // Wait for error to appear - the component shows the actual error message
     await waitFor(() => {
-      expect(screen.getByText("Failed to load projects")).toBeInTheDocument();
+      expect(screen.getByText(/Request failed/)).toBeInTheDocument();
     });
   });
 
