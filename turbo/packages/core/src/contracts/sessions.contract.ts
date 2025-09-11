@@ -64,7 +64,6 @@ export const GetSessionResponseSchema = z.object({
 });
 export type GetSessionResponse = z.infer<typeof GetSessionResponseSchema>;
 
-
 // Delete session response
 export const DeleteSessionResponseSchema = z.object({
   success: z.boolean(),
@@ -145,7 +144,6 @@ export const sessionsContract = c.router({
     },
     summary: "Get a specific session",
   },
-
 
   deleteSession: {
     method: "DELETE",

@@ -91,7 +91,6 @@ export const GetTurnResponseSchema = z.object({
 });
 export type GetTurnResponse = z.infer<typeof GetTurnResponseSchema>;
 
-
 // Delete turn response
 export const DeleteTurnResponseSchema = z.object({
   success: z.boolean(),
@@ -158,7 +157,6 @@ export const turnsContract = c.router({
     },
     summary: "Get a specific turn with its blocks",
   },
-
 
   deleteTurn: {
     method: "DELETE",

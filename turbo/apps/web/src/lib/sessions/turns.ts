@@ -106,4 +106,3 @@ export async function failTurn(
 export async function interruptTurn(turnId: string): Promise<void> {
   await updateTurnStatus(turnId, "interrupted");
 }
-
