@@ -1,6 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { GET, POST, DELETE } from "./route";
+import { auth } from "@clerk/nextjs/server";
+import {
+  createProjectRepository,
+  getProjectRepository,
+  hasInstallationAccess,
+  removeRepositoryLink,
+} from "../../../../../../src/lib/github/repository";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({
@@ -36,12 +43,22 @@ describe("/api/projects/[projectId]/github/repository", () => {
         updatedAt: new Date(),
       };
       
-      const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ 
+        userId, 
+        sessionId: null,
+        sessionClaims: null,
+        actor: null,
+        claims: null,
+        orgId: null,
+        orgRole: null,
+        orgSlug: null,
+        orgPermissions: null,
+        getToken: vi.fn(),
+        debug: vi.fn(),
+        protect: vi.fn(),
+        redirectToSignIn: vi.fn() as never,
+      });
       
-      const { getProjectRepository, hasInstallationAccess } = await import(
-        "../../../../../../src/lib/github/repository"
-      );
       vi.mocked(getProjectRepository).mockResolvedValue(mockRepository);
       vi.mocked(hasInstallationAccess).mockResolvedValue(true);
       
@@ -60,12 +77,22 @@ describe("/api/projects/[projectId]/github/repository", () => {
     });
     
     it("should return 404 for non-existent repository", async () => {
-      const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ 
+        userId, 
+        sessionId: null,
+        sessionClaims: null,
+        actor: null,
+        claims: null,
+        orgId: null,
+        orgRole: null,
+        orgSlug: null,
+        orgPermissions: null,
+        getToken: vi.fn(),
+        debug: vi.fn(),
+        protect: vi.fn(),
+        redirectToSignIn: vi.fn() as never,
+      });
       
-      const { getProjectRepository } = await import(
-        "../../../../../../src/lib/github/repository"
-      );
       vi.mocked(getProjectRepository).mockResolvedValue(null);
       
       const request = new NextRequest("http://localhost/api/projects/non-existent/github/repository");
@@ -79,8 +106,21 @@ describe("/api/projects/[projectId]/github/repository", () => {
     });
     
     it("should return 401 for unauthenticated user", async () => {
-      const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId: null, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ 
+        userId: null, 
+        sessionId: null,
+        sessionClaims: null,
+        actor: null,
+        claims: null,
+        orgId: null,
+        orgRole: null,
+        orgSlug: null,
+        orgPermissions: null,
+        getToken: vi.fn(),
+        debug: vi.fn(),
+        protect: vi.fn(),
+        redirectToSignIn: vi.fn() as never,
+      });
       
       const request = new NextRequest("http://localhost/api/projects/test-project-123/github/repository");
       const context = { params: Promise.resolve({ projectId }) };
@@ -103,12 +143,22 @@ describe("/api/projects/[projectId]/github/repository", () => {
         cloneUrl: "https://github.com/testuser/uspark-test-project-123.git",
       };
       
-      const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ 
+        userId, 
+        sessionId: null,
+        sessionClaims: null,
+        actor: null,
+        claims: null,
+        orgId: null,
+        orgRole: null,
+        orgSlug: null,
+        orgPermissions: null,
+        getToken: vi.fn(),
+        debug: vi.fn(),
+        protect: vi.fn(),
+        redirectToSignIn: vi.fn() as never,
+      });
       
-      const { hasInstallationAccess, createProjectRepository } = await import(
-        "../../../../../../src/lib/github/repository"
-      );
       vi.mocked(hasInstallationAccess).mockResolvedValue(true);
       vi.mocked(createProjectRepository).mockResolvedValue(mockRepository);
       
@@ -129,8 +179,21 @@ describe("/api/projects/[projectId]/github/repository", () => {
     });
     
     it("should return 400 for missing installation ID", async () => {
-      const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ 
+        userId, 
+        sessionId: null,
+        sessionClaims: null,
+        actor: null,
+        claims: null,
+        orgId: null,
+        orgRole: null,
+        orgSlug: null,
+        orgPermissions: null,
+        getToken: vi.fn(),
+        debug: vi.fn(),
+        protect: vi.fn(),
+        redirectToSignIn: vi.fn() as never,
+      });
       
       const request = new NextRequest("http://localhost/api/projects/test-project-123/github/repository", {
         method: "POST",
@@ -147,12 +210,22 @@ describe("/api/projects/[projectId]/github/repository", () => {
     });
     
     it("should return 409 for repository that already exists", async () => {
-      const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ 
+        userId, 
+        sessionId: null,
+        sessionClaims: null,
+        actor: null,
+        claims: null,
+        orgId: null,
+        orgRole: null,
+        orgSlug: null,
+        orgPermissions: null,
+        getToken: vi.fn(),
+        debug: vi.fn(),
+        protect: vi.fn(),
+        redirectToSignIn: vi.fn() as never,
+      });
       
-      const { hasInstallationAccess, createProjectRepository } = await import(
-        "../../../../../../src/lib/github/repository"
-      );
       vi.mocked(hasInstallationAccess).mockResolvedValue(true);
       vi.mocked(createProjectRepository).mockRejectedValue(
         new Error("Repository already exists for project test-project-123")
@@ -185,12 +258,22 @@ describe("/api/projects/[projectId]/github/repository", () => {
         updatedAt: new Date(),
       };
       
-      const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ 
+        userId, 
+        sessionId: null,
+        sessionClaims: null,
+        actor: null,
+        claims: null,
+        orgId: null,
+        orgRole: null,
+        orgSlug: null,
+        orgPermissions: null,
+        getToken: vi.fn(),
+        debug: vi.fn(),
+        protect: vi.fn(),
+        redirectToSignIn: vi.fn() as never,
+      });
       
-      const { getProjectRepository, hasInstallationAccess, removeRepositoryLink } = await import(
-        "../../../../../../src/lib/github/repository"
-      );
       vi.mocked(getProjectRepository).mockResolvedValue(mockRepository);
       vi.mocked(hasInstallationAccess).mockResolvedValue(true);
       vi.mocked(removeRepositoryLink).mockResolvedValue(1);
@@ -219,12 +302,22 @@ describe("/api/projects/[projectId]/github/repository", () => {
         updatedAt: new Date(),
       };
       
-      const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ 
+        userId, 
+        sessionId: null,
+        sessionClaims: null,
+        actor: null,
+        claims: null,
+        orgId: null,
+        orgRole: null,
+        orgSlug: null,
+        orgPermissions: null,
+        getToken: vi.fn(),
+        debug: vi.fn(),
+        protect: vi.fn(),
+        redirectToSignIn: vi.fn() as never,
+      });
       
-      const { getProjectRepository, hasInstallationAccess, removeRepositoryLink } = await import(
-        "../../../../../../src/lib/github/repository"
-      );
       vi.mocked(getProjectRepository).mockResolvedValue(mockRepository);
       vi.mocked(hasInstallationAccess).mockResolvedValue(true);
       vi.mocked(removeRepositoryLink).mockResolvedValue(0);

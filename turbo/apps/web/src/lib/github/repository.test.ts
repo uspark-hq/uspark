@@ -9,12 +9,12 @@ import {
 import { initServices } from "../init-services";
 import { githubInstallations, githubRepos } from "../../db/schema/github";
 import { eq } from "drizzle-orm";
+import { createInstallationOctokit } from "./client";
+import type { Octokit } from "@octokit/core";
 
 // Mock the client module - we still need to mock external APIs
 vi.mock("./client", () => ({
-  createInstallationOctokit: vi.fn(() => ({
-    request: vi.fn(),
-  })),
+  createInstallationOctokit: vi.fn(),
 }));
 
 describe("GitHub Repository", () => {
@@ -37,7 +37,6 @@ describe("GitHub Repository", () => {
   describe("createProjectRepository", () => {
     it("should create a new repository for a project", async () => {
       // Setup GitHub API mock
-      const { createInstallationOctokit } = await import("./client");
       const mockOctokit = {
         request: vi.fn().mockResolvedValue({
           data: {
@@ -48,8 +47,8 @@ describe("GitHub Repository", () => {
             clone_url: `https://github.com/testuser/uspark-${testProjectId}.git`,
           },
         }),
-      };
-      vi.mocked(createInstallationOctokit).mockResolvedValue(mockOctokit as Awaited<ReturnType<typeof createInstallationOctokit>>);
+      } as unknown as Octokit;
+      vi.mocked(createInstallationOctokit).mockResolvedValue(mockOctokit);
       
       // Create repository
       const result = await createProjectRepository(testProjectId, testInstallationId);
