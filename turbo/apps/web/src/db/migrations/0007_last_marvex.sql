@@ -1,0 +1,1 @@
+ALTER TABLE "blocks" ALTER COLUMN "content" SET DATA TYPE json USING content::json;
