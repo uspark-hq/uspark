@@ -76,7 +76,10 @@ export async function GET(
   const parsedBlocks = blocks.map((block) => ({
     id: block.id,
     type: block.type,
-    content: typeof block.content === 'string' ? JSON.parse(block.content) : block.content,
+    content:
+      typeof block.content === "string"
+        ? JSON.parse(block.content)
+        : block.content,
     sequence_number: block.sequenceNumber,
   }));
 

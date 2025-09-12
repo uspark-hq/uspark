@@ -8,7 +8,7 @@ import * as Y from "yjs";
 
 // Helper function to parse block content (handle both string and object)
 function parseBlockContent(content: unknown): unknown {
-  return typeof content === 'string' ? JSON.parse(content) : content;
+  return typeof content === "string" ? JSON.parse(content) : content;
 }
 
 // Test BlockFactory separately as it doesn't need database
@@ -256,11 +256,12 @@ describe("Blocks Database Functions", () => {
       expect(block!.turnId).toBe(turnId);
       expect(block!.type).toBe("thinking");
       expect(block!.sequenceNumber).toBe(0);
-      
+
       // Handle both string and object content (Drizzle may auto-parse JSON in some environments)
-      const blockContent = typeof block!.content === 'string' 
-        ? JSON.parse(block!.content) 
-        : block!.content;
+      const blockContent =
+        typeof block!.content === "string"
+          ? JSON.parse(block!.content)
+          : block!.content;
       expect(blockContent).toEqual(content);
     });
 
@@ -320,7 +321,9 @@ describe("Blocks Database Functions", () => {
       expect(dbBlocks).toHaveLength(3);
       expect(dbBlocks[0]!.type).toBe("thinking");
       expect(dbBlocks[0]!.sequenceNumber).toBe(0);
-      expect(parseBlockContent(dbBlocks[0]!.content)).toEqual({ text: "Thinking..." });
+      expect(parseBlockContent(dbBlocks[0]!.content)).toEqual({
+        text: "Thinking...",
+      });
 
       expect(dbBlocks[1]!.type).toBe("content");
       expect(dbBlocks[1]!.sequenceNumber).toBe(1);
