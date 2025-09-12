@@ -2,24 +2,45 @@
 
 This document tracks technical debt items that need to be addressed in the codebase.
 
-> **Goal**: Achieve zero direct database operations and artificial delays in tests
+> **Goal**: Achieve zero direct database operations in tests, proper test isolation, and strict type safety
 
 ## Test Mock Cleanup Issues
 **Issue:** Tests don't explicitly call `vi.clearAllMocks()` in beforeEach hooks, which could lead to mock state leakage between tests.
 **Source:** Code review commit 3d3a1ff
-**Status:** 🔴 Not Started
+**Status:** 🟡 Partially Fixed (42% coverage - 11/26 files fixed)
 **Solution:** Add proper mock cleanup in all test files:
 ```typescript
 beforeEach(() => {
   vi.clearAllMocks();
 });
 ```
+
+**Files Still Missing Mock Cleanup (17 files):**
+- `/turbo/apps/web/app/api/cli/auth/generate-token/route.test.ts`
+- `/turbo/apps/web/app/api/cli/auth/tokens-list.test.ts`
+- `/turbo/apps/web/app/api/github/setup/route.test.ts`
+- `/turbo/apps/web/app/api/projects/[projectId]/blob-token/route.test.ts`
+- `/turbo/apps/web/app/api/projects/[projectId]/route.test.ts`
+- `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/interrupt/route.test.ts`
+- `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/route.test.ts`
+- `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/turns/[turnId]/route.test.ts`
+- `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/turns/route.test.ts`
+- `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/updates/route.test.ts`
+- `/turbo/apps/web/app/api/projects/[projectId]/sessions/api.test.ts`
+- `/turbo/apps/web/app/api/projects/[projectId]/sessions/route.api.test.ts`
+- `/turbo/apps/web/app/api/projects/[projectId]/sessions/route.test.ts`
+- `/turbo/apps/web/app/api/projects/route.test.ts`
+- `/turbo/apps/web/app/api/share/route.test.ts`
+- `/turbo/apps/web/app/api/shares/[id]/route.test.ts`
+- `/turbo/apps/web/app/api/shares/route.test.ts`
+
 **Risk:** Mock state could leak between tests causing flaky test behavior.
 
 ## Database Test Isolation Strategy
 **Issue:** Tests share database state without proper isolation, which could cause race conditions and flaky tests when run in parallel.
 **Source:** Code review commit 3d3a1ff
-**Status:** 🔴 Not Started
+**Status:** 🔴 Critical - Not Started
+**Severity:** HIGH - Tests run in parallel without protection, using shared user IDs
 **Solutions:**
 1. **Different Users/Projects per Test:** Create unique test data IDs for each test
 2. **Transaction Rollback:** Wrap tests in transactions that rollback after completion
@@ -37,9 +58,77 @@ await db.transaction(async (tx) => {
 });
 ```
 
+## TypeScript `any` Type Cleanup
+**Issue:** Several files still contain `any` types which compromise type safety and violate project standards.
+**Source:** Code review September 11-12, 2025
+**Status:** 🔴 Not Started (5 violations found)
+**Problem:** 
+- Project has zero tolerance for `any` types per design principles
+- `any` types disable TypeScript's type checking
+- Makes refactoring risky and error-prone
+- Reduces IDE autocomplete and IntelliSense effectiveness
+
+**Specific Violations:**
+
+**Production Code (HIGH PRIORITY - 2 violations):**
+1. `/turbo/apps/web/app/projects/page.tsx`
+   - Line 43: `projectsContract.listProjects as any,`
+   - Line 67: `projectsContract.createProject as any,`
+
+**Test Code (3 violations):**
+2. `/turbo/apps/workspace/custom-eslint/__tests__/rules.test.ts`
+   - Line 750: `type ToggleContext = { initContext$: any };`
+   - Line 833: `let context: any`
+   - Line 866: `let store: any, signal: any`
+
+**Solution:**
+1. **Use `unknown` for truly unknown types:**
+   ```typescript
+   // ❌ Bad
+   function processData(data: any) { }
+   
+   // ✅ Good
+   function processData(data: unknown) {
+     // Type narrowing required before use
+     if (typeof data === 'object' && data !== null) {
+       // Now safely use data
+     }
+   }
+   ```
+
+2. **Define proper interfaces for API responses:**
+   ```typescript
+   // ❌ Bad
+   const response: any = await fetch('/api/data');
+   
+   // ✅ Good
+   interface ApiResponse {
+     data: { id: string; name: string }[];
+     status: 'success' | 'error';
+   }
+   const response: ApiResponse = await fetch('/api/data');
+   ```
+
+3. **Use generics for flexible typing:**
+   ```typescript
+   // ❌ Bad
+   function getValue(obj: any, key: string): any { }
+   
+   // ✅ Good
+   function getValue<T, K extends keyof T>(obj: T, key: K): T[K] {
+     return obj[key];
+   }
+   ```
+
+**Enforcement:**
+- Add ESLint rule: `"@typescript-eslint/no-explicit-any": "error"`
+- Pre-commit hook to reject new `any` types
+- Gradual migration of existing `any` types
+
 ## Overuse of Try-Catch Blocks (Fail-Fast Principle Violation)
 **Issue:** Excessive use of try-catch blocks in non-UI code where errors should fail fast rather than being caught.
-**Status:** 🔴 Not Started
+**Status:** 🟡 Partially Present (3-4 violations in GitHub integration)
+**Severity:** MEDIUM
 **Problem:** 
 - Non-UI code (especially server-side) should follow fail-fast principle
 - Catching exceptions unnecessarily can hide real problems
@@ -49,33 +138,30 @@ await db.transaction(async (tx) => {
 - ✅ **Use try-catch for:** UI components for user feedback, external API calls with fallbacks
 - ❌ **Avoid try-catch for:** Internal function calls, database operations (unless specific recovery needed), configuration loading
 
-**Review needed in:**
-- API route handlers (except for known external service failures)
-- Database utility functions
-- Internal service calls
+**Files with Violations:**
+1. `/turbo/apps/web/app/api/github/installations/route.ts` - Generic error handling without value
+2. `/turbo/apps/web/app/api/github/webhook/route.ts` - Wraps entire webhook processing unnecessarily
+3. `/turbo/apps/web/app/api/projects/[projectId]/blob-token/route.ts` - Defensive catch for token generation
+
+**Note:** `/turbo/apps/web/app/api/github/setup/route.ts` has legitimate fallback behavior and should keep its try-catch
 
 ## Hardcoded URL Configuration
-**Issue:** Using `process.env.NEXT_PUBLIC_APP_URL || "https://uspark.ai"` in API routes instead of centralized configuration.
+**Issue:** Hardcoded URLs in API routes instead of using centralized configuration.
 **Source:** Code review commit d50b99c
-**Status:** 🔴 Not Started
-**Current usage:** `/api/shares/route.ts` uses hardcoded fallback URL
-**Problems:**
-1. NEXT_PUBLIC_APP_URL is intended for client-side usage, but being used in server-side API route
-2. Hardcoded fallback URL is not environment-aware
-3. No centralized URL configuration management
+**Status:** 🟢 Mostly Fixed (1 file remaining)
+
+**Remaining Issue:**
+- `/turbo/apps/web/app/api/cli/auth/device/route.ts` (Line 62): Hardcoded `"https://uspark.ai/cli-auth"`
 
 **Solution:** 
-1. **Add APP_URL to server environment variables** in `src/env.ts`:
-   ```typescript
-   server: {
-     APP_URL: z.string().url().default("http://localhost:3000"),
-     // ... other server vars
-   }
-   ```
-2. **Update API route** to use `env().APP_URL` instead of `process.env.NEXT_PUBLIC_APP_URL`
-3. **Set proper APP_URL** in production environment (different from NEXT_PUBLIC_APP_URL)
+Update the remaining file to use `env().APP_URL`:
+```typescript
+import { env } from "../../../../../src/env";
+// ...
+verification_url: `${env().APP_URL}/cli-auth`,
+```
 
-**Investigation needed:** Understand why NEXT_PUBLIC_APP_URL was chosen for server-side usage and determine correct server-side URL configuration strategy.
+**Note:** The original issue in `/api/shares/route.ts` has been fixed and now correctly uses `env().APP_URL`.
 
 ## Test Database Setup Refactoring
 **Issue:** Tests in route.test.ts files heavily rely on manual database operations for setup, which duplicates logic already implemented in API endpoints.
@@ -84,22 +170,20 @@ await db.transaction(async (tx) => {
 - Makes tests brittle when database schema or business logic changes
 - Increases maintenance burden when API logic changes
 **Solution:** Refactor tests to reuse existing API endpoints for data setup instead of direct database manipulation.
-**Status:** 🟡 In Progress (2025-09-08)
-**Progress:** Initial refactoring done in commit 2ffa295, but 18+ files still need fixing
+**Status:** 🟡 In Progress (33% improvement)
+**Progress:** Reduced from 18+ files to 12 files as of December 2024
 
-### Detailed Analysis (September 8, 2025)
+### Current Status (December 2024)
 
-#### Files Still Using Direct Database Operations (18+ files)
+#### Files Still Using Direct Database Operations (12 files)
 
 **High Priority (Core API Tests):**
 | File | Lines | Pattern | Action Required |
 |------|-------|---------|-----------------|
 | `apps/web/app/api/projects/route.test.ts` | 116 | Direct DB insert | Create test helper using API |
 | `apps/web/app/api/projects/[projectId]/sessions/route.test.ts` | 154 | Direct DB insert | Use POST /api/projects |
-| `apps/web/app/api/projects/[projectId]/sessions/[sessionId]/route.test.ts` | 172 | Direct DB operations | Use session API endpoints |
-| `apps/web/app/api/projects/[projectId]/sessions/[sessionId]/turns/route.test.ts` | Multiple | Direct DB operations | Use turns API endpoints |
-| `apps/web/app/api/projects/[projectId]/sessions/[sessionId]/updates/route.test.ts` | 46, 54 | Direct DB operations | Use updates API |
 | `apps/web/app/api/projects/[projectId]/sessions/[sessionId]/interrupt/route.test.ts` | 44, 52, 340 | Direct DB operations | Use interrupt API |
+| `apps/web/app/api/projects/[projectId]/sessions/[sessionId]/updates/route.test.ts` | 46, 54 | Direct DB operations | Use updates API |
 
 **Medium Priority (Share & Auth Tests):**
 | File | Lines | Pattern | Action Required |
@@ -114,16 +198,12 @@ await db.transaction(async (tx) => {
 |------|-------|---------|-----------------|
 | `apps/web/app/api/cli/auth/tokens-list.test.ts` | 19, 107, 116 | Direct DB operations | Use token API |
 | `apps/web/app/api/cli/auth/generate-token/route.test.ts` | 23, 152, 200, 211, 312 | Direct DB operations | Use token generation API |
-| `apps/web/app/api/cli/auth/device/route.test.ts` | Multiple | Direct DB operations | Use device auth API |
-| `apps/web/app/api/cli/auth/token/route.test.ts` | Multiple | Direct DB operations | Use token validation API |
+| `apps/web/app/api/github/setup/route.test.ts` | Multiple | Direct DB operations | Use GitHub setup API |
 
 **Other Tests:**
 | File | Lines | Pattern | Action Required |
 |------|-------|---------|-----------------|
-| `apps/web/src/lib/sessions/blocks.test.ts` | 186, 194, 201 | Direct DB insert | Create proper test fixtures |
 | `apps/web/app/api/projects/[projectId]/blob-token/route.test.ts` | 87 | Direct DB insert | Use project creation API |
-| `apps/web/app/api/projects/[projectId]/route.test.ts` | Multiple | Direct DB operations | Use project API |
-| `apps/web/app/api/projects/[projectId]/sessions/[sessionId]/turns/[turnId]/route.test.ts` | Multiple | Direct DB operations | Use turn API |
 **Example:**
 ```typescript
 // ❌ Current approach - manual database operations
@@ -158,92 +238,41 @@ beforeEach(async () => {
 - Reduces test maintenance overhead
 - Better coverage of actual API workflows
 
-## Artificial Delays in Tests
-**Issue:** Multiple test files contain artificial delays using `setTimeout` with `Promise`, indicating timing-dependent test logic
-**Source:** Code review analysis (2025-09-08)
-**Status:** 🔴 Not Started
-**Problem:** 
-- Tests may fail randomly based on system load
-- Accumulated delays slow down CI/CD pipeline
-- Masks actual race conditions in production code
-- Tests may pass locally but fail in CI
-
-### Files with Artificial Delays (7 files)
-
-| File | Line | Delay | Reason | Solution |
-|------|------|-------|--------|----------|
-| `sessions/route.test.ts` | 272, 310 | 10ms | "Ensure different timestamps" | Use mock timers or sequence IDs |
-| `turns/[turnId]/route.test.ts` | 458 | 10ms | Timestamp differentiation | Use deterministic ordering |
-| `turns/route.test.ts` | 354, 395, 406 | 10-20ms | Order dependency | Use proper event sequencing |
-| `sessions/[sessionId]/route.test.ts` | 172 | 10ms | Timing issue | Fix underlying race condition |
-| `interrupt/route.test.ts` | 247 | 10ms | State synchronization | Use proper async/await |
-| `updates/route.test.ts` | 168, 180 | 10ms | Update ordering | Use transaction or batch updates |
-
-### Why This Is Critical
-
-**Artificial delays are problematic because:**
-1. **Test Flakiness**: Random failures based on system load
-2. **Slow Test Suite**: Accumulated delays slow down CI/CD
-3. **Hidden Bugs**: Masks actual race conditions
-4. **False Positives**: Pass locally, fail in CI
-
-### Refactoring Strategy
-
-1. **Use Mock Timers:**
-```typescript
-// Instead of:
-await new Promise((resolve) => setTimeout(resolve, 10));
-
-// Use:
-vi.useFakeTimers();
-vi.advanceTimersByTime(10);
-```
-
-2. **Use Deterministic IDs:**
-```typescript
-// Instead of relying on timestamp differences:
-const turn1 = { id: generateId(), sequence: 1 };
-const turn2 = { id: generateId(), sequence: 2 };
-```
-
-3. **Wait for Specific Conditions:**
-```typescript
-// Instead of arbitrary delay:
-await waitFor(() => {
-  expect(getSessionState()).toBe('ready');
-});
-```
 
 ## Implementation Plan
 
-### Phase 1: Critical Path (Week 1)
-- [ ] Refactor project and session tests
-- [ ] Remove all artificial delays
-- [ ] Create basic test helpers
+### Phase 1: Critical Path
+- [ ] Fix database test isolation (HIGH PRIORITY)
+- [ ] Fix production code `any` types (2 violations)
+- [ ] Add vi.clearAllMocks() to remaining 17 test files
 
-### Phase 2: API Tests (Week 2)
-- [ ] Refactor share API tests
-- [ ] Refactor CLI auth tests
-- [ ] Implement test factories
+### Phase 2: API Tests
+- [ ] Remove unnecessary try-catch blocks in GitHub integration
+- [ ] Fix remaining hardcoded URL in device auth
+- [ ] Refactor remaining 12 test files using direct DB operations
 
-### Phase 3: Complete Migration (Week 3)
-- [ ] Refactor remaining tests
-- [ ] Add lint rule to prevent direct DB access
-- [ ] Document test best practices
+### Phase 3: Prevention and Documentation
+- [ ] Add ESLint rule for `@typescript-eslint/no-explicit-any`
+- [ ] Add lint rule to prevent direct DB access in tests
+- [ ] Document test best practices and isolation strategies
 
 ## Metrics
 
-### Current State (September 8, 2025)
-- Direct DB operations: **18+ files**
-- Artificial delays: **7 files**
-- Test execution time: **[Measure baseline]**
-- Test flakiness rate: **[Measure baseline]**
+### Current State (December 2024)
+- Direct DB operations: **12 files** (down from 18+)
+- Test mock cleanup missing: **17 files** (58% of files with mocks)
+- TypeScript `any` violations: **5 total** (2 production, 3 test)
+- Try-catch violations: **3-4 files** (GitHub integration)
+- Hardcoded URLs: **1 file** (down from multiple)
+- Database test isolation: **No transaction isolation** (CRITICAL)
 
 ### Target State
 - Direct DB operations: **0 files**
-- Artificial delays: **0 files**
-- Test execution time: **-30% reduction**
-- Test flakiness rate: **0%**
+- Test mock cleanup: **100% coverage**
+- TypeScript `any` violations: **0**
+- Try-catch violations: **0 unnecessary blocks**
+- Hardcoded URLs: **0**
+- Database test isolation: **Transaction-based with rollback**
 
 ## Prevention Strategy
 
@@ -272,4 +301,4 @@ await waitFor(() => {
 
 ---
 
-*Last updated: 2025-09-08*
+*Last updated: 2024-12-12*
