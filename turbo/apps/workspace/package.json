@@ -15,6 +15,7 @@
   },
   "dependencies": {
     "@clerk/clerk-js": "^5.92.1",
+    "@uspark/core": "workspace:*",
     "ccstate": "^5.0.0",
     "ccstate-react": "^5.0.0",
     "path-to-regexp": "^8.3.0",
