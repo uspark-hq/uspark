@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import { syncProjectToGitHub, getSyncStatus } from "./sync";
 import * as Y from "yjs";
 import { initServices } from "../init-services";
