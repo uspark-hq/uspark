@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { YjsFileExplorer } from "../../components/file-explorer";
+import { GitHubSyncButton } from "../../components/github-sync-button";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -134,6 +135,7 @@ export default function ProjectDetailPage() {
         </div>
 
         <nav style={{ display: "flex", gap: "12px" }}>
+          <GitHubSyncButton projectId={projectId} />
           <button
             onClick={() => window.history.back()}
             style={{

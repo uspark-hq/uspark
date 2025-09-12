@@ -4,6 +4,7 @@ import {
   createInstallationOctokit,
   getInstallationDetails,
 } from "./client";
+import { getInstallationToken } from "./auth";
 
 // Mock @octokit/app
 vi.mock("@octokit/app", () => {
@@ -73,7 +74,6 @@ describe("GitHub Client", () => {
 
       expect(octokit).toBeDefined();
 
-      const { getInstallationToken } = await import("./auth");
       expect(getInstallationToken).toHaveBeenCalledWith(installationId);
     });
   });

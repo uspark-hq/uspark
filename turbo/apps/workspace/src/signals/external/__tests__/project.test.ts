@@ -33,7 +33,7 @@ describe('createProject$', () => {
     )
 
     // 执行 command
-    const result = await store.set(
+    const result: typeof mockProject = await store.set(
       createProject$,
       {
         name: 'Test Project',

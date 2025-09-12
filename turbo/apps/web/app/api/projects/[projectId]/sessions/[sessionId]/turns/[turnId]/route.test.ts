@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { NextRequest } from "next/server";
 import { GET } from "./route";
-import { POST as createProject } from "../../../../../route";
-import { POST as createSession } from "../../../route";
 import { POST as createTurn } from "../route";
 import { initServices } from "../../../../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../../../../src/db/schema/projects";
@@ -12,6 +10,7 @@ import {
   BLOCKS_TBL,
 } from "../../../../../../../../src/db/schema/sessions";
 import { eq } from "drizzle-orm";
+import * as Y from "yjs";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -35,46 +34,41 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
     // Initialize services
     initServices();
 
-    // Clean up any existing test data
+    // Clean up any existing test data in correct order (child tables first)
+    await globalThis.services.db
+      .delete(BLOCKS_TBL)
+      .where(eq(BLOCKS_TBL.turnId, turnId));
+    await globalThis.services.db
+      .delete(TURNS_TBL)
+      .where(eq(TURNS_TBL.sessionId, sessionId));
+    await globalThis.services.db
+      .delete(SESSIONS_TBL)
+      .where(eq(SESSIONS_TBL.projectId, projectId));
     await globalThis.services.db
       .delete(PROJECTS_TBL)
       .where(eq(PROJECTS_TBL.id, projectId));
 
-    // Create test project using API
-    const createProjectRequest = new NextRequest("http://localhost:3000", {
-      method: "POST",
-      body: JSON.stringify({ name: "Test Project" }),
-    });
-    const projectResponse = await createProject(createProjectRequest);
-    expect(projectResponse.status).toBe(201);
-    const projectData = await projectResponse.json();
-
-    // Update the project with our test ID for consistency
-    await globalThis.services.db
-      .update(PROJECTS_TBL)
-      .set({ id: projectId })
-      .where(eq(PROJECTS_TBL.id, projectData.id));
-
-    // Create test session using API
-    const createSessionRequest = new NextRequest("http://localhost:3000", {
-      method: "POST",
-      body: JSON.stringify({ title: "Test Session" }),
-    });
-    const sessionContext = { params: Promise.resolve({ projectId }) };
-    const sessionResponse = await createSession(
-      createSessionRequest,
-      sessionContext,
+    // Create test project directly with desired ID
+    const ydoc = new Y.Doc();
+    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+      "base64",
     );
-    expect(sessionResponse.status).toBe(200);
-    const sessionData = await sessionResponse.json();
 
-    // Update the session with our test ID for consistency
-    await globalThis.services.db
-      .update(SESSIONS_TBL)
-      .set({ id: sessionId })
-      .where(eq(SESSIONS_TBL.id, sessionData.id));
+    await globalThis.services.db.insert(PROJECTS_TBL).values({
+      id: projectId,
+      userId,
+      ydocData,
+      version: 0,
+    });
 
-    // Create test turn using API
+    // Create test session directly with desired ID
+    await globalThis.services.db.insert(SESSIONS_TBL).values({
+      id: sessionId,
+      projectId,
+      title: "Test Session",
+    });
+
+    // Create test turn using API (this can use the API since we don't need to change its ID)
     const createTurnRequest = new NextRequest("http://localhost:3000", {
       method: "POST",
       body: JSON.stringify({ user_message: "Test prompt" }),

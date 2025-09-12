@@ -258,9 +258,160 @@ const shareHandlers = [
   }),
 ];
 
+// GitHub API endpoints handlers
+const githubHandlers = [
+  // Mock GitHub App access token endpoint
+  http.post(
+    "https://api.github.com/app/installations/:installationId/access_tokens",
+    () => {
+      return HttpResponse.json({
+        token: "ghs_test_installation_token_12345",
+        expires_at: new Date(Date.now() + 3600000).toISOString(),
+        permissions: {
+          contents: "write",
+          metadata: "read",
+          pull_requests: "write",
+        },
+      });
+    },
+  ),
+
+  // Mock GitHub installation endpoint
+  http.get("https://api.github.com/app/installations/:installationId", () => {
+    return HttpResponse.json({
+      id: 12345,
+      account: {
+        login: "test-owner",
+        id: 67890,
+        type: "User",
+        site_admin: false,
+      },
+      app_id: 123456,
+      app_slug: "uspark-test",
+      target_id: 67890,
+      target_type: "User",
+      permissions: {
+        contents: "write",
+        metadata: "read",
+        pull_requests: "write",
+      },
+      created_at: "2024-01-01T00:00:00Z",
+      updated_at: "2024-01-01T00:00:00Z",
+    });
+  }),
+
+  // Mock GitHub get ref endpoint
+  http.get("https://api.github.com/repos/:owner/:repo/git/ref/*", () => {
+    return HttpResponse.json({
+      ref: "refs/heads/main",
+      node_id: "MDM6UmVmcmVmcmVzaA==",
+      url: "https://api.github.com/repos/test-owner/test-repo/git/refs/heads/main",
+      object: {
+        sha: "current-sha-123",
+        type: "commit",
+        url: "https://api.github.com/repos/test-owner/test-repo/git/commits/current-sha-123",
+      },
+    });
+  }),
+
+  // Mock GitHub get commit endpoint
+  http.get("https://api.github.com/repos/:owner/:repo/git/commits/:sha", () => {
+    return HttpResponse.json({
+      sha: "current-sha-123",
+      url: "https://api.github.com/repos/test-owner/test-repo/git/commits/current-sha-123",
+      tree: {
+        sha: "tree-sha-456",
+        url: "https://api.github.com/repos/test-owner/test-repo/git/trees/tree-sha-456",
+      },
+      message: "Initial commit",
+      author: {
+        date: "2024-01-01T00:00:00Z",
+        name: "Test User",
+        email: "test@example.com",
+      },
+      committer: {
+        date: "2024-01-01T00:00:00Z",
+        name: "Test User",
+        email: "test@example.com",
+      },
+      parents: [],
+    });
+  }),
+
+  // Mock GitHub create blob endpoint
+  http.post("https://api.github.com/repos/:owner/:repo/git/blobs", () => {
+    return HttpResponse.json({
+      url: "https://api.github.com/repos/test-owner/test-repo/git/blobs/blob-sha-789",
+      sha: "blob-sha-789",
+    });
+  }),
+
+  // Mock GitHub create tree endpoint
+  http.post("https://api.github.com/repos/:owner/:repo/git/trees", () => {
+    return HttpResponse.json({
+      sha: "new-tree-sha-101",
+      url: "https://api.github.com/repos/test-owner/test-repo/git/trees/new-tree-sha-101",
+      tree: [],
+    });
+  }),
+
+  // Mock GitHub create commit endpoint
+  http.post("https://api.github.com/repos/:owner/:repo/git/commits", () => {
+    return HttpResponse.json({
+      sha: "new-commit-sha-202",
+      url: "https://api.github.com/repos/test-owner/test-repo/git/commits/new-commit-sha-202",
+      tree: {
+        sha: "new-tree-sha-101",
+        url: "https://api.github.com/repos/test-owner/test-repo/git/trees/new-tree-sha-101",
+      },
+      message: "Sync from uSpark at 2024-01-01T00:00:00.000Z",
+      author: {
+        date: "2024-01-01T00:00:00Z",
+        name: "uSpark",
+        email: "noreply@uspark.ai",
+      },
+      committer: {
+        date: "2024-01-01T00:00:00Z",
+        name: "uSpark",
+        email: "noreply@uspark.ai",
+      },
+      parents: [
+        {
+          sha: "current-sha-123",
+          url: "https://api.github.com/repos/test-owner/test-repo/git/commits/current-sha-123",
+        },
+      ],
+    });
+  }),
+
+  // Mock GitHub update ref endpoint
+  http.patch("https://api.github.com/repos/:owner/:repo/git/refs/*", () => {
+    return HttpResponse.json({
+      ref: "refs/heads/main",
+      node_id: "MDM6UmVmcmVmcmVzaA==",
+      url: "https://api.github.com/repos/test-owner/test-repo/git/refs/heads/main",
+      object: {
+        sha: "new-commit-sha-202",
+        type: "commit",
+        url: "https://api.github.com/repos/test-owner/test-repo/git/commits/new-commit-sha-202",
+      },
+    });
+  }),
+];
+
+// Vercel Blob handlers
+const blobHandlers = [
+  // Mock blob download
+  http.get("https://*/projects/:projectId/:hash", () => {
+    return HttpResponse.arrayBuffer(new ArrayBuffer(100));
+  }),
+];
+
 // Export all handlers
 export const handlers = [
   ...clerkHandlers,
   ...projectsHandlers,
   ...shareHandlers,
+  ...githubHandlers,
+  ...blobHandlers,
 ];
