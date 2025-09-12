@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.19.0](https://github.com/uspark-hq/uspark/compare/web-v0.18.0...web-v0.19.0) (2025-09-12)
+
+
+### Features
+
+* add authentication and fetch signals for workspace app ([#248](https://github.com/uspark-hq/uspark/issues/248)) ([f3bca17](https://github.com/uspark-hq/uspark/commit/f3bca17b8ad8b8c8d086974c44741f16fa3ad724))
+* implement github app installation token management (task 4) ([#250](https://github.com/uspark-hq/uspark/issues/250)) ([2f89326](https://github.com/uspark-hq/uspark/commit/2f89326cab93719621705cf5bae0f63756b5ea2e))
+* implement github repository creation and management (task 5) ([#252](https://github.com/uspark-hq/uspark/issues/252)) ([3640aa8](https://github.com/uspark-hq/uspark/commit/3640aa8dcd9229e3d61fdcbd123203d79e50a186))
+
+
+### Bug Fixes
+
+* implement unique user IDs for database test isolation ([#261](https://github.com/uspark-hq/uspark/issues/261)) ([4089c6b](https://github.com/uspark-hq/uspark/commit/4089c6b4558c235f5d989d28ff3e3a844a0020c3))
+* replace hardcoded url with env.app_url in device auth ([#259](https://github.com/uspark-hq/uspark/issues/259)) ([ba94a73](https://github.com/uspark-hq/uspark/commit/ba94a73d6909505c4ef1e929fdba51f47ded6b9e))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.11.0
+
 ## [0.18.0](https://github.com/uspark-hq/uspark/compare/web-v0.17.1...web-v0.18.0) (2025-09-12)
 
 
