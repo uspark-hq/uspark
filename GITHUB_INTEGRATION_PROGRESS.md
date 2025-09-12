@@ -2,7 +2,7 @@
 
 ## 总体进展概览
 
-### ✅ 已完成任务 (4/8)
+### ✅ 已完成任务 (6/8)
 
 1. **Task 1: GitHub App 基础设置** ✅
    - PR: #241 (已合并)
@@ -32,17 +32,23 @@
    - 完整的测试覆盖
    - **代码简化**: 移除复杂的错误处理和重试机制，专注MVP功能
 
-### 🚧 待实现任务 (4/8)
+### ✅ 已完成任务 (6/8)
 
-5. **Task 5: 仓库创建与管理**
-   - 状态：待开始
+5. **Task 5: 仓库创建与管理** ✅
+   - PR: #252 (已合并)
    - 为每个项目创建对应的GitHub仓库
    - 管理仓库设置和权限
+   - 实现了仓库创建、链接和管理API
 
-6. **Task 6: 内容同步机制**
-   - 状态：待开始
-   - 实现Web到GitHub的自动同步
-   - 处理文件变更的推送
+6. **Task 6: 内容同步机制** ✅
+   - 状态：已完成（当前实现）
+   - 实现Web到GitHub的同步
+   - 从YDoc提取文件信息
+   - 从Blob存储获取文件内容
+   - 创建GitHub commit并推送
+   - 添加了手动同步按钮在项目页面
+
+### 🚧 待实现任务 (2/8)
 
 7. **Task 7: GitHub到Web同步**
    - 状态：待开始
@@ -120,19 +126,52 @@ githubRepos: {
 
 ## 下一步计划
 
-### Task 5: 仓库创建与管理（当前任务）
+### Task 7: GitHub到Web同步（下一个任务）
 
 需要实现的功能：
-1. 为每个项目创建对应的GitHub仓库
-2. 实现仓库初始化（README、.gitignore等）
-3. 管理仓库设置和权限
-4. 将仓库信息存储到数据库
+1. 通过webhook接收GitHub的push事件
+2. 获取GitHub仓库的文件变更
+3. 更新YDoc和Blob存储
+4. 处理冲突检测
 
 预计实现文件：
-- `/app/api/github/repos/route.ts` - 仓库创建API
-- `/app/api/github/repos/[repoId]/route.ts` - 仓库管理API
-- `/src/lib/github/repos.ts` - 仓库操作工具函数
-- 更新前端UI添加GitHub连接按钮
+- 扩展 `/app/api/github/webhook/route.ts` - 处理push事件
+- `/src/lib/github/pull.ts` - 从GitHub拉取变更
+- 更新数据库schema记录同步状态
+
+## 已完成的Task 6实现细节
+
+### 内容同步机制实现
+
+#### 1. 核心同步功能
+```typescript
+// src/lib/github/sync.ts
+- syncProjectToGitHub() - 主同步函数
+- extractFilesFromYDoc() - 从YDoc提取文件信息
+- fetchBlobContent() - 从Vercel Blob获取文件内容
+- createGitHubCommit() - 创建并推送GitHub commit
+- getSyncStatus() - 获取同步状态
+```
+
+#### 2. API端点
+```typescript
+// app/api/projects/[projectId]/github/sync/route.ts
+- POST - 触发同步到GitHub
+- GET - 获取同步状态
+```
+
+#### 3. UI组件
+```typescript
+// app/components/github-sync-button.tsx
+- GitHubSyncButton - 手动触发同步的按钮
+- 显示同步状态和错误信息
+- 集成到项目详情页面
+```
+
+#### 4. 测试覆盖
+- 完整的单元测试覆盖所有同步功能
+- API路由测试覆盖所有场景
+- Mock GitHub API和Blob存储交互
 
 ## 注意事项
 
@@ -162,3 +201,4 @@ githubRepos: {
 
 ---
 *最后更新：2025-01-12*
+*Task 6完成：内容同步机制已实现*
