@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.10.0](https://github.com/uspark-hq/uspark/compare/core-v0.9.2...core-v0.10.0) (2025-09-12)
+
+
+### Features
+
+* add comprehensive api constraints for all routes ([#222](https://github.com/uspark-hq/uspark/issues/222)) ([55cad60](https://github.com/uspark-hq/uspark/commit/55cad6022f8f08e6276dab316b51cf1995830c7f))
+* add contract-fetch utility for type-safe API calls ([#240](https://github.com/uspark-hq/uspark/issues/240)) ([5addbbc](https://github.com/uspark-hq/uspark/commit/5addbbcfdc4986870ba4c94c2218d808063de96c))
+
+
+### Bug Fixes
+
+* update domain from uspark.dev to uspark.ai and add centralized URL config ([#223](https://github.com/uspark-hq/uspark/issues/223)) ([87bb41f](https://github.com/uspark-hq/uspark/commit/87bb41fde1602a8d6111d6f4e5f954684a42cbcd))
+
 ## [0.9.2](https://github.com/uspark-hq/uspark/compare/core-v0.9.1...core-v0.9.2) (2025-09-06)
 
 
