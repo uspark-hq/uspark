@@ -22,7 +22,7 @@ const mockAuth = vi.mocked(auth);
 
 describe("/api/projects/:projectId/sessions", () => {
   const projectId = `proj_test_${Date.now()}`;
-  const userId = "test-user-sessions";
+  const userId = `test-user-sessions-${Date.now()}-${process.pid}`;
   let testSessionIds: string[] = [];
 
   beforeEach(async () => {

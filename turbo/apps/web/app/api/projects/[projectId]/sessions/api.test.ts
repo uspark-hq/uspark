@@ -24,7 +24,7 @@ const mockAuth = vi.mocked(auth);
  * These tests use API endpoints to set up test data rather than direct database access
  */
 describe("Claude Session Management API Integration", () => {
-  const userId = "test-user-api";
+  const userId = `test-user-api-${Date.now()}-${process.pid}`;
   let projectId: string;
   let sessionId: string;
   let turnId: string;

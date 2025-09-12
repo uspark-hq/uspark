@@ -18,8 +18,8 @@ import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 
 describe("DELETE /api/shares/[id]", () => {
-  const userId = "test-user-shares-delete";
-  const otherUserId = "other-user-shares-delete";
+  const userId = `test-user-shares-delete-${Date.now()}-${process.pid}`;
+  const otherUserId = `other-user-shares-delete-${Date.now()}-${process.pid}`;
 
   beforeEach(async () => {
     initServices();

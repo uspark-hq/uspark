@@ -18,7 +18,7 @@ const mockAuth = vi.mocked(auth);
 
 describe("/api/share", () => {
   const projectId = `test-project-${Date.now()}`;
-  const userId = "test-user";
+  const userId = `test-user-share-${Date.now()}-${process.pid}`;
   const testFilePath = "src/test.ts";
 
   beforeEach(async () => {

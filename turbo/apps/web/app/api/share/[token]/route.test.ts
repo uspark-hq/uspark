@@ -11,7 +11,7 @@ import crypto from "crypto";
 
 describe("/api/share/:token", () => {
   const projectId = `test-project-${Date.now()}`;
-  const userId = "test-user";
+  const userId = `test-user-share-token-${Date.now()}-${process.pid}`;
   const testFilePath = "src/test.ts";
   const testToken = crypto.randomBytes(32).toString("base64url");
   const shareId = nanoid();

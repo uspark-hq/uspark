@@ -17,7 +17,7 @@ const mockAuth = vi.mocked(auth);
 
 describe("/api/projects/:projectId", () => {
   const projectId = `test-project-${Date.now()}`;
-  const userId = "test-user";
+  const userId = `test-user-${Date.now()}-${process.pid}`;
 
   beforeEach(async () => {
     // Mock successful authentication by default
