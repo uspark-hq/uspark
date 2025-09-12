@@ -72,14 +72,11 @@ export async function GET(
     .where(eq(BLOCKS_TBL.turnId, turnId))
     .orderBy(BLOCKS_TBL.sequenceNumber);
 
-  // Parse block content from JSON strings (handle both string and object)
+  // With JSON column type, content is already deserialized by Drizzle
   const parsedBlocks = blocks.map((block) => ({
     id: block.id,
     type: block.type,
-    content:
-      typeof block.content === "string"
-        ? JSON.parse(block.content)
-        : block.content,
+    content: block.content,
     sequence_number: block.sequenceNumber,
   }));
 

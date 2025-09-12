@@ -6,11 +6,6 @@ import { PROJECTS_TBL } from "../../db/schema/projects";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";
 
-// Helper function to parse block content (handle both string and object)
-function parseBlockContent(content: unknown): unknown {
-  return typeof content === "string" ? JSON.parse(content) : content;
-}
-
 // Test BlockFactory separately as it doesn't need database
 describe("BlockFactory", () => {
   describe("thinking", () => {
@@ -257,12 +252,8 @@ describe("Blocks Database Functions", () => {
       expect(block!.type).toBe("thinking");
       expect(block!.sequenceNumber).toBe(0);
 
-      // Handle both string and object content (Drizzle may auto-parse JSON in some environments)
-      const blockContent =
-        typeof block!.content === "string"
-          ? JSON.parse(block!.content)
-          : block!.content;
-      expect(blockContent).toEqual(content);
+      // With JSON column type, Drizzle automatically handles serialization/deserialization
+      expect(block!.content).toEqual(content);
     });
 
     it("should handle complex content objects", async () => {
@@ -285,7 +276,7 @@ describe("Blocks Database Functions", () => {
 
       expect(block!.type).toBe("tool_use");
       expect(block!.sequenceNumber).toBe(5);
-      expect(parseBlockContent(block!.content)).toEqual(content);
+      expect(block!.content).toEqual(content);
     });
 
     it("should throw error if turn doesn't exist", async () => {
@@ -321,19 +312,19 @@ describe("Blocks Database Functions", () => {
       expect(dbBlocks).toHaveLength(3);
       expect(dbBlocks[0]!.type).toBe("thinking");
       expect(dbBlocks[0]!.sequenceNumber).toBe(0);
-      expect(parseBlockContent(dbBlocks[0]!.content)).toEqual({
+      expect(dbBlocks[0]!.content).toEqual({
         text: "Thinking...",
       });
 
       expect(dbBlocks[1]!.type).toBe("content");
       expect(dbBlocks[1]!.sequenceNumber).toBe(1);
-      expect(parseBlockContent(dbBlocks[1]!.content)).toEqual({
+      expect(dbBlocks[1]!.content).toEqual({
         text: "The answer is 42",
       });
 
       expect(dbBlocks[2]!.type).toBe("content");
       expect(dbBlocks[2]!.sequenceNumber).toBe(2);
-      expect(parseBlockContent(dbBlocks[2]!.content)).toEqual({
+      expect(dbBlocks[2]!.content).toEqual({
         text: "Here's why...",
       });
     });
@@ -414,24 +405,24 @@ describe("Blocks Database Functions", () => {
 
       // Verify thinking block
       expect(dbBlocks[0]!.type).toBe("thinking");
-      const thinking = parseBlockContent(dbBlocks[0]!.content);
+      const thinking = dbBlocks[0]!.content as { text: string };
       expect(thinking.text).toBe("Let me search for that file...");
 
       // Verify tool_use block
       expect(dbBlocks[1]!.type).toBe("tool_use");
-      const toolUse = parseBlockContent(dbBlocks[1]!.content);
+      const toolUse = dbBlocks[1]!.content as { tool_name: string; tool_use_id: string };
       expect(toolUse.tool_name).toBe("read_file");
       expect(toolUse.tool_use_id).toBe("tool_read_1");
 
       // Verify tool_result block
       expect(dbBlocks[2]!.type).toBe("tool_result");
-      const toolResult = parseBlockContent(dbBlocks[2]!.content);
+      const toolResult = dbBlocks[2]!.content as { tool_use_id: string; result: string };
       expect(toolResult.tool_use_id).toBe("tool_read_1");
       expect(toolResult.result).toContain("README");
 
       // Verify content block
       expect(dbBlocks[3]!.type).toBe("content");
-      const content = parseBlockContent(dbBlocks[3]!.content);
+      const content = dbBlocks[3]!.content as { text: string };
       expect(content.text).toContain("found the README file");
     });
   });
