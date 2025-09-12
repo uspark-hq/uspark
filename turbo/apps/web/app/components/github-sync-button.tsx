@@ -29,22 +29,23 @@ export function GitHubSyncButton({ projectId }: GitHubSyncButtonProps) {
           type: "success",
           message: `Successfully synced ${data.filesCount} files to GitHub`,
         });
-        
+
         // Clear success message after 5 seconds
         setTimeout(() => {
           setSyncStatus({ type: null, message: "" });
         }, 5000);
       } else {
         let errorMessage = "Sync failed";
-        
+
         if (data.error === "repository_not_linked") {
-          errorMessage = "No GitHub repository linked. Please link a repository first.";
+          errorMessage =
+            "No GitHub repository linked. Please link a repository first.";
         } else if (data.error === "unauthorized") {
           errorMessage = "You are not authorized to sync this project.";
         } else if (data.message) {
           errorMessage = data.message;
         }
-        
+
         setSyncStatus({
           type: "error",
           message: errorMessage,

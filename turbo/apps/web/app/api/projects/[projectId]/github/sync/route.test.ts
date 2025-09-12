@@ -13,7 +13,6 @@ vi.mock("../../../../../../src/lib/github/sync", () => ({
   getSyncStatus: vi.fn(),
 }));
 
-
 describe("/api/projects/[projectId]/github/sync", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -22,9 +21,13 @@ describe("/api/projects/[projectId]/github/sync", () => {
   describe("POST - Sync to GitHub", () => {
     it("should sync project successfully when authenticated", async () => {
       const { auth } = await import("@clerk/nextjs/server");
-      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user_123" });
+      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: "user_123",
+      });
 
-      const { syncProjectToGitHub } = await import("../../../../../../src/lib/github/sync");
+      const { syncProjectToGitHub } = await import(
+        "../../../../../../src/lib/github/sync"
+      );
       (syncProjectToGitHub as ReturnType<typeof vi.fn>).mockResolvedValue({
         success: true,
         commitSha: "abc123",
@@ -32,9 +35,12 @@ describe("/api/projects/[projectId]/github/sync", () => {
         message: "Successfully synced 5 files to GitHub",
       });
 
-      const request = new NextRequest("http://localhost/api/projects/proj_123/github/sync", {
-        method: "POST",
-      });
+      const request = new NextRequest(
+        "http://localhost/api/projects/proj_123/github/sync",
+        {
+          method: "POST",
+        },
+      );
 
       const response = await POST(request, {
         params: Promise.resolve({ projectId: "proj_123" }),
@@ -52,11 +58,16 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
     it("should return 401 when not authenticated", async () => {
       const { auth } = await import("@clerk/nextjs/server");
-      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: null });
-
-      const request = new NextRequest("http://localhost/api/projects/proj_123/github/sync", {
-        method: "POST",
+      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: null,
       });
+
+      const request = new NextRequest(
+        "http://localhost/api/projects/proj_123/github/sync",
+        {
+          method: "POST",
+        },
+      );
 
       const response = await POST(request, {
         params: Promise.resolve({ projectId: "proj_123" }),
@@ -69,17 +80,24 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
     it("should return 403 when user is not authorized for project", async () => {
       const { auth } = await import("@clerk/nextjs/server");
-      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user_123" });
+      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: "user_123",
+      });
 
-      const { syncProjectToGitHub } = await import("../../../../../../src/lib/github/sync");
+      const { syncProjectToGitHub } = await import(
+        "../../../../../../src/lib/github/sync"
+      );
       (syncProjectToGitHub as ReturnType<typeof vi.fn>).mockResolvedValue({
         success: false,
         error: "Unauthorized",
       });
 
-      const request = new NextRequest("http://localhost/api/projects/proj_123/github/sync", {
-        method: "POST",
-      });
+      const request = new NextRequest(
+        "http://localhost/api/projects/proj_123/github/sync",
+        {
+          method: "POST",
+        },
+      );
 
       const response = await POST(request, {
         params: Promise.resolve({ projectId: "proj_123" }),
@@ -92,17 +110,24 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
     it("should return 404 when project not found", async () => {
       const { auth } = await import("@clerk/nextjs/server");
-      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user_123" });
+      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: "user_123",
+      });
 
-      const { syncProjectToGitHub } = await import("../../../../../../src/lib/github/sync");
+      const { syncProjectToGitHub } = await import(
+        "../../../../../../src/lib/github/sync"
+      );
       (syncProjectToGitHub as ReturnType<typeof vi.fn>).mockResolvedValue({
         success: false,
         error: "Project not found",
       });
 
-      const request = new NextRequest("http://localhost/api/projects/proj_123/github/sync", {
-        method: "POST",
-      });
+      const request = new NextRequest(
+        "http://localhost/api/projects/proj_123/github/sync",
+        {
+          method: "POST",
+        },
+      );
 
       const response = await POST(request, {
         params: Promise.resolve({ projectId: "proj_123" }),
@@ -115,17 +140,24 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
     it("should return 400 when repository not linked", async () => {
       const { auth } = await import("@clerk/nextjs/server");
-      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user_123" });
+      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: "user_123",
+      });
 
-      const { syncProjectToGitHub } = await import("../../../../../../src/lib/github/sync");
+      const { syncProjectToGitHub } = await import(
+        "../../../../../../src/lib/github/sync"
+      );
       (syncProjectToGitHub as ReturnType<typeof vi.fn>).mockResolvedValue({
         success: false,
         error: "Repository not linked to project",
       });
 
-      const request = new NextRequest("http://localhost/api/projects/proj_123/github/sync", {
-        method: "POST",
-      });
+      const request = new NextRequest(
+        "http://localhost/api/projects/proj_123/github/sync",
+        {
+          method: "POST",
+        },
+      );
 
       const response = await POST(request, {
         params: Promise.resolve({ projectId: "proj_123" }),
@@ -138,17 +170,24 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
     it("should return 500 for other sync errors", async () => {
       const { auth } = await import("@clerk/nextjs/server");
-      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user_123" });
+      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: "user_123",
+      });
 
-      const { syncProjectToGitHub } = await import("../../../../../../src/lib/github/sync");
+      const { syncProjectToGitHub } = await import(
+        "../../../../../../src/lib/github/sync"
+      );
       (syncProjectToGitHub as ReturnType<typeof vi.fn>).mockResolvedValue({
         success: false,
         error: "Network error",
       });
 
-      const request = new NextRequest("http://localhost/api/projects/proj_123/github/sync", {
-        method: "POST",
-      });
+      const request = new NextRequest(
+        "http://localhost/api/projects/proj_123/github/sync",
+        {
+          method: "POST",
+        },
+      );
 
       const response = await POST(request, {
         params: Promise.resolve({ projectId: "proj_123" }),
@@ -164,9 +203,13 @@ describe("/api/projects/[projectId]/github/sync", () => {
   describe("GET - Sync Status", () => {
     it("should return sync status when authenticated", async () => {
       const { auth } = await import("@clerk/nextjs/server");
-      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user_123" });
+      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: "user_123",
+      });
 
-      const { getSyncStatus } = await import("../../../../../../src/lib/github/sync");
+      const { getSyncStatus } = await import(
+        "../../../../../../src/lib/github/sync"
+      );
       (getSyncStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
         linked: true,
         repoId: 12345,
@@ -174,9 +217,12 @@ describe("/api/projects/[projectId]/github/sync", () => {
         lastSynced: new Date("2025-01-12T10:00:00Z"),
       });
 
-      const request = new NextRequest("http://localhost/api/projects/proj_123/github/sync", {
-        method: "GET",
-      });
+      const request = new NextRequest(
+        "http://localhost/api/projects/proj_123/github/sync",
+        {
+          method: "GET",
+        },
+      );
 
       const response = await GET(request, {
         params: Promise.resolve({ projectId: "proj_123" }),
@@ -194,17 +240,24 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
     it("should return unlinked status when repository not linked", async () => {
       const { auth } = await import("@clerk/nextjs/server");
-      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: "user_123" });
+      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: "user_123",
+      });
 
-      const { getSyncStatus } = await import("../../../../../../src/lib/github/sync");
+      const { getSyncStatus } = await import(
+        "../../../../../../src/lib/github/sync"
+      );
       (getSyncStatus as ReturnType<typeof vi.fn>).mockResolvedValue({
         linked: false,
         message: "No GitHub repository linked",
       });
 
-      const request = new NextRequest("http://localhost/api/projects/proj_123/github/sync", {
-        method: "GET",
-      });
+      const request = new NextRequest(
+        "http://localhost/api/projects/proj_123/github/sync",
+        {
+          method: "GET",
+        },
+      );
 
       const response = await GET(request, {
         params: Promise.resolve({ projectId: "proj_123" }),
@@ -218,11 +271,16 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
     it("should return 401 when not authenticated", async () => {
       const { auth } = await import("@clerk/nextjs/server");
-      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({ userId: null });
-
-      const request = new NextRequest("http://localhost/api/projects/proj_123/github/sync", {
-        method: "GET",
+      (auth as unknown as ReturnType<typeof vi.fn>).mockResolvedValue({
+        userId: null,
       });
+
+      const request = new NextRequest(
+        "http://localhost/api/projects/proj_123/github/sync",
+        {
+          method: "GET",
+        },
+      );
 
       const response = await GET(request, {
         params: Promise.resolve({ projectId: "proj_123" }),

@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import { syncProjectToGitHub, getSyncStatus } from "../../../../../../src/lib/github/sync";
+import {
+  syncProjectToGitHub,
+  getSyncStatus,
+} from "../../../../../../src/lib/github/sync";
 
 /**
  * POST /api/projects/:projectId/github/sync
@@ -25,18 +28,18 @@ export async function POST(
     if (result.error === "Unauthorized") {
       return NextResponse.json({ error: "unauthorized" }, { status: 403 });
     }
-    
+
     if (result.error === "Project not found") {
       return NextResponse.json({ error: "project_not_found" }, { status: 404 });
     }
-    
+
     if (result.error === "Repository not linked to project") {
       return NextResponse.json(
         { error: "repository_not_linked" },
         { status: 400 },
       );
     }
-    
+
     return NextResponse.json(
       { error: "sync_failed", message: result.error },
       { status: 500 },
