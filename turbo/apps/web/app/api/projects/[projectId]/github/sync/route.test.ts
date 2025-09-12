@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { POST, GET } from "./route";
 import { NextRequest } from "next/server";
 import { initServices } from "../../../../../../src/lib/init-services";
@@ -13,6 +13,7 @@ import { SHARE_LINKS_TBL } from "../../../../../../src/db/schema/share-links";
 import { AGENT_SESSIONS_TBL } from "../../../../../../src/db/schema/agent-sessions";
 import * as Y from "yjs";
 import { auth } from "@clerk/nextjs/server";
+import { eq } from "drizzle-orm";
 import "../../../../../../src/test/msw-setup";
 
 // Note: Using real GitHub client with MSW mocking the API endpoints
@@ -41,16 +42,42 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
     // Initialize real services
     initServices();
+  });
 
+  afterEach(async () => {
     // Clean up test data in correct order (child tables first)
     const db = globalThis.services.db;
-    await db.delete(BLOCKS_TBL);
-    await db.delete(TURNS_TBL);
-    await db.delete(SESSIONS_TBL);
-    await db.delete(SHARE_LINKS_TBL);
-    await db.delete(AGENT_SESSIONS_TBL);
-    await db.delete(githubRepos);
-    await db.delete(PROJECTS_TBL);
+    
+    // Get all test project IDs that might have been created
+    const testProjectIds = ["proj_123", "proj_nonexistent"];
+    
+    // Clean up related data first
+    for (const projectId of testProjectIds) {
+      // Clean up blocks from turns in sessions
+      const sessions = await db
+        .select()
+        .from(SESSIONS_TBL)
+        .where(eq(SESSIONS_TBL.projectId, projectId));
+      
+      for (const session of sessions) {
+        const turns = await db
+          .select()
+          .from(TURNS_TBL)
+          .where(eq(TURNS_TBL.sessionId, session.id));
+        
+        for (const turn of turns) {
+          await db.delete(BLOCKS_TBL).where(eq(BLOCKS_TBL.turnId, turn.id));
+        }
+        
+        await db.delete(TURNS_TBL).where(eq(TURNS_TBL.sessionId, session.id));
+      }
+      
+      await db.delete(SESSIONS_TBL).where(eq(SESSIONS_TBL.projectId, projectId));
+      await db.delete(SHARE_LINKS_TBL).where(eq(SHARE_LINKS_TBL.projectId, projectId));
+      await db.delete(AGENT_SESSIONS_TBL).where(eq(AGENT_SESSIONS_TBL.projectId, projectId));
+      await db.delete(githubRepos).where(eq(githubRepos.projectId, projectId));
+      await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.id, projectId));
+    }
   });
 
   describe("POST - Sync to GitHub", () => {
