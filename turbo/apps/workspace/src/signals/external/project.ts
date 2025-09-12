@@ -14,12 +14,18 @@ export const createProject$ = command(
   ): Promise<CreateProjectResponse> => {
     const workspaceFetch = get(fetch$)
 
-    return await contractFetch(projectsContract.createProject, {
-      body: {
-        name: params.name,
+    // Explicitly type the result to help TypeScript inference
+    const result: CreateProjectResponse = await contractFetch(
+      projectsContract.createProject,
+      {
+        body: {
+          name: params.name,
+        },
+        fetch: workspaceFetch as typeof globalThis.fetch,
+        signal,
       },
-      fetch: workspaceFetch as typeof globalThis.fetch,
-      signal,
-    })
+    )
+
+    return result
   },
 )

@@ -17,7 +17,7 @@ process.env.BLOB_READ_WRITE_TOKEN = "vercel_blob_rw_test-store_secret-key";
 
 // Mock GitHub App environment variables for testing
 process.env.GH_APP_ID = "test_github_app_id";
-process.env.GH_APP_PRIVATE_KEY = "test_github_app_private_key";
+process.env.GH_APP_PRIVATE_KEY = "test_github_private_key_simple";
 process.env.GH_WEBHOOK_SECRET = "test_github_webhook_secret";
 
 // Verify required environment variables are set
