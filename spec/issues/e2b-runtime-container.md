@@ -218,7 +218,7 @@ async function syncFile(projectId: string, filePath: string) {
 - [ ] Configure authentication and environment variables (待开始)
 - [ ] Test basic container startup and teardown (待开始)
 
-#### 2. uspark watch-claude Implementation
+#### 2. uspark watch-claude Implementation ✅ COMPLETED
 
 **Acceptance Criteria**:
 
@@ -229,7 +229,7 @@ async function syncFile(projectId: string, filePath: string) {
 
 ### Phase 2: Claude Code CLI Integration
 
-#### 3. Claude Code Runtime Integration
+#### 3. Claude Code Runtime Integration ❌ NOT COMPLETED
 
 **Acceptance Criteria**:
 
@@ -239,7 +239,7 @@ async function syncFile(projectId: string, filePath: string) {
 - [ ] Handle Claude Code exit and cleanup
 - [ ] Test end-to-end workflow with sample prompts
 
-#### 4. Status Monitoring Architecture
+#### 4. Status Monitoring Architecture ✅ COMPLETED
 
 **Acceptance Criteria**:
 

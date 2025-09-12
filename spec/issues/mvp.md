@@ -15,7 +15,7 @@ This document defines the mid-term goals and user stories for the MVP release of
 #### Acceptance Criteria
 
 - [ ] One-click GitHub OAuth authorization
-- [ ] Automatic creation of dedicated docs repository (`{workspace}-docs`)
+- [x] Automatic creation of dedicated docs repository (`{workspace}-docs`) ✅
 - [ ] Web edits automatically commit and push to GitHub
 - [ ] Git pushes automatically sync to uSpark (via webhooks)
 - [ ] Sync completes within 5 seconds
@@ -44,7 +44,7 @@ This document defines the mid-term goals and user stories for the MVP release of
 - [x] `uspark push <file-path> --project-id <id>` uploads changes immediately
 - [x] `uspark watch-claude` monitors Claude output and syncs file changes
 - [x] Authentication via environment variable (USPARK_TOKEN)
-- [ ] E2B container pre-configured with uspark CLI
+- [ ] E2B container pre-configured with uspark CLI ❌
 
 #### Technical Requirements
 
@@ -62,12 +62,12 @@ This document defines the mid-term goals and user stories for the MVP release of
 
 #### Acceptance Criteria
 
-- [ ] Web dashboard showing list of projects
-- [ ] Document explorer showing project file tree
-- [ ] Document viewer/editor for selected files
-- [ ] Chat interface for entering Claude Code prompts
-- [ ] Execution status indicators (via polling)
-- [ ] Document updates as Claude makes changes (via YJS polling)
+- [x] Web dashboard showing list of projects ✅
+- [x] Document explorer showing project file tree ✅
+- [x] Document viewer/editor for selected files ✅
+- [x] Chat interface for entering Claude Code prompts ✅ (UI only)
+- [ ] Execution status indicators (via polling) ❌
+- [ ] Document updates as Claude makes changes (via YJS polling) ❌
 
 #### Technical Requirements
 
@@ -85,11 +85,11 @@ This document defines the mid-term goals and user stories for the MVP release of
 
 #### Acceptance Criteria
 
-- [ ] "Share" button on document viewer
-- [ ] Generate unique, unguessable share links
-- [ ] View-only access for shared documents
-- [ ] Share entire project or individual files
-- [ ] Public preview page with clean UI
+- [x] "Share" button on document viewer ✅
+- [x] Generate unique, unguessable share links ✅
+- [x] View-only access for shared documents ✅
+- [x] Share entire project or individual files ✅ (individual files)
+- [x] Public preview page with clean UI ✅
 
 #### Technical Requirements
 
@@ -113,12 +113,12 @@ This document defines the mid-term goals and user stories for the MVP release of
 
 #### Phase 2a: GitHub Integration (Story 1)
 
-1. [ ] GitHub OAuth flow implementation
-2. [ ] Repository creation API
-3. [ ] Webhook endpoint for GitHub push events
-4. [ ] Git operations wrapper for web edits
-5. [ ] Conflict prevention mechanism
-6. [ ] Sync status UI indicators
+1. [ ] GitHub OAuth flow implementation ❌
+2. [x] Repository creation API ✅
+3. [x] Webhook endpoint for GitHub push events ✅ (handler exists, push logic not implemented)
+4. [ ] Git operations wrapper for web edits ❌
+5. [ ] Conflict prevention mechanism ❌
+6. [ ] Sync status UI indicators ❌
 
 #### Phase 2b: uSpark CLI for E2B (Story 1b)
 
@@ -126,8 +126,8 @@ This document defines the mid-term goals and user stories for the MVP release of
 2. ✅ Implement `uspark push` command
 3. ✅ Implement `uspark watch-claude` command
 4. ✅ Update FileSystem class for direct blob access
-5. [ ] E2B container configuration with pre-installed CLI
-6. [ ] Container initialization scripts
+5. [ ] E2B container configuration with pre-installed CLI ❌
+6. [ ] Container initialization scripts ❌
 
 ### Phase 3: Web Interface Foundation (Story 2 - Part 1)
 
@@ -139,20 +139,20 @@ This document defines the mid-term goals and user stories for the MVP release of
 
 ### Phase 4: AI Integration (Story 2 - Part 2)
 
-1. [ ] Claude execution API endpoints
-2. [ ] E2B container setup and configuration
-3. ✅ uspark watch-claude command implementation
-4. [ ] Claude Code runtime integration
-5. ⏳ Chat interface component (UI only, no backend)
-6. [ ] Polling system for status updates
-7. [ ] Document change detection via YJS polling
-8. [ ] AWS Bedrock STS token generation for E2B Claude Code tasks
+1. [x] Claude execution API endpoints ✅ (Session APIs implemented)
+2. [ ] E2B container setup and configuration ❌
+3. [x] uspark watch-claude command implementation ✅
+4. [ ] Claude Code runtime integration ❌
+5. [x] Chat interface component ✅ (UI only, no backend integration)
+6. [ ] Polling system for status updates ❌ (backend exists, frontend hook missing)
+7. [ ] Document change detection via YJS polling ❌
+8. [ ] AWS Bedrock STS token generation for E2B Claude Code tasks ❌
 
 ### Phase 5: Sharing Features (Story 3)
 
 1. ✅ Share link generation API
 2. ✅ Public document access API
-3. [ ] Share management interface
+3. [x] Share management interface ✅
 4. ✅ Public document viewer page
 
 ## Out of Scope for MVP
@@ -189,7 +189,7 @@ The following features are explicitly excluded from the MVP:
    - Usage-based pricing
    - Payment processing
 
-## Technical Debt Status (Updated 2025-09-06)
+## Technical Debt Status (Updated 2025-01-12)
 
 ✅ **All technical debt cleaned up!**
 - Removed all unused files (PR #167, #168)
@@ -229,6 +229,37 @@ Post-MVP priorities (not in scope for current release):
 5. Mobile applications
 6. API for third-party integrations
 
+## Implementation Status Summary (2025-01-12)
+
+### Overall Completion: ~70%
+
+#### ✅ Completed Features (Working)
+- **Story 1b (CLI)**: 80% - All CLI commands working, E2B container config missing
+- **Story 2 (Web UI)**: 60% - UI complete, Claude execution integration missing  
+- **Story 3 (Sharing)**: 100% - Fully implemented with management interface
+
+#### 🟡 Partially Completed
+- **Story 1 (GitHub)**: 25% - Repository creation API done, bidirectional sync missing
+- **Phase 4 (AI)**: 40% - Session APIs exist, E2B/Claude integration missing
+
+#### ❌ Critical Gaps
+1. **GitHub bidirectional sync** - No document push/pull with GitHub
+2. **Claude execution in E2B** - Container not configured with Claude CLI
+3. **Real-time updates** - Polling hooks need to be re-implemented (closed PRs not satisfactory)
+4. **Frontend components** - SessionDisplay, TurnDisplay, BlockDisplay need complete re-implementation
+
+### Key Findings
+- **Strong backend infrastructure** with complete APIs and database schema
+- **Frontend implementation in closed PRs not satisfactory** - needs complete re-implementation
+- **GitHub App foundation ready** but sync logic not implemented
+- **E2B integration partial** - watch-claude works but container setup incomplete
+
+### Recommended Next Steps
+1. **Immediate**: Re-implement frontend components (useSessionPolling, display components)
+2. **Week 1**: Implement GitHub document push using Git Trees API
+3. **Week 2**: Complete E2B container Claude CLI configuration
+4. **Week 3**: Integrate new polling system for real-time updates
+
 ## Dependencies
 
 ### External Dependencies
@@ -240,7 +271,7 @@ Post-MVP priorities (not in scope for current release):
 
 ### Internal Dependencies
 
-- YJS sync protocol completion
-- CLI authentication completion
-- Database schema finalization
-- UI/UX design approval
+- YJS sync protocol completion ✅
+- CLI authentication completion ✅
+- Database schema finalization ✅
+- UI/UX design approval ✅
