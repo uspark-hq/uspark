@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { type DeviceAuthResponse } from "@uspark/core";
 import { initServices } from "../../../../../src/lib/init-services";
 import { DEVICE_CODES_TBL } from "../../../../../src/db/schema/device-codes";
+import { env } from "../../../../../src/env";
 import crypto from "crypto";
 
 /**
@@ -59,7 +60,7 @@ export async function POST() {
   const response: DeviceAuthResponse = {
     device_code: deviceCode,
     user_code: deviceCode, // Same as device_code for simplicity
-    verification_url: "https://uspark.ai/cli-auth",
+    verification_url: `${env().APP_URL}/cli-auth`,
     expires_in: expiresIn,
     interval: interval,
   };

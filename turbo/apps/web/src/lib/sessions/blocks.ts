@@ -25,7 +25,7 @@ export async function addBlock(
       id: blockId,
       turnId,
       type,
-      content: JSON.stringify(content),
+      content: content,
       sequenceNumber,
     })
     .returning();

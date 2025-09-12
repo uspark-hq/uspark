@@ -54,30 +54,21 @@ export async function GET(
     return NextResponse.json(error, { status: 500 });
   }
 
-  try {
-    // Generate a secure client token with project-scoped permissions
-    const clientToken = await generateClientTokenFromReadWriteToken({
-      token: readWriteToken,
-      pathname: `projects/${projectId}/*`,
-      validUntil: Date.now() + 10 * 60 * 1000, // 10 minutes
-      allowedContentTypes: ["text/*", "application/*", "image/*"],
-    });
+  // Generate a secure client token with project-scoped permissions
+  const clientToken = await generateClientTokenFromReadWriteToken({
+    token: readWriteToken,
+    pathname: `projects/${projectId}/*`,
+    validUntil: Date.now() + 10 * 60 * 1000, // 10 minutes
+    allowedContentTypes: ["text/*", "application/*", "image/*"],
+  });
 
-    // Return the client token with upload/download URLs
-    const response: BlobTokenResponse = {
-      token: clientToken,
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
-      uploadUrl: "https://blob.vercel-storage.com/upload",
-      downloadUrlPrefix: "https://blob.vercel-storage.com/files",
-    };
+  // Return the client token with upload/download URLs
+  const response: BlobTokenResponse = {
+    token: clientToken,
+    expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(), // 10 minutes
+    uploadUrl: "https://blob.vercel-storage.com/upload",
+    downloadUrlPrefix: "https://blob.vercel-storage.com/files",
+  };
 
-    return NextResponse.json(response);
-  } catch (error) {
-    console.error("Failed to generate client token:", error);
-    const errorResponse: BlobTokenError = {
-      error: "token_generation_failed",
-      error_description: "Failed to generate client token",
-    };
-    return NextResponse.json(errorResponse, { status: 500 });
-  }
+  return NextResponse.json(response);
 }

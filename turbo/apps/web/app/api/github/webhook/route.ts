@@ -13,56 +13,48 @@ export async function POST(request: NextRequest) {
 
   const webhookSecret = globalThis.services.env.GH_WEBHOOK_SECRET;
 
-  try {
-    const body = await request.text();
-    const signature = request.headers.get("x-hub-signature-256");
-    const eventType = request.headers.get("x-github-event");
+  const body = await request.text();
+  const signature = request.headers.get("x-hub-signature-256");
+  const eventType = request.headers.get("x-github-event");
 
-    if (!signature || !eventType) {
-      return NextResponse.json(
-        { error: "Missing required headers" },
-        { status: 400 },
-      );
-    }
-
-    // Verify webhook signature
-    const webhooks = new Webhooks({ secret: webhookSecret });
-    const isValid = await webhooks.verify(body, signature);
-
-    if (!isValid) {
-      console.error("Invalid webhook signature");
-      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-    }
-
-    const payload = JSON.parse(body);
-
-    // Handle different event types
-    switch (eventType) {
-      case "installation":
-        await handleInstallationEvent(payload);
-        break;
-
-      case "installation_repositories":
-        await handleInstallationRepositoriesEvent(payload);
-        break;
-
-      case "push":
-        // TODO: Handle push events for future GitHub → Web sync
-        console.log("Push event received (not implemented yet)");
-        break;
-
-      default:
-        console.log(`Unhandled webhook event: ${eventType}`);
-    }
-
-    return NextResponse.json({ message: "Webhook processed" });
-  } catch (error) {
-    console.error("Webhook processing error:", error);
+  if (!signature || !eventType) {
     return NextResponse.json(
-      { error: "Webhook processing failed" },
-      { status: 500 },
+      { error: "Missing required headers" },
+      { status: 400 },
     );
   }
+
+  // Verify webhook signature
+  const webhooks = new Webhooks({ secret: webhookSecret });
+  const isValid = await webhooks.verify(body, signature);
+
+  if (!isValid) {
+    console.error("Invalid webhook signature");
+    return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+  }
+
+  const payload = JSON.parse(body);
+
+  // Handle different event types
+  switch (eventType) {
+    case "installation":
+      await handleInstallationEvent(payload);
+      break;
+
+    case "installation_repositories":
+      await handleInstallationRepositoriesEvent(payload);
+      break;
+
+    case "push":
+      // TODO: Handle push events for future GitHub → Web sync
+      console.log("Push event received (not implemented yet)");
+      break;
+
+    default:
+      console.log(`Unhandled webhook event: ${eventType}`);
+  }
+
+  return NextResponse.json({ message: "Webhook processed" });
 }
 
 /**

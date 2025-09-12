@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.0](https://github.com/uspark-hq/uspark/compare/core-v0.10.0...core-v0.11.0) (2025-09-12)
+
+
+### Features
+
+* add custom fetch support to contractfetch and integrate with workspace ([#254](https://github.com/uspark-hq/uspark/issues/254)) ([55d9520](https://github.com/uspark-hq/uspark/commit/55d9520e008de21e021fb4a8affb0963e59174fa))
+
 ## [0.10.0](https://github.com/uspark-hq/uspark/compare/core-v0.9.2...core-v0.10.0) (2025-09-12)
 
 

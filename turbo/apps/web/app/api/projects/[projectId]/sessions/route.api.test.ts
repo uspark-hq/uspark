@@ -12,7 +12,7 @@ import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 
 describe("/api/projects/:projectId/sessions - API Tests", () => {
-  const userId = "test-user-sessions-api";
+  const userId = `test-user-sessions-api-${Date.now()}-${process.pid}`;
   let projectId: string;
 
   beforeEach(async () => {

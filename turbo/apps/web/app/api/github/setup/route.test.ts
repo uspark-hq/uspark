@@ -21,7 +21,7 @@ const mockAuth = vi.mocked(auth);
 const mockGetInstallationDetails = vi.mocked(getInstallationDetails);
 
 describe("/api/github/setup", () => {
-  const userId = "test-user";
+  const userId = `test-user-github-setup-${Date.now()}-${process.pid}`;
   const installationId = "12345";
 
   beforeEach(async () => {

@@ -22,7 +22,7 @@ const mockAuth = vi.mocked(auth);
 describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
   const projectId = `proj_updates_${Date.now()}`;
   const sessionId = `sess_updates_${Date.now()}`;
-  const userId = "test-user-updates";
+  const userId = `test-user-updates-${Date.now()}-${process.pid}`;
   let createdTurnIds: string[] = [];
   let createdBlockIds: string[] = [];
 

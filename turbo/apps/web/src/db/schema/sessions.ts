@@ -1,4 +1,4 @@
-import { pgTable, text, timestamp, integer } from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, integer, json } from "drizzle-orm/pg-core";
 
 /**
  * Schema for Claude sessions management
@@ -37,7 +37,7 @@ export const BLOCKS_TBL = pgTable("blocks", {
     .notNull()
     .references(() => TURNS_TBL.id, { onDelete: "cascade" }),
   type: text("type").notNull(), // thinking, content, tool_use, tool_result
-  content: text("content").notNull(), // JSON stringified content
+  content: json("content").notNull(), // JSON content (auto-serialized by Drizzle)
   sequenceNumber: integer("sequence_number").notNull(), // Order of blocks within a turn
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

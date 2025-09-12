@@ -327,7 +327,7 @@ describe("Projects List Page", () => {
 
     // Wait for error to appear - the component shows the actual error message
     await waitFor(() => {
-      expect(screen.getByText(/Request failed/)).toBeInTheDocument();
+      expect(screen.getByText(/Failed to fetch projects/)).toBeInTheDocument();
     });
   });
 

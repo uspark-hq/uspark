@@ -120,11 +120,13 @@ Returns: {
 - [ ] Chat input component (待实现)
 - [ ] Polling-based update display (待实现)
 
-#### 5. Polling Integration
+#### 5. Polling Integration ❌ NOT COMPLETED
 **Acceptance Criteria**:
-- [ ] Polling client setup (useSessionPolling hook)
-- [ ] File change updates via YJS polling
-- [ ] Execution status updates via API polling
+- [ ] Polling client setup (useSessionPolling hook) - 需要重新实现
+- [ ] File change updates via YJS polling - 需要实现
+- [ ] Execution status updates via API polling - 需要实现
+
+**Note**: Frontend polling hooks and components need complete re-implementation. Previous implementations in closed PRs (#174, #179) were not satisfactory.
 
 ## Database Schema
 
