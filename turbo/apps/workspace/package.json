@@ -1,6 +1,6 @@
 {
   "name": "workspace",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "type": "module",
   "private": true,
   "scripts": {
@@ -14,6 +14,7 @@
     "test:coverage": "vitest --coverage"
   },
   "dependencies": {
+    "@clerk/clerk-js": "^5.92.1",
     "ccstate": "^5.0.0",
     "ccstate-react": "^5.0.0",
     "path-to-regexp": "^8.3.0",
