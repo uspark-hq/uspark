@@ -1,5 +1,7 @@
 import chalk from "chalk";
 import { requireAuth } from "./shared";
+import { readdir } from "fs/promises";
+import { join } from "path";
 
 export async function pullCommand(
   filePath: string,
@@ -54,8 +56,6 @@ export async function pushCommand(
     );
 
     // Get all files in current directory recursively
-    const { readdir } = await import("fs/promises");
-    const { join } = await import("path");
 
     const getAllFiles = async (dir: string): Promise<string[]> => {
       const files: string[] = [];

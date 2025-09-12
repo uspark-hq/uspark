@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { tmpdir } from "os";
 import { join } from "path";
 import { mkdtemp, readFile, rm } from "fs/promises";
+import { readdirSync } from "fs";
 import { mockServer } from "../test/mock-server";
 
 // Import the pull command functions for direct testing
@@ -177,7 +178,6 @@ describe("pull --all command", () => {
     });
 
     // Verify no files were created
-    const { readdirSync } = await import("fs");
     const files = readdirSync(tempDir);
     expect(files).toHaveLength(0);
   });
