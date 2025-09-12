@@ -410,13 +410,19 @@ describe("Blocks Database Functions", () => {
 
       // Verify tool_use block
       expect(dbBlocks[1]!.type).toBe("tool_use");
-      const toolUse = dbBlocks[1]!.content as { tool_name: string; tool_use_id: string };
+      const toolUse = dbBlocks[1]!.content as {
+        tool_name: string;
+        tool_use_id: string;
+      };
       expect(toolUse.tool_name).toBe("read_file");
       expect(toolUse.tool_use_id).toBe("tool_read_1");
 
       // Verify tool_result block
       expect(dbBlocks[2]!.type).toBe("tool_result");
-      const toolResult = dbBlocks[2]!.content as { tool_use_id: string; result: string };
+      const toolResult = dbBlocks[2]!.content as {
+        tool_use_id: string;
+        result: string;
+      };
       expect(toolResult.tool_use_id).toBe("tool_read_1");
       expect(toolResult.result).toContain("README");
 
