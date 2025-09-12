@@ -1,8 +1,15 @@
 import '@testing-library/jest-dom/vitest'
-import { afterEach, beforeEach, vi } from 'vitest'
+import { afterEach, beforeAll, beforeEach, vi } from 'vitest'
 import { setPathname, setSearch } from './src/signals/location'
 import { resetLoggerForTest } from './src/signals/log'
+import { resetMockAuth, setupMock } from './src/signals/test-utils'
 import { clearAllDetached } from './src/signals/utils'
+
+setupMock()
+
+beforeAll(() => {
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'test_key'
+})
 
 beforeEach(() => {
   resetLoggerForTest()
@@ -17,6 +24,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.restoreAllMocks()
+  resetMockAuth()
 })
 
 afterEach(() => {

@@ -1,4 +1,5 @@
 import { command, type Command } from 'ccstate'
+import { auth$, setupClerk$ } from './auth'
 import { setPageSignal$ } from './page-signal'
 import { setupProjectPage$ } from './project/project-page'
 import { setRootSignal$ } from './root-signal'
@@ -16,7 +17,10 @@ const setupPageWrapper = (fn: Command<Promise<void> | void, [AbortSignal]>) => {
 const setupAuthPageWrapper = (
   fn: Command<Promise<void> | void, [AbortSignal]>,
 ) => {
-  return command(async ({ set }, signal: AbortSignal) => {
+  return command(async ({ get, set }, signal: AbortSignal) => {
+    await get(auth$)
+    signal.throwIfAborted()
+
     await set(setupPageWrapper(fn), signal)
   })
 }
@@ -42,6 +46,7 @@ export const bootstrap$ = command(
 
     render()
 
-    await set(setupRoutes$, signal)
+    await Promise.all([set(setupClerk$, signal), set(setupRoutes$, signal)])
+    signal.throwIfAborted()
   },
 )

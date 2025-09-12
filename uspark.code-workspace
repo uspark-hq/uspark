@@ -24,5 +24,10 @@
   ],
   "extensions": {
     "recommendations": ["esbenp.prettier-vscode", "anthropic.claude-code"]
+  },
+  "settings": {
+     "vitest.nodeEnv": {
+       "DATABASE_URL": "postgresql://postgres:postgres@localhost:5432/postgres"
+     }
   }
 }
