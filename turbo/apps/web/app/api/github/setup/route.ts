@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../src/lib/init-services";
 import { githubInstallations } from "../../../../src/db/schema/github";
+import { getInstallationDetails } from "../../../../src/lib/github/client";
 
 /**
  * Handles GitHub App installation setup callback
@@ -41,10 +42,18 @@ export async function GET(request: NextRequest) {
       }
 
       const installationId = parseInt(installationIdStr, 10);
-      const placeholderAccountName = `installation-${installationId}`;
 
-      // For MVP, we'll store the installation with a placeholder account name
-      // In Task 4, we'll implement proper GitHub API calls to get the real account name
+      // Get real installation details from GitHub API
+      let accountName: string;
+      try {
+        const installationDetails =
+          await getInstallationDetails(installationId);
+        accountName = installationDetails.account.login;
+      } catch (error) {
+        console.error("Failed to fetch installation details:", error);
+        // Fallback to placeholder if API call fails
+        accountName = `installation-${installationId}`;
+      }
 
       // Store installation in database (idempotent operation)
       await globalThis.services.db
@@ -52,13 +61,13 @@ export async function GET(request: NextRequest) {
         .values({
           userId,
           installationId,
-          accountName: placeholderAccountName,
+          accountName,
         })
         .onConflictDoUpdate({
           target: githubInstallations.installationId,
           set: {
             userId,
-            accountName: placeholderAccountName,
+            accountName,
             updatedAt: new Date(),
           },
         });

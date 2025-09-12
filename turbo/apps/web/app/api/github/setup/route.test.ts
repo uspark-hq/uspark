@@ -10,8 +10,15 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
 }));
 
+// Mock GitHub client
+vi.mock("../../../../src/lib/github/client", () => ({
+  getInstallationDetails: vi.fn(),
+}));
+
 import { auth } from "@clerk/nextjs/server";
+import { getInstallationDetails } from "../../../../src/lib/github/client";
 const mockAuth = vi.mocked(auth);
+const mockGetInstallationDetails = vi.mocked(getInstallationDetails);
 
 describe("/api/github/setup", () => {
   const userId = "test-user";
@@ -20,6 +27,20 @@ describe("/api/github/setup", () => {
   beforeEach(async () => {
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+
+    // Mock GitHub API response by default
+    mockGetInstallationDetails.mockResolvedValue({
+      id: parseInt(installationId),
+      account: {
+        login: "test-org",
+        type: "Organization",
+      },
+      repository_selection: "all",
+      permissions: {
+        contents: "write",
+        metadata: "read",
+      },
+    });
 
     // Clean up any existing test installations
     initServices();
@@ -71,7 +92,7 @@ describe("/api/github/setup", () => {
       expect(storedInstallations[0]).toMatchObject({
         userId,
         installationId: parseInt(installationId),
-        accountName: `installation-${installationId}`,
+        accountName: "test-org",
       });
     });
 
@@ -105,7 +126,7 @@ describe("/api/github/setup", () => {
       expect(storedInstallations[0]).toMatchObject({
         userId, // Should be updated to current user
         installationId: parseInt(installationId),
-        accountName: `installation-${installationId}`, // Should be updated
+        accountName: "test-org", // Should be updated
       });
     });
 
@@ -119,6 +140,36 @@ describe("/api/github/setup", () => {
       expect(response.headers.get("location")).toBe(
         "http://localhost:3000/settings?github=error&message=missing_installation_id",
       );
+    });
+
+    it("should use fallback account name when GitHub API fails", async () => {
+      // Mock GitHub API failure
+      mockGetInstallationDetails.mockRejectedValueOnce(new Error("API Error"));
+
+      const url = `http://localhost:3000/api/github/setup?setup_action=install&installation_id=${installationId}`;
+      const mockRequest = new NextRequest(url);
+
+      const response = await GET(mockRequest);
+
+      expect(response.status).toBe(307);
+      expect(response.headers.get("location")).toBe(
+        "http://localhost:3000/settings?github=connected",
+      );
+
+      // Verify fallback account name was used
+      const storedInstallations = await globalThis.services.db
+        .select()
+        .from(githubInstallations)
+        .where(
+          eq(githubInstallations.installationId, parseInt(installationId)),
+        );
+
+      expect(storedInstallations).toHaveLength(1);
+      expect(storedInstallations[0]).toMatchObject({
+        userId,
+        installationId: parseInt(installationId),
+        accountName: `installation-${installationId}`, // Fallback name
+      });
     });
   });
 
