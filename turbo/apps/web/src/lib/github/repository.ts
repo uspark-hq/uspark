@@ -6,7 +6,7 @@ import { eq, and } from "drizzle-orm";
 /**
  * Repository creation result
  */
-export type CreateRepositoryResult = {
+type CreateRepositoryResult = {
   repoId: number;
   repoName: string;
   fullName: string;
@@ -17,7 +17,7 @@ export type CreateRepositoryResult = {
 /**
  * Repository information
  */
-export type RepositoryInfo = {
+type RepositoryInfo = {
   id: string;
   projectId: string;
   installationId: number;
@@ -108,38 +108,6 @@ export async function getProjectRepository(
   return repos[0] as RepositoryInfo;
 }
 
-/**
- * Gets repository information from GitHub API
- * 
- * @param installationId - The GitHub App installation ID
- * @param repoName - The repository name
- * @returns GitHub repository data
- */
-export async function getGitHubRepository(
-  installationId: number,
-  repoName: string
-) {
-  const octokit = await createInstallationOctokit(installationId);
-  
-  // Get installation details to determine the owner
-  const { data: installation } = await octokit.request("GET /app/installations/{installation_id}", {
-    installation_id: installationId,
-  });
-  
-  const owner = installation.account && 'login' in installation.account 
-    ? installation.account.login 
-    : null;
-  if (!owner) {
-    throw new Error("Could not determine repository owner");
-  }
-  
-  const { data: repo } = await octokit.request("GET /repos/{owner}/{repo}", {
-    owner,
-    repo: repoName,
-  });
-  
-  return repo;
-}
 
 /**
  * Checks if a user has access to an installation

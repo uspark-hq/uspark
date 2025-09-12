@@ -37,7 +37,7 @@ describe("/api/projects/[projectId]/github/repository", () => {
       };
       
       const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId } as any);
+      vi.mocked(auth).mockResolvedValue({ userId, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
       
       const { getProjectRepository, hasInstallationAccess } = await import(
         "../../../../../../src/lib/github/repository"
@@ -61,7 +61,7 @@ describe("/api/projects/[projectId]/github/repository", () => {
     
     it("should return 404 for non-existent repository", async () => {
       const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId } as any);
+      vi.mocked(auth).mockResolvedValue({ userId, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
       
       const { getProjectRepository } = await import(
         "../../../../../../src/lib/github/repository"
@@ -80,7 +80,7 @@ describe("/api/projects/[projectId]/github/repository", () => {
     
     it("should return 401 for unauthenticated user", async () => {
       const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId: null } as any);
+      vi.mocked(auth).mockResolvedValue({ userId: null, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
       
       const request = new NextRequest("http://localhost/api/projects/test-project-123/github/repository");
       const context = { params: Promise.resolve({ projectId }) };
@@ -104,7 +104,7 @@ describe("/api/projects/[projectId]/github/repository", () => {
       };
       
       const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId } as any);
+      vi.mocked(auth).mockResolvedValue({ userId, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
       
       const { hasInstallationAccess, createProjectRepository } = await import(
         "../../../../../../src/lib/github/repository"
@@ -130,7 +130,7 @@ describe("/api/projects/[projectId]/github/repository", () => {
     
     it("should return 400 for missing installation ID", async () => {
       const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId } as any);
+      vi.mocked(auth).mockResolvedValue({ userId, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
       
       const request = new NextRequest("http://localhost/api/projects/test-project-123/github/repository", {
         method: "POST",
@@ -148,7 +148,7 @@ describe("/api/projects/[projectId]/github/repository", () => {
     
     it("should return 409 for repository that already exists", async () => {
       const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId } as any);
+      vi.mocked(auth).mockResolvedValue({ userId, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
       
       const { hasInstallationAccess, createProjectRepository } = await import(
         "../../../../../../src/lib/github/repository"
@@ -186,7 +186,7 @@ describe("/api/projects/[projectId]/github/repository", () => {
       };
       
       const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId } as any);
+      vi.mocked(auth).mockResolvedValue({ userId, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
       
       const { getProjectRepository, hasInstallationAccess, removeRepositoryLink } = await import(
         "../../../../../../src/lib/github/repository"
@@ -220,7 +220,7 @@ describe("/api/projects/[projectId]/github/repository", () => {
       };
       
       const { auth } = await import("@clerk/nextjs/server");
-      vi.mocked(auth).mockResolvedValue({ userId } as any);
+      vi.mocked(auth).mockResolvedValue({ userId, sessionId: null, redirectToSignIn: null as never } as Awaited<ReturnType<typeof auth>>);
       
       const { getProjectRepository, hasInstallationAccess, removeRepositoryLink } = await import(
         "../../../../../../src/lib/github/repository"

@@ -49,7 +49,7 @@ describe("GitHub Repository", () => {
           },
         }),
       };
-      vi.mocked(createInstallationOctokit).mockResolvedValue(mockOctokit as any);
+      vi.mocked(createInstallationOctokit).mockResolvedValue(mockOctokit as Awaited<ReturnType<typeof createInstallationOctokit>>);
       
       // Create repository
       const result = await createProjectRepository(testProjectId, testInstallationId);
