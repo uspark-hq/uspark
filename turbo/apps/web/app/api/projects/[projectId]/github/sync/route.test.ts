@@ -34,6 +34,10 @@ vi.mock("../../../../../../src/lib/github/auth", () => ({
 const mockAuth = vi.mocked(auth);
 
 describe("/api/projects/[projectId]/github/sync", () => {
+  // Use unique IDs for each test run to avoid conflicts
+  const testUserId = `test-user-github-sync-${Date.now()}-${process.pid}`;
+  const createdProjectIds: string[] = [];
+
   beforeEach(async () => {
     vi.clearAllMocks();
 
@@ -48,11 +52,8 @@ describe("/api/projects/[projectId]/github/sync", () => {
     // Clean up test data in correct order (child tables first)
     const db = globalThis.services.db;
     
-    // Get all test project IDs that might have been created
-    const testProjectIds = ["proj_123", "proj_nonexistent"];
-    
-    // Clean up related data first
-    for (const projectId of testProjectIds) {
+    // Clean up all projects created during this test
+    for (const projectId of createdProjectIds) {
       // Clean up blocks from turns in sessions
       const sessions = await db
         .select()
@@ -78,15 +79,19 @@ describe("/api/projects/[projectId]/github/sync", () => {
       await db.delete(githubRepos).where(eq(githubRepos.projectId, projectId));
       await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.id, projectId));
     }
+    
+    // Clear the array for next test
+    createdProjectIds.length = 0;
   });
 
   describe("POST - Sync to GitHub", () => {
     it("should sync project successfully when authenticated", async () => {
-      mockAuth.mockResolvedValue({ userId: "user_123" } as Awaited<
+      mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<
         ReturnType<typeof auth>
       >);
 
-      const projectId = "proj_123";
+      const projectId = `proj_sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      createdProjectIds.push(projectId);
       const db = globalThis.services.db;
 
       // Create YDoc with test files
@@ -102,7 +107,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
       // Insert test data into real database
       await db.insert(PROJECTS_TBL).values({
         id: projectId,
-        userId: "user_123",
+        userId: testUserId,
         ydocData,
         version: 0,
       });
@@ -115,14 +120,14 @@ describe("/api/projects/[projectId]/github/sync", () => {
       });
 
       const request = new NextRequest(
-        "http://localhost/api/projects/proj_123/github/sync",
+        `http://localhost/api/projects/${projectId}/github/sync`,
         {
           method: "POST",
         },
       );
 
       const response = await POST(request, {
-        params: Promise.resolve({ projectId: "proj_123" }),
+        params: Promise.resolve({ projectId }),
       });
 
       expect(response.status).toBe(200);
@@ -139,14 +144,14 @@ describe("/api/projects/[projectId]/github/sync", () => {
       >);
 
       const request = new NextRequest(
-        "http://localhost/api/projects/proj_123/github/sync",
+        `http://localhost/api/projects/any-project/github/sync`,
         {
           method: "POST",
         },
       );
 
       const response = await POST(request, {
-        params: Promise.resolve({ projectId: "proj_123" }),
+        params: Promise.resolve({ projectId: "any-project" }),
       });
 
       expect(response.status).toBe(401);
@@ -155,7 +160,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
     });
 
     it("should return 404 when project not found", async () => {
-      mockAuth.mockResolvedValue({ userId: "user_123" } as Awaited<
+      mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<
         ReturnType<typeof auth>
       >);
 
@@ -176,11 +181,12 @@ describe("/api/projects/[projectId]/github/sync", () => {
     });
 
     it("should return 400 when repository not linked", async () => {
-      mockAuth.mockResolvedValue({ userId: "user_123" } as Awaited<
+      mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<
         ReturnType<typeof auth>
       >);
 
-      const projectId = "proj_123";
+      const projectId = `proj_no_repo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      createdProjectIds.push(projectId);
       const db = globalThis.services.db;
 
       // Create project without repository link
@@ -191,20 +197,20 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
       await db.insert(PROJECTS_TBL).values({
         id: projectId,
-        userId: "user_123",
+        userId: testUserId,
         ydocData,
         version: 0,
       });
 
       const request = new NextRequest(
-        "http://localhost/api/projects/proj_123/github/sync",
+        `http://localhost/api/projects/${projectId}/github/sync`,
         {
           method: "POST",
         },
       );
 
       const response = await POST(request, {
-        params: Promise.resolve({ projectId: "proj_123" }),
+        params: Promise.resolve({ projectId }),
       });
 
       expect(response.status).toBe(400);
@@ -215,11 +221,12 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
   describe("GET - Sync Status", () => {
     it("should return sync status when authenticated", async () => {
-      mockAuth.mockResolvedValue({ userId: "user_123" } as Awaited<
+      mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<
         ReturnType<typeof auth>
       >);
 
-      const projectId = "proj_123";
+      const projectId = `proj_status_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      createdProjectIds.push(projectId);
       const db = globalThis.services.db;
 
       // Insert test repository link
@@ -234,14 +241,14 @@ describe("/api/projects/[projectId]/github/sync", () => {
         .returning();
 
       const request = new NextRequest(
-        "http://localhost/api/projects/proj_123/github/sync",
+        `http://localhost/api/projects/${projectId}/github/sync`,
         {
           method: "GET",
         },
       );
 
       const response = await GET(request, {
-        params: Promise.resolve({ projectId: "proj_123" }),
+        params: Promise.resolve({ projectId }),
       });
 
       expect(response.status).toBe(200);
@@ -253,7 +260,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
     });
 
     it("should return unlinked status when repository not linked", async () => {
-      mockAuth.mockResolvedValue({ userId: "user_123" } as Awaited<
+      mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<
         ReturnType<typeof auth>
       >);
 
@@ -280,14 +287,14 @@ describe("/api/projects/[projectId]/github/sync", () => {
       >);
 
       const request = new NextRequest(
-        "http://localhost/api/projects/proj_123/github/sync",
+        `http://localhost/api/projects/any-project/github/sync`,
         {
           method: "GET",
         },
       );
 
       const response = await GET(request, {
-        params: Promise.resolve({ projectId: "proj_123" }),
+        params: Promise.resolve({ projectId: "any-project" }),
       });
 
       expect(response.status).toBe(401);
