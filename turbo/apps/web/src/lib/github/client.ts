@@ -21,7 +21,9 @@ export function createAppOctokit(): App {
  * Creates an Installation-level Octokit client
  * Simple implementation without retry logic for MVP
  */
-export async function createInstallationOctokit(installationId: number): Promise<Octokit> {
+export async function createInstallationOctokit(
+  installationId: number,
+): Promise<Octokit> {
   const token = await getInstallationToken(installationId);
 
   return new Octokit({
@@ -36,7 +38,7 @@ export async function createInstallationOctokit(installationId: number): Promise
 export async function getInstallationDetails(installationId: number) {
   const app = createAppOctokit();
   const octokit = await app.getInstallationOctokit(installationId);
-  
+
   const { data } = await octokit.request("GET /installation");
   return data;
 }
