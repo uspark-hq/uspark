@@ -2,7 +2,7 @@
 
 ## 总体进展概览
 
-### ✅ 已完成任务 (3/8)
+### ✅ 已完成任务 (4/8)
 
 1. **Task 1: GitHub App 基础设置** ✅
    - PR: #241 (已合并)
@@ -24,12 +24,15 @@
    - 添加了全面的测试覆盖
    - 实现了webhook签名验证
 
-### 🚧 待实现任务 (5/8)
+4. **Task 4: Installation Token管理** ✅
+   - PR: #250 (已合并)
+   - 实现了简化的Installation Token获取
+   - 创建了基础的Octokit客户端工厂
+   - 更新setup路由使用真实GitHub API获取账户名
+   - 完整的测试覆盖
+   - **代码简化**: 移除复杂的错误处理和重试机制，专注MVP功能
 
-4. **Task 4: Installation Token管理** 
-   - 状态：待开始
-   - 需要实现GitHub App installation token的获取和刷新
-   - 使用@octokit/app进行JWT认证
+### 🚧 待实现任务 (4/8)
 
 5. **Task 5: 仓库创建与管理**
    - 状态：待开始
@@ -117,18 +120,19 @@ githubRepos: {
 
 ## 下一步计划
 
-### Task 4: Installation Token管理（当前任务）
+### Task 5: 仓库创建与管理（当前任务）
 
 需要实现的功能：
-1. 创建GitHub App JWT生成器
-2. 使用JWT获取installation access token
-3. 实现token缓存和刷新机制
-4. 创建Octokit客户端工厂
+1. 为每个项目创建对应的GitHub仓库
+2. 实现仓库初始化（README、.gitignore等）
+3. 管理仓库设置和权限
+4. 将仓库信息存储到数据库
 
 预计实现文件：
-- `/src/lib/github/auth.ts` - JWT和token管理
-- `/src/lib/github/client.ts` - Octokit客户端创建
-- `/app/api/github/repos/route.ts` - 仓库管理API
+- `/app/api/github/repos/route.ts` - 仓库创建API
+- `/app/api/github/repos/[repoId]/route.ts` - 仓库管理API
+- `/src/lib/github/repos.ts` - 仓库操作工具函数
+- 更新前端UI添加GitHub连接按钮
 
 ## 注意事项
 
@@ -154,6 +158,7 @@ githubRepos: {
 - PR #241: [GitHub App基础设置](https://github.com/uspark-hq/uspark/pull/241)
 - PR #243: [数据库Schema](https://github.com/uspark-hq/uspark/pull/243)
 - PR #244: [安装流程实现](https://github.com/uspark-hq/uspark/pull/244)
+- PR #250: [Installation Token管理](https://github.com/uspark-hq/uspark/pull/250)
 
 ---
 *最后更新：2025-01-12*
