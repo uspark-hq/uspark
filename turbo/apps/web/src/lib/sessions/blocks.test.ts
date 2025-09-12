@@ -166,7 +166,7 @@ describe("Blocks Database Functions", () => {
   const projectId = `proj_blocks_helper_${Date.now()}`;
   const sessionId = `sess_blocks_helper_${Date.now()}`;
   const turnId = `turn_blocks_helper_${Date.now()}`;
-  const userId = "test-user-blocks-helper";
+  const userId = `test-user-blocks-helper-${Date.now()}-${process.pid}`;
   let createdBlockIds: string[] = [];
 
   beforeEach(async () => {
