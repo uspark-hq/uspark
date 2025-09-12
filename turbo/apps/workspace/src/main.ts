@@ -1,10 +1,10 @@
 import './polyfill'
 import { createStore, type Store } from 'ccstate'
 import { createRoot } from 'react-dom/client'
+import { worker } from './mocks/browser'
 import { bootstrap$ } from './signals/bootstrap'
 import { detach, Reason } from './signals/utils'
 import { setupRouter } from './views/main'
-import { worker } from './mocks/browser'
 
 async function setupMockServer(signal: AbortSignal) {
   signal.throwIfAborted()

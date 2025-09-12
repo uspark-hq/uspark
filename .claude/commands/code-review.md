@@ -69,6 +69,12 @@ Each commit is reviewed against these criteria:
 - Flag timeout increases to pass tests
 - Suggest deterministic alternatives to time-based solutions
 
+### 6. Dynamic Import Analysis
+- Identify dynamic `import()` calls that could be static imports
+- Convert runtime dynamic imports to static imports at file top
+- Preserve type-only imports (JSDoc/TypeScript annotations)
+- Flag unnecessary async operations from dynamic imports
+
 ## Output Structure
 
 ```
