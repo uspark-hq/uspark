@@ -2,6 +2,8 @@
 let _pathname: string | undefined = undefined
 // eslint-disable-next-line custom/no-package-variable
 let _search: string | undefined = undefined
+// eslint-disable-next-line custom/no-package-variable
+let _origin: string | undefined = undefined
 
 export const setPathname = (pathname: string) => {
   _pathname = pathname
@@ -9,6 +11,10 @@ export const setPathname = (pathname: string) => {
 
 export const setSearch = (search: string) => {
   _search = search
+}
+
+export const setOrigin = (origin: string) => {
+  _origin = origin
 }
 
 export function mockLocation(
@@ -36,4 +42,8 @@ export const pathname = () => {
 
 export const search = () => {
   return _search ?? location.search
+}
+
+export const origin = () => {
+  return _origin ?? location.origin
 }

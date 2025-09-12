@@ -10,7 +10,6 @@ function initEnv() {
       E2B_API_KEY: z.string().min(1).optional(),
       APP_URL: z
         .string()
-        .url()
         .default(
           process.env.NODE_ENV === "production"
             ? "https://uspark.ai"
