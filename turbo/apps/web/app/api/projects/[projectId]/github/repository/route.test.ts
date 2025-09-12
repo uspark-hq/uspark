@@ -43,7 +43,9 @@ describe("/api/projects/[projectId]/github/repository", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       vi.mocked(getProjectRepository).mockResolvedValue(mockRepository);
       vi.mocked(hasInstallationAccess).mockResolvedValue(true);
@@ -68,7 +70,9 @@ describe("/api/projects/[projectId]/github/repository", () => {
     });
 
     it("should return 404 for non-existent repository", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       vi.mocked(getProjectRepository).mockResolvedValue(null);
 
@@ -87,7 +91,9 @@ describe("/api/projects/[projectId]/github/repository", () => {
     });
 
     it("should return 401 for unauthenticated user", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const request = new NextRequest(
         "http://localhost/api/projects/test-project-123/github/repository",
@@ -112,7 +118,9 @@ describe("/api/projects/[projectId]/github/repository", () => {
         cloneUrl: "https://github.com/testuser/uspark-test-project-123.git",
       };
 
-      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       vi.mocked(hasInstallationAccess).mockResolvedValue(true);
       vi.mocked(createProjectRepository).mockResolvedValue(mockRepository);
@@ -143,7 +151,9 @@ describe("/api/projects/[projectId]/github/repository", () => {
     });
 
     it("should return 400 for missing installation ID", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const request = new NextRequest(
         "http://localhost/api/projects/test-project-123/github/repository",
@@ -163,7 +173,9 @@ describe("/api/projects/[projectId]/github/repository", () => {
     });
 
     it("should return 409 for repository that already exists", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       vi.mocked(hasInstallationAccess).mockResolvedValue(true);
       vi.mocked(createProjectRepository).mockRejectedValue(
@@ -200,7 +212,9 @@ describe("/api/projects/[projectId]/github/repository", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       vi.mocked(getProjectRepository).mockResolvedValue(mockRepository);
       vi.mocked(hasInstallationAccess).mockResolvedValue(true);
@@ -233,7 +247,9 @@ describe("/api/projects/[projectId]/github/repository", () => {
         updatedAt: new Date(),
       };
 
-      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       vi.mocked(getProjectRepository).mockResolvedValue(mockRepository);
       vi.mocked(hasInstallationAccess).mockResolvedValue(true);

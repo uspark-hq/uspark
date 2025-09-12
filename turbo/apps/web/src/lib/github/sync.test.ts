@@ -14,7 +14,9 @@ import "../../test/msw-setup";
 
 // Mock the GitHub authentication to prevent real JWT generation
 vi.mock("./auth", () => ({
-  getInstallationToken: vi.fn().mockResolvedValue("ghs_test_installation_token_12345"),
+  getInstallationToken: vi
+    .fn()
+    .mockResolvedValue("ghs_test_installation_token_12345"),
 }));
 
 describe("GitHub Sync", () => {
