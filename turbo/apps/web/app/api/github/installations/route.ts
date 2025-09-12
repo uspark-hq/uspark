@@ -13,12 +13,7 @@ export async function GET() {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  try {
-    const installations = await getUserInstallations(userId);
+  const installations = await getUserInstallations(userId);
 
-    return NextResponse.json({ installations });
-  } catch (error) {
-    console.error("Error getting installations:", error);
-    return NextResponse.json({ error: "internal_error" }, { status: 500 });
-  }
+  return NextResponse.json({ installations });
 }
