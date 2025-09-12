@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.1.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.0.0...workspace-v1.1.0) (2025-09-12)
+
+
+### Features
+
+* add authentication and fetch signals for workspace app ([#248](https://github.com/uspark-hq/uspark/issues/248)) ([f3bca17](https://github.com/uspark-hq/uspark/commit/f3bca17b8ad8b8c8d086974c44741f16fa3ad724))
+* add custom fetch support to contractfetch and integrate with workspace ([#254](https://github.com/uspark-hq/uspark/issues/254)) ([55d9520](https://github.com/uspark-hq/uspark/commit/55d9520e008de21e021fb4a8affb0963e59174fa))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.11.0
+
 ## 1.0.0 (2025-09-12)
 
 
