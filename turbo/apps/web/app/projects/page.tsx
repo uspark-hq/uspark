@@ -67,11 +67,11 @@ export default function ProjectsListPage() {
         },
         body: JSON.stringify({ name: newProjectName.trim() }),
       });
-      
+
       if (!response.ok) {
         throw new Error("Failed to create project");
       }
-      
+
       const newProject: CreateProjectResponse = await response.json();
 
       // Add to projects list with default updated_at same as created_at
