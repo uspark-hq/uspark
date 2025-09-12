@@ -359,3 +359,71 @@ GET /api/projects/{projectId}/sessions/{sessionId}/updates
   }
 }
 ```
+
+## Frontend Implementation Requirements
+
+### Required Components (需要重新实现)
+
+#### 1. useSessionPolling Hook
+- **Purpose**: 实时轮询会话状态更新
+- **Features**:
+  - 智能轮询频率管理（运行中每秒，完成后停止）
+  - 增量更新支持（last_turn_index, last_block_index）
+  - 错误处理和重试机制
+  - 组件卸载时自动清理
+- **API**: GET `/api/projects/{projectId}/sessions/{sessionId}/updates`
+
+#### 2. SessionDisplay Component
+- **Purpose**: 显示完整会话历史
+- **Features**:
+  - 显示所有turns列表
+  - 实时更新新的turns
+  - 滚动到最新消息
+  - 加载状态指示
+
+#### 3. TurnDisplay Component
+- **Purpose**: 显示单个对话轮次
+- **Features**:
+  - 显示用户输入
+  - 显示Claude响应
+  - 状态指示（pending/running/completed/failed）
+  - 执行时间显示
+
+#### 4. BlockDisplay Component
+- **Purpose**: 显示各种类型的内容块
+- **Features**:
+  - 支持thinking、content、tool_use、tool_result类型
+  - 语法高亮（代码块）
+  - 折叠/展开长内容
+  - 工具调用可视化
+
+#### 5. ChatStatus Component
+- **Purpose**: 显示当前执行状态
+- **Features**:
+  - 运行状态指示器
+  - 执行时间计数器
+  - 错误消息显示
+  - 中断按钮
+
+### Mock Executor (测试工具)
+
+#### Claude Mock Executor
+- **Purpose**: 模拟Claude执行用于开发测试
+- **Endpoint**: POST `/api/projects/{projectId}/sessions/{sessionId}/mock-execute`
+- **Features**:
+  - 模拟创建turns和blocks
+  - 模拟延时和状态变化
+  - 模拟文档修改（YJS更新）
+  - 生成测试数据
+
+### Integration Requirements
+
+1. **Chat Interface Integration**:
+   - 连接现有聊天输入UI与会话API
+   - 实现消息发送和接收
+   - 集成轮询hook更新显示
+
+2. **Real-time Document Updates**:
+   - 监听YJS文档变化
+   - 同步更新文件浏览器
+   - 显示修改标记
