@@ -123,6 +123,7 @@ jobs:
           DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/postgres"
           CLERK_SECRET_KEY: "test_clerk_secret_key"
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: "test_clerk_publishable_key"
+          VITE_CLERK_PUBLISHABLE_KEY: "test_clerk_publishable_key"
 
   # Deploy web application with database
   deploy-web:
@@ -226,6 +227,8 @@ jobs:
           vercel-project-id: ${{ vars.VERCEL_PROJECT_ID_WORKSPACE }}
           environment: preview
           deployment-env: workspace
+          environment-variables: |
+            VITE_CLERK_PUBLISHABLE_KEY=${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           meta-branch: ${{ github.head_ref }}
           meta-pr: ${{ github.event.pull_request.number }}
 

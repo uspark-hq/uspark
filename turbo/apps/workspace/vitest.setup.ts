@@ -8,7 +8,7 @@ import { clearAllDetached } from './src/signals/utils'
 setupMock()
 
 beforeAll(() => {
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = 'test_key'
+  process.env.VITE_CLERK_PUBLISHABLE_KEY = 'test_key'
 })
 
 beforeEach(() => {

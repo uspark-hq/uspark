@@ -4,13 +4,11 @@ import { command, computed, state } from 'ccstate'
 const reload$ = state(0)
 
 const clerk$ = computed(async () => {
-  const publishableKey = import.meta.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY as
+  const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as
     | string
     | undefined
   if (!publishableKey) {
-    throw new Error(
-      'Missing NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY environment variable',
-    )
+    throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY environment variable')
   }
 
   const clerkInstance = new Clerk(publishableKey)

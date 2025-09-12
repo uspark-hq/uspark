@@ -21,6 +21,7 @@ jobs:
       cli_release_created: ${{ steps.release.outputs['turbo/apps/cli--release_created'] }}
       web_release_created: ${{ steps.release.outputs['turbo/apps/web--release_created'] }}
       docs_release_created: ${{ steps.release.outputs['turbo/apps/docs--release_created'] }}
+      workspace_release_created: ${{ steps.release.outputs['turbo/apps/workspace--release_created'] }}
       core_release_created: ${{ steps.release.outputs['turbo/packages/core--release_created'] }}
     steps:
       - uses: googleapis/release-please-action@v4
@@ -98,6 +99,32 @@ jobs:
             GH_APP_ID=${{ vars.GH_APP_ID }}
             GH_APP_PRIVATE_KEY=${{ secrets.GH_APP_PRIVATE_KEY }}
             GH_WEBHOOK_SECRET=${{ secrets.GH_WEBHOOK_SECRET }}
+
+  # Deploy workspace app to production
+  deploy-workspace-production:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.workspace_release_created == 'true' }}
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
+    permissions:
+      contents: read
+      deployments: write
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/toolchain-init
+
+      - name: Deploy Workspace to Vercel Production
+        uses: ./.github/actions/vercel-deploy
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ vars.VERCEL_TEAM_ID }}
+          vercel-project-id: ${{ vars.VERCEL_PROJECT_ID_WORKSPACE }}
+          environment: production
+          deployment-env: workspace
+          environment-variables: |
+            VITE_CLERK_PUBLISHABLE_KEY=${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
 
   # Deploy docs app to production
   deploy-docs-production:
