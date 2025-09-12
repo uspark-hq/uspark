@@ -12,7 +12,8 @@ import "../../test/msw-setup";
 // Note: Using real GitHub client with MSW mocking the API endpoints
 
 // Set up test environment variables
-process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_mock_instance.clerk.accounts.dev$";
+process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY =
+  "pk_test_mock_instance.clerk.accounts.dev$";
 process.env.CLERK_SECRET_KEY = "sk_test_mock_secret_key_for_testing";
 process.env.GH_APP_ID = "12345";
 process.env.GH_APP_PRIVATE_KEY = `-----BEGIN PRIVATE KEY-----
@@ -80,7 +81,9 @@ describe("GitHub Sync", () => {
       blobsMap.set("hash123", { size: 100 });
       blobsMap.set("hash456", { size: 200 });
 
-      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+        "base64",
+      );
 
       // Insert test project into real database
       await db.insert(PROJECTS_TBL).values({
@@ -126,7 +129,9 @@ describe("GitHub Sync", () => {
 
       // Create empty YDoc
       const ydoc = new Y.Doc();
-      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+        "base64",
+      );
 
       // Insert project owned by different user
       await db.insert(PROJECTS_TBL).values({
@@ -149,7 +154,9 @@ describe("GitHub Sync", () => {
 
       // Create empty YDoc
       const ydoc = new Y.Doc();
-      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+        "base64",
+      );
 
       // Insert project without repository link
       await db.insert(PROJECTS_TBL).values({
@@ -172,7 +179,9 @@ describe("GitHub Sync", () => {
 
       // Create empty YDoc (no files)
       const ydoc = new Y.Doc();
-      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+        "base64",
+      );
 
       // Insert test project
       await db.insert(PROJECTS_TBL).values({
@@ -211,7 +220,9 @@ describe("GitHub Sync", () => {
       const blobsMap = ydoc.getMap("blobs");
       filesMap.set("README.md", { hash: "hash123", mtime: Date.now() });
       blobsMap.set("hash123", { size: 100 });
-      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+        "base64",
+      );
 
       // Insert test data
       await db.insert(PROJECTS_TBL).values({
@@ -244,12 +255,15 @@ describe("GitHub Sync", () => {
       const db = globalThis.services.db;
 
       // Insert test repository link
-      const insertResult = await db.insert(githubRepos).values({
-        projectId,
-        installationId: 12345,
-        repoName: "test-repo",
-        repoId: 67890,
-      }).returning();
+      const insertResult = await db
+        .insert(githubRepos)
+        .values({
+          projectId,
+          installationId: 12345,
+          repoName: "test-repo",
+          repoId: 67890,
+        })
+        .returning();
 
       const status = await getSyncStatus(projectId);
 
@@ -289,12 +303,14 @@ describe("GitHub Sync", () => {
         { path: ".gitignore", hash: "hash4", size: 100 },
       ];
 
-      files.forEach(file => {
+      files.forEach((file) => {
         filesMap.set(file.path, { hash: file.hash, mtime: Date.now() });
         blobsMap.set(file.hash, { size: file.size });
       });
 
-      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+        "base64",
+      );
 
       // Insert test project
       await db.insert(PROJECTS_TBL).values({
@@ -307,7 +323,7 @@ describe("GitHub Sync", () => {
       await db.insert(githubRepos).values({
         projectId,
         installationId: 12345,
-        repoName: "test-repo", 
+        repoName: "test-repo",
         repoId: 67890,
       });
 

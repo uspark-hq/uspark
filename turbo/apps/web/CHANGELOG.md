@@ -2,30 +2,27 @@
 
 ## [0.18.0](https://github.com/uspark-hq/uspark/compare/web-v0.17.1...web-v0.18.0) (2025-09-12)
 
-
 ### Features
 
-* add comprehensive api constraints for all routes ([#222](https://github.com/uspark-hq/uspark/issues/222)) ([55cad60](https://github.com/uspark-hq/uspark/commit/55cad6022f8f08e6276dab316b51cf1995830c7f))
-* add contract-fetch utility for type-safe API calls ([#240](https://github.com/uspark-hq/uspark/issues/240)) ([5addbbc](https://github.com/uspark-hq/uspark/commit/5addbbcfdc4986870ba4c94c2218d808063de96c))
-* add github app setup and dependencies (task 1) ([#241](https://github.com/uspark-hq/uspark/issues/241)) ([3200688](https://github.com/uspark-hq/uspark/commit/32006884d0e7f43f606c4002927ade9b3af7e92a))
-* add github database schema (task 2) ([#243](https://github.com/uspark-hq/uspark/issues/243)) ([b9638b3](https://github.com/uspark-hq/uspark/commit/b9638b36dd02b8dd833454d33ff42a37bee23927))
-* add shadcn/ui component library to packages/ui ([#238](https://github.com/uspark-hq/uspark/issues/238)) ([1e91c40](https://github.com/uspark-hq/uspark/commit/1e91c40c886361662dda6400fd74bc994d1189f0))
-* implement github app installation flow (task 3) ([#244](https://github.com/uspark-hq/uspark/issues/244)) ([57b1757](https://github.com/uspark-hq/uspark/commit/57b175714bbb9d003aab635877e8262b66ee024d))
-* replace native html elements with shadcn/ui components ([#242](https://github.com/uspark-hq/uspark/issues/242)) ([1ba085d](https://github.com/uspark-hq/uspark/commit/1ba085d84a32e238bea6e4ef4c09942c23c86d6e))
-
+- add comprehensive api constraints for all routes ([#222](https://github.com/uspark-hq/uspark/issues/222)) ([55cad60](https://github.com/uspark-hq/uspark/commit/55cad6022f8f08e6276dab316b51cf1995830c7f))
+- add contract-fetch utility for type-safe API calls ([#240](https://github.com/uspark-hq/uspark/issues/240)) ([5addbbc](https://github.com/uspark-hq/uspark/commit/5addbbcfdc4986870ba4c94c2218d808063de96c))
+- add github app setup and dependencies (task 1) ([#241](https://github.com/uspark-hq/uspark/issues/241)) ([3200688](https://github.com/uspark-hq/uspark/commit/32006884d0e7f43f606c4002927ade9b3af7e92a))
+- add github database schema (task 2) ([#243](https://github.com/uspark-hq/uspark/issues/243)) ([b9638b3](https://github.com/uspark-hq/uspark/commit/b9638b36dd02b8dd833454d33ff42a37bee23927))
+- add shadcn/ui component library to packages/ui ([#238](https://github.com/uspark-hq/uspark/issues/238)) ([1e91c40](https://github.com/uspark-hq/uspark/commit/1e91c40c886361662dda6400fd74bc994d1189f0))
+- implement github app installation flow (task 3) ([#244](https://github.com/uspark-hq/uspark/issues/244)) ([57b1757](https://github.com/uspark-hq/uspark/commit/57b175714bbb9d003aab635877e8262b66ee024d))
+- replace native html elements with shadcn/ui components ([#242](https://github.com/uspark-hq/uspark/issues/242)) ([1ba085d](https://github.com/uspark-hq/uspark/commit/1ba085d84a32e238bea6e4ef4c09942c23c86d6e))
 
 ### Bug Fixes
 
-* migrate projects page to real api and fix all typescript test errors ([#216](https://github.com/uspark-hq/uspark/issues/216)) ([82c458e](https://github.com/uspark-hq/uspark/commit/82c458e270d3f0f87d92c0b93e3971fd5ebab9e9))
-* remove artificial delays and timestamp tests from test files ([#221](https://github.com/uspark-hq/uspark/issues/221)) ([fe46879](https://github.com/uspark-hq/uspark/commit/fe46879319ac5e2b4d6c196acc378e913b9ec9a2))
-* update domain from uspark.dev to uspark.ai and add centralized URL config ([#223](https://github.com/uspark-hq/uspark/issues/223)) ([87bb41f](https://github.com/uspark-hq/uspark/commit/87bb41fde1602a8d6111d6f4e5f954684a42cbcd))
-
+- migrate projects page to real api and fix all typescript test errors ([#216](https://github.com/uspark-hq/uspark/issues/216)) ([82c458e](https://github.com/uspark-hq/uspark/commit/82c458e270d3f0f87d92c0b93e3971fd5ebab9e9))
+- remove artificial delays and timestamp tests from test files ([#221](https://github.com/uspark-hq/uspark/issues/221)) ([fe46879](https://github.com/uspark-hq/uspark/commit/fe46879319ac5e2b4d6c196acc378e913b9ec9a2))
+- update domain from uspark.dev to uspark.ai and add centralized URL config ([#223](https://github.com/uspark-hq/uspark/issues/223)) ([87bb41f](https://github.com/uspark-hq/uspark/commit/87bb41fde1602a8d6111d6f4e5f954684a42cbcd))
 
 ### Dependencies
 
-* The following workspace dependencies were updated
-  * dependencies
-    * @uspark/core bumped to 0.10.0
+- The following workspace dependencies were updated
+  - dependencies
+    - @uspark/core bumped to 0.10.0
 
 ## [0.17.1](https://github.com/uspark-hq/uspark/compare/web-v0.17.0...web-v0.17.1) (2025-09-08)
 

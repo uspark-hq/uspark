@@ -261,17 +261,20 @@ const shareHandlers = [
 // GitHub API endpoints handlers
 const githubHandlers = [
   // Mock GitHub App access token endpoint
-  http.post("https://api.github.com/app/installations/:installationId/access_tokens", () => {
-    return HttpResponse.json({
-      token: "ghs_test_installation_token_12345",
-      expires_at: new Date(Date.now() + 3600000).toISOString(),
-      permissions: {
-        contents: "write",
-        metadata: "read",
-        pull_requests: "write",
-      },
-    });
-  }),
+  http.post(
+    "https://api.github.com/app/installations/:installationId/access_tokens",
+    () => {
+      return HttpResponse.json({
+        token: "ghs_test_installation_token_12345",
+        expires_at: new Date(Date.now() + 3600000).toISOString(),
+        permissions: {
+          contents: "write",
+          metadata: "read",
+          pull_requests: "write",
+        },
+      });
+    },
+  ),
 
   // Mock GitHub installation endpoint
   http.get("https://api.github.com/app/installations/:installationId", () => {
@@ -297,7 +300,7 @@ const githubHandlers = [
     });
   }),
 
-  // Mock GitHub get ref endpoint  
+  // Mock GitHub get ref endpoint
   http.get("https://api.github.com/repos/:owner/:repo/git/ref/*", () => {
     return HttpResponse.json({
       ref: "refs/heads/main",
@@ -369,7 +372,7 @@ const githubHandlers = [
       },
       committer: {
         date: "2024-01-01T00:00:00Z",
-        name: "uSpark", 
+        name: "uSpark",
         email: "noreply@uspark.ai",
       },
       parents: [

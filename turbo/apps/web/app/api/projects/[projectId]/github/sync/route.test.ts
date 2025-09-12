@@ -4,7 +4,11 @@ import { NextRequest } from "next/server";
 import { initServices } from "../../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../../src/db/schema/projects";
 import { githubRepos } from "../../../../../../src/db/schema/github";
-import { SESSIONS_TBL, TURNS_TBL, BLOCKS_TBL } from "../../../../../../src/db/schema/sessions";
+import {
+  SESSIONS_TBL,
+  TURNS_TBL,
+  BLOCKS_TBL,
+} from "../../../../../../src/db/schema/sessions";
 import { SHARE_LINKS_TBL } from "../../../../../../src/db/schema/share-links";
 import { AGENT_SESSIONS_TBL } from "../../../../../../src/db/schema/agent-sessions";
 import * as Y from "yjs";
@@ -12,7 +16,8 @@ import { auth } from "@clerk/nextjs/server";
 import "../../../../../../src/test/msw-setup";
 
 // Set up test environment variables
-process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY = "pk_test_mock_instance.clerk.accounts.dev$";
+process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY =
+  "pk_test_mock_instance.clerk.accounts.dev$";
 process.env.CLERK_SECRET_KEY = "sk_test_mock_secret_key_for_testing";
 process.env.GH_APP_ID = "12345";
 process.env.GH_APP_PRIVATE_KEY = `-----BEGIN PRIVATE KEY-----
@@ -88,7 +93,9 @@ describe("/api/projects/[projectId]/github/sync", () => {
       const blobsMap = ydoc.getMap("blobs");
       filesMap.set("README.md", { hash: "hash123", mtime: Date.now() });
       blobsMap.set("hash123", { size: 100 });
-      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+        "base64",
+      );
 
       // Insert test data into real database
       await db.insert(PROJECTS_TBL).values({
@@ -105,9 +112,12 @@ describe("/api/projects/[projectId]/github/sync", () => {
         repoId: 67890,
       });
 
-      const request = new NextRequest("http://localhost/api/projects/proj_123/github/sync", {
-        method: "POST",
-      });
+      const request = new NextRequest(
+        "http://localhost/api/projects/proj_123/github/sync",
+        {
+          method: "POST",
+        },
+      );
 
       const response = await POST(request, {
         params: Promise.resolve({ projectId: "proj_123" }),
@@ -124,9 +134,12 @@ describe("/api/projects/[projectId]/github/sync", () => {
     it("should return 401 when not authenticated", async () => {
       mockAuth.mockResolvedValue({ userId: null });
 
-      const request = new NextRequest("http://localhost/api/projects/proj_123/github/sync", {
-        method: "POST",
-      });
+      const request = new NextRequest(
+        "http://localhost/api/projects/proj_123/github/sync",
+        {
+          method: "POST",
+        },
+      );
 
       const response = await POST(request, {
         params: Promise.resolve({ projectId: "proj_123" }),
@@ -140,9 +153,12 @@ describe("/api/projects/[projectId]/github/sync", () => {
     it("should return 404 when project not found", async () => {
       mockAuth.mockResolvedValue({ userId: "user_123" });
 
-      const request = new NextRequest("http://localhost/api/projects/nonexistent/github/sync", {
-        method: "POST",
-      });
+      const request = new NextRequest(
+        "http://localhost/api/projects/nonexistent/github/sync",
+        {
+          method: "POST",
+        },
+      );
 
       const response = await POST(request, {
         params: Promise.resolve({ projectId: "nonexistent" }),
@@ -161,7 +177,9 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
       // Create project without repository link
       const ydoc = new Y.Doc();
-      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+        "base64",
+      );
 
       await db.insert(PROJECTS_TBL).values({
         id: projectId,
@@ -170,9 +188,12 @@ describe("/api/projects/[projectId]/github/sync", () => {
         version: 0,
       });
 
-      const request = new NextRequest("http://localhost/api/projects/proj_123/github/sync", {
-        method: "POST",
-      });
+      const request = new NextRequest(
+        "http://localhost/api/projects/proj_123/github/sync",
+        {
+          method: "POST",
+        },
+      );
 
       const response = await POST(request, {
         params: Promise.resolve({ projectId: "proj_123" }),
@@ -192,16 +213,22 @@ describe("/api/projects/[projectId]/github/sync", () => {
       const db = globalThis.services.db;
 
       // Insert test repository link
-      const insertResult = await db.insert(githubRepos).values({
-        projectId,
-        installationId: 12345,
-        repoName: "test-repo",
-        repoId: 67890,
-      }).returning();
+      const insertResult = await db
+        .insert(githubRepos)
+        .values({
+          projectId,
+          installationId: 12345,
+          repoName: "test-repo",
+          repoId: 67890,
+        })
+        .returning();
 
-      const request = new NextRequest("http://localhost/api/projects/proj_123/github/sync", {
-        method: "GET",
-      });
+      const request = new NextRequest(
+        "http://localhost/api/projects/proj_123/github/sync",
+        {
+          method: "GET",
+        },
+      );
 
       const response = await GET(request, {
         params: Promise.resolve({ projectId: "proj_123" }),
@@ -218,9 +245,12 @@ describe("/api/projects/[projectId]/github/sync", () => {
     it("should return unlinked status when repository not linked", async () => {
       mockAuth.mockResolvedValue({ userId: "user_123" });
 
-      const request = new NextRequest("http://localhost/api/projects/nonexistent/github/sync", {
-        method: "GET",
-      });
+      const request = new NextRequest(
+        "http://localhost/api/projects/nonexistent/github/sync",
+        {
+          method: "GET",
+        },
+      );
 
       const response = await GET(request, {
         params: Promise.resolve({ projectId: "nonexistent" }),
@@ -235,9 +265,12 @@ describe("/api/projects/[projectId]/github/sync", () => {
     it("should return 401 when not authenticated", async () => {
       mockAuth.mockResolvedValue({ userId: null });
 
-      const request = new NextRequest("http://localhost/api/projects/proj_123/github/sync", {
-        method: "GET",
-      });
+      const request = new NextRequest(
+        "http://localhost/api/projects/proj_123/github/sync",
+        {
+          method: "GET",
+        },
+      );
 
       const response = await GET(request, {
         params: Promise.resolve({ projectId: "proj_123" }),
