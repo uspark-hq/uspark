@@ -51,7 +51,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
   afterEach(async () => {
     // Clean up test data in correct order (child tables first)
     const db = globalThis.services.db;
-    
+
     // Clean up all projects created during this test
     for (const projectId of createdProjectIds) {
       // Clean up blocks from turns in sessions
@@ -59,27 +59,33 @@ describe("/api/projects/[projectId]/github/sync", () => {
         .select()
         .from(SESSIONS_TBL)
         .where(eq(SESSIONS_TBL.projectId, projectId));
-      
+
       for (const session of sessions) {
         const turns = await db
           .select()
           .from(TURNS_TBL)
           .where(eq(TURNS_TBL.sessionId, session.id));
-        
+
         for (const turn of turns) {
           await db.delete(BLOCKS_TBL).where(eq(BLOCKS_TBL.turnId, turn.id));
         }
-        
+
         await db.delete(TURNS_TBL).where(eq(TURNS_TBL.sessionId, session.id));
       }
-      
-      await db.delete(SESSIONS_TBL).where(eq(SESSIONS_TBL.projectId, projectId));
-      await db.delete(SHARE_LINKS_TBL).where(eq(SHARE_LINKS_TBL.projectId, projectId));
-      await db.delete(AGENT_SESSIONS_TBL).where(eq(AGENT_SESSIONS_TBL.projectId, projectId));
+
+      await db
+        .delete(SESSIONS_TBL)
+        .where(eq(SESSIONS_TBL.projectId, projectId));
+      await db
+        .delete(SHARE_LINKS_TBL)
+        .where(eq(SHARE_LINKS_TBL.projectId, projectId));
+      await db
+        .delete(AGENT_SESSIONS_TBL)
+        .where(eq(AGENT_SESSIONS_TBL.projectId, projectId));
       await db.delete(githubRepos).where(eq(githubRepos.projectId, projectId));
       await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.id, projectId));
     }
-    
+
     // Clear the array for next test
     createdProjectIds.length = 0;
   });

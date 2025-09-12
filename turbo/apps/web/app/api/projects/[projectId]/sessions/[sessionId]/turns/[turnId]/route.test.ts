@@ -50,8 +50,10 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
 
     // Create test project directly with desired ID
     const ydoc = new Y.Doc();
-    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
-    
+    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+      "base64",
+    );
+
     await globalThis.services.db.insert(PROJECTS_TBL).values({
       id: projectId,
       userId,
