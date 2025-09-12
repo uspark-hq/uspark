@@ -15,9 +15,10 @@ process.env.CLERK_SECRET_KEY = "sk_test_mock_secret_key_for_testing";
 // Format: vercel_blob_rw_[STORE_ID]_[SECRET]
 process.env.BLOB_READ_WRITE_TOKEN = "vercel_blob_rw_test-store_secret-key";
 
-// Mock GitHub App environment variables for testing
+// Mock GitHub App environment variables for testing  
+// Note: These are test values that will be mocked by MSW, not used for real crypto
 process.env.GH_APP_ID = "test_github_app_id";
-process.env.GH_APP_PRIVATE_KEY = "test_github_private_key_simple";
+process.env.GH_APP_PRIVATE_KEY = "test_private_key_placeholder";
 process.env.GH_WEBHOOK_SECRET = "test_github_webhook_secret";
 
 // Verify required environment variables are set

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { syncProjectToGitHub, getSyncStatus } from "./sync";
 import * as Y from "yjs";
 import { initServices } from "../init-services";
@@ -11,6 +11,11 @@ import "../../test/msw-setup";
 
 // Note: Using real GitHub client with MSW mocking the API endpoints
 // Test environment variables are configured in src/test/setup.ts
+
+// Mock the GitHub authentication to prevent real JWT generation
+vi.mock("./auth", () => ({
+  getInstallationToken: vi.fn().mockResolvedValue("ghs_test_installation_token_12345"),
+}));
 
 describe("GitHub Sync", () => {
   beforeEach(async () => {

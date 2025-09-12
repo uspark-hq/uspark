@@ -23,6 +23,11 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
 }));
 
+// Mock the GitHub authentication to prevent real JWT generation
+vi.mock("../../../../../../src/lib/github/auth", () => ({
+  getInstallationToken: vi.fn().mockResolvedValue("ghs_test_installation_token_12345"),
+}));
+
 const mockAuth = vi.mocked(auth);
 
 describe("/api/projects/[projectId]/github/sync", () => {
@@ -48,7 +53,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
   describe("POST - Sync to GitHub", () => {
     it("should sync project successfully when authenticated", async () => {
-      mockAuth.mockResolvedValue({ userId: "user_123" });
+      mockAuth.mockResolvedValue({ userId: "user_123" } as Awaited<ReturnType<typeof auth>>);
 
       const projectId = "proj_123";
       const db = globalThis.services.db;
@@ -98,7 +103,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
     });
 
     it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValue({ userId: null });
+      mockAuth.mockResolvedValue({ userId: null } as Awaited<ReturnType<typeof auth>>);
 
       const request = new NextRequest(
         "http://localhost/api/projects/proj_123/github/sync",
@@ -117,7 +122,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
     });
 
     it("should return 404 when project not found", async () => {
-      mockAuth.mockResolvedValue({ userId: "user_123" });
+      mockAuth.mockResolvedValue({ userId: "user_123" } as Awaited<ReturnType<typeof auth>>);
 
       const request = new NextRequest(
         "http://localhost/api/projects/nonexistent/github/sync",
@@ -136,7 +141,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
     });
 
     it("should return 400 when repository not linked", async () => {
-      mockAuth.mockResolvedValue({ userId: "user_123" });
+      mockAuth.mockResolvedValue({ userId: "user_123" } as Awaited<ReturnType<typeof auth>>);
 
       const projectId = "proj_123";
       const db = globalThis.services.db;
@@ -173,7 +178,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
   describe("GET - Sync Status", () => {
     it("should return sync status when authenticated", async () => {
-      mockAuth.mockResolvedValue({ userId: "user_123" });
+      mockAuth.mockResolvedValue({ userId: "user_123" } as Awaited<ReturnType<typeof auth>>);
 
       const projectId = "proj_123";
       const db = globalThis.services.db;
@@ -209,7 +214,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
     });
 
     it("should return unlinked status when repository not linked", async () => {
-      mockAuth.mockResolvedValue({ userId: "user_123" });
+      mockAuth.mockResolvedValue({ userId: "user_123" } as Awaited<ReturnType<typeof auth>>);
 
       const request = new NextRequest(
         "http://localhost/api/projects/nonexistent/github/sync",
@@ -229,7 +234,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
     });
 
     it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValue({ userId: null });
+      mockAuth.mockResolvedValue({ userId: null } as Awaited<ReturnType<typeof auth>>);
 
       const request = new NextRequest(
         "http://localhost/api/projects/proj_123/github/sync",
