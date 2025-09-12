@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.20.0](https://github.com/uspark-hq/uspark/compare/web-v0.19.0...web-v0.20.0) (2025-09-12)
+
+
+### Features
+
+* implement web to github content sync mechanism (task 6) ([#255](https://github.com/uspark-hq/uspark/issues/255)) ([5744c7c](https://github.com/uspark-hq/uspark/commit/5744c7c039128baf9047669e2711aa2757544ff4))
+
+
+### Bug Fixes
+
+* remove typescript any type violations in projects page ([#257](https://github.com/uspark-hq/uspark/issues/257)) ([deefd95](https://github.com/uspark-hq/uspark/commit/deefd957ccd62f56d02b049a949e40a35f40bfb3))
+
 ## [0.19.0](https://github.com/uspark-hq/uspark/compare/web-v0.18.0...web-v0.19.0) (2025-09-12)
 
 
