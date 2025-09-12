@@ -38,6 +38,14 @@ type InferSuccessResponse<T extends AppRoute> = T["responses"] extends {
  * });
  * console.log(project.id); // 类型安全的 CreateProjectResponse
  *
+ * // 使用自定义 fetch（例如在 workspace 中）
+ * import { fetch$ } from "@/signals/fetch";
+ * const data = await contractFetch(projectsContract.getProject, {
+ *   params: { projectId: "123" },
+ *   fetch: fetch$, // 使用自定义 fetch 自动处理认证和 URL
+ *   signal: abortController.signal
+ * });
+ *
  * // 带错误处理
  * try {
  *   const data = await contractFetch(projectsContract.getProjectSnapshot, {
@@ -59,9 +67,18 @@ export async function contractFetch<T extends AppRoute>(
     query?: Record<string, unknown>;
     headers?: HeadersInit;
     signal?: AbortSignal;
+    fetch?: typeof globalThis.fetch; // 支持自定义 fetch 函数
   } = {},
 ): Promise<InferSuccessResponse<T>> {
-  const { baseUrl = "", body, params, query, headers = {}, signal } = options;
+  const {
+    baseUrl = "",
+    body,
+    params,
+    query,
+    headers = {},
+    signal,
+    fetch: customFetch,
+  } = options;
 
   // 构建 URL
   let url = `${baseUrl}${route.path}`;
@@ -88,12 +105,7 @@ export async function contractFetch<T extends AppRoute>(
   }
 
   // 构建请求配置
-  const requestInit: {
-    method: string;
-    headers: HeadersInit;
-    signal?: AbortSignal;
-    body?: BodyInit | null;
-  } = {
+  const requestInit: RequestInit = {
     method: route.method,
     headers: { ...headers },
     signal,
@@ -101,9 +113,24 @@ export async function contractFetch<T extends AppRoute>(
 
   // 处理请求体
   if (body !== undefined) {
-    if (body instanceof Uint8Array || body instanceof ArrayBuffer) {
-      // 二进制数据
-      requestInit.body = body as BodyInit;
+    if (body instanceof Uint8Array) {
+      // Uint8Array 二进制数据 - 转换为 ArrayBuffer
+      const buffer = body.buffer.slice(
+        body.byteOffset,
+        body.byteOffset + body.byteLength,
+      );
+      // 确保是 ArrayBuffer 而不是 SharedArrayBuffer
+      if (buffer instanceof ArrayBuffer) {
+        requestInit.body = buffer;
+      } else {
+        // 如果是 SharedArrayBuffer，创建新的 ArrayBuffer
+        const newBuffer = new ArrayBuffer(body.byteLength);
+        new Uint8Array(newBuffer).set(body);
+        requestInit.body = newBuffer;
+      }
+    } else if (body instanceof ArrayBuffer) {
+      // ArrayBuffer 二进制数据
+      requestInit.body = body;
     } else if (typeof body === "object") {
       // JSON 数据
       requestInit.body = JSON.stringify(body);
@@ -113,12 +140,13 @@ export async function contractFetch<T extends AppRoute>(
       };
     } else {
       // 字符串或其他数据
-      requestInit.body = body as BodyInit;
+      requestInit.body = String(body);
     }
   }
 
-  // 执行请求
-  const response = await fetch(url, requestInit);
+  // 执行请求 - 使用自定义 fetch 或全局 fetch
+  const fetchFn = customFetch || globalThis.fetch;
+  const response = await fetchFn(url, requestInit);
 
   // 处理响应
   const contentType = response.headers.get("content-type");
