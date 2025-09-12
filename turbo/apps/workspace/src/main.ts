@@ -4,9 +4,9 @@ import { createRoot } from 'react-dom/client'
 import { bootstrap$ } from './signals/bootstrap'
 import { detach, Reason } from './signals/utils'
 import { setupRouter } from './views/main'
+import { worker } from './mocks/browser'
 
 async function setupMockServer(signal: AbortSignal) {
-  const { worker } = await import('./mocks/browser')
   signal.throwIfAborted()
 
   signal.addEventListener('abort', () => {
