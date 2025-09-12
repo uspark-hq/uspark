@@ -29,35 +29,35 @@ type RepositoryInfo = {
 
 /**
  * Creates a GitHub repository for a project
- * 
+ *
  * @param projectId - The project ID
  * @param installationId - The GitHub App installation ID
  * @returns Repository creation result
  */
 export async function createProjectRepository(
   projectId: string,
-  installationId: number
+  installationId: number,
 ): Promise<CreateRepositoryResult> {
   initServices();
   const db = globalThis.services.db;
-  
+
   // Check if repository already exists for this project
   const existingRepo = await db
     .select()
     .from(githubRepos)
     .where(eq(githubRepos.projectId, projectId))
     .limit(1);
-  
+
   if (existingRepo.length > 0) {
     throw new Error(`Repository already exists for project ${projectId}`);
   }
-  
+
   // Get installation Octokit client
   const octokit = await createInstallationOctokit(installationId);
-  
+
   // Generate repository name
   const repoName = `uspark-${projectId}`;
-  
+
   // Create repository on GitHub
   const { data: repo } = await octokit.request("POST /user/repos", {
     name: repoName,
@@ -65,7 +65,7 @@ export async function createProjectRepository(
     auto_init: true,
     description: `uSpark sync repository for project ${projectId}`,
   });
-  
+
   // Store repository information in database
   await db.insert(githubRepos).values({
     projectId,
@@ -73,7 +73,7 @@ export async function createProjectRepository(
     repoName,
     repoId: repo.id,
   });
-  
+
   return {
     repoId: repo.id,
     repoName: repo.name,
@@ -85,68 +85,67 @@ export async function createProjectRepository(
 
 /**
  * Gets repository information for a project
- * 
+ *
  * @param projectId - The project ID
  * @returns Repository information or null if not found
  */
 export async function getProjectRepository(
-  projectId: string
+  projectId: string,
 ): Promise<RepositoryInfo | null> {
   initServices();
   const db = globalThis.services.db;
-  
+
   const repos = await db
     .select()
     .from(githubRepos)
     .where(eq(githubRepos.projectId, projectId))
     .limit(1);
-  
+
   if (repos.length === 0) {
     return null;
   }
-  
+
   return repos[0] as RepositoryInfo;
 }
 
-
 /**
  * Checks if a user has access to an installation
- * 
+ *
  * @param userId - The user ID (Clerk)
  * @param installationId - The GitHub App installation ID
  * @returns True if user has access
  */
 export async function hasInstallationAccess(
   userId: string,
-  installationId: number
+  installationId: number,
 ): Promise<boolean> {
   initServices();
   const db = globalThis.services.db;
-  
+
   const installations = await db
     .select()
     .from(githubInstallations)
     .where(
       and(
         eq(githubInstallations.userId, userId),
-        eq(githubInstallations.installationId, installationId)
-      )
+        eq(githubInstallations.installationId, installationId),
+      ),
     )
     .limit(1);
-  
+
   return installations.length > 0;
 }
 
 /**
  * Gets all installations for a user
- * 
+ *
  * @param userId - The user ID (Clerk)
  * @returns List of user installations
  */
 export async function getUserInstallations(userId: string) {
   initServices();
   const db = globalThis.services.db;
-  
+
   return await db
     .select()
     .from(githubInstallations)
@@ -155,17 +154,17 @@ export async function getUserInstallations(userId: string) {
 
 /**
  * Removes repository link from database (does not delete GitHub repo)
- * 
+ *
  * @param projectId - The project ID
  * @returns Number of deleted records
  */
 export async function removeRepositoryLink(projectId: string): Promise<number> {
   initServices();
   const db = globalThis.services.db;
-  
+
   const result = await db
     .delete(githubRepos)
     .where(eq(githubRepos.projectId, projectId));
-  
+
   return result.rowCount || 0;
 }
