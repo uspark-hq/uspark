@@ -16,9 +16,9 @@ function initEnv() {
             ? "https://uspark.ai"
             : "http://localhost:3000",
         ),
-      GH_APP_ID: z.string().optional(),
-      GH_APP_PRIVATE_KEY: z.string().optional(),
-      GH_WEBHOOK_SECRET: z.string().optional(),
+      GH_APP_ID: z.string().min(1),
+      GH_APP_PRIVATE_KEY: z.string().min(1),
+      GH_WEBHOOK_SECRET: z.string().min(1),
     },
     client: {
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
