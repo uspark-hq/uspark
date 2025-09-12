@@ -104,4 +104,3 @@ export class FileSystem {
     return createHash("sha256").update(bytes).digest("hex");
   }
 }
-
