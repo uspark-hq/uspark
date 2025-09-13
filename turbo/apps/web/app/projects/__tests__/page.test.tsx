@@ -7,6 +7,7 @@ import { server, http, HttpResponse } from "../../../src/test/msw-setup";
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
+  usePathname: vi.fn(() => "/projects"),
 }));
 
 describe("Projects List Page", () => {
