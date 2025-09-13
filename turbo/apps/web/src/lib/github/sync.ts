@@ -126,16 +126,6 @@ async function createGitHubCommit(
 
   const currentCommitSha = ref.object.sha;
 
-  // Get the current tree
-  const { data: currentCommit } = await octokit.request(
-    "GET /repos/{owner}/{repo}/git/commits/{commit_sha}",
-    {
-      owner,
-      repo,
-      commit_sha: currentCommitSha,
-    },
-  );
-
   // Create blobs for each file
   const blobs = await Promise.all(
     files.map(async (file) => {
