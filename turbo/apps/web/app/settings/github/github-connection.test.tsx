@@ -82,8 +82,10 @@ describe("GitHubConnection", () => {
     } as Response);
 
     // Mock window.location
-    delete (window as any).location;
-    window.location = { href: "" } as Location;
+    Object.defineProperty(window, 'location', {
+      value: { href: "" },
+      writable: true
+    });
 
     render(<GitHubConnection />);
 

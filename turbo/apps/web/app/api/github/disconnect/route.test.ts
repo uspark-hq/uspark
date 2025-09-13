@@ -133,6 +133,7 @@ describe("POST /api/github/disconnect", () => {
     const data = await response.json();
 
     expect(response.status).toBe(200);
+    expect(data).toEqual({ message: "GitHub account disconnected successfully" });
     
     // Verify only test user's installation was deleted
     const otherUserInstallations = await globalThis.services.db
