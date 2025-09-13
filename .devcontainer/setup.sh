@@ -19,9 +19,9 @@ if ! grep -q "www.uspark.dev" /etc/hosts; then
   echo "127.0.0.1 uspark.dev www.uspark.dev app.uspark.dev docs.uspark.dev" | sudo tee -a /etc/hosts > /dev/null
 fi
 
-# Start Caddy with our config (Caddy installed by devcontainer feature)
-echo "Starting Caddy proxy..."
-caddy start --config caddy/Caddyfile --adapter caddyfile || echo "Caddy start failed, will try later"
-
 echo "✅ Dev container ready!"
-echo "📝 Domains: https://www.uspark.dev | https://app.uspark.dev | https://docs.uspark.dev"
+echo ""
+echo "📝 Note: Caddy proxy is now managed via turbo/pnpm"
+echo "   - Start all services: cd turbo && pnpm dev"
+echo "   - Check certificates: cd turbo/packages/proxy && npm run check-certs"
+echo "   - Generate certificates: Run './scripts/generate-certs.sh' on host machine"
