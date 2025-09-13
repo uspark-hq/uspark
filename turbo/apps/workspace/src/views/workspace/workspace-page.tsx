@@ -1,9 +1,9 @@
-import { useGet } from 'ccstate-react'
+import { useLastResolved } from 'ccstate-react'
 import { user$ } from '../../signals/auth'
 
 export function WorkspacePage() {
-  const user = useGet(user$)
-  const email = user?.primaryEmailAddress?.emailAddress
+  const user = useLastResolved(user$)
+  const email = user?.emailAddresses.at(0)?.emailAddress
 
   return (
     <div className="p-6">
