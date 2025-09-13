@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.9.0](https://github.com/uspark-hq/uspark/compare/cli-v0.8.4...cli-v0.9.0) (2025-09-13)
+
+
+### Features
+
+* add local development proxy with caddy and update domain urls ([#269](https://github.com/uspark-hq/uspark/issues/269)) ([fc304d9](https://github.com/uspark-hq/uspark/commit/fc304d9b0c9481ff174279d464596ee7fb36b0f4))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.12.0
+
 ## [0.8.4](https://github.com/uspark-hq/uspark/compare/cli-v0.8.3...cli-v0.8.4) (2025-09-12)
 
 

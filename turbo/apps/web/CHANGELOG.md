@@ -1,5 +1,26 @@
 # Changelog
 
+## [0.21.0](https://github.com/uspark-hq/uspark/compare/web-v0.20.0...web-v0.21.0) (2025-09-13)
+
+
+### Features
+
+* add local development proxy with caddy and update domain urls ([#269](https://github.com/uspark-hq/uspark/issues/269)) ([fc304d9](https://github.com/uspark-hq/uspark/commit/fc304d9b0c9481ff174279d464596ee7fb36b0f4))
+* implement github settings ui component (task 7) ([#267](https://github.com/uspark-hq/uspark/issues/267)) ([a0f27c9](https://github.com/uspark-hq/uspark/commit/a0f27c9ecc4033ed08209ca568027263b4208737))
+
+
+### Bug Fixes
+
+* remove broad try-catch block from github sync function ([#271](https://github.com/uspark-hq/uspark/issues/271)) ([ae37307](https://github.com/uspark-hq/uspark/commit/ae3730749031c4c52bf9a645bd6cb61cfb74758c))
+* resolve timer cleanup issue in github sync button ([#270](https://github.com/uspark-hq/uspark/issues/270)) ([dfa9311](https://github.com/uspark-hq/uspark/commit/dfa9311ef23899950151ef7a20140de19ec79fa3))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.12.0
+
 ## [0.20.0](https://github.com/uspark-hq/uspark/compare/web-v0.19.0...web-v0.20.0) (2025-09-12)
 
 

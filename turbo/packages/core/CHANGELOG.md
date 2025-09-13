@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.0](https://github.com/uspark-hq/uspark/compare/core-v0.11.0...core-v0.12.0) (2025-09-13)
+
+
+### Features
+
+* add local development proxy with caddy and update domain urls ([#269](https://github.com/uspark-hq/uspark/issues/269)) ([fc304d9](https://github.com/uspark-hq/uspark/commit/fc304d9b0c9481ff174279d464596ee7fb36b0f4))
+
 ## [0.11.0](https://github.com/uspark-hq/uspark/compare/core-v0.10.0...core-v0.11.0) (2025-09-12)
 
 
