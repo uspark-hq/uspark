@@ -2,35 +2,43 @@
 
 ## Overview
 
-This document defines the mid-term goals and user stories for the MVP release of Uspark. The MVP focuses on delivering core functionality for GitHub bidirectional synchronization, AI-assisted editing, and document sharing.
+This document defines the mid-term goals and user stories for the MVP release of Uspark. The MVP focuses on delivering core functionality for GitHub one-way synchronization (Web → GitHub), AI-assisted editing, and document sharing.
 
 ## User Stories
 
-### Story 1: GitHub Bidirectional Synchronization (For Human Users)
+### Story 1: GitHub One-Way Synchronization (For Human Users)
 
 **As a** developer  
-**I want to** sync uSpark documents with GitHub repositories using standard git workflows  
-**So that** I can edit with my preferred tools while maintaining version control and team collaboration
+**I want to** push uSpark documents to GitHub repositories  
+**So that** I can backup my work and share it with team members who prefer GitHub
 
 #### Acceptance Criteria
 
-- [ ] One-click GitHub OAuth authorization
-- [x] Automatic creation of dedicated docs repository (`{workspace}-docs`) ✅
-- [ ] Web edits automatically commit and push to GitHub
-- [ ] Git pushes automatically sync to uSpark (via webhooks)
-- [ ] Sync completes within 5 seconds
-- [ ] Full commit history preserved
-- [ ] Standard git commands work (clone, pull, push)
-- [ ] No manual conflict resolution needed
+- [x] One-click GitHub App installation ✅
+- [x] Automatic creation of dedicated repository (`uspark-{project.id}`) ✅
+- [x] Web edits can be manually synced to GitHub via sync button ✅
+- [x] Sync completes within 5 seconds ✅
+- [x] Full file content pushed to GitHub ✅
+- [ ] Settings UI for GitHub connection management
+- [ ] Sync status indicator showing last sync time
+- [ ] Basic sync lock to prevent concurrent operations
 
 #### Technical Requirements
 
-- GitHub API integration for repository management
-- Webhook handlers for push events
-- Optimistic locking to prevent conflicts
+- GitHub App integration (not OAuth) for better security
+- Git Trees API for efficient file uploads
+- Installation token management
 - Support for large documents (>1MB)
 - UTF-8 encoding for all markdown files
-- Automatic pull before allowing new web edits
+- In-memory sync lock to prevent race conditions
+
+#### Out of Scope for MVP
+
+- GitHub → Web synchronization (future enhancement)
+- Automatic sync on every edit (manual sync only)
+- Conflict resolution (one-way sync avoids conflicts)
+- Branch management (main branch only)
+- Pull operations from GitHub
 
 ### Story 1b: uSpark CLI for E2B Container Synchronization (For AI Agents)
 
