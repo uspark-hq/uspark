@@ -1,29 +1,42 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { GitHubConnection } from "./github-connection";
-import { useRouter } from "next/navigation";
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 
-// Mock next/navigation
-vi.mock("next/navigation", () => ({
-  useRouter: vi.fn(),
-}));
+// Use vi.hoisted for better control over mocks
+const { mockRouter, mockRefresh } = vi.hoisted(() => {
+  const mockRefresh = vi.fn();
+  const mockRouter = {
+    push: vi.fn(),
+    refresh: mockRefresh,
+    back: vi.fn(),
+    forward: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  };
+  return { mockRouter, mockRefresh };
+});
 
-const mockUseRouter = vi.mocked(useRouter);
+// Mock next/navigation following Next.js testing best practices
+vi.mock("next/navigation", async () => {
+  const actual =
+    await vi.importActual<typeof import("next/navigation")>("next/navigation");
+  return {
+    ...actual,
+    useRouter: vi.fn(() => mockRouter),
+    usePathname: vi.fn(() => "/settings/github"),
+    useSearchParams: vi.fn(() => new URLSearchParams()),
+  };
+});
 
 // Mock fetch
 global.fetch = vi.fn();
 const mockFetch = vi.mocked(global.fetch);
 
 describe("GitHubConnection", () => {
-  const mockRouter = {
-    refresh: vi.fn(),
-  };
-
   const originalLocation = window.location;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseRouter.mockReturnValue(mockRouter);
 
     // Reset window.location before each test
     Object.defineProperty(window, "location", {
@@ -148,7 +161,7 @@ describe("GitHubConnection", () => {
       });
     });
 
-    expect(mockRouter.refresh).toHaveBeenCalled();
+    expect(mockRefresh).toHaveBeenCalled();
   });
 
   it("handles manage on GitHub button click", async () => {

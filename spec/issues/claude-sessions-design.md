@@ -12,55 +12,60 @@
 Project (1) → Sessions (N) → Turns (N) → Blocks (N)
 ```
 
-### 数据库 Schema
+### 数据库 Schema ✅ COMPLETED
 
-#### sessions 表
+**Status**: Completed (Migration 0005_claude_sessions.sql, Schema in sessions.ts)
+
+#### sessions 表 ✅
 
 ```sql
 CREATE TABLE sessions (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+  id TEXT PRIMARY KEY NOT NULL,
   project_id TEXT NOT NULL REFERENCES projects(id),
   title TEXT,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+  updated_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
 CREATE INDEX idx_sessions_project ON sessions(project_id);
-CREATE INDEX idx_sessions_status ON sessions(status);
 ```
 
-#### turns 表
+#### turns 表 ✅
 
 ```sql
 CREATE TABLE turns (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+  id TEXT PRIMARY KEY NOT NULL,
   session_id TEXT NOT NULL REFERENCES sessions(id) ON DELETE CASCADE,
   user_prompt TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'pending', -- pending, running, completed, failed
   started_at TIMESTAMP,
   completed_at TIMESTAMP,
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  error_message TEXT, -- Error details if status is failed
+  created_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
 CREATE INDEX idx_turns_session ON turns(session_id);
 CREATE INDEX idx_turns_status ON turns(status);
 ```
 
-#### blocks 表
+#### blocks 表 ✅
 
 ```sql
 CREATE TABLE blocks (
-  id TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
+  id TEXT PRIMARY KEY NOT NULL,
   turn_id TEXT NOT NULL REFERENCES turns(id) ON DELETE CASCADE,
   type TEXT NOT NULL, -- thinking, content, tool_use, tool_result
-  content JSONB NOT NULL,
-  sequence_number INTEGER NOT NULL, -- 块的顺序
-  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  content JSON NOT NULL, -- JSON content (auto-serialized by Drizzle)
+  sequence_number INTEGER NOT NULL, -- Order of blocks within a turn
+  created_at TIMESTAMP DEFAULT NOW() NOT NULL
 );
 
 CREATE INDEX idx_blocks_turn ON blocks(turn_id);
 CREATE INDEX idx_blocks_sequence ON blocks(turn_id, sequence_number);
 ```
+
+**Implementation Location**: `turbo/apps/web/src/db/schema/sessions.ts`
+**Migration**: `turbo/apps/web/src/db/migrations/0005_claude_sessions.sql`
 
 ## API 接口设计
 
