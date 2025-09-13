@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.2.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.1.0...workspace-v1.2.0) (2025-09-12)
+
+
+### Features
+
+* implement web to github content sync mechanism (task 6) ([#255](https://github.com/uspark-hq/uspark/issues/255)) ([5744c7c](https://github.com/uspark-hq/uspark/commit/5744c7c039128baf9047669e2711aa2757544ff4))
+
+
+### Bug Fixes
+
+* update workspace app to use vite prefixed environment variables ([#265](https://github.com/uspark-hq/uspark/issues/265)) ([80a4f83](https://github.com/uspark-hq/uspark/commit/80a4f830f20570399e9a4a062e335e05a1ac5537))
+
 ## [1.1.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.0.0...workspace-v1.1.0) (2025-09-12)
 
 
