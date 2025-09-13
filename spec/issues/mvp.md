@@ -48,11 +48,12 @@ This document defines the mid-term goals and user stories for the MVP release of
 
 #### Acceptance Criteria
 
-- [x] `uspark pull --project-id <id>` downloads entire project to container
-- [x] `uspark push <file-path> --project-id <id>` uploads changes immediately
-- [x] `uspark watch-claude` monitors Claude output and syncs file changes
-- [x] Authentication via environment variable (USPARK_TOKEN)
-- [ ] E2B container pre-configured with uspark CLI ❌
+- [x] `uspark pull --project-id <id>` downloads entire project to container ✅
+- [x] `uspark push <file-path> --project-id <id>` uploads changes immediately ✅
+- [x] `uspark watch-claude` monitors Claude output and syncs file changes ✅
+- [x] Authentication via environment variable (USPARK_TOKEN) ✅
+- [x] E2B container pre-configured with Claude Code CLI ✅ (Basic Dockerfile)
+- [ ] E2B container pre-configured with uspark CLI ❌ (Still needs installation)
 
 #### Technical Requirements
 
@@ -237,13 +238,13 @@ Post-MVP priorities (not in scope for current release):
 5. Mobile applications
 6. API for third-party integrations
 
-## Implementation Status Summary (2025-01-12)
+## Implementation Status Summary (2025-01-13)
 
-### Overall Completion: ~70%
+### Overall Completion: ~75%
 
 #### ✅ Completed Features (Working)
-- **Story 1b (CLI)**: 80% - All CLI commands working, E2B container config missing
-- **Story 2 (Web UI)**: 60% - UI complete, Claude execution integration missing  
+- **Story 1b (CLI)**: 85% - All CLI commands working, E2B container partially configured
+- **Story 2 (Web UI)**: 65% - UI complete, Claude sessions schema done, APIs missing
 - **Story 3 (Sharing)**: 100% - Fully implemented with management interface
 
 #### 🟡 Partially Completed
@@ -252,9 +253,9 @@ Post-MVP priorities (not in scope for current release):
 
 #### ❌ Critical Gaps
 1. **GitHub bidirectional sync** - No document push/pull with GitHub
-2. **Claude execution in E2B** - Container not configured with Claude CLI
-3. **Real-time updates** - Polling hooks need to be re-implemented (closed PRs not satisfactory)
-4. **Frontend components** - SessionDisplay, TurnDisplay, BlockDisplay need complete re-implementation
+2. **Claude execution in E2B** - Container has Claude CLI but missing uspark CLI
+3. **Real-time updates** - Polling hooks need to be re-implemented
+4. **Session/Turn/Block APIs** - Schema exists but API endpoints not implemented
 
 ### Key Findings
 - **Strong backend infrastructure** with complete APIs and database schema

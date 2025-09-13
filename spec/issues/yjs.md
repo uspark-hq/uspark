@@ -349,14 +349,17 @@ File contents are stored separately in Vercel Blob Storage, referenced by hash f
 
 ### Phase 2: CLI Implementation
 
-#### 3. Blob Token API Implementation
+#### 3. Blob Token API Implementation ✅ COMPLETED
 
 **Task**: Add STS token endpoint for direct blob access
 **Acceptance Criteria**:
-- [ ] Implement GET /api/projects/:projectId/blob-token endpoint (🔄 进行中 - 任务 9)
-- [ ] Generate time-limited STS tokens (10 minutes) (🔄 进行中 - 任务 9)
-- [ ] Include upload/download URLs in response (🔄 进行中 - 任务 9)
-- [ ] Validate user has project access (🔄 进行中 - 任务 9)
+- [x] Implement GET /api/projects/:projectId/blob-token endpoint ✅
+- [x] Generate time-limited STS tokens (10 minutes) ✅
+- [x] Include upload/download URLs in response ✅
+- [x] Validate user has project access ✅
+
+**Implementation Location**: `turbo/apps/web/app/api/projects/[projectId]/blob-token/route.ts`
+**Test**: `turbo/apps/web/app/api/projects/[projectId]/blob-token/route.test.ts`
 
 #### 4. Extend FileSystem class with direct blob access
 
