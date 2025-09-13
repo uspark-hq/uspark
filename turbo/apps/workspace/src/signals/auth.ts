@@ -3,6 +3,22 @@ import { command, computed, state } from 'ccstate'
 
 const reload$ = state(0)
 
+interface User {
+  id: string
+  username: string | null
+  firstName: string | null
+  lastName: string | null
+  fullName: string | null
+  imageUrl: string
+  primaryEmailAddress?: {
+    emailAddress: string
+  } | null
+}
+
+// Store the current user in a state
+const currentUser$ = state<User | null | undefined>(undefined)
+
+// Clerk instance only needs to be created and loaded once
 const clerk$ = computed(async () => {
   const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as
     | string
@@ -16,20 +32,30 @@ const clerk$ = computed(async () => {
   return clerkInstance
 })
 
+// Sync user computed signal for React components
+export const user$ = computed((get) => {
+  get(reload$) // Subscribe to reload changes
+  return get(currentUser$)
+})
+
 export const setupClerk$ = command(
   async ({ set, get }, signal: AbortSignal) => {
     const clerk = await get(clerk$)
     signal.throwIfAborted()
 
+    // Set initial user
+    set(currentUser$, clerk.user as User | null)
+
     const unsubscribe = clerk.addListener(() => {
       set(reload$, (x) => x + 1)
+      set(currentUser$, clerk.user as User | null)
     })
     signal.addEventListener('abort', unsubscribe)
   },
 )
 
 export const auth$ = computed(async (get) => {
-  get(reload$)
+  get(reload$) // Subscribe to reload changes
   const clerk = await get(clerk$)
 
   return {
