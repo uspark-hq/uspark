@@ -132,6 +132,68 @@ const userId = `test-user-{context}-${Date.now()}-${process.pid}`;
 
 **Note:** `/turbo/apps/web/app/api/github/setup/route.ts` has legitimate fallback behavior and correctly keeps its try-catch
 
+## GitHub Sync Function Try-Catch Violation
+**Issue:** Main sync function uses broad try-catch that masks error details instead of allowing specific failures to propagate.
+**Source:** Code review commit 5744c7c - review-5744c7c.md
+**Status:** 🔴 **NEW ISSUE**
+**File:** `/turbo/apps/web/app/lib/sync.ts` (Lines 210-304)
+
+**Problem:**
+```typescript
+try {
+  // Complex multi-step sync process
+  // ... validation, repository checks, file extraction, GitHub operations
+  return { success: true, commitSha, filesCount, message };
+} catch (error) {
+  console.error("Sync error:", error);
+  return {
+    success: false,
+    error: error instanceof Error ? error.message : "Unknown error occurred",
+  };
+}
+```
+
+**Violation of fail-fast principle:**
+- Catches all errors generically instead of handling specific failure modes
+- Obscures the actual failure point in the complex sync process
+- Makes debugging sync issues difficult
+- Prevents proper error propagation to calling code
+
+**Solution:** Remove the broad try-catch and let specific operations fail naturally, allowing for targeted error handling only where meaningful recovery is possible.
+
+## Timer Cleanup Issue
+**Issue:** setTimeout usage without proper cleanup in React component can cause memory leaks and state updates on unmounted components.
+**Source:** Code review commit 5744c7c - review-5744c7c.md
+**Status:** 🔴 **NEW ISSUE** 
+**File:** `/turbo/apps/web/app/components/github-sync-button.tsx` (Lines 34-36)
+
+**Problem:**
+```typescript
+// Clear success message after 5 seconds
+setTimeout(() => {
+  setSyncStatus({ type: null, message: "" });
+}, 5000);
+```
+
+**Issues:**
+- No cleanup mechanism if component unmounts before timeout
+- Can cause "setState on unmounted component" warnings
+- Memory leak from uncanceled timeout
+- Potential state corruption if component remounts
+
+**Solution:** Use useEffect with cleanup:
+```typescript
+useEffect(() => {
+  if (syncStatus.type === 'success') {
+    const timeoutId = setTimeout(() => {
+      setSyncStatus({ type: null, message: "" });
+    }, 5000);
+    
+    return () => clearTimeout(timeoutId);
+  }
+}, [syncStatus.type]);
+```
+
 ## Hardcoded URL Configuration
 **Issue:** Hardcoded URLs in API routes instead of using centralized configuration.
 **Source:** Code review commit d50b99c
@@ -241,7 +303,8 @@ beforeEach(async () => {
 - Direct DB operations: **12 files** (down from 18+)
 - Test mock cleanup missing: **17 files** (58% of files with mocks)
 - TypeScript `any` violations: **3 test files** (down from 5, production code clean)
-- Try-catch violations: **0** ✅ RESOLVED
+- Try-catch violations: **2 new issues** 🔴 (sync.ts, github-sync-button.tsx)
+- Timer cleanup issues: **1 new issue** 🔴 (github-sync-button.tsx)
 - Hardcoded URLs: **0** ✅ RESOLVED
 - Database test isolation: **Unique IDs implemented** ✅ RESOLVED
 
@@ -290,6 +353,8 @@ beforeEach(async () => {
 - **Test Mock Cleanup** - 17 files still need `vi.clearAllMocks()` 
 - **Test Code `any` Types** - 3 violations in test files (low priority)
 - **Direct DB Operations in Tests** - 12 files need refactoring to use API endpoints
+- **GitHub Sync Try-Catch** - Remove broad error handling in sync.ts:210-304
+- **Timer Cleanup** - Fix setTimeout cleanup in github-sync-button.tsx:34-36
 
 ### Impact:
 The most critical technical debt items have been resolved, significantly improving:
@@ -300,4 +365,4 @@ The most critical technical debt items have been resolved, significantly improvi
 
 ---
 
-*Last updated: 2025-09-12*
+*Last updated: 2025-09-13*
