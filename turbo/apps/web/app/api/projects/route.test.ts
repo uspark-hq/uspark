@@ -19,6 +19,7 @@ describe("/api/projects", () => {
   const userId = `test-user-projects-${Date.now()}-${process.pid}`;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
 

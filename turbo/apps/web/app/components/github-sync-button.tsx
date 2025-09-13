@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 interface GitHubSyncButtonProps {
   projectId: string;
@@ -12,6 +12,17 @@ export function GitHubSyncButton({ projectId }: GitHubSyncButtonProps) {
     type: "success" | "error" | null;
     message: string;
   }>({ type: null, message: "" });
+
+  // Clear success message after 5 seconds with proper cleanup
+  useEffect(() => {
+    if (syncStatus.type === "success") {
+      const timeoutId = setTimeout(() => {
+        setSyncStatus({ type: null, message: "" });
+      }, 5000);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [syncStatus.type]);
 
   const handleSync = async () => {
     setIsSyncing(true);
@@ -29,11 +40,6 @@ export function GitHubSyncButton({ projectId }: GitHubSyncButtonProps) {
           type: "success",
           message: `Successfully synced ${data.filesCount} files to GitHub`,
         });
-
-        // Clear success message after 5 seconds
-        setTimeout(() => {
-          setSyncStatus({ type: null, message: "" });
-        }, 5000);
       } else {
         let errorMessage = "Sync failed";
 

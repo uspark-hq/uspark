@@ -16,6 +16,7 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
   let projectId: string;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
 
