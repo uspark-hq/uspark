@@ -18,35 +18,35 @@ describe("GitHubConnection", () => {
   const mockRouter = {
     refresh: vi.fn(),
   };
-  
+
   const originalLocation = window.location;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseRouter.mockReturnValue(mockRouter);
-    
+
     // Reset window.location before each test
-    Object.defineProperty(window, 'location', {
-      value: { href: '' },
+    Object.defineProperty(window, "location", {
+      value: { href: "" },
       writable: true,
-      configurable: true
+      configurable: true,
     });
   });
 
   afterEach(() => {
     // Restore original location after each test
-    Object.defineProperty(window, 'location', {
+    Object.defineProperty(window, "location", {
       value: originalLocation,
       writable: true,
-      configurable: true
+      configurable: true,
     });
   });
 
   it("renders loading state initially", () => {
     mockFetch.mockImplementation(() => new Promise(() => {}));
-    
+
     render(<GitHubConnection />);
-    
+
     expect(screen.getByText("Loading...")).toBeInTheDocument();
   });
 
@@ -98,7 +98,6 @@ describe("GitHubConnection", () => {
       ok: true,
       json: async () => ({ installation: null }),
     } as Response);
-
 
     render(<GitHubConnection />);
 
@@ -198,7 +197,7 @@ describe("GitHubConnection", () => {
     const mockInstallation = {
       installationId: 12345,
       accountName: "test-user",
-      accountType: "user",  
+      accountType: "user",
       createdAt: "2024-01-01T00:00:00Z",
       repositorySelection: "selected",
     };
