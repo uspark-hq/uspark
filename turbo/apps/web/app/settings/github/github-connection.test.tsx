@@ -8,8 +8,11 @@ vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
 }));
 
+const mockUseRouter = vi.mocked(useRouter);
+
 // Mock fetch
 global.fetch = vi.fn();
+const mockFetch = vi.mocked(global.fetch);
 
 describe("GitHubConnection", () => {
   const mockRouter = {
@@ -18,11 +21,11 @@ describe("GitHubConnection", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (useRouter as any).mockReturnValue(mockRouter);
+    mockUseRouter.mockReturnValue(mockRouter);
   });
 
   it("renders loading state initially", () => {
-    (global.fetch as any).mockImplementation(() => new Promise(() => {}));
+    mockFetch.mockImplementation(() => new Promise(() => {}));
     
     render(<GitHubConnection />);
     
@@ -30,10 +33,10 @@ describe("GitHubConnection", () => {
   });
 
   it("renders not connected state when no installation found", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ installation: null }),
-    });
+    } as Response);
 
     render(<GitHubConnection />);
 
@@ -55,10 +58,10 @@ describe("GitHubConnection", () => {
       repositorySelection: "selected",
     };
 
-    (global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ installation: mockInstallation }),
-    });
+    } as Response);
 
     render(<GitHubConnection />);
 
@@ -73,14 +76,14 @@ describe("GitHubConnection", () => {
   });
 
   it("handles connect button click", async () => {
-    (global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ installation: null }),
-    });
+    } as Response);
 
     // Mock window.location
     delete (window as any).location;
-    window.location = { href: "" } as any;
+    window.location = { href: "" } as Location;
 
     render(<GitHubConnection />);
 
@@ -103,15 +106,15 @@ describe("GitHubConnection", () => {
       repositorySelection: "selected",
     };
 
-    (global.fetch as any)
+    mockFetch
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({ installation: mockInstallation }),
-      })
+      } as Response)
       .mockResolvedValueOnce({
         ok: true,
         json: async () => ({}),
-      });
+      } as Response);
 
     // Mock window.confirm
     window.confirm = vi.fn(() => true);
@@ -143,10 +146,10 @@ describe("GitHubConnection", () => {
       repositorySelection: "selected",
     };
 
-    (global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ installation: mockInstallation }),
-    });
+    } as Response);
 
     // Mock window.open
     window.open = vi.fn();
@@ -167,7 +170,7 @@ describe("GitHubConnection", () => {
   });
 
   it("renders error state when fetch fails", async () => {
-    (global.fetch as any).mockRejectedValueOnce(new Error("Network error"));
+    mockFetch.mockRejectedValueOnce(new Error("Network error"));
 
     render(<GitHubConnection />);
 
@@ -185,10 +188,10 @@ describe("GitHubConnection", () => {
       repositorySelection: "selected",
     };
 
-    (global.fetch as any).mockResolvedValueOnce({
+    mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ installation: mockInstallation }),
-    });
+    } as Response);
 
     // Mock window.confirm to return false
     window.confirm = vi.fn(() => false);

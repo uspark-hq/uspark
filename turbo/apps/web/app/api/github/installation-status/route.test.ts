@@ -26,11 +26,11 @@ describe("GET /api/github/installation-status", () => {
       .where(eq(githubInstallations.userId, testUserId));
     
     // Default to authenticated user
-    mockAuth.mockResolvedValue({ userId: testUserId } as any);
+    mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<ReturnType<typeof auth>>);
   });
 
   it("returns 401 when user is not authenticated", async () => {
-    mockAuth.mockResolvedValue({ userId: null } as any);
+    mockAuth.mockResolvedValue({ userId: null } as Awaited<ReturnType<typeof auth>>);
 
     const response = await GET();
     const data = await response.json();
