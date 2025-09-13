@@ -17,7 +17,7 @@
     "source=cache,target=/home/vscode/.cache",
     "source=vercel,target=/home/vscode/.local/share/com.vercel.cli"
   ],
-  "postCreateCommand": "bash /workspaces/uspark2/.devcontainer/setup.sh",
+  "postCreateCommand": "bash .devcontainer/setup.sh",
   "customizations": {
     "vscode": {
       "settings": {

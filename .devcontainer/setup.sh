@@ -21,7 +21,7 @@ fi
 
 # Start Caddy with our config (Caddy installed by devcontainer feature)
 echo "Starting Caddy proxy..."
-caddy start --config /workspaces/uspark2/turbo/Caddyfile --adapter caddyfile || echo "Caddy start failed, will try later"
+caddy start --config caddy/Caddyfile --adapter caddyfile || echo "Caddy start failed, will try later"
 
 echo "✅ Dev container ready!"
 echo "📝 Domains: https://www.uspark.dev | https://app.uspark.dev | https://docs.uspark.dev"
