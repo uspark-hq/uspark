@@ -159,14 +159,14 @@ async function createGitHubCommit(
     }),
   );
 
-  // Create a new tree
+  // Create a new tree (complete replacement, not based on existing tree)
   const { data: newTree } = await octokit.request(
     "POST /repos/{owner}/{repo}/git/trees",
     {
       owner,
       repo,
       tree: blobs,
-      base_tree: currentCommit.tree.sha,
+      // Intentionally not using base_tree to create a complete mirror
     },
   );
 
@@ -176,7 +176,7 @@ async function createGitHubCommit(
     {
       owner,
       repo,
-      message: `Sync from uSpark at ${new Date().toISOString()}`,
+      message: `[Mirror Sync] Complete mirror from uSpark at ${new Date().toISOString()}`,
       tree: newTree.sha,
       parents: [currentCommitSha],
     },
