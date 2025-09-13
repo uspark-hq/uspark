@@ -7,7 +7,7 @@ This document tracks technical debt items that need to be addressed in the codeb
 ## Test Mock Cleanup Issues
 **Issue:** Tests don't explicitly call `vi.clearAllMocks()` in beforeEach hooks, which could lead to mock state leakage between tests.
 **Source:** Code review commit 3d3a1ff
-**Status:** 🟡 Partially Fixed (42% coverage - 11/26 files fixed)
+**Status:** ✅ **RESOLVED** (September 13, 2025)
 **Solution:** Add proper mock cleanup in all test files:
 ```typescript
 beforeEach(() => {
@@ -15,26 +15,27 @@ beforeEach(() => {
 });
 ```
 
-**Files Still Missing Mock Cleanup (17 files):**
-- `/turbo/apps/web/app/api/cli/auth/generate-token/route.test.ts`
-- `/turbo/apps/web/app/api/cli/auth/tokens-list.test.ts`
-- `/turbo/apps/web/app/api/github/setup/route.test.ts`
-- `/turbo/apps/web/app/api/projects/[projectId]/blob-token/route.test.ts`
-- `/turbo/apps/web/app/api/projects/[projectId]/route.test.ts`
-- `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/interrupt/route.test.ts`
-- `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/route.test.ts`
-- `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/turns/[turnId]/route.test.ts`
-- `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/turns/route.test.ts`
-- `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/updates/route.test.ts`
-- `/turbo/apps/web/app/api/projects/[projectId]/sessions/api.test.ts`
-- `/turbo/apps/web/app/api/projects/[projectId]/sessions/route.api.test.ts`
-- `/turbo/apps/web/app/api/projects/[projectId]/sessions/route.test.ts`
-- `/turbo/apps/web/app/api/projects/route.test.ts`
-- `/turbo/apps/web/app/api/share/route.test.ts`
-- `/turbo/apps/web/app/api/shares/[id]/route.test.ts`
-- `/turbo/apps/web/app/api/shares/route.test.ts`
+**Resolution:** Added `vi.clearAllMocks()` to all 17 test files that were missing mock cleanup ([PR #272](https://github.com/uspark-hq/uspark/pull/272)):
 
-**Risk:** Mock state could leak between tests causing flaky test behavior.
+- ✅ `/turbo/apps/web/app/api/cli/auth/generate-token/route.test.ts`
+- ✅ `/turbo/apps/web/app/api/cli/auth/tokens-list.test.ts`
+- ✅ `/turbo/apps/web/app/api/github/setup/route.test.ts`
+- ✅ `/turbo/apps/web/app/api/projects/[projectId]/blob-token/route.test.ts`
+- ✅ `/turbo/apps/web/app/api/projects/[projectId]/route.test.ts`
+- ✅ `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/interrupt/route.test.ts`
+- ✅ `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/route.test.ts`
+- ✅ `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/turns/[turnId]/route.test.ts`
+- ✅ `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/turns/route.test.ts`
+- ✅ `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/updates/route.test.ts`
+- ✅ `/turbo/apps/web/app/api/projects/[projectId]/sessions/api.test.ts`
+- ✅ `/turbo/apps/web/app/api/projects/[projectId]/sessions/route.api.test.ts`
+- ✅ `/turbo/apps/web/app/api/projects/[projectId]/sessions/route.test.ts`
+- ✅ `/turbo/apps/web/app/api/projects/route.test.ts`
+- ✅ `/turbo/apps/web/app/api/share/route.test.ts`
+- ✅ `/turbo/apps/web/app/api/shares/[id]/route.test.ts`
+- ✅ `/turbo/apps/web/app/api/shares/route.test.ts`
+
+**Impact:** Eliminated risk of mock state leakage between tests, improving test reliability and preventing flaky behavior.
 
 ## Database Test Isolation Strategy
 **Issue:** Tests share database state without proper isolation, which could cause race conditions and flaky tests when run in parallel.
@@ -303,7 +304,7 @@ beforeEach(async () => {
 
 ### Current State (September 2025)
 - Direct DB operations: **12 files** (down from 18+)
-- Test mock cleanup missing: **17 files** (58% of files with mocks)
+- Test mock cleanup missing: **0 files** ✅ RESOLVED
 - TypeScript `any` violations: **3 test files** (down from 5, production code clean)
 - Try-catch violations: **1 issue** 🔴 (sync.ts)
 - Timer cleanup issues: **0** ✅ RESOLVED
@@ -350,9 +351,9 @@ beforeEach(async () => {
 2. **Production Code Type Safety** ✅ - Removed all `any` types from production code
 3. **Hardcoded URLs** ✅ - All URLs now use centralized configuration (PR #259)
 4. **Try-Catch Cleanup** ✅ - Removed unnecessary defensive programming patterns
+5. **Test Mock Cleanup** ✅ - Added `vi.clearAllMocks()` to all 17 test files (PR #272)
 
 ### Remaining Work:
-- **Test Mock Cleanup** - 17 files still need `vi.clearAllMocks()` 
 - **Test Code `any` Types** - 3 violations in test files (low priority)
 - **Direct DB Operations in Tests** - 12 files need refactoring to use API endpoints
 - **GitHub Sync Try-Catch** - Remove broad error handling in sync.ts:210-304
