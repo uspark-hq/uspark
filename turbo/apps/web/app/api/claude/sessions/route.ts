@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   if (!userId) {
     return NextResponse.json(
       { error: "unauthorized", error_description: "Authentication required" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     if (!projectId) {
       return NextResponse.json(
         { error: "bad_request", error_description: "Project ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -38,13 +38,15 @@ export async function POST(request: NextRequest) {
     const project = await db
       .select()
       .from(PROJECTS_TBL)
-      .where(and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)))
+      .where(
+        and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)),
+      )
       .limit(1);
 
     if (project.length === 0) {
       return NextResponse.json(
         { error: "not_found", error_description: "Project not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -63,8 +65,11 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error("Failed to create session:", error);
     return NextResponse.json(
-      { error: "internal_error", error_description: "Failed to create session" },
-      { status: 500 }
+      {
+        error: "internal_error",
+        error_description: "Failed to create session",
+      },
+      { status: 500 },
     );
   }
 }
@@ -79,7 +84,7 @@ export async function GET(request: NextRequest) {
   if (!userId) {
     return NextResponse.json(
       { error: "unauthorized", error_description: "Authentication required" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -116,14 +121,14 @@ export async function GET(request: NextRequest) {
           title: SESSIONS_TBL.title,
           createdAt: SESSIONS_TBL.createdAt,
           updatedAt: SESSIONS_TBL.updatedAt,
-          })
+        })
         .from(SESSIONS_TBL)
         .innerJoin(PROJECTS_TBL, eq(SESSIONS_TBL.projectId, PROJECTS_TBL.id))
         .where(
           and(
             eq(PROJECTS_TBL.userId, userId),
-            eq(SESSIONS_TBL.projectId, projectId)
-          )
+            eq(SESSIONS_TBL.projectId, projectId),
+          ),
         )
         .orderBy(desc(SESSIONS_TBL.updatedAt))
         .limit(limit)
@@ -142,7 +147,7 @@ export async function GET(request: NextRequest) {
     console.error("Failed to list sessions:", error);
     return NextResponse.json(
       { error: "internal_error", error_description: "Failed to list sessions" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

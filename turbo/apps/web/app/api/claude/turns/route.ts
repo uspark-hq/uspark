@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
   if (!userId) {
     return NextResponse.json(
       { error: "unauthorized", error_description: "Authentication required" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -31,9 +31,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "bad_request",
-          error_description: "Session ID and user prompt are required"
+          error_description: "Session ID and user prompt are required",
         },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -51,14 +51,14 @@ export async function POST(request: NextRequest) {
     if (sessionResult.length === 0) {
       return NextResponse.json(
         { error: "not_found", error_description: "Session not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     if (sessionResult[0]!.projectUserId !== userId) {
       return NextResponse.json(
         { error: "forbidden", error_description: "Access denied" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
     console.error("Failed to create turn:", error);
     return NextResponse.json(
       { error: "internal_error", error_description: "Failed to create turn" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -100,7 +100,7 @@ export async function GET(request: NextRequest) {
   if (!userId) {
     return NextResponse.json(
       { error: "unauthorized", error_description: "Authentication required" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
     if (!sessionId) {
       return NextResponse.json(
         { error: "bad_request", error_description: "Session ID is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -131,14 +131,14 @@ export async function GET(request: NextRequest) {
     if (sessionResult.length === 0) {
       return NextResponse.json(
         { error: "not_found", error_description: "Session not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     if (sessionResult[0]!.projectUserId !== userId) {
       return NextResponse.json(
         { error: "forbidden", error_description: "Access denied" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -154,7 +154,7 @@ export async function GET(request: NextRequest) {
     console.error("Failed to list turns:", error);
     return NextResponse.json(
       { error: "internal_error", error_description: "Failed to list turns" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

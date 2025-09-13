@@ -3,23 +3,23 @@ import { GitHubConnection } from "./github-connection";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 
 // Use vi.hoisted for better control over mocks
-const { mockRouter, mockPush, mockRefresh } = vi.hoisted(() => {
-  const mockPush = vi.fn();
+const { mockRouter, mockRefresh } = vi.hoisted(() => {
   const mockRefresh = vi.fn();
   const mockRouter = {
-    push: mockPush,
+    push: vi.fn(),
     refresh: mockRefresh,
     back: vi.fn(),
     forward: vi.fn(),
     replace: vi.fn(),
     prefetch: vi.fn(),
   };
-  return { mockRouter, mockPush, mockRefresh };
+  return { mockRouter, mockRefresh };
 });
 
 // Mock next/navigation following Next.js testing best practices
 vi.mock("next/navigation", async () => {
-  const actual = await vi.importActual<typeof import("next/navigation")>("next/navigation");
+  const actual =
+    await vi.importActual<typeof import("next/navigation")>("next/navigation");
   return {
     ...actual,
     useRouter: vi.fn(() => mockRouter),

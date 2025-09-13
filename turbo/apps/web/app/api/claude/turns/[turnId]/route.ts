@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../../src/lib/init-services";
-import { TURNS_TBL, SESSIONS_TBL, BLOCKS_TBL } from "../../../../../src/db/schema/sessions";
+import {
+  TURNS_TBL,
+  SESSIONS_TBL,
+  BLOCKS_TBL,
+} from "../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { eq } from "drizzle-orm";
 
@@ -11,14 +15,14 @@ import { eq } from "drizzle-orm";
  */
 export async function GET(
   _request: NextRequest,
-  context: { params: Promise<{ turnId: string }> }
+  context: { params: Promise<{ turnId: string }> },
 ) {
   const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.json(
       { error: "unauthorized", error_description: "Authentication required" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -49,7 +53,7 @@ export async function GET(
     if (turnResult.length === 0) {
       return NextResponse.json(
         { error: "not_found", error_description: "Turn not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -59,7 +63,7 @@ export async function GET(
     if (turn.projectUserId !== userId) {
       return NextResponse.json(
         { error: "forbidden", error_description: "Access denied" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -85,7 +89,7 @@ export async function GET(
     console.error("Failed to get turn:", error);
     return NextResponse.json(
       { error: "internal_error", error_description: "Failed to get turn" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -96,14 +100,14 @@ export async function GET(
  */
 export async function PATCH(
   request: NextRequest,
-  context: { params: Promise<{ turnId: string }> }
+  context: { params: Promise<{ turnId: string }> },
 ) {
   const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.json(
       { error: "unauthorized", error_description: "Authentication required" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -118,7 +122,7 @@ export async function PATCH(
     if (!status) {
       return NextResponse.json(
         { error: "bad_request", error_description: "Status is required" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -137,14 +141,14 @@ export async function PATCH(
     if (turnResult.length === 0) {
       return NextResponse.json(
         { error: "not_found", error_description: "Turn not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     if (turnResult[0]!.projectUserId !== userId) {
       return NextResponse.json(
         { error: "forbidden", error_description: "Access denied" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -180,7 +184,7 @@ export async function PATCH(
     console.error("Failed to update turn:", error);
     return NextResponse.json(
       { error: "internal_error", error_description: "Failed to update turn" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

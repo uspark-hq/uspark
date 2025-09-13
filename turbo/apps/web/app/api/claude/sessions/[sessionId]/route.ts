@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../../src/lib/init-services";
-import { SESSIONS_TBL, TURNS_TBL, BLOCKS_TBL } from "../../../../../src/db/schema/sessions";
+import {
+  SESSIONS_TBL,
+  TURNS_TBL,
+  BLOCKS_TBL,
+} from "../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { eq, desc } from "drizzle-orm";
 
@@ -11,14 +15,14 @@ import { eq, desc } from "drizzle-orm";
  */
 export async function GET(
   _request: NextRequest,
-  context: { params: Promise<{ sessionId: string }> }
+  context: { params: Promise<{ sessionId: string }> },
 ) {
   const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.json(
       { error: "unauthorized", error_description: "Authentication required" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -45,7 +49,7 @@ export async function GET(
     if (sessionResult.length === 0) {
       return NextResponse.json(
         { error: "not_found", error_description: "Session not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -55,7 +59,7 @@ export async function GET(
     if (session.projectUserId !== userId) {
       return NextResponse.json(
         { error: "forbidden", error_description: "Access denied" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -79,7 +83,7 @@ export async function GET(
           ...turn,
           blocks,
         };
-      })
+      }),
     );
 
     return NextResponse.json({
@@ -94,7 +98,7 @@ export async function GET(
     console.error("Failed to get session:", error);
     return NextResponse.json(
       { error: "internal_error", error_description: "Failed to get session" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -105,14 +109,14 @@ export async function GET(
  */
 export async function DELETE(
   _request: NextRequest,
-  context: { params: Promise<{ sessionId: string }> }
+  context: { params: Promise<{ sessionId: string }> },
 ) {
   const { userId } = await auth();
 
   if (!userId) {
     return NextResponse.json(
       { error: "unauthorized", error_description: "Authentication required" },
-      { status: 401 }
+      { status: 401 },
     );
   }
 
@@ -134,14 +138,14 @@ export async function DELETE(
     if (sessionResult.length === 0) {
       return NextResponse.json(
         { error: "not_found", error_description: "Session not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     if (sessionResult[0]!.projectUserId !== userId) {
       return NextResponse.json(
         { error: "forbidden", error_description: "Access denied" },
-        { status: 403 }
+        { status: 403 },
       );
     }
 
@@ -152,8 +156,11 @@ export async function DELETE(
   } catch (error) {
     console.error("Failed to delete session:", error);
     return NextResponse.json(
-      { error: "internal_error", error_description: "Failed to delete session" },
-      { status: 500 }
+      {
+        error: "internal_error",
+        error_description: "Failed to delete session",
+      },
+      { status: 500 },
     );
   }
 }
