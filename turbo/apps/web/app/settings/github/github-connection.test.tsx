@@ -18,10 +18,28 @@ describe("GitHubConnection", () => {
   const mockRouter = {
     refresh: vi.fn(),
   };
+  
+  const originalLocation = window.location;
 
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseRouter.mockReturnValue(mockRouter);
+    
+    // Reset window.location before each test
+    Object.defineProperty(window, 'location', {
+      value: { href: '' },
+      writable: true,
+      configurable: true
+    });
+  });
+
+  afterEach(() => {
+    // Restore original location after each test
+    Object.defineProperty(window, 'location', {
+      value: originalLocation,
+      writable: true,
+      configurable: true
+    });
   });
 
   it("renders loading state initially", () => {
@@ -81,11 +99,6 @@ describe("GitHubConnection", () => {
       json: async () => ({ installation: null }),
     } as Response);
 
-    // Mock window.location
-    Object.defineProperty(window, 'location', {
-      value: { href: "" },
-      writable: true
-    });
 
     render(<GitHubConnection />);
 
