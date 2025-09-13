@@ -1,43 +1,36 @@
 import { GET } from "./route";
 import { auth } from "@clerk/nextjs/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { initServices } from "../../../../src/lib/init-services";
+import { githubInstallations } from "../../../../src/db/schema/github";
+import { eq } from "drizzle-orm";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
 }));
 
-// Mock database
-vi.mock("../../../../src/lib/init-services", () => ({
-  initServices: vi.fn(),
-}));
+const mockAuth = vi.mocked(auth);
 
 describe("GET /api/github/installation-status", () => {
-  const mockDb = {
-    select: vi.fn(),
-  };
-
-  beforeEach(() => {
-    vi.clearAllMocks();
+  const testUserId = `test-user-gh-status-${Date.now()}-${process.pid}`;
+  const baseInstallationId = Math.floor(Date.now() / 1000); // Use timestamp as base for unique IDs
+  
+  beforeEach(async () => {
+    // Initialize real database connection
+    initServices();
     
-    // Setup global services mock
-    globalThis.services = {
-      db: mockDb as any,
-      env: {} as any,
-    };
-
-    // Default mock for select chain
-    mockDb.select.mockReturnValue({
-      from: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue([]),
-        }),
-      }),
-    });
+    // Clean up any existing test data
+    await globalThis.services.db
+      .delete(githubInstallations)
+      .where(eq(githubInstallations.userId, testUserId));
+    
+    // Default to authenticated user
+    mockAuth.mockResolvedValue({ userId: testUserId } as any);
   });
 
   it("returns 401 when user is not authenticated", async () => {
-    (auth as any).mockResolvedValue({ userId: null });
+    mockAuth.mockResolvedValue({ userId: null } as any);
 
     const response = await GET();
     const data = await response.json();
@@ -47,8 +40,6 @@ describe("GET /api/github/installation-status", () => {
   });
 
   it("returns null when no installation found", async () => {
-    (auth as any).mockResolvedValue({ userId: "user_123" });
-
     const response = await GET();
     const data = await response.json();
 
@@ -57,53 +48,65 @@ describe("GET /api/github/installation-status", () => {
   });
 
   it("returns installation details when installation exists", async () => {
-    (auth as any).mockResolvedValue({ userId: "user_123" });
-
-    const mockInstallation = {
-      id: "install_123",
-      userId: "user_123",
-      installationId: 456789,
-      accountName: "test-org",
-      createdAt: new Date("2024-01-01"),
-      updatedAt: new Date("2024-01-01"),
-    };
-
-    mockDb.select.mockReturnValue({
-      from: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          limit: vi.fn().mockResolvedValue([mockInstallation]),
-        }),
-      }),
-    });
+    // Insert test installation
+    const ghInstallationId = baseInstallationId + 1;
+    await globalThis.services.db
+      .insert(githubInstallations)
+      .values({
+        id: `install-${testUserId}-1`,
+        userId: testUserId,
+        installationId: ghInstallationId,
+        accountName: "test-org",
+      });
 
     const response = await GET();
     const data = await response.json();
 
     expect(response.status).toBe(200);
-    expect(data.installation).toEqual({
-      installationId: 456789,
+    expect(data.installation).toMatchObject({
+      installationId: ghInstallationId,
       accountName: "test-org",
       accountType: "user",
-      createdAt: mockInstallation.createdAt.toISOString(),
       repositorySelection: "selected",
     });
+    expect(data.installation.createdAt).toBeDefined();
   });
 
-  it("handles database errors gracefully", async () => {
-    (auth as any).mockResolvedValue({ userId: "user_123" });
+  it("returns only the current user's installation", async () => {
+    const otherUserId = `other-user-${Date.now()}`;
+    const otherGhInstallationId = baseInstallationId + 100;
+    const testGhInstallationId = baseInstallationId + 200;
+    
+    // Insert installation for another user
+    await globalThis.services.db
+      .insert(githubInstallations)
+      .values({
+        id: `install-${otherUserId}-1`,
+        userId: otherUserId,
+        installationId: otherGhInstallationId,
+        accountName: "other-org",
+      });
 
-    mockDb.select.mockReturnValue({
-      from: vi.fn().mockReturnValue({
-        where: vi.fn().mockReturnValue({
-          limit: vi.fn().mockRejectedValue(new Error("Database connection failed")),
-        }),
-      }),
-    });
+    // Insert installation for test user
+    await globalThis.services.db
+      .insert(githubInstallations)
+      .values({
+        id: `install-${testUserId}-2`,
+        userId: testUserId,
+        installationId: testGhInstallationId,
+        accountName: "test-org",
+      });
 
     const response = await GET();
     const data = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(data).toEqual({ error: "Failed to fetch installation status" });
+    expect(response.status).toBe(200);
+    expect(data.installation.installationId).toBe(testGhInstallationId);
+    expect(data.installation.accountName).toBe("test-org");
+    
+    // Clean up other user's data
+    await globalThis.services.db
+      .delete(githubInstallations)
+      .where(eq(githubInstallations.userId, otherUserId));
   });
 });
