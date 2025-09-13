@@ -56,7 +56,7 @@ describe("/api/claude/turns", () => {
     const projects = await db
       .insert(PROJECTS_TBL)
       .values({
-        id: `proj_test_${Date.now()}`,
+        id: `proj_test_${uniqueId}_${Date.now()}`,
         userId,
         ydocData,
         version: 0,
@@ -69,7 +69,7 @@ describe("/api/claude/turns", () => {
     const sessions = await db
       .insert(SESSIONS_TBL)
       .values({
-        id: `sess_test_${Date.now()}`,
+        id: `sess_test_${uniqueId}_${Date.now()}`,
         projectId: testProjectId,
         title: "Test Session",
       })
@@ -196,7 +196,9 @@ describe("/api/claude/turns", () => {
     });
 
     it("should return 403 if user doesn't own the session's project", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const request = new NextRequest(
         "http://localhost:3000/api/claude/turns",
@@ -217,7 +219,9 @@ describe("/api/claude/turns", () => {
     });
 
     it("should return 401 if not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const request = new NextRequest(
         "http://localhost:3000/api/claude/turns",
@@ -245,7 +249,7 @@ describe("/api/claude/turns", () => {
 
       for (let i = 0; i < 3; i++) {
         await db.insert(TURNS_TBL).values({
-          id: `turn_test_${i}`,
+          id: `turn_test_${uniqueId}_${i}`,
           sessionId: testSessionId,
           userPrompt: `Prompt ${i}`,
           status: i === 0 ? "completed" : i === 1 ? "running" : "pending",
@@ -264,9 +268,11 @@ describe("/api/claude/turns", () => {
       expect(response.status).toBe(200);
       expect(data.turns).toHaveLength(3);
       expect(data.turns[0]!.userPrompt).toMatch(/Prompt \d/);
-      expect(data.turns.every((t: { sessionId: string }) => t.sessionId === testSessionId)).toBe(
-        true,
-      );
+      expect(
+        data.turns.every(
+          (t: { sessionId: string }) => t.sessionId === testSessionId,
+        ),
+      ).toBe(true);
     });
 
     it("should return turns in chronological order", async () => {
@@ -307,7 +313,9 @@ describe("/api/claude/turns", () => {
     });
 
     it("should return 403 if user doesn't own the session's project", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const request = new NextRequest(
         `http://localhost:3000/api/claude/turns?sessionId=${testSessionId}`,
@@ -321,7 +329,9 @@ describe("/api/claude/turns", () => {
     });
 
     it("should return 401 if not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const request = new NextRequest(
         `http://localhost:3000/api/claude/turns?sessionId=${testSessionId}`,

@@ -77,7 +77,7 @@ describe("/api/claude/sessions/[sessionId]", () => {
     const sessions = await db
       .insert(SESSIONS_TBL)
       .values({
-        id: `sess_test_${Date.now()}`,
+        id: `sess_test_${uniqueId}_${Date.now()}`,
         projectId: testProjectId,
         title: "Test Session",
       })
@@ -89,7 +89,7 @@ describe("/api/claude/sessions/[sessionId]", () => {
     const turns = await db
       .insert(TURNS_TBL)
       .values({
-        id: `turn_test_${Date.now()}`,
+        id: `turn_test_${uniqueId}_${Date.now()}`,
         sessionId: testSessionId,
         userPrompt: "Test prompt",
         status: "completed",
@@ -101,14 +101,14 @@ describe("/api/claude/sessions/[sessionId]", () => {
     // Create test blocks
     await db.insert(BLOCKS_TBL).values([
       {
-        id: `block_test_1`,
+        id: `block_test_${uniqueId}_1`,
         turnId: testTurnId,
         type: "content",
         content: { type: "content", content: { text: "Response 1" } },
         sequenceNumber: 1,
       },
       {
-        id: `block_test_2`,
+        id: `block_test_${uniqueId}_2`,
         turnId: testTurnId,
         type: "tool_use",
         content: {
@@ -161,7 +161,9 @@ describe("/api/claude/sessions/[sessionId]", () => {
     });
 
     it("should return 403 if user doesn't own the project", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const request = new NextRequest(
         `http://localhost:3000/api/claude/sessions/${testSessionId}`,
@@ -177,7 +179,9 @@ describe("/api/claude/sessions/[sessionId]", () => {
     });
 
     it("should return 401 if not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const request = new NextRequest(
         `http://localhost:3000/api/claude/sessions/${testSessionId}`,
@@ -247,7 +251,9 @@ describe("/api/claude/sessions/[sessionId]", () => {
     });
 
     it("should return 403 if user doesn't own the project", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const request = new NextRequest(
         `http://localhost:3000/api/claude/sessions/${testSessionId}`,
@@ -264,7 +270,9 @@ describe("/api/claude/sessions/[sessionId]", () => {
     });
 
     it("should return 401 if not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const request = new NextRequest(
         `http://localhost:3000/api/claude/sessions/${testSessionId}`,

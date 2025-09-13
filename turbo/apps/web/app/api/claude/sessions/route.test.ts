@@ -58,7 +58,7 @@ describe("/api/claude/sessions", () => {
     const projects = await db
       .insert(PROJECTS_TBL)
       .values({
-        id: `proj_test_${Date.now()}`,
+        id: `proj_test_${uniqueId}_${Date.now()}`,
         userId,
         ydocData,
         version: 0,
@@ -146,7 +146,9 @@ describe("/api/claude/sessions", () => {
     });
 
     it("should return 401 if not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const request = new NextRequest(
         "http://localhost:3000/api/claude/sessions",
@@ -167,7 +169,9 @@ describe("/api/claude/sessions", () => {
     });
 
     it("should return 404 if user doesn't own the project", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const request = new NextRequest(
         "http://localhost:3000/api/claude/sessions",
@@ -228,7 +232,9 @@ describe("/api/claude/sessions", () => {
       expect(response.status).toBe(200);
       expect(data.sessions).toHaveLength(3);
       expect(
-        data.sessions.every((s: { projectId: string }) => s.projectId === testProjectId),
+        data.sessions.every(
+          (s: { projectId: string }) => s.projectId === testProjectId,
+        ),
       ).toBe(true);
     });
 
@@ -265,7 +271,9 @@ describe("/api/claude/sessions", () => {
     });
 
     it("should return 401 if not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
 
       const request = new NextRequest(
         "http://localhost:3000/api/claude/sessions",
