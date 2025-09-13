@@ -14,8 +14,14 @@ describe('homePage', () => {
   })
 
   it('renders homepage basic UI structure', async () => {
+    // Should show the Workspace heading
     await expect(
-      screen.findByText('Workspace Page'),
+      screen.findByRole('heading', { name: 'Workspace' }),
     ).resolves.toBeInTheDocument()
+
+    // Should show workspace content placeholder
+    expect(
+      screen.getByText('Your workspace content will appear here.'),
+    ).toBeInTheDocument()
   })
 })

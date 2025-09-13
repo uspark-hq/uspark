@@ -3,10 +3,11 @@ import { command, computed, state } from 'ccstate'
 
 const reload$ = state(0)
 
-const clerk$ = computed(async () => {
+export const clerk$ = computed(async () => {
   const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY as
     | string
     | undefined
+
   if (!publishableKey) {
     throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY environment variable')
   }
@@ -21,6 +22,7 @@ export const setupClerk$ = command(
     const clerk = await get(clerk$)
     signal.throwIfAborted()
 
+    // Set initial user
     const unsubscribe = clerk.addListener(() => {
       set(reload$, (x) => x + 1)
     })
@@ -28,15 +30,8 @@ export const setupClerk$ = command(
   },
 )
 
-export const auth$ = computed(async (get) => {
+export const user$ = computed(async (get) => {
   get(reload$)
   const clerk = await get(clerk$)
-
-  return {
-    userId: clerk.user?.id ?? null,
-    sessionId: clerk.session?.id ?? null,
-    sessionClaims: clerk.session?.publicUserData ?? null,
-    isSignedIn: !!clerk.user,
-    isLoaded: clerk.loaded,
-  }
+  return clerk.user ?? undefined
 })

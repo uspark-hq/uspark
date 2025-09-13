@@ -1,5 +1,5 @@
 import { command, type Command } from 'ccstate'
-import { auth$, setupClerk$ } from './auth'
+import { clerk$, setupClerk$ } from './auth'
 import { setPageSignal$ } from './page-signal'
 import { setupProjectPage$ } from './project/project-page'
 import { setRootSignal$ } from './root-signal'
@@ -18,7 +18,7 @@ const setupAuthPageWrapper = (
   fn: Command<Promise<void> | void, [AbortSignal]>,
 ) => {
   return command(async ({ get, set }, signal: AbortSignal) => {
-    await get(auth$)
+    await get(clerk$)
     signal.throwIfAborted()
 
     await set(setupPageWrapper(fn), signal)
