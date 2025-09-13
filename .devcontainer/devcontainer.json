@@ -2,7 +2,8 @@
   "name": "USpark Development",
   "image": "ghcr.io/uspark-hq/uspark-dev:1dacb9c",
   "features": {
-    "ghcr.io/itsmechlark/features/postgresql:1": {}
+    "ghcr.io/itsmechlark/features/postgresql:1": {},
+    "ghcr.io/devcontainers-extra/features/caddy:1": {}
   },
   "remoteUser": "vscode",
   "forwardPorts": [4983, 5432, 80, 443],
