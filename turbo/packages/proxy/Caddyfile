@@ -1,0 +1,26 @@
+# Local development proxy for *.uspark.dev domains
+# Requires certificates to be generated first using scripts/generate-certs.sh
+
+# Main web app
+www.uspark.dev {
+	tls ../../../.certs/www.uspark.dev.pem ../../../.certs/www.uspark.dev-key.pem
+	reverse_proxy localhost:3000
+}
+
+# Workspace app
+app.uspark.dev {
+	tls ../../../.certs/app.uspark.dev.pem ../../../.certs/app.uspark.dev-key.pem
+	reverse_proxy localhost:5173
+}
+
+# Documentation site
+docs.uspark.dev {
+	tls ../../../.certs/docs.uspark.dev.pem ../../../.certs/docs.uspark.dev-key.pem
+	reverse_proxy localhost:3001
+}
+
+# Redirect root domain to www
+uspark.dev {
+	tls ../../../.certs/uspark.dev.pem ../../../.certs/uspark.dev-key.pem
+	redir https://www.uspark.dev{uri} permanent
+}

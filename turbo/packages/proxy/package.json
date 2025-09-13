@@ -1,0 +1,14 @@
+{
+  "name": "@repo/proxy",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local HTTPS proxy using Caddy for development",
+  "scripts": {
+    "dev": "node scripts/start-caddy.js",
+    "start": "node scripts/start-caddy.js",
+    "stop": "caddy stop",
+    "check-certs": "node scripts/check-certs.js",
+    "generate-certs": "bash ../../scripts/generate-certs.sh"
+  },
+  "devDependencies": {}
+}
