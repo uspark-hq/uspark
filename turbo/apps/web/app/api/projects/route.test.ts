@@ -23,7 +23,7 @@ describe("/api/projects", () => {
     vi.clearAllMocks();
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
-    
+
     // Clean up any projects created in previous tests
     // Note: Since we don't have a DELETE endpoint yet, we'll track created projects
     // and rely on test isolation. In production tests, you'd want a proper cleanup API.
@@ -56,7 +56,7 @@ describe("/api/projects", () => {
         POST,
         "POST",
         {},
-        { name: `test-project-1-${Date.now()}` }
+        { name: `test-project-1-${Date.now()}` },
       );
       expect(response1.status).toBe(201);
       const project1 = response1.data;
@@ -66,7 +66,7 @@ describe("/api/projects", () => {
         POST,
         "POST",
         {},
-        { name: `test-project-2-${Date.now()}` }
+        { name: `test-project-2-${Date.now()}` },
       );
       expect(response2.status).toBe(201);
       const project2 = response2.data;
@@ -85,7 +85,9 @@ describe("/api/projects", () => {
       expect(response.data.projects[0]).toHaveProperty("updated_at");
 
       // Check that we got our test projects
-      const projectIds = response.data.projects.map((p: { id: string }) => p.id);
+      const projectIds = response.data.projects.map(
+        (p: { id: string }) => p.id,
+      );
       expect(projectIds).toContain(project1.id);
       expect(projectIds).toContain(project2.id);
     });
@@ -111,17 +113,22 @@ describe("/api/projects", () => {
       const response = await apiCall(GET, "GET");
 
       expect(response.status).toBe(200);
-      
+
       // Should not contain the other user's project
-      const projectIds = response.data.projects.map((p: { id: string }) => p.id);
+      const projectIds = response.data.projects.map(
+        (p: { id: string }) => p.id,
+      );
       expect(projectIds).not.toContain(otherProjectId);
-      
+
       // Should only contain projects created by the current user
       response.data.projects.forEach((project: { id: string }) => {
         // All projects should be from the current user (created in previous tests)
-        expect(createdProjectIds.includes(project.id) || project.id.startsWith("proj_")).toBe(true);
+        expect(
+          createdProjectIds.includes(project.id) ||
+            project.id.startsWith("proj_"),
+        ).toBe(true);
       });
-      
+
       // Clean up
       await globalThis.services.db
         .delete(PROJECTS_TBL)
@@ -139,7 +146,7 @@ describe("/api/projects", () => {
         POST,
         "POST",
         {},
-        { name: "test-project" }
+        { name: "test-project" },
       );
 
       expect(response.status).toBe(401);
@@ -149,12 +156,7 @@ describe("/api/projects", () => {
     it("should create a new project successfully", async () => {
       const projectName = `test-project-${Date.now()}`;
 
-      const response = await apiCall(
-        POST,
-        "POST",
-        {},
-        { name: projectName }
-      );
+      const response = await apiCall(POST, "POST", {}, { name: projectName });
 
       expect(response.status).toBe(201);
       expect(response.data).toHaveProperty("id");
@@ -164,13 +166,15 @@ describe("/api/projects", () => {
         /^proj_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
       ); // UUID format
       expect(response.data.name).toBe(response.data.id); // Currently using ID as name
-      
+
       createdProjectIds.push(response.data.id);
 
       // Verify project is accessible via GET
       const getResponse = await apiCall(GET, "GET");
       expect(getResponse.status).toBe(200);
-      const projectIds = getResponse.data.projects.map((p: { id: string }) => p.id);
+      const projectIds = getResponse.data.projects.map(
+        (p: { id: string }) => p.id,
+      );
       expect(projectIds).toContain(response.data.id);
     });
 
@@ -179,7 +183,7 @@ describe("/api/projects", () => {
         POST,
         "POST",
         {},
-        {} // Missing name
+        {}, // Missing name
       );
 
       expect(response.status).toBe(400);
@@ -188,27 +192,19 @@ describe("/api/projects", () => {
     });
 
     it("should reject empty name", async () => {
-      const response = await apiCall(
-        POST,
-        "POST",
-        {},
-        { name: "" }
-      );
+      const response = await apiCall(POST, "POST", {}, { name: "" });
 
       expect(response.status).toBe(400);
       expect(response.data).toHaveProperty("error", "invalid_request");
-      expect(response.data.error_description).toContain("Project name is required");
+      expect(response.data.error_description).toContain(
+        "Project name is required",
+      );
     });
 
     it("should reject name that is too long", async () => {
       const longName = "a".repeat(101); // Exceeds 100 char limit
 
-      const response = await apiCall(
-        POST,
-        "POST",
-        {},
-        { name: longName }
-      );
+      const response = await apiCall(POST, "POST", {}, { name: longName });
 
       expect(response.status).toBe(400);
       expect(response.data).toHaveProperty("error", "invalid_request");
@@ -218,12 +214,7 @@ describe("/api/projects", () => {
     });
 
     it("should reject non-string name", async () => {
-      const response = await apiCall(
-        POST,
-        "POST",
-        {},
-        { name: 123 }
-      );
+      const response = await apiCall(POST, "POST", {}, { name: 123 });
 
       expect(response.status).toBe(400);
       expect(response.data).toHaveProperty("error", "invalid_request");
@@ -251,22 +242,12 @@ describe("/api/projects", () => {
       const projectName = "duplicate-name";
 
       // Create first project
-      const response1 = await apiCall(
-        POST,
-        "POST",
-        {},
-        { name: projectName }
-      );
+      const response1 = await apiCall(POST, "POST", {}, { name: projectName });
       expect(response1.status).toBe(201);
       createdProjectIds.push(response1.data.id);
 
       // Create second project with same name
-      const response2 = await apiCall(
-        POST,
-        "POST",
-        {},
-        { name: projectName }
-      );
+      const response2 = await apiCall(POST, "POST", {}, { name: projectName });
       expect(response2.status).toBe(201);
       createdProjectIds.push(response2.data.id);
 

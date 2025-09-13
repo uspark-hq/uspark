@@ -32,12 +32,12 @@ describe("/api/projects/:projectId/sessions", () => {
       createProject,
       "POST",
       {},
-      { name: "Test Project for Sessions" }
+      { name: "Test Project for Sessions" },
     );
     expect(projectResponse.status).toBe(201);
     projectId = projectResponse.data.id;
     createdProjectIds.push(projectId);
-    
+
     // Clear session tracking
     createdSessionIds.length = 0;
   });
@@ -52,7 +52,7 @@ describe("/api/projects/:projectId/sessions", () => {
         POST,
         "POST",
         { projectId },
-        { title: "Test Session" }
+        { title: "Test Session" },
       );
 
       expect(response.status).toBe(401);
@@ -64,7 +64,7 @@ describe("/api/projects/:projectId/sessions", () => {
         POST,
         "POST",
         { projectId: "non-existent" },
-        { title: "Test Session" }
+        { title: "Test Session" },
       );
 
       expect(response.status).toBe(404);
@@ -91,7 +91,7 @@ describe("/api/projects/:projectId/sessions", () => {
         POST,
         "POST",
         { projectId: otherProjectId },
-        { title: "Test Session" }
+        { title: "Test Session" },
       );
 
       expect(response.status).toBe(404);
@@ -108,7 +108,7 @@ describe("/api/projects/:projectId/sessions", () => {
         POST,
         "POST",
         { projectId },
-        { title: "My Test Session" }
+        { title: "My Test Session" },
       );
 
       expect(response.status).toBe(200);
@@ -125,18 +125,15 @@ describe("/api/projects/:projectId/sessions", () => {
       const getResponse = await apiCall(GET, "GET", { projectId });
       expect(getResponse.status).toBe(200);
       const sessions = getResponse.data.sessions;
-      const createdSession = sessions.find((s: any) => s.id === response.data.id);
+      const createdSession = sessions.find(
+        (s: any) => s.id === response.data.id,
+      );
       expect(createdSession).toBeDefined();
       expect(createdSession.title).toBe("My Test Session");
     });
 
     it("should create session without title", async () => {
-      const response = await apiCall(
-        POST,
-        "POST",
-        { projectId },
-        {}
-      );
+      const response = await apiCall(POST, "POST", { projectId }, {});
 
       expect(response.status).toBe(200);
       expect(response.data).toHaveProperty("id");
@@ -174,7 +171,7 @@ describe("/api/projects/:projectId/sessions", () => {
         POST,
         "POST",
         { projectId },
-        { title: "Session 1" }
+        { title: "Session 1" },
       );
       expect(response1.status).toBe(200);
       createdSessionIds.push(response1.data.id);
@@ -183,7 +180,7 @@ describe("/api/projects/:projectId/sessions", () => {
         POST,
         "POST",
         { projectId },
-        { title: "Session 2" }
+        { title: "Session 2" },
       );
       expect(response2.status).toBe(200);
       createdSessionIds.push(response2.data.id);
@@ -206,15 +203,21 @@ describe("/api/projects/:projectId/sessions", () => {
           POST,
           "POST",
           { projectId },
-          { title: `Session ${i}` }
+          { title: `Session ${i}` },
         );
         expect(response.status).toBe(200);
         createdSessionIds.push(response.data.id);
       }
 
       // Test limit
-      const { apiCallWithQuery } = await import("../../../../../src/test/api-helpers");
-      const response1 = await apiCallWithQuery(GET, { projectId }, { limit: "2" });
+      const { apiCallWithQuery } = await import(
+        "../../../../../src/test/api-helpers"
+      );
+      const response1 = await apiCallWithQuery(
+        GET,
+        { projectId },
+        { limit: "2" },
+      );
       expect(response1.data.sessions).toHaveLength(2);
       expect(response1.data.total).toBeGreaterThanOrEqual(5);
 
@@ -222,14 +225,18 @@ describe("/api/projects/:projectId/sessions", () => {
       const response2 = await apiCallWithQuery(
         GET,
         { projectId },
-        { limit: "2", offset: "2" }
+        { limit: "2", offset: "2" },
       );
       expect(response2.data.sessions).toHaveLength(2);
       expect(response2.data.sessions[0].title).toBe("Session 2");
       expect(response2.data.sessions[1].title).toBe("Session 1");
 
       // Test offset beyond available data
-      const response3 = await apiCallWithQuery(GET, { projectId }, { offset: "10" });
+      const response3 = await apiCallWithQuery(
+        GET,
+        { projectId },
+        { offset: "10" },
+      );
       expect(response3.data.sessions).toHaveLength(0);
       expect(response3.data.total).toBeGreaterThanOrEqual(5);
     });
@@ -240,7 +247,7 @@ describe("/api/projects/:projectId/sessions", () => {
         POST,
         "POST",
         { projectId },
-        { title: "My Session" }
+        { title: "My Session" },
       );
       expect(response1.status).toBe(200);
       createdSessionIds.push(response1.data.id);
@@ -250,7 +257,7 @@ describe("/api/projects/:projectId/sessions", () => {
         createProject,
         "POST",
         {},
-        { name: "Other Test Project" }
+        { name: "Other Test Project" },
       );
       expect(otherProjectResponse.status).toBe(201);
       const otherProjectId = otherProjectResponse.data.id;
@@ -261,7 +268,7 @@ describe("/api/projects/:projectId/sessions", () => {
         POST,
         "POST",
         { projectId: otherProjectId },
-        { title: "Other Session" }
+        { title: "Other Session" },
       );
       expect(response2.status).toBe(200);
       createdSessionIds.push(response2.data.id);

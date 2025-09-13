@@ -25,10 +25,10 @@ describe("/api/share", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    
+
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
-    
+
     // Clear tracking arrays
     createdProjectIds.length = 0;
     createdShareIds.length = 0;
@@ -41,7 +41,7 @@ describe("/api/share", () => {
         createProject,
         "POST",
         {},
-        { name: "Test Project" }
+        { name: "Test Project" },
       );
       expect(projectResponse.status).toBe(201);
       projectId = projectResponse.data.id;
@@ -56,7 +56,7 @@ describe("/api/share", () => {
         {
           project_id: projectId,
           file_path: testFilePath,
-        }
+        },
       );
 
       expect(response.status).toBe(201);
@@ -65,7 +65,7 @@ describe("/api/share", () => {
         url: expect.stringMatching(/^https?:\/\/.+\/share\/.+/),
         token: expect.any(String),
       });
-      
+
       createdShareIds.push(response.data.id);
 
       // Verify via GET /api/shares
@@ -73,7 +73,7 @@ describe("/api/share", () => {
       const sharesResponse = await apiCall(GET, "GET");
       expect(sharesResponse.status).toBe(200);
       const createdShare = sharesResponse.data.shares.find(
-        (s: any) => s.id === response.data.id
+        (s: any) => s.id === response.data.id,
       );
       expect(createdShare).toBeDefined();
       expect(createdShare.projectId).toBe(projectId);
@@ -92,7 +92,7 @@ describe("/api/share", () => {
         {
           project_id: projectId,
           file_path: testFilePath,
-        }
+        },
       );
 
       expect(response.status).toBe(401);
@@ -108,7 +108,7 @@ describe("/api/share", () => {
         {},
         {
           file_path: testFilePath,
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -125,7 +125,7 @@ describe("/api/share", () => {
         {},
         {
           project_id: projectId,
-        }
+        },
       );
 
       expect(response.status).toBe(400);
@@ -143,7 +143,7 @@ describe("/api/share", () => {
         {
           project_id: "non-existent-project",
           file_path: testFilePath,
-        }
+        },
       );
 
       expect(response.status).toBe(404);
@@ -177,7 +177,7 @@ describe("/api/share", () => {
         {
           project_id: otherProjectId,
           file_path: testFilePath,
-        }
+        },
       );
 
       expect(response.status).toBe(404);

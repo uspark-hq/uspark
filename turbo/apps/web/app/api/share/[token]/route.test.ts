@@ -30,7 +30,7 @@ describe("/api/share/:token", () => {
     vi.clearAllMocks();
     // Mock successful authentication
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
-    
+
     // Clear tracking arrays
     createdProjectIds.length = 0;
     createdShareIds.length = 0;
@@ -43,7 +43,7 @@ describe("/api/share/:token", () => {
         createProject,
         "POST",
         {},
-        { name: "Test Project" }
+        { name: "Test Project" },
       );
       expect(projectResponse.status).toBe(201);
       projectId = projectResponse.data.id;
@@ -57,7 +57,7 @@ describe("/api/share/:token", () => {
         {
           project_id: projectId,
           file_path: testFilePath,
-        }
+        },
       );
       expect(shareResponse.status).toBe(201);
       shareToken = shareResponse.data.token;
@@ -78,11 +78,7 @@ describe("/api/share/:token", () => {
         .set({ ydocData: base64Data })
         .where(eq(PROJECTS_TBL.id, projectId));
 
-      const response = await apiCall(
-        GET,
-        "GET",
-        { token: shareToken }
-      );
+      const response = await apiCall(GET, "GET", { token: shareToken });
 
       expect(response.status).toBe(200);
       expect(response.data).toMatchObject({
@@ -95,11 +91,7 @@ describe("/api/share/:token", () => {
 
     it("should return 404 for non-existent token", async () => {
       const invalidToken = "invalid-token-123";
-      const response = await apiCall(
-        GET,
-        "GET",
-        { token: invalidToken }
-      );
+      const response = await apiCall(GET, "GET", { token: invalidToken });
 
       expect(response.status).toBe(404);
       expect(response.data).toMatchObject({
@@ -108,11 +100,7 @@ describe("/api/share/:token", () => {
     });
 
     it("should return 400 for missing token", async () => {
-      const response = await apiCall(
-        GET,
-        "GET",
-        { token: "" }
-      );
+      const response = await apiCall(GET, "GET", { token: "" });
 
       expect(response.status).toBe(400);
       expect(response.data).toMatchObject({
@@ -139,11 +127,7 @@ describe("/api/share/:token", () => {
         .set({ ydocData: base64Data })
         .where(eq(PROJECTS_TBL.id, projectId));
 
-      const response = await apiCall(
-        GET,
-        "GET",
-        { token: shareToken }
-      );
+      const response = await apiCall(GET, "GET", { token: shareToken });
 
       expect(response.status).toBe(404);
       expect(response.data).toMatchObject({
@@ -166,11 +150,7 @@ describe("/api/share/:token", () => {
         .set({ ydocData: base64Data })
         .where(eq(PROJECTS_TBL.id, projectId));
 
-      const response = await apiCall(
-        GET,
-        "GET",
-        { token: shareToken }
-      );
+      const response = await apiCall(GET, "GET", { token: shareToken });
 
       expect(response.status).toBe(404);
       expect(response.data).toMatchObject({
@@ -193,11 +173,7 @@ describe("/api/share/:token", () => {
         .set({ ydocData: base64Data })
         .where(eq(PROJECTS_TBL.id, projectId));
 
-      const response = await apiCall(
-        GET,
-        "GET",
-        { token: shareToken }
-      );
+      const response = await apiCall(GET, "GET", { token: shareToken });
 
       expect(response.status).toBe(404);
       expect(response.data).toMatchObject({

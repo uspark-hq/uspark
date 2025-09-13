@@ -25,10 +25,10 @@ describe("GET /api/shares", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    
+
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
-    
+
     // Clear tracking arrays
     createdProjectIds.length = 0;
     createdShareIds.length = 0;
@@ -47,7 +47,7 @@ describe("GET /api/shares", () => {
       createProject,
       "POST",
       {},
-      { name: "Test Project" }
+      { name: "Test Project" },
     );
     expect(projectResponse.status).toBe(201);
     const projectId = projectResponse.data.id;
@@ -58,7 +58,7 @@ describe("GET /api/shares", () => {
       createShare,
       "POST",
       {},
-      { project_id: projectId, file_path: "src/file1.ts" }
+      { project_id: projectId, file_path: "src/file1.ts" },
     );
     expect(share1Response.status).toBe(201);
     createdShareIds.push(share1Response.data.id);
@@ -67,7 +67,7 @@ describe("GET /api/shares", () => {
       createShare,
       "POST",
       {},
-      { project_id: projectId, file_path: "src/file2.ts" }
+      { project_id: projectId, file_path: "src/file2.ts" },
     );
     expect(share2Response.status).toBe(201);
     createdShareIds.push(share2Response.data.id);
@@ -103,7 +103,7 @@ describe("GET /api/shares", () => {
       createProject,
       "POST",
       {},
-      { name: "My Project" }
+      { name: "My Project" },
     );
     expect(myProjectResponse.status).toBe(201);
     const myProjectId = myProjectResponse.data.id;
@@ -114,7 +114,7 @@ describe("GET /api/shares", () => {
       createShare,
       "POST",
       {},
-      { project_id: myProjectId, file_path: "my-file.ts" }
+      { project_id: myProjectId, file_path: "my-file.ts" },
     );
     expect(myShareResponse.status).toBe(201);
     createdShareIds.push(myShareResponse.data.id);
@@ -148,19 +148,19 @@ describe("GET /api/shares", () => {
     const response = await apiCall(GET, "GET");
 
     expect(response.status).toBe(200);
-    
+
     // Filter to only the share we created in this test
-    const ourShare = response.data.shares.find((share: any) => 
-      share.id === myShareResponse.data.id
+    const ourShare = response.data.shares.find(
+      (share: any) => share.id === myShareResponse.data.id,
     );
-    
+
     // Should find our share
     expect(ourShare).toBeDefined();
     expect(ourShare.id).toBe(myShareResponse.data.id);
-    
+
     // Should not see the other user's share
-    const otherUserShare = response.data.shares.find((share: any) =>
-      share.filePath === "other-file.ts"
+    const otherUserShare = response.data.shares.find(
+      (share: any) => share.filePath === "other-file.ts",
     );
     expect(otherUserShare).toBeUndefined();
 
@@ -190,7 +190,7 @@ describe("GET /api/shares", () => {
       createProject,
       "POST",
       {},
-      { name: "Test Project" }
+      { name: "Test Project" },
     );
     expect(projectResponse.status).toBe(201);
     const projectId = projectResponse.data.id;
@@ -201,31 +201,31 @@ describe("GET /api/shares", () => {
       createShare,
       "POST",
       {},
-      { project_id: projectId, file_path: "old.ts" }
+      { project_id: projectId, file_path: "old.ts" },
     );
     expect(share1Response.status).toBe(201);
     createdShareIds.push(share1Response.data.id);
 
     // Small delay to ensure different timestamp
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     const share2Response = await apiCall(
       createShare,
       "POST",
       {},
-      { project_id: projectId, file_path: "middle.ts" }
+      { project_id: projectId, file_path: "middle.ts" },
     );
     expect(share2Response.status).toBe(201);
     createdShareIds.push(share2Response.data.id);
 
     // Small delay to ensure different timestamp
-    await new Promise(resolve => setTimeout(resolve, 10));
+    await new Promise((resolve) => setTimeout(resolve, 10));
 
     const share3Response = await apiCall(
       createShare,
       "POST",
       {},
-      { project_id: projectId, file_path: "new.ts" }
+      { project_id: projectId, file_path: "new.ts" },
     );
     expect(share3Response.status).toBe(201);
     createdShareIds.push(share3Response.data.id);
@@ -233,12 +233,12 @@ describe("GET /api/shares", () => {
     const response = await apiCall(GET, "GET");
 
     expect(response.status).toBe(200);
-    
+
     // Filter to only the shares we created in this test
-    const ourShares = response.data.shares.filter((share: any) => 
-      createdShareIds.includes(share.id)
+    const ourShares = response.data.shares.filter((share: any) =>
+      createdShareIds.includes(share.id),
     );
-    
+
     expect(ourShares).toHaveLength(3);
     // Should be ordered by createdAt desc (newest first)
     expect(ourShares[0].filePath).toBe("new.ts");
