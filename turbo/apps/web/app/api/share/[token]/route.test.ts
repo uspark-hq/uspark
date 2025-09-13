@@ -5,7 +5,6 @@ import { POST as createProject } from "../../projects/route";
 import { POST as createShare } from "../route";
 import { apiCall } from "../../../../src/test/api-helpers";
 import { initServices } from "../../../../src/lib/init-services";
-import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";

@@ -73,7 +73,7 @@ describe("/api/share", () => {
       const sharesResponse = await apiCall(GET, "GET");
       expect(sharesResponse.status).toBe(200);
       const createdShare = sharesResponse.data.shares.find(
-        (s: any) => s.id === response.data.id,
+        (s: { id: string }) => s.id === response.data.id,
       );
       expect(createdShare).toBeDefined();
       expect(createdShare.projectId).toBe(projectId);

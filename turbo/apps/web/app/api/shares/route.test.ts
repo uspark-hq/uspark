@@ -151,7 +151,7 @@ describe("GET /api/shares", () => {
 
     // Filter to only the share we created in this test
     const ourShare = response.data.shares.find(
-      (share: any) => share.id === myShareResponse.data.id,
+      (share: { id: string }) => share.id === myShareResponse.data.id,
     );
 
     // Should find our share
@@ -160,7 +160,7 @@ describe("GET /api/shares", () => {
 
     // Should not see the other user's share
     const otherUserShare = response.data.shares.find(
-      (share: any) => share.filePath === "other-file.ts",
+      (share: { filePath: string }) => share.filePath === "other-file.ts",
     );
     expect(otherUserShare).toBeUndefined();
 
@@ -235,7 +235,7 @@ describe("GET /api/shares", () => {
     expect(response.status).toBe(200);
 
     // Filter to only the shares we created in this test
-    const ourShares = response.data.shares.filter((share: any) =>
+    const ourShares = response.data.shares.filter((share: { id: string }) =>
       createdShareIds.includes(share.id),
     );
 

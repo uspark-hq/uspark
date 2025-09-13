@@ -126,7 +126,7 @@ describe("/api/projects/:projectId/sessions", () => {
       expect(getResponse.status).toBe(200);
       const sessions = getResponse.data.sessions;
       const createdSession = sessions.find(
-        (s: any) => s.id === response.data.id,
+        (s: { id: string }) => s.id === response.data.id,
       );
       expect(createdSession).toBeDefined();
       expect(createdSession.title).toBe("My Test Session");
