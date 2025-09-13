@@ -1,25 +1,24 @@
 # Local development proxy for *.uspark.dev domains
-
 {
-  local_certs
+	local_certs
 }
 
 # Main web app
 www.uspark.dev {
-  reverse_proxy localhost:3000
+	reverse_proxy localhost:3000
 }
 
 # Workspace app  
 app.uspark.dev {
-  reverse_proxy localhost:5173
+	reverse_proxy localhost:5173
 }
 
 # Documentation site
 docs.uspark.dev {
-  reverse_proxy localhost:3001
+	reverse_proxy localhost:3001
 }
 
 # Redirect root domain to www
 uspark.dev {
-  redir https://www.uspark.dev{uri} permanent
+	redir https://www.uspark.dev{uri} permanent
 }
