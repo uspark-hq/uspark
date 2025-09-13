@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.2.0...workspace-v1.3.0) (2025-09-13)
+
+
+### Features
+
+* improve workspace user display with optimized clerk integration ([#275](https://github.com/uspark-hq/uspark/issues/275)) ([ae1f1e1](https://github.com/uspark-hq/uspark/commit/ae1f1e10400a52d438df736e6db4f01b17a310c0))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.12.0
+
 ## [1.2.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.1.0...workspace-v1.2.0) (2025-09-12)
 
 
