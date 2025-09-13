@@ -22,6 +22,7 @@ import {
   type ListProjectsResponse,
   type CreateProjectResponse,
 } from "@uspark/core/contracts/projects.contract";
+import { Navigation } from "../components/navigation";
 
 export default function ProjectsListPage() {
   const router = useRouter();
@@ -148,6 +149,8 @@ export default function ProjectsListPage() {
         color: "var(--foreground)",
       }}
     >
+      <Navigation />
+
       {/* Header */}
       <header
         style={{

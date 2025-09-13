@@ -19,11 +19,16 @@
 
 ## Core MVP Requirements
 
-Based on `user_story_developer_local_sync.md`, the MVP needs:
+The MVP focuses on one-way synchronization from Web to GitHub:
 1. **Install GitHub App** - One-click GitHub App installation
 2. **Create repository** - Auto-create `uspark-{project.id}` repository  
-3. **Web → GitHub sync** - Web edits automatically push to GitHub
-4. **Basic conflict prevention** - Show sync status, prevent concurrent edits
+3. **Web → GitHub sync** - Manual push of web edits to GitHub via sync button
+4. **UI feedback** - Show sync status and prevent duplicate clicks via UI
+
+**Out of Scope for MVP:**
+- GitHub → Web synchronization (future enhancement)
+- Automatic sync on every edit (manual sync only)
+- Conflict resolution (one-way sync avoids conflicts)
 
 ## GitHub App Configuration
 
@@ -35,7 +40,7 @@ Based on `user_story_developer_local_sync.md`, the MVP needs:
 ### Webhook Events
 - **Installation**: When app is installed/uninstalled
 - **Installation repositories**: When repos are added/removed
-- **Push**: For future GitHub → Web sync (post-MVP)
+- **Push**: Reserved for future GitHub → Web sync (post-MVP, not implemented)
 
 ### Task 1: GitHub App Registration & Dependencies ✅ COMPLETED
 - **Goal**: Register GitHub App and add Octokit SDK
@@ -122,7 +127,7 @@ Based on `user_story_developer_local_sync.md`, the MVP needs:
 - **MVP Value**: Auto-create `uspark-{project.id}` repositories
 - **PR Size**: ~100 lines
 
-### Task 6: Document → GitHub Push ❌ NOT COMPLETED
+### Task 6: Document → GitHub Push ✅ COMPLETED
 - **Goal**: Push documents to GitHub using Git Trees API
 - **Files**:
   - `apps/web/src/lib/github/sync.ts` - Sync operations
@@ -147,17 +152,7 @@ Based on `user_story_developer_local_sync.md`, the MVP needs:
 - **MVP Value**: Push all project documents to GitHub
 - **PR Size**: ~150 lines
 
-### Task 7: Simple Sync Lock ❌ NOT COMPLETED
-- **Goal**: Prevent concurrent sync operations
-- **Files**: `apps/web/src/lib/github/sync.ts`
-- **Changes**:
-  - In-memory sync lock per project
-  - acquireLock/releaseLock functions
-  - Sync status tracking (syncing/idle)
-- **MVP Value**: Basic conflict prevention
-- **PR Size**: ~60 lines
-
-### Task 8: Settings UI Component ❌ NOT COMPLETED
+### Task 7: Settings UI Component ✅ COMPLETED
 - **Goal**: GitHub integration UI in settings page
 - **Files**: 
   - `apps/web/src/components/settings/github-connection.tsx`
@@ -190,19 +185,25 @@ graph LR
     T3 --> T4[Token Management]
     T4 --> T5[Repo Creation]
     T5 --> T6[Document Push]
-    T6 --> T7[Sync Lock]
-    T7 --> T8[Settings UI]
+    T6 --> T7[Settings UI]
 ```
 
 ### Milestones
 - **After Task 3**: Users can install GitHub App
 - **After Task 5**: Projects can have GitHub repositories  
 - **After Task 6**: Documents sync to GitHub
-- **After Task 8**: Complete MVP with UI
+- **After Task 7**: Complete MVP with settings UI
 
 ## MVP Success Criteria
 
-✅ **After Task 8**: Users can install GitHub App, create repos named `uspark-{project.id}`, and sync documents from web to GitHub with basic conflict prevention.
+✅ **MVP Complete (All Tasks Done)**: Users can:
+- Install GitHub App via setup flow
+- Auto-create repositories named `uspark-{project.id}`
+- Manually sync documents from web to GitHub using sync button
+- View sync status feedback in UI
+- Manage GitHub connection through settings page
+- Connect/disconnect GitHub account
+- View installation status and account details
 
 ## Implementation Guidelines
 
@@ -223,8 +224,9 @@ graph LR
 
 ## Future Enhancements (Post-MVP)
 
-- GitHub → Web sync (webhooks)
-- Advanced conflict resolution
-- Multiple repository support
-- Branch management
-- Automated sync triggers
+- **GitHub → Web sync** - Bidirectional synchronization using webhooks
+- **Automatic sync** - Auto-push on every document save
+- **Conflict resolution** - Handle concurrent edits from multiple sources
+- **Branch management** - Support for feature branches and PRs
+- **Multiple repository support** - Link multiple repos per project
+- **Sync history** - Track and display sync history with rollback
