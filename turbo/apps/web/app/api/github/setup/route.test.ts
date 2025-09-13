@@ -25,6 +25,7 @@ describe("/api/github/setup", () => {
   const installationId = "12345";
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
 

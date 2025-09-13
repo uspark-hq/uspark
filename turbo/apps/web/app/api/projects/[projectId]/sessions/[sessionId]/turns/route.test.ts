@@ -28,6 +28,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
   let createdBlockIds: string[] = [];
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
 

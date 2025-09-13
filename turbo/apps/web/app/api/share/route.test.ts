@@ -22,6 +22,7 @@ describe("/api/share", () => {
   const testFilePath = "src/test.ts";
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     // Clean up any existing test data
     initServices();
     await globalThis.services.db
@@ -37,6 +38,7 @@ describe("/api/share", () => {
 
   describe("POST /api/share", () => {
     beforeEach(async () => {
+      vi.clearAllMocks();
       // Create a test project using API
       const createProjectRequest = new NextRequest("http://localhost:3000", {
         method: "POST",

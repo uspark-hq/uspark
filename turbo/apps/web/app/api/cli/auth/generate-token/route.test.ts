@@ -18,6 +18,7 @@ import { auth } from "@clerk/nextjs/server";
 
 describe("/api/cli/auth/generate-token", () => {
   beforeEach(async () => {
+    vi.clearAllMocks();
     // Clean up any existing tokens before each test
     initServices();
     await globalThis.services.db.delete(CLI_TOKENS_TBL);
