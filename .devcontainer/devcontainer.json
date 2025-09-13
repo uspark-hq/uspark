@@ -5,7 +5,7 @@
     "ghcr.io/itsmechlark/features/postgresql:1": {}
   },
   "remoteUser": "vscode",
-  "forwardPorts": [4983, 5432],
+  "forwardPorts": [4983, 5432, 80, 443],
   "remoteEnv": {
     "CLAUDE_CONFIG_DIR": "/home/vscode/.config/claude",
     "HISTFILE": "/home/vscode/.cache/.zsh_history",
@@ -16,7 +16,7 @@
     "source=cache,target=/home/vscode/.cache",
     "source=vercel,target=/home/vscode/.local/share/com.vercel.cli"
   ],
-  "postCreateCommand": "sudo chown -R postgres:postgres /var/lib/postgresql 2>/dev/null || true; sudo service postgresql start 2>/dev/null || true; sudo mkdir -p /home/vscode/.local/bin && sudo chown -R vscode:vscode /home/vscode/.config /home/vscode/.cache /home/vscode/.local && echo 'Dev container initialized successfully'",
+  "postCreateCommand": "bash /workspaces/uspark2/.devcontainer/setup.sh",
   "customizations": {
     "vscode": {
       "settings": {

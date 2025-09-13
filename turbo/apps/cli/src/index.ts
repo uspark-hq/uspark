@@ -5,7 +5,7 @@ import { authenticate, logout, checkAuthStatus } from "./auth";
 import { pullCommand, pullAllCommand, pushCommand } from "./commands/sync";
 import { watchClaudeCommand } from "./commands/watch-claude";
 
-const getApiUrl = () => process.env.API_HOST || "https://uspark.ai";
+const getApiUrl = () => process.env.API_HOST || "https://www.uspark.ai";
 
 const program = new Command();
 
