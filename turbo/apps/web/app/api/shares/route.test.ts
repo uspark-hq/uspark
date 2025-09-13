@@ -22,6 +22,7 @@ describe("GET /api/shares", () => {
   const otherUserId = `other-user-shares-route-${Date.now()}-${process.pid}`;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     initServices();
 
     // Clean up test data - delete shares first due to FK constraints

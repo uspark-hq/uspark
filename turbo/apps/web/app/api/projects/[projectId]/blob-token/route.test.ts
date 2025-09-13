@@ -24,6 +24,7 @@ describe("GET /api/projects/[projectId]/blob-token", () => {
   const timestamp = Date.now();
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     initServices();
     mockUserId = "test-user"; // Reset to default user
   });

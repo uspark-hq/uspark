@@ -22,6 +22,7 @@ describe("DELETE /api/shares/[id]", () => {
   const otherUserId = `other-user-shares-delete-${Date.now()}-${process.pid}`;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     initServices();
 
     // Clean up ALL test data for both users - delete shares first due to FK constraints

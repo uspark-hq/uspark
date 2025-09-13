@@ -30,6 +30,7 @@ describe("Claude Session Management API Integration", () => {
   let turnId: string;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     // Mock successful authentication
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
 
@@ -84,6 +85,7 @@ describe("Claude Session Management API Integration", () => {
 
   describe("Turn Management", () => {
     beforeEach(async () => {
+      vi.clearAllMocks();
       // Create a session for turn tests
       const sessionResponse = await apiCall(
         createSession,
@@ -169,6 +171,7 @@ describe("Claude Session Management API Integration", () => {
 
   describe("Session Interruption", () => {
     beforeEach(async () => {
+      vi.clearAllMocks();
       const sessionResponse = await apiCall(
         createSession,
         "POST",
@@ -194,6 +197,7 @@ describe("Claude Session Management API Integration", () => {
 
   describe("Polling Updates", () => {
     beforeEach(async () => {
+      vi.clearAllMocks();
       const sessionResponse = await apiCall(
         createSession,
         "POST",
