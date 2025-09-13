@@ -178,7 +178,7 @@ describe("GitHub Sync", () => {
       expect(result.error).toBe("No files to sync");
     });
 
-    it("should handle blob storage configuration error", async () => {
+    it("should throw error when blob storage not configured", async () => {
       const projectId = "proj_test123";
       const userId = "user_123";
       const db = globalThis.services.db;
@@ -212,10 +212,10 @@ describe("GitHub Sync", () => {
         repoId: 67890,
       });
 
-      const result = await syncProjectToGitHub(projectId, userId);
-
-      expect(result.success).toBe(false);
-      expect(result.error).toBe("Blob storage not configured");
+      // Now expect the function to throw instead of returning error
+      await expect(syncProjectToGitHub(projectId, userId)).rejects.toThrow(
+        "Blob storage not configured",
+      );
 
       // Restore token
       process.env.BLOB_READ_WRITE_TOKEN = originalToken;

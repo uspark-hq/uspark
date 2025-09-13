@@ -207,101 +207,93 @@ export async function syncProjectToGitHub(
   initServices();
   const db = globalThis.services.db;
 
-  try {
-    // Get project data
-    const projects = await db
-      .select()
-      .from(PROJECTS_TBL)
-      .where(eq(PROJECTS_TBL.id, projectId))
-      .limit(1);
+  // Get project data
+  const projects = await db
+    .select()
+    .from(PROJECTS_TBL)
+    .where(eq(PROJECTS_TBL.id, projectId))
+    .limit(1);
 
-    if (projects.length === 0) {
-      return {
-        success: false,
-        error: "Project not found",
-      };
-    }
-
-    const project = projects[0]!;
-
-    // Verify user owns the project
-    if (project.userId !== userId) {
-      return {
-        success: false,
-        error: "Unauthorized",
-      };
-    }
-
-    // Get repository information
-    const repoInfo = await getProjectRepository(projectId);
-
-    if (!repoInfo) {
-      return {
-        success: false,
-        error: "Repository not linked to project",
-      };
-    }
-
-    // Extract files from YDoc
-    const files = extractFilesFromYDoc(project.ydocData);
-
-    if (files.length === 0) {
-      return {
-        success: false,
-        error: "No files to sync",
-      };
-    }
-
-    // Get installation Octokit client
-    const octokit = await createInstallationOctokit(repoInfo.installationId);
-
-    // Parse repository name (format: owner/repo or just repo)
-    const repoParts = repoInfo.repoName.includes("/")
-      ? repoInfo.repoName.split("/")
-      : ["", repoInfo.repoName];
-
-    const owner = repoParts[0] || ""; // Will be determined from installation
-    const repo = repoParts[1] || repoInfo.repoName;
-
-    // If owner is not specified, get it from the installation
-    let actualOwner = owner;
-    if (!actualOwner) {
-      const { data: installation } = await octokit.request(
-        "GET /app/installations/{installation_id}",
-        {
-          installation_id: repoInfo.installationId,
-        },
-      );
-      if (installation.account) {
-        actualOwner =
-          ("login" in installation.account
-            ? installation.account.login
-            : installation.account.slug) || "";
-      }
-    }
-
-    // Create commit with all files
-    const commitSha = await createGitHubCommit(
-      octokit,
-      actualOwner,
-      repo,
-      files,
-      projectId,
-    );
-
-    return {
-      success: true,
-      commitSha,
-      filesCount: files.length,
-      message: `Successfully synced ${files.length} files to GitHub`,
-    };
-  } catch (error) {
-    console.error("Sync error:", error);
+  if (projects.length === 0) {
     return {
       success: false,
-      error: error instanceof Error ? error.message : "Unknown error occurred",
+      error: "Project not found",
     };
   }
+
+  const project = projects[0]!;
+
+  // Verify user owns the project
+  if (project.userId !== userId) {
+    return {
+      success: false,
+      error: "Unauthorized",
+    };
+  }
+
+  // Get repository information
+  const repoInfo = await getProjectRepository(projectId);
+
+  if (!repoInfo) {
+    return {
+      success: false,
+      error: "Repository not linked to project",
+    };
+  }
+
+  // Extract files from YDoc
+  const files = extractFilesFromYDoc(project.ydocData);
+
+  if (files.length === 0) {
+    return {
+      success: false,
+      error: "No files to sync",
+    };
+  }
+
+  // Get installation Octokit client
+  const octokit = await createInstallationOctokit(repoInfo.installationId);
+
+  // Parse repository name (format: owner/repo or just repo)
+  const repoParts = repoInfo.repoName.includes("/")
+    ? repoInfo.repoName.split("/")
+    : ["", repoInfo.repoName];
+
+  const owner = repoParts[0] || ""; // Will be determined from installation
+  const repo = repoParts[1] || repoInfo.repoName;
+
+  // If owner is not specified, get it from the installation
+  let actualOwner = owner;
+  if (!actualOwner) {
+    const { data: installation } = await octokit.request(
+      "GET /app/installations/{installation_id}",
+      {
+        installation_id: repoInfo.installationId,
+      },
+    );
+    if (installation.account) {
+      actualOwner =
+        ("login" in installation.account
+          ? installation.account.login
+          : installation.account.slug) || "";
+    }
+  }
+
+  // Create commit with all files
+  const commitSha = await createGitHubCommit(
+    octokit,
+    actualOwner,
+    repo,
+    files,
+    projectId,
+  );
+
+  return {
+    success: true,
+    commitSha,
+    filesCount: files.length,
+    message: `Successfully synced ${files.length} files to GitHub`,
+  };
 }
 
 /**
