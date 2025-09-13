@@ -1,26 +1,41 @@
 # Local development proxy for *.uspark.dev domains
 # Requires certificates to be generated first using scripts/generate-certs.sh
 
+{
+	# Use high ports that don't require root privileges
+	http_port 8080
+	https_port 8443
+}
+
 # Main web app
-www.uspark.dev {
+www.uspark.dev:8443 {
 	tls ../../../.certs/www.uspark.dev.pem ../../../.certs/www.uspark.dev-key.pem
 	reverse_proxy localhost:3000
 }
 
-# Workspace app
-app.uspark.dev {
+# Workspace app with WebSocket support for Vite HMR
+app.uspark.dev:8443 {
 	tls ../../../.certs/app.uspark.dev.pem ../../../.certs/app.uspark.dev-key.pem
+
+	# Handle WebSocket connections for Vite HMR
+	@websockets {
+		header Connection *Upgrade*
+		header Upgrade websocket
+	}
+	reverse_proxy @websockets localhost:5173
+
+	# Handle regular HTTP requests
 	reverse_proxy localhost:5173
 }
 
 # Documentation site
-docs.uspark.dev {
+docs.uspark.dev:8443 {
 	tls ../../../.certs/docs.uspark.dev.pem ../../../.certs/docs.uspark.dev-key.pem
 	reverse_proxy localhost:3001
 }
 
 # Redirect root domain to www
-uspark.dev {
+uspark.dev:8443 {
 	tls ../../../.certs/uspark.dev.pem ../../../.certs/uspark.dev-key.pem
-	redir https://www.uspark.dev{uri} permanent
+	redir https://www.uspark.dev:8443{uri} permanent
 }

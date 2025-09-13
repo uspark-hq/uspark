@@ -13,7 +13,13 @@ export function devServerOptions(): ServerOptions {
   return {
     port: 5173,
     strictPort: true,
-    host: 'localhost',
+    host: true, // Listen on all addresses including localhost
+    hmr: {
+      // HMR through Caddy proxy
+      clientPort: 8443,
+      host: 'app.uspark.dev',
+      protocol: 'wss',
+    },
     watch: {
       ignored: [
         '**/*.test.ts',

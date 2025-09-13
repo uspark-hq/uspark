@@ -42,9 +42,9 @@ stopCaddy.on("close", () => {
 
   console.log("✅ Caddy proxy started successfully");
   console.log("📝 Domains available at:");
-  console.log("   - Web:  https://www.uspark.dev");
-  console.log("   - App:  https://app.uspark.dev");
-  console.log("   - Docs: https://docs.uspark.dev");
+  console.log("   - Web:  https://www.uspark.dev:8443");
+  console.log("   - App:  https://app.uspark.dev:8443");
+  console.log("   - Docs: https://docs.uspark.dev:8443");
 
   // Handle process termination
   process.on("SIGINT", () => {

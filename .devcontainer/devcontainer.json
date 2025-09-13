@@ -6,7 +6,7 @@
     "ghcr.io/devcontainers-extra/features/caddy:1": {}
   },
   "remoteUser": "vscode",
-  "forwardPorts": [4983, 5432, 80, 443],
+  "forwardPorts": [4983, 5432, 8080, 8443],
   "remoteEnv": {
     "CLAUDE_CONFIG_DIR": "/home/vscode/.config/claude",
     "HISTFILE": "/home/vscode/.cache/.zsh_history",
