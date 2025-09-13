@@ -12,7 +12,7 @@ function initEnv() {
         .string()
         .default(
           process.env.NODE_ENV === "production"
-            ? "https://uspark.ai"
+            ? "https://www.uspark.ai"
             : "http://localhost:3000",
         ),
       GH_APP_ID: z.string().min(1),
