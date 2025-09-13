@@ -1,4 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import "../../../../src/test/setup";
 import { POST } from "./generate-token/route";
 import { NextRequest } from "next/server";
 import { CLI_TOKENS_TBL } from "../../../../src/db/schema/cli-tokens";

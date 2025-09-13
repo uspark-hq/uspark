@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import "../../../../src/test/setup";
 import { NextRequest } from "next/server";
 import { GET, PATCH } from "./route";
 import { POST as createProject } from "../route";

@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import "../../../../../../../../src/test/setup";
 import { NextRequest } from "next/server";
 import { GET } from "./route";
 import { POST as createTurn } from "../route";
@@ -204,7 +205,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
           id: `block_thinking_${Date.now()}`,
           turnId,
           type: "thinking",
-          content: JSON.stringify({ text: "Let me think about this..." }),
+          content: { text: "Let me think about this..." },
           sequenceNumber: 0,
         })
         .returning();
@@ -215,11 +216,11 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
           id: `block_tool_${Date.now()}`,
           turnId,
           type: "tool_use",
-          content: JSON.stringify({
+          content: {
             tool_name: "read_file",
             parameters: { path: "/test.txt" },
             tool_use_id: "tool_123",
-          }),
+          },
           sequenceNumber: 1,
         })
         .returning();
@@ -230,11 +231,11 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
           id: `block_result_${Date.now()}`,
           turnId,
           type: "tool_result",
-          content: JSON.stringify({
+          content: {
             tool_use_id: "tool_123",
             result: "File contents...",
             error: null,
-          }),
+          },
           sequenceNumber: 2,
         })
         .returning();
@@ -245,9 +246,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
           id: `block_content_${Date.now()}`,
           turnId,
           type: "content",
-          content: JSON.stringify({
+          content: {
             text: "Based on the file, the answer is...",
-          }),
+          },
           sequenceNumber: 3,
         })
         .returning();
