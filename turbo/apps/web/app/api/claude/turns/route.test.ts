@@ -49,7 +49,9 @@ describe("/api/claude/turns", () => {
 
     // Create a test project
     const ydoc = new Y.Doc();
-    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+      "base64",
+    );
 
     const projects = await db
       .insert(PROJECTS_TBL)
@@ -78,13 +80,16 @@ describe("/api/claude/turns", () => {
 
   describe("POST /api/claude/turns", () => {
     it("should create a new turn successfully", async () => {
-      const request = new NextRequest("http://localhost:3000/api/claude/turns", {
-        method: "POST",
-        body: JSON.stringify({
-          sessionId: testSessionId,
-          userPrompt: "Test user prompt",
-        }),
-      });
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/turns",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            sessionId: testSessionId,
+            userPrompt: "Test user prompt",
+          }),
+        },
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -108,15 +113,18 @@ describe("/api/claude/turns", () => {
       const originalUpdatedAt = sessionBefore[0]!.updatedAt;
 
       // Wait a bit to ensure timestamp difference
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
-      const request = new NextRequest("http://localhost:3000/api/claude/turns", {
-        method: "POST",
-        body: JSON.stringify({
-          sessionId: testSessionId,
-          userPrompt: "Test user prompt",
-        }),
-      });
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/turns",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            sessionId: testSessionId,
+            userPrompt: "Test user prompt",
+          }),
+        },
+      );
 
       await POST(request);
 
@@ -127,16 +135,21 @@ describe("/api/claude/turns", () => {
         .where(eq(SESSIONS_TBL.id, testSessionId))
         .limit(1);
 
-      expect(sessionAfter[0]!.updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime());
+      expect(sessionAfter[0]!.updatedAt.getTime()).toBeGreaterThan(
+        originalUpdatedAt.getTime(),
+      );
     });
 
     it("should return 400 if sessionId is missing", async () => {
-      const request = new NextRequest("http://localhost:3000/api/claude/turns", {
-        method: "POST",
-        body: JSON.stringify({
-          userPrompt: "Test user prompt",
-        }),
-      });
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/turns",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            userPrompt: "Test user prompt",
+          }),
+        },
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -146,12 +159,15 @@ describe("/api/claude/turns", () => {
     });
 
     it("should return 400 if userPrompt is missing", async () => {
-      const request = new NextRequest("http://localhost:3000/api/claude/turns", {
-        method: "POST",
-        body: JSON.stringify({
-          sessionId: testSessionId,
-        }),
-      });
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/turns",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            sessionId: testSessionId,
+          }),
+        },
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -161,13 +177,16 @@ describe("/api/claude/turns", () => {
     });
 
     it("should return 404 if session doesn't exist", async () => {
-      const request = new NextRequest("http://localhost:3000/api/claude/turns", {
-        method: "POST",
-        body: JSON.stringify({
-          sessionId: "sess_nonexistent",
-          userPrompt: "Test user prompt",
-        }),
-      });
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/turns",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            sessionId: "sess_nonexistent",
+            userPrompt: "Test user prompt",
+          }),
+        },
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -177,15 +196,18 @@ describe("/api/claude/turns", () => {
     });
 
     it("should return 403 if user doesn't own the session's project", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as any);
+      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<ReturnType<typeof auth>>);
 
-      const request = new NextRequest("http://localhost:3000/api/claude/turns", {
-        method: "POST",
-        body: JSON.stringify({
-          sessionId: testSessionId,
-          userPrompt: "Test user prompt",
-        }),
-      });
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/turns",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            sessionId: testSessionId,
+            userPrompt: "Test user prompt",
+          }),
+        },
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -195,15 +217,18 @@ describe("/api/claude/turns", () => {
     });
 
     it("should return 401 if not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as any);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
 
-      const request = new NextRequest("http://localhost:3000/api/claude/turns", {
-        method: "POST",
-        body: JSON.stringify({
-          sessionId: testSessionId,
-          userPrompt: "Test user prompt",
-        }),
-      });
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/turns",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            sessionId: testSessionId,
+            userPrompt: "Test user prompt",
+          }),
+        },
+      );
 
       const response = await POST(request);
       const data = await response.json();
@@ -230,7 +255,7 @@ describe("/api/claude/turns", () => {
 
     it("should list all turns for a session", async () => {
       const request = new NextRequest(
-        `http://localhost:3000/api/claude/turns?sessionId=${testSessionId}`
+        `http://localhost:3000/api/claude/turns?sessionId=${testSessionId}`,
       );
 
       const response = await GET(request);
@@ -239,12 +264,14 @@ describe("/api/claude/turns", () => {
       expect(response.status).toBe(200);
       expect(data.turns).toHaveLength(3);
       expect(data.turns[0]!.userPrompt).toMatch(/Prompt \d/);
-      expect(data.turns.every((t: any) => t.sessionId === testSessionId)).toBe(true);
+      expect(data.turns.every((t: { sessionId: string }) => t.sessionId === testSessionId)).toBe(
+        true,
+      );
     });
 
     it("should return turns in chronological order", async () => {
       const request = new NextRequest(
-        `http://localhost:3000/api/claude/turns?sessionId=${testSessionId}`
+        `http://localhost:3000/api/claude/turns?sessionId=${testSessionId}`,
       );
 
       const response = await GET(request);
@@ -269,7 +296,7 @@ describe("/api/claude/turns", () => {
 
     it("should return 404 if session doesn't exist", async () => {
       const request = new NextRequest(
-        "http://localhost:3000/api/claude/turns?sessionId=sess_nonexistent"
+        "http://localhost:3000/api/claude/turns?sessionId=sess_nonexistent",
       );
 
       const response = await GET(request);
@@ -280,10 +307,10 @@ describe("/api/claude/turns", () => {
     });
 
     it("should return 403 if user doesn't own the session's project", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as any);
+      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<ReturnType<typeof auth>>);
 
       const request = new NextRequest(
-        `http://localhost:3000/api/claude/turns?sessionId=${testSessionId}`
+        `http://localhost:3000/api/claude/turns?sessionId=${testSessionId}`,
       );
 
       const response = await GET(request);
@@ -294,10 +321,10 @@ describe("/api/claude/turns", () => {
     });
 
     it("should return 401 if not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as any);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
 
       const request = new NextRequest(
-        `http://localhost:3000/api/claude/turns?sessionId=${testSessionId}`
+        `http://localhost:3000/api/claude/turns?sessionId=${testSessionId}`,
       );
 
       const response = await GET(request);

@@ -2,7 +2,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { GET, DELETE } from "./route";
 import { initServices } from "../../../../../src/lib/init-services";
-import { SESSIONS_TBL, TURNS_TBL, BLOCKS_TBL } from "../../../../../src/db/schema/sessions";
+import {
+  SESSIONS_TBL,
+  TURNS_TBL,
+  BLOCKS_TBL,
+} from "../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";
@@ -53,7 +57,9 @@ describe("/api/claude/sessions/[sessionId]", () => {
 
     // Create a test project
     const ydoc = new Y.Doc();
-    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+      "base64",
+    );
 
     const projects = await db
       .insert(PROJECTS_TBL)
@@ -110,8 +116,8 @@ describe("/api/claude/sessions/[sessionId]", () => {
           content: {
             tool_name: "test_tool",
             parameters: {},
-            tool_use_id: "test_1"
-          }
+            tool_use_id: "test_1",
+          },
         },
         sequenceNumber: 2,
       },
@@ -121,10 +127,12 @@ describe("/api/claude/sessions/[sessionId]", () => {
   describe("GET /api/claude/sessions/[sessionId]", () => {
     it("should get session details with turns and blocks", async () => {
       const request = new NextRequest(
-        `http://localhost:3000/api/claude/sessions/${testSessionId}`
+        `http://localhost:3000/api/claude/sessions/${testSessionId}`,
       );
 
-      const response = await GET(request, { params: Promise.resolve({ sessionId: testSessionId }) });
+      const response = await GET(request, {
+        params: Promise.resolve({ sessionId: testSessionId }),
+      });
       const data = await response.json();
 
       expect(response.status).toBe(200);
@@ -140,11 +148,11 @@ describe("/api/claude/sessions/[sessionId]", () => {
 
     it("should return 404 if session doesn't exist", async () => {
       const request = new NextRequest(
-        "http://localhost:3000/api/claude/sessions/sess_nonexistent"
+        "http://localhost:3000/api/claude/sessions/sess_nonexistent",
       );
 
       const response = await GET(request, {
-        params: Promise.resolve({ sessionId: "sess_nonexistent" })
+        params: Promise.resolve({ sessionId: "sess_nonexistent" }),
       });
       const data = await response.json();
 
@@ -153,14 +161,14 @@ describe("/api/claude/sessions/[sessionId]", () => {
     });
 
     it("should return 403 if user doesn't own the project", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as any);
+      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<ReturnType<typeof auth>>);
 
       const request = new NextRequest(
-        `http://localhost:3000/api/claude/sessions/${testSessionId}`
+        `http://localhost:3000/api/claude/sessions/${testSessionId}`,
       );
 
       const response = await GET(request, {
-        params: Promise.resolve({ sessionId: testSessionId })
+        params: Promise.resolve({ sessionId: testSessionId }),
       });
       const data = await response.json();
 
@@ -169,14 +177,14 @@ describe("/api/claude/sessions/[sessionId]", () => {
     });
 
     it("should return 401 if not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as any);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
 
       const request = new NextRequest(
-        `http://localhost:3000/api/claude/sessions/${testSessionId}`
+        `http://localhost:3000/api/claude/sessions/${testSessionId}`,
       );
 
       const response = await GET(request, {
-        params: Promise.resolve({ sessionId: testSessionId })
+        params: Promise.resolve({ sessionId: testSessionId }),
       });
       const data = await response.json();
 
@@ -189,11 +197,11 @@ describe("/api/claude/sessions/[sessionId]", () => {
     it("should delete session and cascade delete turns and blocks", async () => {
       const request = new NextRequest(
         `http://localhost:3000/api/claude/sessions/${testSessionId}`,
-        { method: "DELETE" }
+        { method: "DELETE" },
       );
 
       const response = await DELETE(request, {
-        params: Promise.resolve({ sessionId: testSessionId })
+        params: Promise.resolve({ sessionId: testSessionId }),
       });
       const data = await response.json();
 
@@ -226,11 +234,11 @@ describe("/api/claude/sessions/[sessionId]", () => {
     it("should return 404 if session doesn't exist", async () => {
       const request = new NextRequest(
         "http://localhost:3000/api/claude/sessions/sess_nonexistent",
-        { method: "DELETE" }
+        { method: "DELETE" },
       );
 
       const response = await DELETE(request, {
-        params: Promise.resolve({ sessionId: "sess_nonexistent" })
+        params: Promise.resolve({ sessionId: "sess_nonexistent" }),
       });
       const data = await response.json();
 
@@ -239,15 +247,15 @@ describe("/api/claude/sessions/[sessionId]", () => {
     });
 
     it("should return 403 if user doesn't own the project", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as any);
+      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<ReturnType<typeof auth>>);
 
       const request = new NextRequest(
         `http://localhost:3000/api/claude/sessions/${testSessionId}`,
-        { method: "DELETE" }
+        { method: "DELETE" },
       );
 
       const response = await DELETE(request, {
-        params: Promise.resolve({ sessionId: testSessionId })
+        params: Promise.resolve({ sessionId: testSessionId }),
       });
       const data = await response.json();
 
@@ -256,15 +264,15 @@ describe("/api/claude/sessions/[sessionId]", () => {
     });
 
     it("should return 401 if not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as any);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
 
       const request = new NextRequest(
         `http://localhost:3000/api/claude/sessions/${testSessionId}`,
-        { method: "DELETE" }
+        { method: "DELETE" },
       );
 
       const response = await DELETE(request, {
-        params: Promise.resolve({ sessionId: testSessionId })
+        params: Promise.resolve({ sessionId: testSessionId }),
       });
       const data = await response.json();
 

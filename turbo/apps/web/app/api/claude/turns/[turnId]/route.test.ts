@@ -2,7 +2,11 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { NextRequest } from "next/server";
 import { GET, PATCH } from "./route";
 import { initServices } from "../../../../../src/lib/init-services";
-import { SESSIONS_TBL, TURNS_TBL, BLOCKS_TBL } from "../../../../../src/db/schema/sessions";
+import {
+  SESSIONS_TBL,
+  TURNS_TBL,
+  BLOCKS_TBL,
+} from "../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";
@@ -53,7 +57,9 @@ describe("/api/claude/turns/[turnId]", () => {
 
     // Create a test project
     const ydoc = new Y.Doc();
-    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+      "base64",
+    );
 
     const projects = await db
       .insert(PROJECTS_TBL)
@@ -120,8 +126,8 @@ describe("/api/claude/turns/[turnId]", () => {
             type: "tool_result",
             content: {
               tool_use_id: "test_1",
-              result: "Tool output"
-            }
+              result: "Tool output",
+            },
           },
           sequenceNumber: 3,
         },
@@ -130,11 +136,11 @@ describe("/api/claude/turns/[turnId]", () => {
 
     it("should get turn details with all blocks", async () => {
       const request = new NextRequest(
-        `http://localhost:3000/api/claude/turns/${testTurnId}`
+        `http://localhost:3000/api/claude/turns/${testTurnId}`,
       );
 
       const response = await GET(request, {
-        params: Promise.resolve({ turnId: testTurnId })
+        params: Promise.resolve({ turnId: testTurnId }),
       });
       const data = await response.json();
 
@@ -159,11 +165,11 @@ describe("/api/claude/turns/[turnId]", () => {
       await db.delete(BLOCKS_TBL).where(eq(BLOCKS_TBL.turnId, testTurnId));
 
       const request = new NextRequest(
-        `http://localhost:3000/api/claude/turns/${testTurnId}`
+        `http://localhost:3000/api/claude/turns/${testTurnId}`,
       );
 
       const response = await GET(request, {
-        params: Promise.resolve({ turnId: testTurnId })
+        params: Promise.resolve({ turnId: testTurnId }),
       });
       const data = await response.json();
 
@@ -173,11 +179,11 @@ describe("/api/claude/turns/[turnId]", () => {
 
     it("should return 404 if turn doesn't exist", async () => {
       const request = new NextRequest(
-        "http://localhost:3000/api/claude/turns/turn_nonexistent"
+        "http://localhost:3000/api/claude/turns/turn_nonexistent",
       );
 
       const response = await GET(request, {
-        params: Promise.resolve({ turnId: "turn_nonexistent" })
+        params: Promise.resolve({ turnId: "turn_nonexistent" }),
       });
       const data = await response.json();
 
@@ -186,14 +192,14 @@ describe("/api/claude/turns/[turnId]", () => {
     });
 
     it("should return 403 if user doesn't own the project", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as any);
+      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<ReturnType<typeof auth>>);
 
       const request = new NextRequest(
-        `http://localhost:3000/api/claude/turns/${testTurnId}`
+        `http://localhost:3000/api/claude/turns/${testTurnId}`,
       );
 
       const response = await GET(request, {
-        params: Promise.resolve({ turnId: testTurnId })
+        params: Promise.resolve({ turnId: testTurnId }),
       });
       const data = await response.json();
 
@@ -202,14 +208,14 @@ describe("/api/claude/turns/[turnId]", () => {
     });
 
     it("should return 401 if not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as any);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
 
       const request = new NextRequest(
-        `http://localhost:3000/api/claude/turns/${testTurnId}`
+        `http://localhost:3000/api/claude/turns/${testTurnId}`,
       );
 
       const response = await GET(request, {
-        params: Promise.resolve({ turnId: testTurnId })
+        params: Promise.resolve({ turnId: testTurnId }),
       });
       const data = await response.json();
 
@@ -227,11 +233,11 @@ describe("/api/claude/turns/[turnId]", () => {
           body: JSON.stringify({
             status: "running",
           }),
-        }
+        },
       );
 
       const response = await PATCH(request, {
-        params: Promise.resolve({ turnId: testTurnId })
+        params: Promise.resolve({ turnId: testTurnId }),
       });
       const data = await response.json();
 
@@ -249,11 +255,11 @@ describe("/api/claude/turns/[turnId]", () => {
           body: JSON.stringify({
             status: "completed",
           }),
-        }
+        },
       );
 
       const response = await PATCH(request, {
-        params: Promise.resolve({ turnId: testTurnId })
+        params: Promise.resolve({ turnId: testTurnId }),
       });
       const data = await response.json();
 
@@ -271,11 +277,11 @@ describe("/api/claude/turns/[turnId]", () => {
             status: "failed",
             errorMessage: "Test error",
           }),
-        }
+        },
       );
 
       const response = await PATCH(request, {
-        params: Promise.resolve({ turnId: testTurnId })
+        params: Promise.resolve({ turnId: testTurnId }),
       });
       const data = await response.json();
 
@@ -297,7 +303,7 @@ describe("/api/claude/turns/[turnId]", () => {
       const originalUpdatedAt = sessionBefore[0]!.updatedAt;
 
       // Wait a bit to ensure timestamp difference
-      await new Promise(resolve => setTimeout(resolve, 10));
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const request = new NextRequest(
         `http://localhost:3000/api/claude/turns/${testTurnId}`,
@@ -306,11 +312,11 @@ describe("/api/claude/turns/[turnId]", () => {
           body: JSON.stringify({
             status: "completed",
           }),
-        }
+        },
       );
 
       await PATCH(request, {
-        params: Promise.resolve({ turnId: testTurnId })
+        params: Promise.resolve({ turnId: testTurnId }),
       });
 
       // Check if updatedAt was updated
@@ -320,7 +326,9 @@ describe("/api/claude/turns/[turnId]", () => {
         .where(eq(SESSIONS_TBL.id, testSessionId))
         .limit(1);
 
-      expect(sessionAfter[0]!.updatedAt.getTime()).toBeGreaterThan(originalUpdatedAt.getTime());
+      expect(sessionAfter[0]!.updatedAt.getTime()).toBeGreaterThan(
+        originalUpdatedAt.getTime(),
+      );
     });
 
     it("should return 400 if status is missing", async () => {
@@ -331,11 +339,11 @@ describe("/api/claude/turns/[turnId]", () => {
           body: JSON.stringify({
             errorMessage: "Test error",
           }),
-        }
+        },
       );
 
       const response = await PATCH(request, {
-        params: Promise.resolve({ turnId: testTurnId })
+        params: Promise.resolve({ turnId: testTurnId }),
       });
       const data = await response.json();
 
@@ -351,11 +359,11 @@ describe("/api/claude/turns/[turnId]", () => {
           body: JSON.stringify({
             status: "completed",
           }),
-        }
+        },
       );
 
       const response = await PATCH(request, {
-        params: Promise.resolve({ turnId: "turn_nonexistent" })
+        params: Promise.resolve({ turnId: "turn_nonexistent" }),
       });
       const data = await response.json();
 
@@ -364,7 +372,7 @@ describe("/api/claude/turns/[turnId]", () => {
     });
 
     it("should return 403 if user doesn't own the project", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as any);
+      mockAuth.mockResolvedValueOnce({ userId: "different-user" } as Awaited<ReturnType<typeof auth>>);
 
       const request = new NextRequest(
         `http://localhost:3000/api/claude/turns/${testTurnId}`,
@@ -373,11 +381,11 @@ describe("/api/claude/turns/[turnId]", () => {
           body: JSON.stringify({
             status: "completed",
           }),
-        }
+        },
       );
 
       const response = await PATCH(request, {
-        params: Promise.resolve({ turnId: testTurnId })
+        params: Promise.resolve({ turnId: testTurnId }),
       });
       const data = await response.json();
 
@@ -386,7 +394,7 @@ describe("/api/claude/turns/[turnId]", () => {
     });
 
     it("should return 401 if not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as any);
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<ReturnType<typeof auth>>);
 
       const request = new NextRequest(
         `http://localhost:3000/api/claude/turns/${testTurnId}`,
@@ -395,11 +403,11 @@ describe("/api/claude/turns/[turnId]", () => {
           body: JSON.stringify({
             status: "completed",
           }),
-        }
+        },
       );
 
       const response = await PATCH(request, {
-        params: Promise.resolve({ turnId: testTurnId })
+        params: Promise.resolve({ turnId: testTurnId }),
       });
       const data = await response.json();
 
