@@ -1,70 +1,91 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import { NextRequest } from "next/server";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import "../../../../src/test/setup";
 import { GET } from "./route";
+import { POST as createProject } from "../../projects/route";
+import { POST as createShare } from "../route";
+import { apiCall } from "../../../../src/test/api-helpers";
 import { initServices } from "../../../../src/lib/init-services";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";
-import { nanoid } from "nanoid";
-import crypto from "crypto";
+
+// Mock Clerk authentication
+vi.mock("@clerk/nextjs/server", () => ({
+  auth: vi.fn(),
+}));
+
+import { auth } from "@clerk/nextjs/server";
+const mockAuth = vi.mocked(auth);
 
 describe("/api/share/:token", () => {
-  const projectId = `test-project-${Date.now()}`;
   const userId = `test-user-share-token-${Date.now()}-${process.pid}`;
   const testFilePath = "src/test.ts";
-  const testToken = crypto.randomBytes(32).toString("base64url");
-  const shareId = nanoid();
+  let projectId: string;
+  let shareToken: string;
+  const createdProjectIds: string[] = [];
+  const createdShareIds: string[] = [];
 
   beforeEach(async () => {
-    // Clean up any existing test data
-    initServices();
-    await globalThis.services.db
-      .delete(SHARE_LINKS_TBL)
-      .where(eq(SHARE_LINKS_TBL.projectId, projectId));
-    await globalThis.services.db
-      .delete(PROJECTS_TBL)
-      .where(eq(PROJECTS_TBL.id, projectId));
+    vi.clearAllMocks();
+    // Mock successful authentication
+    mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+    
+    // Clear tracking arrays
+    createdProjectIds.length = 0;
+    createdShareIds.length = 0;
   });
 
   describe("GET /api/share/:token", () => {
     beforeEach(async () => {
-      // Create a test project with file data
-      const ydoc = new Y.Doc();
-      const files = ydoc.getMap("files");
-      files.set(testFilePath, { hash: "abc123", mtime: Date.now() });
+      // Create a test project using API
+      const projectResponse = await apiCall(
+        createProject,
+        "POST",
+        {},
+        { name: "Test Project" }
+      );
+      expect(projectResponse.status).toBe(201);
+      projectId = projectResponse.data.id;
+      createdProjectIds.push(projectId);
 
-      const state = Y.encodeStateAsUpdate(ydoc);
-      const base64Data = Buffer.from(state).toString("base64");
-
-      await globalThis.services.db.insert(PROJECTS_TBL).values({
-        id: projectId,
-        userId,
-        ydocData: base64Data,
-        version: 0,
-      });
-
-      // Create a share link
-      await globalThis.services.db.insert(SHARE_LINKS_TBL).values({
-        id: shareId,
-        token: testToken,
-        projectId,
-        filePath: testFilePath,
-        userId,
-      });
+      // Create a share link using API
+      const shareResponse = await apiCall(
+        createShare,
+        "POST",
+        {},
+        {
+          project_id: projectId,
+          file_path: testFilePath,
+        }
+      );
+      expect(shareResponse.status).toBe(201);
+      shareToken = shareResponse.data.token;
+      createdShareIds.push(shareResponse.data.id);
     });
 
     it("should return 200 with hash-based metadata for valid share token", async () => {
-      const request = new NextRequest(
-        `http://localhost:3000/api/share/${testToken}`,
-      );
-      const context = { params: Promise.resolve({ token: testToken }) };
+      // Update project with file data in YDoc
+      initServices();
+      const ydoc = new Y.Doc();
+      const files = ydoc.getMap("files");
+      files.set(testFilePath, { hash: "abc123", mtime: Date.now() });
+      const state = Y.encodeStateAsUpdate(ydoc);
+      const base64Data = Buffer.from(state).toString("base64");
 
-      const response = await GET(request, context);
-      const responseData = await response.json();
+      await globalThis.services.db
+        .update(PROJECTS_TBL)
+        .set({ ydocData: base64Data })
+        .where(eq(PROJECTS_TBL.id, projectId));
+
+      const response = await apiCall(
+        GET,
+        "GET",
+        { token: shareToken }
+      );
 
       expect(response.status).toBe(200);
-      expect(responseData).toMatchObject({
+      expect(response.data).toMatchObject({
         project_name: projectId,
         file_path: testFilePath,
         hash: "abc123",
@@ -74,29 +95,27 @@ describe("/api/share/:token", () => {
 
     it("should return 404 for non-existent token", async () => {
       const invalidToken = "invalid-token-123";
-      const request = new NextRequest(
-        `http://localhost:3000/api/share/${invalidToken}`,
+      const response = await apiCall(
+        GET,
+        "GET",
+        { token: invalidToken }
       );
-      const context = { params: Promise.resolve({ token: invalidToken }) };
-
-      const response = await GET(request, context);
-      const responseData = await response.json();
 
       expect(response.status).toBe(404);
-      expect(responseData).toMatchObject({
+      expect(response.data).toMatchObject({
         error: "share_not_found",
       });
     });
 
     it("should return 400 for missing token", async () => {
-      const request = new NextRequest("http://localhost:3000/api/share/");
-      const context = { params: Promise.resolve({ token: "" }) };
-
-      const response = await GET(request, context);
-      const responseData = await response.json();
+      const response = await apiCall(
+        GET,
+        "GET",
+        { token: "" }
+      );
 
       expect(response.status).toBe(400);
-      expect(responseData).toMatchObject({
+      expect(response.data).toMatchObject({
         error: "share_not_found",
         error_description: "Invalid or missing token",
       });
@@ -107,6 +126,7 @@ describe("/api/share/:token", () => {
 
     it("should return 404 when file is not found in YDoc", async () => {
       // Create project without the shared file
+      initServices();
       const ydoc = new Y.Doc();
       const files = ydoc.getMap("files");
       files.set("other-file.ts", { hash: "def456", mtime: Date.now() });
@@ -119,22 +139,21 @@ describe("/api/share/:token", () => {
         .set({ ydocData: base64Data })
         .where(eq(PROJECTS_TBL.id, projectId));
 
-      const request = new NextRequest(
-        `http://localhost:3000/api/share/${testToken}`,
+      const response = await apiCall(
+        GET,
+        "GET",
+        { token: shareToken }
       );
-      const context = { params: Promise.resolve({ token: testToken }) };
-
-      const response = await GET(request, context);
-      const responseData = await response.json();
 
       expect(response.status).toBe(404);
-      expect(responseData).toMatchObject({
+      expect(response.data).toMatchObject({
         error: "file_not_found",
       });
     });
 
     it("should handle YDoc with invalid file node structure", async () => {
       // Create project with malformed file data
+      initServices();
       const ydoc = new Y.Doc();
       const files = ydoc.getMap("files");
       files.set(testFilePath, "invalid-file-node"); // Should be object with hash/mtime
@@ -147,22 +166,21 @@ describe("/api/share/:token", () => {
         .set({ ydocData: base64Data })
         .where(eq(PROJECTS_TBL.id, projectId));
 
-      const request = new NextRequest(
-        `http://localhost:3000/api/share/${testToken}`,
+      const response = await apiCall(
+        GET,
+        "GET",
+        { token: shareToken }
       );
-      const context = { params: Promise.resolve({ token: testToken }) };
-
-      const response = await GET(request, context);
-      const responseData = await response.json();
 
       expect(response.status).toBe(404);
-      expect(responseData).toMatchObject({
+      expect(response.data).toMatchObject({
         error: "file_not_found",
       });
     });
 
     it("should handle file node without hash", async () => {
       // Create project with file node missing hash
+      initServices();
       const ydoc = new Y.Doc();
       const files = ydoc.getMap("files");
       files.set(testFilePath, { mtime: Date.now() }); // Missing hash
@@ -175,16 +193,14 @@ describe("/api/share/:token", () => {
         .set({ ydocData: base64Data })
         .where(eq(PROJECTS_TBL.id, projectId));
 
-      const request = new NextRequest(
-        `http://localhost:3000/api/share/${testToken}`,
+      const response = await apiCall(
+        GET,
+        "GET",
+        { token: shareToken }
       );
-      const context = { params: Promise.resolve({ token: testToken }) };
-
-      const response = await GET(request, context);
-      const responseData = await response.json();
 
       expect(response.status).toBe(404);
-      expect(responseData).toMatchObject({
+      expect(response.data).toMatchObject({
         error: "file_not_found",
       });
     });

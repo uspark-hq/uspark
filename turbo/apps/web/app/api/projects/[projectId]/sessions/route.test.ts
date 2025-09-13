@@ -1,14 +1,10 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
-import { NextRequest } from "next/server";
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import "../../../../../src/test/setup";
 import { GET, POST } from "./route";
 import { POST as createProject } from "../../route";
+import { apiCall } from "../../../../../src/test/api-helpers";
 import { initServices } from "../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
-import {
-  SESSIONS_TBL,
-  TURNS_TBL,
-  BLOCKS_TBL,
-} from "../../../../../src/db/schema/sessions";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";
 
@@ -21,91 +17,29 @@ import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 
 describe("/api/projects/:projectId/sessions", () => {
-  const projectId = `proj_test_${Date.now()}`;
   const userId = `test-user-sessions-${Date.now()}-${process.pid}`;
-  let testSessionIds: string[] = [];
+  let projectId: string;
+  const createdSessionIds: string[] = [];
+  const createdProjectIds: string[] = [];
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
 
-    // Initialize services
-    initServices();
-
-    // Clean up any existing test data
-    // First delete blocks from test sessions
-    const testSessions = await globalThis.services.db
-      .select({ id: SESSIONS_TBL.id })
-      .from(SESSIONS_TBL)
-      .where(eq(SESSIONS_TBL.projectId, projectId));
-
-    for (const session of testSessions) {
-      const turns = await globalThis.services.db
-        .select({ id: TURNS_TBL.id })
-        .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.sessionId, session.id));
-
-      for (const turn of turns) {
-        await globalThis.services.db
-          .delete(BLOCKS_TBL)
-          .where(eq(BLOCKS_TBL.turnId, turn.id));
-      }
-
-      await globalThis.services.db
-        .delete(TURNS_TBL)
-        .where(eq(TURNS_TBL.sessionId, session.id));
-    }
-
-    // Delete sessions
-    await globalThis.services.db
-      .delete(SESSIONS_TBL)
-      .where(eq(SESSIONS_TBL.projectId, projectId));
-
-    // Delete project
-    await globalThis.services.db
-      .delete(PROJECTS_TBL)
-      .where(eq(PROJECTS_TBL.id, projectId));
-
     // Create test project using API
-    const createRequest = new NextRequest("http://localhost:3000", {
-      method: "POST",
-      body: JSON.stringify({ name: "Test Project" }),
-    });
-    const createResponse = await createProject(createRequest);
-    expect(createResponse.status).toBe(201);
-    const projectData = await createResponse.json();
-
-    // Update the project with our test ID for consistency
-    await globalThis.services.db
-      .update(PROJECTS_TBL)
-      .set({ id: projectId })
-      .where(eq(PROJECTS_TBL.id, projectData.id));
-
-    testSessionIds = [];
-  });
-
-  afterEach(async () => {
-    // Clean up created sessions
-    for (const sessionId of testSessionIds) {
-      const turns = await globalThis.services.db
-        .select({ id: TURNS_TBL.id })
-        .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.sessionId, sessionId));
-
-      for (const turn of turns) {
-        await globalThis.services.db
-          .delete(BLOCKS_TBL)
-          .where(eq(BLOCKS_TBL.turnId, turn.id));
-      }
-
-      await globalThis.services.db
-        .delete(TURNS_TBL)
-        .where(eq(TURNS_TBL.sessionId, sessionId));
-
-      await globalThis.services.db
-        .delete(SESSIONS_TBL)
-        .where(eq(SESSIONS_TBL.id, sessionId));
-    }
+    const projectResponse = await apiCall(
+      createProject,
+      "POST",
+      {},
+      { name: "Test Project for Sessions" }
+    );
+    expect(projectResponse.status).toBe(201);
+    projectId = projectResponse.data.id;
+    createdProjectIds.push(projectId);
+    
+    // Clear session tracking
+    createdSessionIds.length = 0;
   });
 
   describe("POST /api/projects/:projectId/sessions", () => {
@@ -114,37 +48,32 @@ describe("/api/projects/:projectId/sessions", () => {
         ReturnType<typeof auth>
       >);
 
-      const request = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({ title: "Test Session" }),
-      });
-      const context = { params: Promise.resolve({ projectId }) };
-
-      const response = await POST(request, context);
+      const response = await apiCall(
+        POST,
+        "POST",
+        { projectId },
+        { title: "Test Session" }
+      );
 
       expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "unauthorized");
+      expect(response.data).toHaveProperty("error", "unauthorized");
     });
 
     it("should return 404 when project doesn't exist", async () => {
-      const request = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({ title: "Test Session" }),
-      });
-      const context = {
-        params: Promise.resolve({ projectId: "non-existent" }),
-      };
-
-      const response = await POST(request, context);
+      const response = await apiCall(
+        POST,
+        "POST",
+        { projectId: "non-existent" },
+        { title: "Test Session" }
+      );
 
       expect(response.status).toBe(404);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "project_not_found");
+      expect(response.data).toHaveProperty("error", "project_not_found");
     });
 
     it("should return 404 when project belongs to another user", async () => {
       // Create project for another user using direct DB (needed for different user)
+      initServices();
       const otherProjectId = `proj_other_${Date.now()}`;
       const ydoc = new Y.Doc();
       const state = Y.encodeStateAsUpdate(ydoc);
@@ -158,19 +87,15 @@ describe("/api/projects/:projectId/sessions", () => {
         version: 0,
       });
 
-      const request = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({ title: "Test Session" }),
-      });
-      const context = {
-        params: Promise.resolve({ projectId: otherProjectId }),
-      };
-
-      const response = await POST(request, context);
+      const response = await apiCall(
+        POST,
+        "POST",
+        { projectId: otherProjectId },
+        { title: "Test Session" }
+      );
 
       expect(response.status).toBe(404);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "project_not_found");
+      expect(response.data).toHaveProperty("error", "project_not_found");
 
       // Clean up
       await globalThis.services.db
@@ -179,51 +104,45 @@ describe("/api/projects/:projectId/sessions", () => {
     });
 
     it("should create session with title", async () => {
-      const request = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({ title: "My Test Session" }),
-      });
-      const context = { params: Promise.resolve({ projectId }) };
-
-      const response = await POST(request, context);
+      const response = await apiCall(
+        POST,
+        "POST",
+        { projectId },
+        { title: "My Test Session" }
+      );
 
       expect(response.status).toBe(200);
-      const data = await response.json();
-      expect(data).toHaveProperty("id");
-      expect(data).toHaveProperty("project_id", projectId);
-      expect(data).toHaveProperty("title", "My Test Session");
-      expect(data).toHaveProperty("created_at");
-      expect(data).toHaveProperty("updated_at");
-      expect(data.id).toMatch(/^sess_/);
+      expect(response.data).toHaveProperty("id");
+      expect(response.data).toHaveProperty("project_id", projectId);
+      expect(response.data).toHaveProperty("title", "My Test Session");
+      expect(response.data).toHaveProperty("created_at");
+      expect(response.data).toHaveProperty("updated_at");
+      expect(response.data.id).toMatch(/^sess_/);
 
-      testSessionIds.push(data.id);
+      createdSessionIds.push(response.data.id);
 
-      // Verify in database
-      const [session] = await globalThis.services.db
-        .select()
-        .from(SESSIONS_TBL)
-        .where(eq(SESSIONS_TBL.id, data.id));
-
-      expect(session).toBeDefined();
-      expect(session!.projectId).toBe(projectId);
-      expect(session!.title).toBe("My Test Session");
+      // Verify via GET API
+      const getResponse = await apiCall(GET, "GET", { projectId });
+      expect(getResponse.status).toBe(200);
+      const sessions = getResponse.data.sessions;
+      const createdSession = sessions.find((s: any) => s.id === response.data.id);
+      expect(createdSession).toBeDefined();
+      expect(createdSession.title).toBe("My Test Session");
     });
 
     it("should create session without title", async () => {
-      const request = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({}),
-      });
-      const context = { params: Promise.resolve({ projectId }) };
-
-      const response = await POST(request, context);
+      const response = await apiCall(
+        POST,
+        "POST",
+        { projectId },
+        {}
+      );
 
       expect(response.status).toBe(200);
-      const data = await response.json();
-      expect(data).toHaveProperty("id");
-      expect(data).toHaveProperty("title", null);
+      expect(response.data).toHaveProperty("id");
+      expect(response.data).toHaveProperty("title", null);
 
-      testSessionIds.push(data.id);
+      createdSessionIds.push(response.data.id);
     });
   });
 
@@ -233,155 +152,124 @@ describe("/api/projects/:projectId/sessions", () => {
         ReturnType<typeof auth>
       >);
 
-      const request = new NextRequest("http://localhost:3000");
-      const context = { params: Promise.resolve({ projectId }) };
-
-      const response = await GET(request, context);
+      const response = await apiCall(GET, "GET", { projectId });
 
       expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "unauthorized");
+      expect(response.data).toHaveProperty("error", "unauthorized");
     });
 
     it("should return empty list when no sessions exist", async () => {
-      const request = new NextRequest("http://localhost:3000");
-      const context = { params: Promise.resolve({ projectId }) };
-
-      const response = await GET(request, context);
+      const response = await apiCall(GET, "GET", { projectId });
 
       expect(response.status).toBe(200);
-      const data = await response.json();
-      expect(data).toHaveProperty("sessions");
-      expect(data).toHaveProperty("total");
-      expect(data.sessions).toEqual([]);
-      expect(data.total).toBe(0);
+      expect(response.data).toHaveProperty("sessions");
+      expect(response.data).toHaveProperty("total");
+      expect(response.data.sessions).toEqual([]);
+      expect(response.data.total).toBe(0);
     });
 
     it("should return sessions list ordered by creation date", async () => {
       // Create multiple sessions using API
-      const request1 = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({ title: "Session 1" }),
-      });
-      const context = { params: Promise.resolve({ projectId }) };
-      const response1 = await POST(request1, context);
+      const response1 = await apiCall(
+        POST,
+        "POST",
+        { projectId },
+        { title: "Session 1" }
+      );
       expect(response1.status).toBe(200);
-      const session1Data = await response1.json();
-      testSessionIds.push(session1Data.id);
+      createdSessionIds.push(response1.data.id);
 
-      const request2 = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({ title: "Session 2" }),
-      });
-      const response2 = await POST(request2, context);
+      const response2 = await apiCall(
+        POST,
+        "POST",
+        { projectId },
+        { title: "Session 2" }
+      );
       expect(response2.status).toBe(200);
-      const session2Data = await response2.json();
-      testSessionIds.push(session2Data.id);
+      createdSessionIds.push(response2.data.id);
 
-      const request = new NextRequest("http://localhost:3000");
-      const response = await GET(request, context);
+      const response = await apiCall(GET, "GET", { projectId });
 
       expect(response.status).toBe(200);
-      const data = await response.json();
-      expect(data.sessions.length).toBeGreaterThanOrEqual(2);
-      expect(data.total).toBeGreaterThanOrEqual(2);
+      expect(response.data.sessions.length).toBeGreaterThanOrEqual(2);
+      expect(response.data.total).toBeGreaterThanOrEqual(2);
 
       // Should be ordered by createdAt DESC (newest first)
-      expect(data.sessions[0].title).toBe("Session 2");
-      expect(data.sessions[1].title).toBe("Session 1");
+      expect(response.data.sessions[0].title).toBe("Session 2");
+      expect(response.data.sessions[1].title).toBe("Session 1");
     });
 
     it("should support pagination with limit and offset", async () => {
       // Create 5 sessions using API
-      const sessionIds = [];
-      const context = { params: Promise.resolve({ projectId }) };
       for (let i = 0; i < 5; i++) {
-        const request = new NextRequest("http://localhost:3000", {
-          method: "POST",
-          body: JSON.stringify({ title: `Session ${i}` }),
-        });
-        const response = await POST(request, context);
+        const response = await apiCall(
+          POST,
+          "POST",
+          { projectId },
+          { title: `Session ${i}` }
+        );
         expect(response.status).toBe(200);
-        const sessionData = await response.json();
-        sessionIds.push(sessionData.id);
-        testSessionIds.push(sessionData.id);
+        createdSessionIds.push(response.data.id);
       }
 
       // Test limit
-      const request1 = new NextRequest("http://localhost:3000?limit=2");
-      const response1 = await GET(request1, context);
-      const data1 = await response1.json();
-      expect(data1.sessions).toHaveLength(2);
-      expect(data1.total).toBeGreaterThanOrEqual(5);
+      const { apiCallWithQuery } = await import("../../../../../src/test/api-helpers");
+      const response1 = await apiCallWithQuery(GET, { projectId }, { limit: "2" });
+      expect(response1.data.sessions).toHaveLength(2);
+      expect(response1.data.total).toBeGreaterThanOrEqual(5);
 
       // Test offset
-      const request2 = new NextRequest(
-        "http://localhost:3000?limit=2&offset=2",
+      const response2 = await apiCallWithQuery(
+        GET,
+        { projectId },
+        { limit: "2", offset: "2" }
       );
-      const response2 = await GET(request2, context);
-      const data2 = await response2.json();
-      expect(data2.sessions).toHaveLength(2);
-      expect(data2.sessions[0].title).toBe("Session 2");
-      expect(data2.sessions[1].title).toBe("Session 1");
+      expect(response2.data.sessions).toHaveLength(2);
+      expect(response2.data.sessions[0].title).toBe("Session 2");
+      expect(response2.data.sessions[1].title).toBe("Session 1");
 
       // Test offset beyond available data
-      const request3 = new NextRequest("http://localhost:3000?offset=10");
-      const response3 = await GET(request3, context);
-      const data3 = await response3.json();
-      expect(data3.sessions).toHaveLength(0);
-      expect(data3.total).toBeGreaterThanOrEqual(5);
+      const response3 = await apiCallWithQuery(GET, { projectId }, { offset: "10" });
+      expect(response3.data.sessions).toHaveLength(0);
+      expect(response3.data.total).toBeGreaterThanOrEqual(5);
     });
 
     it("should not return sessions from other projects", async () => {
       // Create session for test project using API
-      const request1 = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({ title: "My Session" }),
-      });
-      const context1 = { params: Promise.resolve({ projectId }) };
-      const response1 = await POST(request1, context1);
+      const response1 = await apiCall(
+        POST,
+        "POST",
+        { projectId },
+        { title: "My Session" }
+      );
       expect(response1.status).toBe(200);
-      const session1Data = await response1.json();
-      testSessionIds.push(session1Data.id);
+      createdSessionIds.push(response1.data.id);
 
       // Create another project using API
-      const otherProjectRequest = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({ name: "Other Test Project" }),
-      });
-      const otherProjectResponse = await createProject(otherProjectRequest);
+      const otherProjectResponse = await apiCall(
+        createProject,
+        "POST",
+        {},
+        { name: "Other Test Project" }
+      );
       expect(otherProjectResponse.status).toBe(201);
-      const otherProjectData = await otherProjectResponse.json();
-      const otherProjectId = otherProjectData.id;
+      const otherProjectId = otherProjectResponse.data.id;
+      createdProjectIds.push(otherProjectId);
 
       // Create session for other project using API
-      const request2 = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({ title: "Other Session" }),
-      });
-      const context2 = {
-        params: Promise.resolve({ projectId: otherProjectId }),
-      };
-      const response2 = await POST(request2, context2);
+      const response2 = await apiCall(
+        POST,
+        "POST",
+        { projectId: otherProjectId },
+        { title: "Other Session" }
+      );
       expect(response2.status).toBe(200);
-      const session2Data = await response2.json();
+      createdSessionIds.push(response2.data.id);
 
-      const request = new NextRequest("http://localhost:3000");
-      const context = { params: Promise.resolve({ projectId }) };
+      const response = await apiCall(GET, "GET", { projectId });
 
-      const response = await GET(request, context);
-      const data = await response.json();
-
-      expect(data.sessions).toHaveLength(1);
-      expect(data.sessions[0].title).toBe("My Session");
-
-      // Clean up
-      await globalThis.services.db
-        .delete(SESSIONS_TBL)
-        .where(eq(SESSIONS_TBL.id, session2Data.id));
-      await globalThis.services.db
-        .delete(PROJECTS_TBL)
-        .where(eq(PROJECTS_TBL.id, otherProjectId));
+      expect(response.data.sessions).toHaveLength(1);
+      expect(response.data.sessions[0].title).toBe("My Session");
     });
   });
 });

@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import "../../../../../src/test/setup";
 import { POST } from "./route";
 import { POST as createDevice } from "../device/route";
 import { NextRequest } from "next/server";

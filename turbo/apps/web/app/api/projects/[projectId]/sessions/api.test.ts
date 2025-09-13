@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import "../../../../../src/test/setup";
 import { apiCall, apiCallWithQuery } from "../../../../../src/test/api-helpers";
 import { POST as createSession, GET as listSessions } from "./route";
 import { GET as getSession } from "./[sessionId]/route";
