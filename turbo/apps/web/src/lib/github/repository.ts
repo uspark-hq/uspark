@@ -23,7 +23,7 @@ type RepositoryInfo = {
   installationId: number;
   repoName: string;
   repoId: number;
-  accountName?: string;
+  accountName?: string | null;
   accountType?: string;
   fullName?: string;
   createdAt: Date;
