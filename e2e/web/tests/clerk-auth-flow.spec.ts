@@ -10,13 +10,10 @@ test.describe("Clerk Authentication Flow", () => {
     // First navigate to homepage to load Clerk
     await page.goto("/");
 
-    // Sign in with test user credentials
+    // Sign in with test user using emailAddress (requires CLERK_SECRET_KEY)
     await clerk.signIn({
       page,
-      signInParams: {
-        strategy: "email_code",
-        identifier: "e2e+clerk_test@uspark.ai",
-      },
+      emailAddress: "e2e+clerk_test@uspark.ai",
     });
 
     // Now navigate to protected page
@@ -30,13 +27,10 @@ test.describe("Clerk Authentication Flow", () => {
     // First navigate to homepage to load Clerk
     await page.goto("/");
 
-    // Sign in with test user credentials
+    // Sign in with test user using emailAddress (requires CLERK_SECRET_KEY)
     await clerk.signIn({
       page,
-      signInParams: {
-        strategy: "email_code",
-        identifier: "e2e+clerk_test@uspark.ai",
-      },
+      emailAddress: "e2e+clerk_test@uspark.ai",
     });
 
     await page.goto("/settings/tokens");
@@ -50,13 +44,10 @@ test.describe("Clerk Authentication Flow", () => {
     // First navigate to homepage to load Clerk
     await page.goto("/");
 
-    // Sign in with test user credentials
+    // Sign in with test user using emailAddress (requires CLERK_SECRET_KEY)
     await clerk.signIn({
       page,
-      signInParams: {
-        strategy: "email_code",
-        identifier: "e2e+clerk_test@uspark.ai",
-      },
+      emailAddress: "e2e+clerk_test@uspark.ai",
     });
 
     await page.goto("/settings/tokens");
