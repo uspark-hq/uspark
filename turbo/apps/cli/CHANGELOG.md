@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.2](https://github.com/uspark-hq/uspark/compare/cli-v0.9.1...cli-v0.9.2) (2025-09-14)
+
+
+### Bug Fixes
+
+* resolve cli npx execution issue ([#293](https://github.com/uspark-hq/uspark/issues/293)) ([a3b16bf](https://github.com/uspark-hq/uspark/commit/a3b16bf3a2ab9a0ee9e2004cf4732d8fa9ff0034))
+
 ## [0.9.1](https://github.com/uspark-hq/uspark/compare/cli-v0.9.0...cli-v0.9.1) (2025-09-14)
 
 
