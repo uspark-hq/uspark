@@ -23,6 +23,9 @@ type RepositoryInfo = {
   installationId: number;
   repoName: string;
   repoId: number;
+  accountName?: string | null;
+  accountType?: string;
+  fullName?: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -114,8 +117,21 @@ export async function getProjectRepository(
   const db = globalThis.services.db;
 
   const repos = await db
-    .select()
+    .select({
+      id: githubRepos.id,
+      projectId: githubRepos.projectId,
+      installationId: githubRepos.installationId,
+      repoName: githubRepos.repoName,
+      repoId: githubRepos.repoId,
+      createdAt: githubRepos.createdAt,
+      updatedAt: githubRepos.updatedAt,
+      accountName: githubInstallations.accountName,
+    })
     .from(githubRepos)
+    .leftJoin(
+      githubInstallations,
+      eq(githubRepos.installationId, githubInstallations.installationId),
+    )
     .where(eq(githubRepos.projectId, projectId))
     .limit(1);
 
@@ -123,7 +139,15 @@ export async function getProjectRepository(
     return null;
   }
 
-  return repos[0] as RepositoryInfo;
+  const repo = repos[0]!;
+
+  // Get installation details to determine account type and get full name
+  const installation = await getInstallationDetails(repo.installationId);
+  return {
+    ...repo,
+    accountType: installation.account?.type,
+    fullName: `${installation.account?.login}/${repo.repoName}`,
+  };
 }
 
 /**

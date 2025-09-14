@@ -31,6 +31,22 @@ vi.mock("../../../../../../src/lib/github/auth", () => ({
     .mockResolvedValue("ghs_test_installation_token_12345"),
 }));
 
+// Mock getInstallationDetails to avoid real API calls
+vi.mock("../../../../../../src/lib/github/client", async () => {
+  const actual = await vi.importActual<
+    typeof import("../../../../../../src/lib/github/client")
+  >("../../../../../../src/lib/github/client");
+  return {
+    ...actual,
+    getInstallationDetails: vi.fn().mockResolvedValue({
+      account: {
+        type: "User",
+        login: "testuser",
+      },
+    }),
+  };
+});
+
 const mockAuth = vi.mocked(auth);
 
 describe("/api/projects/[projectId]/github/sync", () => {
