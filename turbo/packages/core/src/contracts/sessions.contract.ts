@@ -8,7 +8,7 @@ export type SessionStatus = z.infer<typeof SessionStatusSchema>;
 // Base session schema
 export const SessionSchema = z.object({
   id: z.string().startsWith("sess_"),
-  projectId: z.string().startsWith("proj_"),
+  projectId: z.string().uuid(),
   title: z.string().nullable(),
   status: SessionStatusSchema.optional(),
   createdAt: z.date().or(z.string()),
@@ -25,7 +25,7 @@ export type CreateSessionRequest = z.infer<typeof CreateSessionRequestSchema>;
 // Create session response
 export const CreateSessionResponseSchema = z.object({
   id: z.string().startsWith("sess_"),
-  project_id: z.string().startsWith("proj_"),
+  project_id: z.string().uuid(),
   title: z.string().nullable(),
   created_at: z.date().or(z.string()),
   updated_at: z.date().or(z.string()),
@@ -56,7 +56,7 @@ export type ListSessionsResponse = z.infer<typeof ListSessionsResponseSchema>;
 // Get session response
 export const GetSessionResponseSchema = z.object({
   id: z.string().startsWith("sess_"),
-  project_id: z.string().startsWith("proj_"),
+  project_id: z.string().uuid(),
   title: z.string().nullable(),
   status: SessionStatusSchema.optional(),
   created_at: z.date().or(z.string()),
@@ -103,7 +103,7 @@ export const sessionsContract = c.router({
     method: "POST",
     path: "/api/projects/:projectId/sessions",
     pathParams: z.object({
-      projectId: z.string().startsWith("proj_"),
+      projectId: z.string().uuid(),
     }),
     body: CreateSessionRequestSchema,
     responses: {
@@ -119,7 +119,7 @@ export const sessionsContract = c.router({
     method: "GET",
     path: "/api/projects/:projectId/sessions",
     pathParams: z.object({
-      projectId: z.string().startsWith("proj_"),
+      projectId: z.string().uuid(),
     }),
     query: ListSessionsQuerySchema,
     responses: {
@@ -134,7 +134,7 @@ export const sessionsContract = c.router({
     method: "GET",
     path: "/api/projects/:projectId/sessions/:sessionId",
     pathParams: z.object({
-      projectId: z.string().startsWith("proj_"),
+      projectId: z.string().uuid(),
       sessionId: z.string().startsWith("sess_"),
     }),
     responses: {
@@ -149,7 +149,7 @@ export const sessionsContract = c.router({
     method: "DELETE",
     path: "/api/projects/:projectId/sessions/:sessionId",
     pathParams: z.object({
-      projectId: z.string().startsWith("proj_"),
+      projectId: z.string().uuid(),
       sessionId: z.string().startsWith("sess_"),
     }),
     responses: {
@@ -164,7 +164,7 @@ export const sessionsContract = c.router({
     method: "POST",
     path: "/api/projects/:projectId/sessions/:sessionId/interrupt",
     pathParams: z.object({
-      projectId: z.string().startsWith("proj_"),
+      projectId: z.string().uuid(),
       sessionId: z.string().startsWith("sess_"),
     }),
     body: z.object({}), // Empty body for interrupt
@@ -180,7 +180,7 @@ export const sessionsContract = c.router({
     method: "GET",
     path: "/api/projects/:projectId/sessions/:sessionId/updates",
     pathParams: z.object({
-      projectId: z.string().startsWith("proj_"),
+      projectId: z.string().uuid(),
       sessionId: z.string().startsWith("sess_"),
     }),
     query: z.object({

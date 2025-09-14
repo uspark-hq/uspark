@@ -77,9 +77,8 @@ export async function POST(request: NextRequest) {
   // Note: We validate the name but don't use it in the ID generation
   // The project ID is system-generated to ensure uniqueness
 
-  // Generate a secure, unique project ID
-  // Format: proj_<random-uuid> for better identification and uniqueness
-  const projectId = `proj_${randomUUID()}`;
+  // Generate a secure, unique project ID using UUID v4
+  const projectId = randomUUID();
 
   // Create new empty YDoc for this project
   const ydoc = new Y.Doc();

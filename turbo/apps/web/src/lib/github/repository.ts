@@ -55,8 +55,8 @@ export async function createProjectRepository(
   // Get installation Octokit client
   const octokit = await createInstallationOctokit(installationId);
 
-  // Generate repository name
-  const repoName = `uspark-${projectId}`;
+  // Generate repository name using first 8 characters of UUID for brevity
+  const repoName = `uspark-${projectId.substring(0, 8)}`;
 
   // Create repository on GitHub
   const { data: repo } = await octokit.request("POST /user/repos", {

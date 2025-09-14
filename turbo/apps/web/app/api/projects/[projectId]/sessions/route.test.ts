@@ -74,7 +74,7 @@ describe("/api/projects/:projectId/sessions", () => {
     it("should return 404 when project belongs to another user", async () => {
       // Create project for another user using direct DB (needed for different user)
       initServices();
-      const otherProjectId = `proj_other_${Date.now()}`;
+      const otherProjectId = `other-${Date.now()}`;
       const ydoc = new Y.Doc();
       const state = Y.encodeStateAsUpdate(ydoc);
       const base64Data = Buffer.from(state).toString("base64");

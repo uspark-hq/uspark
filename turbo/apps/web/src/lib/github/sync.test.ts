@@ -40,7 +40,7 @@ describe("GitHub Sync", () => {
 
   describe("syncProjectToGitHub", () => {
     it("should successfully sync files to GitHub", async () => {
-      const projectId = "proj_test123";
+      const projectId = "123e4567-e89b-12d3-a456-426614174000";
       const userId = "user_123";
       const db = globalThis.services.db;
 
@@ -85,7 +85,7 @@ describe("GitHub Sync", () => {
     });
 
     it("should return error when project not found", async () => {
-      const projectId = "proj_notfound";
+      const projectId = "404e4567-e89b-12d3-a456-426614174404";
       const userId = "user_123";
 
       const result = await syncProjectToGitHub(projectId, userId);
@@ -95,7 +95,7 @@ describe("GitHub Sync", () => {
     });
 
     it("should return error when user is not authorized", async () => {
-      const projectId = "proj_test123";
+      const projectId = "123e4567-e89b-12d3-a456-426614174000";
       const userId = "user_123";
       const otherUserId = "user_456";
       const db = globalThis.services.db;
@@ -121,7 +121,7 @@ describe("GitHub Sync", () => {
     });
 
     it("should return error when repository not linked", async () => {
-      const projectId = "proj_test123";
+      const projectId = "123e4567-e89b-12d3-a456-426614174000";
       const userId = "user_123";
       const db = globalThis.services.db;
 
@@ -146,7 +146,7 @@ describe("GitHub Sync", () => {
     });
 
     it("should return error when no files to sync", async () => {
-      const projectId = "proj_test123";
+      const projectId = "123e4567-e89b-12d3-a456-426614174000";
       const userId = "user_123";
       const db = globalThis.services.db;
 
@@ -179,7 +179,7 @@ describe("GitHub Sync", () => {
     });
 
     it("should throw error when blob storage not configured", async () => {
-      const projectId = "proj_test123";
+      const projectId = "123e4567-e89b-12d3-a456-426614174000";
       const userId = "user_123";
       const db = globalThis.services.db;
 
@@ -224,7 +224,7 @@ describe("GitHub Sync", () => {
 
   describe("getSyncStatus", () => {
     it("should return linked status when repository exists", async () => {
-      const projectId = "proj_test123";
+      const projectId = "123e4567-e89b-12d3-a456-426614174000";
       const db = globalThis.services.db;
 
       // Insert test repository link
@@ -247,7 +247,7 @@ describe("GitHub Sync", () => {
     });
 
     it("should return unlinked status when repository does not exist", async () => {
-      const projectId = "proj_nonexistent";
+      const projectId = "404e4567-e89b-12d3-a456-426614174404";
 
       const status = await getSyncStatus(projectId);
 
@@ -259,7 +259,7 @@ describe("GitHub Sync", () => {
   describe("extractFilesFromYDoc", () => {
     it("should extract files correctly from YDoc data", async () => {
       // This tests the YDoc parsing logic directly with real YDoc operations
-      const projectId = "proj_test123";
+      const projectId = "123e4567-e89b-12d3-a456-426614174000";
       const userId = "user_123";
       const db = globalThis.services.db;
 

@@ -163,7 +163,7 @@ Third line`;
 
 // Test database functions separately
 describe("Blocks Database Functions", () => {
-  const projectId = `proj_blocks_helper_${Date.now()}`;
+  const projectId = `blocks_helper-${Date.now()}`;
   const sessionId = `sess_blocks_helper_${Date.now()}`;
   const turnId = `turn_blocks_helper_${Date.now()}`;
   const userId = `test-user-blocks-helper-${Date.now()}-${process.pid}`;

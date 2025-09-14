@@ -22,7 +22,7 @@ import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 
 describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
-  const projectId = `proj_turn_detail_${Date.now()}`;
+  const projectId = `turn_detail-${Date.now()}`;
   const sessionId = `sess_turn_detail_${Date.now()}`;
   let turnId: string;
   const userId = `test-user-turn-detail-${Date.now()}-${process.pid}`;
