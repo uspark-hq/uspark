@@ -51,6 +51,12 @@ describe("middleware", () => {
       expect(mockProtect).not.toHaveBeenCalled();
     });
 
+    it("should not protect hello API endpoints", async () => {
+      const request = new NextRequest("http://localhost:3000/api/hello/world");
+      await middleware(request);
+      expect(mockProtect).not.toHaveBeenCalled();
+    });
+
     it("should not protect share API endpoints", async () => {
       const request = new NextRequest("http://localhost:3000/api/share/abc123");
       await middleware(request);
@@ -58,13 +64,17 @@ describe("middleware", () => {
     });
 
     it("should not protect CLI auth device endpoint", async () => {
-      const request = new NextRequest("http://localhost:3000/api/cli/auth/device");
+      const request = new NextRequest(
+        "http://localhost:3000/api/cli/auth/device",
+      );
       await middleware(request);
       expect(mockProtect).not.toHaveBeenCalled();
     });
 
     it("should not protect CLI auth token endpoint", async () => {
-      const request = new NextRequest("http://localhost:3000/api/cli/auth/token");
+      const request = new NextRequest(
+        "http://localhost:3000/api/cli/auth/token",
+      );
       await middleware(request);
       expect(mockProtect).not.toHaveBeenCalled();
     });
@@ -108,19 +118,25 @@ describe("middleware", () => {
     });
 
     it("should protect API project-specific endpoints", async () => {
-      const request = new NextRequest("http://localhost:3000/api/projects/123/sessions");
+      const request = new NextRequest(
+        "http://localhost:3000/api/projects/123/sessions",
+      );
       await middleware(request);
       expect(mockProtect).toHaveBeenCalledTimes(1);
     });
 
     it("should protect Claude API endpoints", async () => {
-      const request = new NextRequest("http://localhost:3000/api/claude/sessions");
+      const request = new NextRequest(
+        "http://localhost:3000/api/claude/sessions",
+      );
       await middleware(request);
       expect(mockProtect).toHaveBeenCalledTimes(1);
     });
 
     it("should protect GitHub API endpoints", async () => {
-      const request = new NextRequest("http://localhost:3000/api/github/installations");
+      const request = new NextRequest(
+        "http://localhost:3000/api/github/installations",
+      );
       await middleware(request);
       expect(mockProtect).toHaveBeenCalledTimes(1);
     });
@@ -132,7 +148,9 @@ describe("middleware", () => {
     });
 
     it("should protect CLI auth generate-token endpoint", async () => {
-      const request = new NextRequest("http://localhost:3000/api/cli/auth/generate-token");
+      const request = new NextRequest(
+        "http://localhost:3000/api/cli/auth/generate-token",
+      );
       await middleware(request);
       expect(mockProtect).toHaveBeenCalledTimes(1);
     });
