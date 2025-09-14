@@ -169,5 +169,21 @@ describe("middleware", () => {
       const request = new NextRequest("http://localhost:3000/settings");
       await expect(middleware(request)).rejects.toThrow("Unauthorized");
     });
+
+    it("should skip protection when __clerk_testing_token is in query params", async () => {
+      const request = new NextRequest(
+        "http://localhost:3000/settings?__clerk_testing_token=test",
+      );
+      await middleware(request);
+      expect(mockProtect).not.toHaveBeenCalled();
+    });
+
+    it("should skip protection when __clerk_testing_token is in hash", async () => {
+      const request = new NextRequest(
+        "http://localhost:3000/settings#__clerk_testing_token=test",
+      );
+      await middleware(request);
+      expect(mockProtect).not.toHaveBeenCalled();
+    });
   });
 });

@@ -12,8 +12,13 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
-  // Protect all routes except public ones
-  if (!isPublicRoute(request)) {
+  // Skip protection in test mode when using Clerk testing tokens
+  const url = new URL(request.url);
+  const isTestMode = url.searchParams.has("__clerk_testing_token") ||
+                     url.hash.includes("__clerk_testing_token");
+
+  // Protect all routes except public ones and test mode
+  if (!isPublicRoute(request) && !isTestMode) {
     await auth.protect();
   }
 });
