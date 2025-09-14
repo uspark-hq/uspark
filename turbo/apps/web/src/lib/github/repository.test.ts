@@ -192,6 +192,69 @@ describe("GitHub Repository", () => {
       });
     });
 
+    it("should return repository info with account type and full name", async () => {
+      // Create repository in database
+      const db = globalThis.services.db;
+      await db.insert(githubRepos).values({
+        projectId: testProjectId,
+        installationId: testInstallationId,
+        repoName: expectedRepoName,
+        repoId: 987654,
+      });
+
+      // Mock getInstallationDetails to return account info
+      vi.mocked(getInstallationDetails).mockResolvedValue({
+        account: {
+          type: "Organization",
+          login: "test-org",
+        },
+      } as any);
+
+      const result = await getProjectRepository(testProjectId);
+
+      expect(result).toMatchObject({
+        projectId: testProjectId,
+        installationId: testInstallationId,
+        repoName: expectedRepoName,
+        repoId: 987654,
+        accountType: "Organization",
+        fullName: "test-org/uspark-a1b2c3d4",
+      });
+    });
+
+    it("should fallback to database account name when getInstallationDetails fails", async () => {
+      // Create repository and installation in database
+      const db = globalThis.services.db;
+      await db.insert(githubInstallations).values({
+        userId: testUserId,
+        installationId: testInstallationId,
+        accountName: "fallback-account",
+      });
+      await db.insert(githubRepos).values({
+        projectId: testProjectId,
+        installationId: testInstallationId,
+        repoName: expectedRepoName,
+        repoId: 987654,
+      });
+
+      // Mock getInstallationDetails to throw error
+      vi.mocked(getInstallationDetails).mockRejectedValue(
+        new Error("API error"),
+      );
+
+      const result = await getProjectRepository(testProjectId);
+
+      expect(result).toMatchObject({
+        projectId: testProjectId,
+        installationId: testInstallationId,
+        repoName: expectedRepoName,
+        repoId: 987654,
+        fullName: "fallback-account/uspark-a1b2c3d4",
+      });
+      // accountType should be undefined in fallback case
+      expect(result?.accountType).toBeUndefined();
+    });
+
     it("should return null for non-existent project", async () => {
       const result = await getProjectRepository("non-existent-project");
       expect(result).toBeNull();
