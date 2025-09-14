@@ -16,6 +16,26 @@ test.describe("CLI Token Management", () => {
       emailAddress: "e2e+clerk_test@uspark.ai",
     });
 
+    // Handle organization selection if needed
+    await page.waitForLoadState("networkidle");
+    const currentUrl = page.url();
+    if (currentUrl.includes("choose-organization") || currentUrl.includes("create-organization")) {
+      const existingOrg = page.locator('button:has-text("e2e test org"), a:has-text("e2e test org")');
+      if (await existingOrg.isVisible({ timeout: 1000 }).catch(() => false)) {
+        await existingOrg.click();
+      } else {
+        const createButton = page.locator('button:has-text("Create"), button:has-text("Continue")');
+        if (await createButton.isVisible({ timeout: 1000 }).catch(() => false)) {
+          const orgNameInput = page.locator('input[name="name"], input[placeholder*="organization"]');
+          if (await orgNameInput.isVisible({ timeout: 1000 }).catch(() => false)) {
+            await orgNameInput.fill("e2e test org");
+          }
+          await createButton.click();
+        }
+      }
+      await page.waitForLoadState("networkidle");
+    }
+
     // Navigate to tokens page
     await page.goto("/settings/tokens");
   });

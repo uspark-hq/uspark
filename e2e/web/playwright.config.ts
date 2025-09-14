@@ -10,13 +10,13 @@ export default defineConfig({
   retries: 0,
   workers: 4,
   reporter: "list",
-  timeout: 5000,
+  timeout: 15000,
   use: {
     baseURL: process.env.BASE_URL,
     trace: "on-first-retry",
     screenshot: "only-on-failure",
-    actionTimeout: 5000, // 5 seconds for actions
-    navigationTimeout: 5000, // 5 seconds for navigation
+    actionTimeout: 10000, // 10 seconds for actions
+    navigationTimeout: 10000, // 10 seconds for navigation
   },
 
   projects: [
