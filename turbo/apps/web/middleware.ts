@@ -12,12 +12,8 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
-  // Skip protection in test environment
-  const isTestEnvironment = process.env.NODE_ENV === "test" ||
-                            process.env.CLERK_TESTING === "true";
-
-  // Protect all routes except public ones (skip in test environment)
-  if (!isPublicRoute(request) && !isTestEnvironment) {
+  // Protect all routes except public ones
+  if (!isPublicRoute(request)) {
     await auth.protect();
   }
 });
