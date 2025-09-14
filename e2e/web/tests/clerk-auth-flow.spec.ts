@@ -14,9 +14,8 @@ test.describe("Clerk Authentication Flow", () => {
     await clerk.signIn({
       page,
       signInParams: {
-        strategy: "password",
+        strategy: "email_code",
         identifier: "e2e+clerk_test@uspark.ai",
-        password: "TestPassword123!",
       },
     });
 
@@ -35,9 +34,8 @@ test.describe("Clerk Authentication Flow", () => {
     await clerk.signIn({
       page,
       signInParams: {
-        strategy: "password",
+        strategy: "email_code",
         identifier: "e2e+clerk_test@uspark.ai",
-        password: "TestPassword123!",
       },
     });
 
@@ -56,9 +54,8 @@ test.describe("Clerk Authentication Flow", () => {
     await clerk.signIn({
       page,
       signInParams: {
-        strategy: "password",
+        strategy: "email_code",
         identifier: "e2e+clerk_test@uspark.ai",
-        password: "TestPassword123!",
       },
     });
 
