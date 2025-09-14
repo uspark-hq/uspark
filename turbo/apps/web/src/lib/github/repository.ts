@@ -142,22 +142,12 @@ export async function getProjectRepository(
   const repo = repos[0]!;
 
   // Get installation details to determine account type and get full name
-  try {
-    const installation = await getInstallationDetails(repo.installationId);
-    return {
-      ...repo,
-      accountType: installation.account?.type,
-      fullName: `${installation.account?.login}/${repo.repoName}`,
-    };
-  } catch {
-    // If we can't get installation details, return what we have
-    return {
-      ...repo,
-      fullName: repo.accountName
-        ? `${repo.accountName}/${repo.repoName}`
-        : repo.repoName,
-    };
-  }
+  const installation = await getInstallationDetails(repo.installationId);
+  return {
+    ...repo,
+    accountType: installation.account?.type,
+    fullName: `${installation.account?.login}/${repo.repoName}`,
+  };
 }
 
 /**
