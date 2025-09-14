@@ -62,7 +62,7 @@ describe("GitHub Repository", () => {
           type: "User",
           login: "testuser",
         },
-      } as any);
+      } as Awaited<ReturnType<typeof getInstallationDetails>>);
 
       // Create repository
       const result = await createProjectRepository(
@@ -123,7 +123,7 @@ describe("GitHub Repository", () => {
           type: "Organization",
           login: "testorg",
         },
-      } as any);
+      } as Awaited<ReturnType<typeof getInstallationDetails>>);
 
       // Create repository
       const result = await createProjectRepository(
@@ -208,7 +208,7 @@ describe("GitHub Repository", () => {
           type: "Organization",
           login: "test-org",
         },
-      } as any);
+      } as Awaited<ReturnType<typeof getInstallationDetails>>);
 
       const result = await getProjectRepository(testProjectId);
 
