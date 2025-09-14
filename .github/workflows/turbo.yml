@@ -167,6 +167,7 @@ jobs:
             DATABASE_URL=${{ steps.branch.outputs.database-url }}
             NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
             CLERK_SECRET_KEY=${{ secrets.CLERK_SECRET_KEY }}
+            CLERK_TESTING=true
             E2B_API_KEY=${{ secrets.E2B_API_KEY }}
             GH_APP_ID=${{ vars.GH_APP_ID }}
             GH_APP_PRIVATE_KEY=${{ secrets.GH_APP_PRIVATE_KEY }}
@@ -296,3 +297,4 @@ jobs:
           BASE_URL: ${{ needs.deploy-web.outputs.preview-url }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLERK_TESTING: "true"

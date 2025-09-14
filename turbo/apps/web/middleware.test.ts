@@ -30,6 +30,15 @@ vi.mock("@clerk/nextjs/server", () => ({
 describe("middleware", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Ensure test environment flags are not set by default
+    delete process.env.CLERK_TESTING;
+    // NODE_ENV is "test" in vitest, but we need to test normal behavior
+    process.env.NODE_ENV = "production";
+  });
+
+  afterEach(() => {
+    // Restore NODE_ENV for other tests
+    process.env.NODE_ENV = "test";
   });
 
   describe("public routes", () => {
@@ -170,20 +179,26 @@ describe("middleware", () => {
       await expect(middleware(request)).rejects.toThrow("Unauthorized");
     });
 
-    it("should skip protection when __clerk_testing_token is in query params", async () => {
-      const request = new NextRequest(
-        "http://localhost:3000/settings?__clerk_testing_token=test",
-      );
+    it("should skip protection in test environment", async () => {
+      const originalEnv = process.env.NODE_ENV;
+      process.env.NODE_ENV = "test";
+
+      const request = new NextRequest("http://localhost:3000/settings");
       await middleware(request);
       expect(mockProtect).not.toHaveBeenCalled();
+
+      process.env.NODE_ENV = originalEnv;
     });
 
-    it("should skip protection when __clerk_testing_token is in hash", async () => {
-      const request = new NextRequest(
-        "http://localhost:3000/settings#__clerk_testing_token=test",
-      );
+    it("should skip protection when CLERK_TESTING is true", async () => {
+      const originalEnv = process.env.CLERK_TESTING;
+      process.env.CLERK_TESTING = "true";
+
+      const request = new NextRequest("http://localhost:3000/settings");
       await middleware(request);
       expect(mockProtect).not.toHaveBeenCalled();
+
+      process.env.CLERK_TESTING = originalEnv;
     });
   });
 });
