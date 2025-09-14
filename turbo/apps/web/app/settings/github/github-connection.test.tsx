@@ -1,7 +1,7 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { GitHubConnection } from "./github-connection";
 import { useRouter } from "next/navigation";
-import { vi, describe, it, expect, beforeEach } from "vitest";
+import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
 
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
@@ -17,29 +17,24 @@ const mockFetch = vi.mocked(global.fetch);
 describe("GitHubConnection", () => {
   const mockRouter = {
     refresh: vi.fn(),
+    back: vi.fn(),
+    forward: vi.fn(),
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
   };
-
-  const originalLocation = window.location;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseRouter.mockReturnValue(mockRouter);
+    mockUseRouter.mockReturnValue(mockRouter as any);
 
-    // Reset window.location before each test
-    Object.defineProperty(window, "location", {
-      value: { href: "" },
-      writable: true,
-      configurable: true,
-    });
+    // Mock window.location
+    delete (window as any).location;
+    (window as any).location = { href: "" };
   });
 
   afterEach(() => {
-    // Restore original location after each test
-    Object.defineProperty(window, "location", {
-      value: originalLocation,
-      writable: true,
-      configurable: true,
-    });
+    vi.restoreAllMocks();
   });
 
   it("renders loading state initially", () => {
@@ -178,7 +173,7 @@ describe("GitHubConnection", () => {
     fireEvent.click(manageButton);
 
     expect(window.open).toHaveBeenCalledWith(
-      "https://github.com/settings/installations/12345",
+      "https://github.com/apps/uspark-sync",
       "_blank",
     );
   });
