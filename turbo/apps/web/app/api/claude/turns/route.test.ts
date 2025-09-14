@@ -35,7 +35,9 @@ describe("POST /api/claude/turns", () => {
 
     // Create a test project
     const ydoc = new Y.Doc();
-    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+      "base64",
+    );
 
     const projects = await db
       .insert(PROJECTS_TBL)
@@ -77,16 +79,13 @@ describe("POST /api/claude/turns", () => {
   });
 
   it("should create a new turn successfully", async () => {
-    const request = new NextRequest(
-      "http://localhost:3000/api/claude/turns",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          sessionId: testSessionId,
-          userPrompt: "Test user prompt",
-        }),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/claude/turns", {
+      method: "POST",
+      body: JSON.stringify({
+        sessionId: testSessionId,
+        userPrompt: "Test user prompt",
+      }),
+    });
 
     const response = await POST(request);
     const data = await response.json();
@@ -112,16 +111,13 @@ describe("POST /api/claude/turns", () => {
     // Wait a bit to ensure timestamp difference
     await new Promise((resolve) => setTimeout(resolve, 10));
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/claude/turns",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          sessionId: testSessionId,
-          userPrompt: "Test user prompt",
-        }),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/claude/turns", {
+      method: "POST",
+      body: JSON.stringify({
+        sessionId: testSessionId,
+        userPrompt: "Test user prompt",
+      }),
+    });
 
     await POST(request);
 
@@ -138,15 +134,12 @@ describe("POST /api/claude/turns", () => {
   });
 
   it("should return 400 if sessionId is missing", async () => {
-    const request = new NextRequest(
-      "http://localhost:3000/api/claude/turns",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          userPrompt: "Test user prompt",
-        }),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/claude/turns", {
+      method: "POST",
+      body: JSON.stringify({
+        userPrompt: "Test user prompt",
+      }),
+    });
 
     const response = await POST(request);
     const data = await response.json();
@@ -156,15 +149,12 @@ describe("POST /api/claude/turns", () => {
   });
 
   it("should return 400 if userPrompt is missing", async () => {
-    const request = new NextRequest(
-      "http://localhost:3000/api/claude/turns",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          sessionId: testSessionId,
-        }),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/claude/turns", {
+      method: "POST",
+      body: JSON.stringify({
+        sessionId: testSessionId,
+      }),
+    });
 
     const response = await POST(request);
     const data = await response.json();
@@ -174,16 +164,13 @@ describe("POST /api/claude/turns", () => {
   });
 
   it("should return 404 if session doesn't exist", async () => {
-    const request = new NextRequest(
-      "http://localhost:3000/api/claude/turns",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          sessionId: "sess_nonexistent",
-          userPrompt: "Test user prompt",
-        }),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/claude/turns", {
+      method: "POST",
+      body: JSON.stringify({
+        sessionId: "sess_nonexistent",
+        userPrompt: "Test user prompt",
+      }),
+    });
 
     const response = await POST(request);
     const data = await response.json();
@@ -197,16 +184,13 @@ describe("POST /api/claude/turns", () => {
       ReturnType<typeof auth>
     >);
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/claude/turns",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          sessionId: testSessionId,
-          userPrompt: "Test user prompt",
-        }),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/claude/turns", {
+      method: "POST",
+      body: JSON.stringify({
+        sessionId: testSessionId,
+        userPrompt: "Test user prompt",
+      }),
+    });
 
     const response = await POST(request);
     const data = await response.json();
@@ -220,16 +204,13 @@ describe("POST /api/claude/turns", () => {
       ReturnType<typeof auth>
     >);
 
-    const request = new NextRequest(
-      "http://localhost:3000/api/claude/turns",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          sessionId: testSessionId,
-          userPrompt: "Test user prompt",
-        }),
-      },
-    );
+    const request = new NextRequest("http://localhost:3000/api/claude/turns", {
+      method: "POST",
+      body: JSON.stringify({
+        sessionId: testSessionId,
+        userPrompt: "Test user prompt",
+      }),
+    });
 
     const response = await POST(request);
     const data = await response.json();
@@ -259,7 +240,9 @@ describe("GET /api/claude/turns", () => {
 
     // Create a test project
     const ydoc = new Y.Doc();
-    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+      "base64",
+    );
 
     const projects = await db
       .insert(PROJECTS_TBL)
