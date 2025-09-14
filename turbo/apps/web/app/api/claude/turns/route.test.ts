@@ -244,12 +244,17 @@ describe("/api/claude/turns", () => {
 
   describe("GET /api/claude/turns", () => {
     beforeEach(async () => {
+      // Ensure testSessionId is available
+      if (!testSessionId) {
+        throw new Error("testSessionId is not initialized");
+      }
+
       // Create some test turns
       const db = globalThis.services.db;
 
       for (let i = 0; i < 3; i++) {
         await db.insert(TURNS_TBL).values({
-          id: `turn_test_${uniqueId}_${i}`,
+          id: `turn_test_${uniqueId}_${i}_${Date.now()}`,
           sessionId: testSessionId,
           userPrompt: `Prompt ${i}`,
           status: i === 0 ? "completed" : i === 1 ? "running" : "pending",
