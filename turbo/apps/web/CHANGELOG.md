@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.2](https://github.com/uspark-hq/uspark/compare/web-v0.22.1...web-v0.22.2) (2025-09-14)
+
+
+### Bug Fixes
+
+* decode base64 encoded github app private key ([#287](https://github.com/uspark-hq/uspark/issues/287)) ([b8e7259](https://github.com/uspark-hq/uspark/commit/b8e7259ab5d759135ff9f9bdb2e641d87ef34b30))
+
 ## [0.22.1](https://github.com/uspark-hq/uspark/compare/web-v0.22.0...web-v0.22.1) (2025-09-14)
 
 
