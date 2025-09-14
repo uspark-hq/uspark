@@ -19,7 +19,9 @@ export function GitHubSyncButton({ projectId }: GitHubSyncButtonProps) {
   useEffect(() => {
     const checkRepository = async () => {
       try {
-        const response = await fetch(`/api/projects/${projectId}/github/repository`);
+        const response = await fetch(
+          `/api/projects/${projectId}/github/repository`,
+        );
         if (response.ok) {
           const data = await response.json();
           setHasRepository(data.linked);
@@ -51,7 +53,9 @@ export function GitHubSyncButton({ projectId }: GitHubSyncButtonProps) {
 
     try {
       // First check if user has GitHub connected
-      const installationResponse = await fetch("/api/github/installation-status");
+      const installationResponse = await fetch(
+        "/api/github/installation-status",
+      );
       if (!installationResponse.ok) {
         setSyncStatus({
           type: "error",
@@ -70,15 +74,18 @@ export function GitHubSyncButton({ projectId }: GitHubSyncButtonProps) {
       }
 
       // Create repository
-      const response = await fetch(`/api/projects/${projectId}/github/repository`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `/api/projects/${projectId}/github/repository`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            installationId: installationData.installation.installationId,
+          }),
         },
-        body: JSON.stringify({
-          installationId: installationData.installation.installationId,
-        }),
-      });
+      );
 
       const data = await response.json();
 
@@ -191,7 +198,9 @@ export function GitHubSyncButton({ projectId }: GitHubSyncButtonProps) {
             padding: "8px 16px",
             fontSize: "14px",
             color: isCreatingRepo ? "rgba(156, 163, 175, 0.5)" : "#fff",
-            backgroundColor: isCreatingRepo ? "rgba(156, 163, 175, 0.2)" : "#2ea043",
+            backgroundColor: isCreatingRepo
+              ? "rgba(156, 163, 175, 0.2)"
+              : "#2ea043",
             border: "1px solid rgba(156, 163, 175, 0.2)",
             borderRadius: "4px",
             cursor: isCreatingRepo ? "not-allowed" : "pointer",

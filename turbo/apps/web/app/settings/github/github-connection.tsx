@@ -70,10 +70,7 @@ export function GitHubConnection() {
   const handleManageOnGitHub = () => {
     if (installation) {
       // Use the GitHub Apps page with the app slug
-      window.open(
-        `https://github.com/apps/uspark-sync`,
-        "_blank",
-      );
+      window.open(`https://github.com/apps/uspark-sync`, "_blank");
     }
   };
 

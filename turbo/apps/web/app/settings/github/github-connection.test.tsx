@@ -2,6 +2,7 @@ import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import { GitHubConnection } from "./github-connection";
 import { useRouter } from "next/navigation";
 import { vi, describe, it, expect, beforeEach, afterEach } from "vitest";
+import type { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
@@ -15,7 +16,7 @@ global.fetch = vi.fn();
 const mockFetch = vi.mocked(global.fetch);
 
 describe("GitHubConnection", () => {
-  const mockRouter = {
+  const mockRouter: Partial<AppRouterInstance> = {
     refresh: vi.fn(),
     back: vi.fn(),
     forward: vi.fn(),
@@ -26,11 +27,13 @@ describe("GitHubConnection", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseRouter.mockReturnValue(mockRouter as any);
+    mockUseRouter.mockReturnValue(mockRouter as AppRouterInstance);
 
     // Mock window.location
-    delete (window as any).location;
-    (window as any).location = { href: "" };
+    delete (window as unknown as { location?: Location }).location;
+    (window as unknown as { location: { href: string } }).location = {
+      href: "",
+    };
   });
 
   afterEach(() => {
