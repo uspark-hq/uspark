@@ -28,6 +28,29 @@ export function initServices(): void {
     return;
   }
 
+  // In test environment, set default values if not already set
+  if (process.env.NODE_ENV === "test") {
+    if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY) {
+      process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY =
+        "pk_test_mock_instance.clerk.accounts.dev$";
+    }
+    if (!process.env.CLERK_SECRET_KEY) {
+      process.env.CLERK_SECRET_KEY = "sk_test_mock_secret_key_for_testing";
+    }
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      process.env.BLOB_READ_WRITE_TOKEN = "vercel_blob_rw_test-store_secret-key";
+    }
+    if (!process.env.GH_APP_ID) {
+      process.env.GH_APP_ID = "test_github_app_id";
+    }
+    if (!process.env.GH_APP_PRIVATE_KEY) {
+      process.env.GH_APP_PRIVATE_KEY = "test_private_key_placeholder";
+    }
+    if (!process.env.GH_WEBHOOK_SECRET) {
+      process.env.GH_WEBHOOK_SECRET = "test_github_webhook_secret";
+    }
+  }
+
   _services = {
     get env() {
       if (!_env) {
