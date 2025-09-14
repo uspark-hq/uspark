@@ -1,5 +1,5 @@
 import { test, expect } from "@playwright/test";
-import { clerkSetup } from "@clerk/testing/playwright";
+import { clerk, clerkSetup } from "@clerk/testing/playwright";
 
 test.describe("CLI Token Management", () => {
   test.beforeAll(async () => {
@@ -7,8 +7,21 @@ test.describe("CLI Token Management", () => {
   });
 
   test.beforeEach(async ({ page }) => {
-    const testingToken = process.env.CLERK_TESTING_TOKEN;
-    await page.goto(`/settings/tokens#__clerk_testing_token=${testingToken}`);
+    // First navigate to homepage to load Clerk
+    await page.goto("/");
+
+    // Sign in with test user credentials
+    await clerk.signIn({
+      page,
+      signInParams: {
+        strategy: "password",
+        identifier: process.env.E2E_CLERK_USER_USERNAME || process.env.E2E_CLERK_USER_EMAIL!,
+        password: process.env.E2E_CLERK_USER_PASSWORD!,
+      },
+    });
+
+    // Navigate to tokens page
+    await page.goto("/settings/tokens");
   });
 
   test("token management", async ({ page }) => {
