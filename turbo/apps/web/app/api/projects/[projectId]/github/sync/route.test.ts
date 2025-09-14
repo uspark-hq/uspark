@@ -133,7 +133,9 @@ describe("/api/projects/[projectId]/github/sync", () => {
         .limit(1);
 
       if (verifyProject.length === 0) {
-        throw new Error(`Test setup failed: Project ${projectId} was not inserted`);
+        throw new Error(
+          `Test setup failed: Project ${projectId} was not inserted`,
+        );
       }
 
       const request = new NextRequest(
@@ -142,7 +144,6 @@ describe("/api/projects/[projectId]/github/sync", () => {
           method: "POST",
         },
       );
-
 
       const response = await POST(request, {
         params: Promise.resolve({ projectId }),
