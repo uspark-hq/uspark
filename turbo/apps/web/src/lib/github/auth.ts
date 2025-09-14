@@ -11,9 +11,12 @@ export async function getInstallationToken(
   initServices();
   const env = globalThis.services.env;
 
+  // Decode base64 encoded private key
+  const privateKey = Buffer.from(env.GH_APP_PRIVATE_KEY, 'base64').toString('utf-8');
+
   const auth = createAppAuth({
     appId: env.GH_APP_ID,
-    privateKey: env.GH_APP_PRIVATE_KEY,
+    privateKey: privateKey,
   });
 
   const installationAuthentication = await auth({

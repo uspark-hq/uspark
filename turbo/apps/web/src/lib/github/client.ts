@@ -11,9 +11,12 @@ export function createAppOctokit(): App {
   initServices();
   const env = globalThis.services.env;
 
+  // Decode base64 encoded private key
+  const privateKey = Buffer.from(env.GH_APP_PRIVATE_KEY, 'base64').toString('utf-8');
+
   return new App({
     appId: env.GH_APP_ID,
-    privateKey: env.GH_APP_PRIVATE_KEY,
+    privateKey: privateKey,
   });
 }
 
