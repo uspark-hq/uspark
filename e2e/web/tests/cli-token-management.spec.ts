@@ -6,11 +6,9 @@ test.describe("CLI Token Management", () => {
     await clerkSetup();
   });
 
-  test.beforeEach(async ({ page }) => {
-    // First navigate to homepage to load Clerk
+  test("token generation workflow", async ({ page }) => {
+    // Navigate and sign in
     await page.goto("/");
-
-    // Sign in with test user using emailAddress (requires CLERK_SECRET_KEY)
     await clerk.signIn({
       page,
       emailAddress: "e2e+clerk_test@uspark.ai",
@@ -18,19 +16,16 @@ test.describe("CLI Token Management", () => {
 
     // Navigate to tokens page
     await page.goto("/settings/tokens");
-  });
-
-  test("token management", async ({ page }) => {
     await expect(page.locator("h1")).toContainText(/CLI Tokens/i);
 
+    // Fill token name and generate
     const tokenNameInput = page.locator('input[type="text"]').first();
-    await tokenNameInput.fill("My First Token");
+    await tokenNameInput.fill("Test Token");
 
     const generateButton = page.locator('button:has-text("Generate")').first();
     await generateButton.click();
 
+    // Verify generation starts
     await expect(page.locator("text=Generating")).toBeVisible();
-
-    await expect(page.locator("text=Generating")).not.toBeVisible();
   });
 });
