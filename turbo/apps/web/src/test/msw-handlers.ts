@@ -402,7 +402,7 @@ const githubHandlers = [
 // Vercel Blob handlers
 const blobHandlers = [
   // Mock blob download
-  http.get("https://*/projects/:projectId/:hash", () => {
+  http.get("https://*.public.blob.vercel-storage.com/projects/:projectId/:hash", () => {
     return HttpResponse.arrayBuffer(new ArrayBuffer(100));
   }),
 ];

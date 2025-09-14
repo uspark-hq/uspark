@@ -125,12 +125,24 @@ describe("/api/projects/[projectId]/github/sync", () => {
         repoId: 67890,
       });
 
+      // Verify data was inserted
+      const verifyProject = await db
+        .select()
+        .from(PROJECTS_TBL)
+        .where(eq(PROJECTS_TBL.id, projectId))
+        .limit(1);
+
+      if (verifyProject.length === 0) {
+        throw new Error(`Test setup failed: Project ${projectId} was not inserted`);
+      }
+
       const request = new NextRequest(
         `http://localhost/api/projects/${projectId}/github/sync`,
         {
           method: "POST",
         },
       );
+
 
       const response = await POST(request, {
         params: Promise.resolve({ projectId }),
