@@ -16,22 +16,8 @@ test.describe("CLI Token Management", () => {
       emailAddress: "e2e+clerk_test@uspark.ai",
     });
 
-    // After sign-in, wait for navigation to complete
-    await page.waitForTimeout(2000);
-
     // Navigate to tokens page
     await page.goto("/settings/tokens");
-    await page.waitForLoadState("networkidle");
-
-    // Handle org creation if needed
-    const setupOrgHeader = page.locator('h1:has-text("Setup your organization")');
-    if (await setupOrgHeader.isVisible({ timeout: 2000 }).catch(() => false)) {
-      const orgNameInput = page.locator('input').first();
-      await orgNameInput.fill("e2e test org");
-      const createButton = page.locator('button[type="submit"], button:has-text("Create"), button:has-text("Continue")');
-      await createButton.click();
-      await page.waitForLoadState("networkidle");
-    }
   });
 
   test("token management", async ({ page }) => {
