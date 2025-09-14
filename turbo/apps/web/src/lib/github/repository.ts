@@ -1,4 +1,4 @@
-import { createInstallationOctokit } from "./client";
+import { createInstallationOctokit, getInstallationDetails } from "./client";
 import { initServices } from "../init-services";
 import { githubRepos, githubInstallations } from "../../db/schema/github";
 import { eq, and } from "drizzle-orm";
@@ -55,16 +55,34 @@ export async function createProjectRepository(
   // Get installation Octokit client
   const octokit = await createInstallationOctokit(installationId);
 
+  // Get installation details to determine if it's an organization or user
+  const installation = await getInstallationDetails(installationId);
+
   // Generate repository name using first 8 characters of UUID for brevity
   const repoName = `uspark-${projectId.substring(0, 8)}`;
 
-  // Create repository on GitHub
-  const { data: repo } = await octokit.request("POST /user/repos", {
-    name: repoName,
-    private: true,
-    auto_init: true,
-    description: `uSpark sync repository for project ${projectId}`,
-  });
+  // Create repository on GitHub - use appropriate endpoint based on account type
+  let repo;
+  if (installation.account?.type === "Organization") {
+    // Create repository in organization
+    const { data } = await octokit.request("POST /orgs/{org}/repos", {
+      org: installation.account.login,
+      name: repoName,
+      private: true,
+      auto_init: true,
+      description: `uSpark sync repository for project ${projectId}`,
+    });
+    repo = data;
+  } else {
+    // Create repository for user account
+    const { data } = await octokit.request("POST /user/repos", {
+      name: repoName,
+      private: true,
+      auto_init: true,
+      description: `uSpark sync repository for project ${projectId}`,
+    });
+    repo = data;
+  }
 
   // Store repository information in database
   await db.insert(githubRepos).values({
