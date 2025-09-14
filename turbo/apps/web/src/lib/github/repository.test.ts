@@ -19,8 +19,9 @@ vi.mock("./client", () => ({
 
 describe("GitHub Repository", () => {
   const testUserId = "test-user-123";
-  const testProjectId = "test-project-456";
+  const testProjectId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"; // Valid UUID
   const testInstallationId = 99999;
+  const expectedRepoName = `uspark-${testProjectId.substring(0, 8)}`; // uspark-a1b2c3d4
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -45,7 +46,7 @@ describe("GitHub Repository", () => {
         request: vi.fn().mockResolvedValue({
           data: {
             id: 987654,
-            name: `uspark-${testProjectId}`,
+            name: expectedRepoName,
             full_name: `testuser/uspark-${testProjectId}`,
             html_url: `https://github.com/testuser/uspark-${testProjectId}`,
             clone_url: `https://github.com/testuser/uspark-${testProjectId}.git`,
@@ -62,7 +63,7 @@ describe("GitHub Repository", () => {
 
       expect(result).toEqual({
         repoId: 987654,
-        repoName: `uspark-${testProjectId}`,
+        repoName: expectedRepoName,
         fullName: `testuser/uspark-${testProjectId}`,
         url: `https://github.com/testuser/uspark-${testProjectId}`,
         cloneUrl: `https://github.com/testuser/uspark-${testProjectId}.git`,
@@ -70,7 +71,7 @@ describe("GitHub Repository", () => {
 
       // Verify GitHub API was called correctly
       expect(mockOctokit.request).toHaveBeenCalledWith("POST /user/repos", {
-        name: `uspark-${testProjectId}`,
+        name: expectedRepoName,
         private: true,
         auto_init: true,
         description: `uSpark sync repository for project ${testProjectId}`,
@@ -87,7 +88,7 @@ describe("GitHub Repository", () => {
       expect(repos[0]).toMatchObject({
         projectId: testProjectId,
         installationId: testInstallationId,
-        repoName: `uspark-${testProjectId}`,
+        repoName: expectedRepoName,
         repoId: 987654,
       });
     });
@@ -98,7 +99,7 @@ describe("GitHub Repository", () => {
       await db.insert(githubRepos).values({
         projectId: testProjectId,
         installationId: testInstallationId,
-        repoName: `uspark-${testProjectId}`,
+        repoName: expectedRepoName,
         repoId: 111111,
       });
 
@@ -117,7 +118,7 @@ describe("GitHub Repository", () => {
       await db.insert(githubRepos).values({
         projectId: testProjectId,
         installationId: testInstallationId,
-        repoName: `uspark-${testProjectId}`,
+        repoName: expectedRepoName,
         repoId: 987654,
       });
 
@@ -126,7 +127,7 @@ describe("GitHub Repository", () => {
       expect(result).toMatchObject({
         projectId: testProjectId,
         installationId: testInstallationId,
-        repoName: `uspark-${testProjectId}`,
+        repoName: expectedRepoName,
         repoId: 987654,
       });
     });
@@ -208,7 +209,7 @@ describe("GitHub Repository", () => {
       await db.insert(githubRepos).values({
         projectId: testProjectId,
         installationId: testInstallationId,
-        repoName: `uspark-${testProjectId}`,
+        repoName: expectedRepoName,
         repoId: 987654,
       });
 

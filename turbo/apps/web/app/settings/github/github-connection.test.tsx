@@ -33,26 +33,18 @@ global.fetch = vi.fn();
 const mockFetch = vi.mocked(global.fetch);
 
 describe("GitHubConnection", () => {
-  const originalLocation = window.location;
-
   beforeEach(() => {
     vi.clearAllMocks();
 
-    // Reset window.location before each test
-    Object.defineProperty(window, "location", {
-      value: { href: "" },
-      writable: true,
-      configurable: true,
-    });
+    // Mock window.location
+    delete (window as unknown as { location?: Location }).location;
+    (window as unknown as { location: { href: string } }).location = {
+      href: "",
+    };
   });
 
   afterEach(() => {
-    // Restore original location after each test
-    Object.defineProperty(window, "location", {
-      value: originalLocation,
-      writable: true,
-      configurable: true,
-    });
+    vi.restoreAllMocks();
   });
 
   it("renders loading state initially", () => {
@@ -191,7 +183,7 @@ describe("GitHubConnection", () => {
     fireEvent.click(manageButton);
 
     expect(window.open).toHaveBeenCalledWith(
-      "https://github.com/settings/installations/12345",
+      "https://github.com/apps/uspark-sync",
       "_blank",
     );
   });

@@ -64,7 +64,7 @@ describe("/api/claude/sessions/[sessionId]", () => {
     const projects = await db
       .insert(PROJECTS_TBL)
       .values({
-        id: `proj_test_${Date.now()}`,
+        id: `test-${Date.now()}`,
         userId,
         ydocData,
         version: 0,

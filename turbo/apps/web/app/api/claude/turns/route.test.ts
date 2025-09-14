@@ -56,7 +56,7 @@ describe("/api/claude/turns", () => {
     const projects = await db
       .insert(PROJECTS_TBL)
       .values({
-        id: `proj_test_${uniqueId}_${Date.now()}`,
+        id: `test-${uniqueId}_${Date.now()}`,
         userId,
         ydocData,
         version: 0,

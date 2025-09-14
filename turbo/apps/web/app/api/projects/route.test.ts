@@ -123,9 +123,12 @@ describe("/api/projects", () => {
       // Should only contain projects created by the current user
       response.data.projects.forEach((project: { id: string }) => {
         // All projects should be from the current user (created in previous tests)
+        // Project IDs should be valid UUIDs
         expect(
           createdProjectIds.includes(project.id) ||
-            project.id.startsWith("proj_"),
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
+              project.id,
+            ),
         ).toBe(true);
       });
 
@@ -163,7 +166,7 @@ describe("/api/projects", () => {
       expect(response.data).toHaveProperty("name");
       expect(response.data).toHaveProperty("created_at");
       expect(response.data.id).toMatch(
-        /^proj_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
       ); // UUID format
       expect(response.data.name).toBe(response.data.id); // Currently using ID as name
 
@@ -253,12 +256,12 @@ describe("/api/projects", () => {
 
       // IDs should be different even with same name
       expect(response1.data.id).not.toBe(response2.data.id);
-      // Both should follow the proj_<uuid> format
+      // Both should be valid UUIDs
       expect(response1.data.id).toMatch(
-        /^proj_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
       );
       expect(response2.data.id).toMatch(
-        /^proj_[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
       );
     });
   });

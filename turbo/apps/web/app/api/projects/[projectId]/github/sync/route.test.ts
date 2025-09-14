@@ -96,7 +96,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
         ReturnType<typeof auth>
       >);
 
-      const projectId = `proj_sync_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const projectId = `sync-${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       createdProjectIds.push(projectId);
       const db = globalThis.services.db;
 
@@ -191,7 +191,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
         ReturnType<typeof auth>
       >);
 
-      const projectId = `proj_no_repo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const projectId = `no_repo-${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       createdProjectIds.push(projectId);
       const db = globalThis.services.db;
 
@@ -231,7 +231,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
         ReturnType<typeof auth>
       >);
 
-      const projectId = `proj_status_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const projectId = `status-${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
       createdProjectIds.push(projectId);
       const db = globalThis.services.db;
 

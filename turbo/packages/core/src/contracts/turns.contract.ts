@@ -112,7 +112,7 @@ export const turnsContract = c.router({
     method: "POST",
     path: "/api/projects/:projectId/sessions/:sessionId/turns",
     pathParams: z.object({
-      projectId: z.string().startsWith("proj_"),
+      projectId: z.string().uuid(),
       sessionId: z.string().startsWith("sess_"),
     }),
     body: CreateTurnRequestSchema,
@@ -130,7 +130,7 @@ export const turnsContract = c.router({
     method: "GET",
     path: "/api/projects/:projectId/sessions/:sessionId/turns",
     pathParams: z.object({
-      projectId: z.string().startsWith("proj_"),
+      projectId: z.string().uuid(),
       sessionId: z.string().startsWith("sess_"),
     }),
     query: ListTurnsQuerySchema,
@@ -146,7 +146,7 @@ export const turnsContract = c.router({
     method: "GET",
     path: "/api/projects/:projectId/sessions/:sessionId/turns/:turnId",
     pathParams: z.object({
-      projectId: z.string().startsWith("proj_"),
+      projectId: z.string().uuid(),
       sessionId: z.string().startsWith("sess_"),
       turnId: z.string().startsWith("turn_"),
     }),
@@ -162,7 +162,7 @@ export const turnsContract = c.router({
     method: "DELETE",
     path: "/api/projects/:projectId/sessions/:sessionId/turns/:turnId",
     pathParams: z.object({
-      projectId: z.string().startsWith("proj_"),
+      projectId: z.string().uuid(),
       sessionId: z.string().startsWith("sess_"),
       turnId: z.string().startsWith("turn_"),
     }),

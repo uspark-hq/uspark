@@ -424,7 +424,7 @@ describe("contractFetch with MSW", () => {
     it("should handle project contract endpoints", async () => {
       // 模拟实际的项目合约响应
       const projectResponse = {
-        id: "proj_123",
+        id: "123e4567-e89b-12d3-a456-426614174000",
         name: "My Project",
         created_at: new Date().toISOString(),
       };
@@ -465,7 +465,7 @@ describe("contractFetch with MSW", () => {
         body: { name: "Test Project" },
       });
 
-      expect(result.id).toBe("proj_123");
+      expect(result.id).toBe("123e4567-e89b-12d3-a456-426614174000");
       expect(result.name).toBe("Test Project");
       expect(result.created_at).toBeDefined();
     });

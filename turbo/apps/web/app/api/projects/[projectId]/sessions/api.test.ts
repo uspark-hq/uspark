@@ -261,7 +261,7 @@ describe("Claude Session Management API Integration", () => {
 
     it("should handle non-existent resources", async () => {
       const response = await apiCall(getSession, "GET", {
-        projectId: "proj_nonexistent",
+        projectId: "404e4567-e89b-12d3-a456-426614174404",
         sessionId: "sess_nonexistent",
       });
 
