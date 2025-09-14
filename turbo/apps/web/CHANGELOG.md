@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.3](https://github.com/uspark-hq/uspark/compare/web-v0.22.2...web-v0.22.3) (2025-09-14)
+
+
+### Bug Fixes
+
+* resolve flaky test in /api/claude/turns route ([#289](https://github.com/uspark-hq/uspark/issues/289)) ([90fb5f9](https://github.com/uspark-hq/uspark/commit/90fb5f93652ce181613a0bd8bb5a60d4303f8359))
+
 ## [0.22.2](https://github.com/uspark-hq/uspark/compare/web-v0.22.1...web-v0.22.2) (2025-09-14)
 
 
