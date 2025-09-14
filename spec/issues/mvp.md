@@ -19,9 +19,9 @@ This document defines the mid-term goals and user stories for the MVP release of
 - [x] Web edits can be manually synced to GitHub via sync button ✅
 - [x] Sync completes within 5 seconds ✅
 - [x] Full file content pushed to GitHub ✅
-- [ ] Settings UI for GitHub connection management
-- [ ] Sync status indicator showing last sync time
-- [ ] Basic sync lock to prevent concurrent operations
+- [x] Settings UI for GitHub connection management ✅
+- [x] Sync status indicator showing last sync time ✅
+- [x] Basic sync lock to prevent concurrent operations ✅
 
 #### Technical Requirements
 
@@ -122,12 +122,12 @@ This document defines the mid-term goals and user stories for the MVP release of
 
 #### Phase 2a: GitHub Integration (Story 1)
 
-1. [ ] GitHub OAuth flow implementation ❌
+1. [x] GitHub App flow implementation ✅
 2. [x] Repository creation API ✅
-3. [x] Webhook endpoint for GitHub push events ✅ (handler exists, push logic not implemented)
-4. [ ] Git operations wrapper for web edits ❌
-5. [ ] Conflict prevention mechanism ❌
-6. [ ] Sync status UI indicators ❌
+3. [x] Webhook endpoint for GitHub push events ✅
+4. [x] Git operations wrapper for web edits ✅
+5. [x] Conflict prevention mechanism ✅ (one-way sync)
+6. [x] Sync status UI indicators ✅
 
 #### Phase 2b: uSpark CLI for E2B (Story 1b)
 
@@ -240,34 +240,33 @@ Post-MVP priorities (not in scope for current release):
 
 ## Implementation Status Summary (2025-01-13)
 
-### Overall Completion: ~75%
+### Overall Completion: ~80%
 
 #### ✅ Completed Features (Working)
+- **Story 1 (GitHub)**: 100% - All MVP requirements completed ✅
 - **Story 1b (CLI)**: 85% - All CLI commands working, E2B container partially configured
-- **Story 2 (Web UI)**: 65% - UI complete, Claude sessions schema done, APIs missing
 - **Story 3 (Sharing)**: 100% - Fully implemented with management interface
 
 #### 🟡 Partially Completed
-- **Story 1 (GitHub)**: 25% - Repository creation API done, bidirectional sync missing
+- **Story 2 (Web UI)**: 65% - UI complete, Claude sessions schema done, APIs missing
 - **Phase 4 (AI)**: 40% - Session APIs exist, E2B/Claude integration missing
 
 #### ❌ Critical Gaps
-1. **GitHub bidirectional sync** - No document push/pull with GitHub
-2. **Claude execution in E2B** - Container has Claude CLI but missing uspark CLI
-3. **Real-time updates** - Polling hooks need to be re-implemented
-4. **Session/Turn/Block APIs** - Schema exists but API endpoints not implemented
+1. **Claude execution in E2B** - Container has Claude CLI but missing uspark CLI
+2. **Real-time updates** - Polling hooks need to be re-implemented
+3. **Session/Turn/Block APIs** - Schema exists but API endpoints not implemented
 
 ### Key Findings
 - **Strong backend infrastructure** with complete APIs and database schema
 - **Frontend implementation in closed PRs not satisfactory** - needs complete re-implementation
-- **GitHub App foundation ready** but sync logic not implemented
+- **GitHub sync fully implemented** with Git Trees API for efficient sync ✅
 - **E2B integration partial** - watch-claude works but container setup incomplete
 
 ### Recommended Next Steps
 1. **Immediate**: Re-implement frontend components (useSessionPolling, display components)
-2. **Week 1**: Implement GitHub document push using Git Trees API
-3. **Week 2**: Complete E2B container Claude CLI configuration
-4. **Week 3**: Integrate new polling system for real-time updates
+2. **Week 1**: Complete E2B container Claude CLI configuration
+3. **Week 2**: Integrate new polling system for real-time updates
+4. **Week 3**: Implement Session/Turn/Block API endpoints
 
 ## Dependencies
 
