@@ -16,28 +16,22 @@ test.describe("CLI Token Management", () => {
       emailAddress: "e2e+clerk_test@uspark.ai",
     });
 
-    // Handle organization selection if needed
-    await page.waitForLoadState("networkidle");
-    const currentUrl = page.url();
-    if (currentUrl.includes("choose-organization") || currentUrl.includes("create-organization")) {
-      const existingOrg = page.locator('button:has-text("e2e test org"), a:has-text("e2e test org")');
-      if (await existingOrg.isVisible({ timeout: 1000 }).catch(() => false)) {
-        await existingOrg.click();
-      } else {
-        const createButton = page.locator('button:has-text("Create"), button:has-text("Continue")');
-        if (await createButton.isVisible({ timeout: 1000 }).catch(() => false)) {
-          const orgNameInput = page.locator('input[name="name"], input[placeholder*="organization"]');
-          if (await orgNameInput.isVisible({ timeout: 1000 }).catch(() => false)) {
-            await orgNameInput.fill("e2e test org");
-          }
-          await createButton.click();
-        }
-      }
-      await page.waitForLoadState("networkidle");
-    }
+    // After sign-in, wait for navigation to complete
+    await page.waitForTimeout(2000);
 
     // Navigate to tokens page
     await page.goto("/settings/tokens");
+    await page.waitForLoadState("networkidle");
+
+    // Handle org creation if needed
+    const setupOrgHeader = page.locator('h1:has-text("Setup your organization")');
+    if (await setupOrgHeader.isVisible({ timeout: 2000 }).catch(() => false)) {
+      const orgNameInput = page.locator('input').first();
+      await orgNameInput.fill("e2e test org");
+      const createButton = page.locator('button[type="submit"], button:has-text("Create"), button:has-text("Continue")');
+      await createButton.click();
+      await page.waitForLoadState("networkidle");
+    }
   });
 
   test("token management", async ({ page }) => {
