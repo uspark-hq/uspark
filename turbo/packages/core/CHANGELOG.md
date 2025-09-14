@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/uspark-hq/uspark/compare/core-v0.12.0...core-v0.12.1) (2025-09-14)
+
+
+### Bug Fixes
+
+* resolve github integration management link and repository linking issues ([#284](https://github.com/uspark-hq/uspark/issues/284)) ([16a8908](https://github.com/uspark-hq/uspark/commit/16a8908eeaff7edd03589168338c04d1677f78d9))
+
 ## [0.12.0](https://github.com/uspark-hq/uspark/compare/core-v0.11.0...core-v0.12.0) (2025-09-13)
 
 

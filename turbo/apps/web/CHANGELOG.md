@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.22.1](https://github.com/uspark-hq/uspark/compare/web-v0.22.0...web-v0.22.1) (2025-09-14)
+
+
+### Bug Fixes
+
+* enable auth protection in middleware to redirect unauthorized users to login ([#285](https://github.com/uspark-hq/uspark/issues/285)) ([6130fc3](https://github.com/uspark-hq/uspark/commit/6130fc3a508357a19b0dc86e12d2f4f0e356e73a))
+* resolve github integration management link and repository linking issues ([#284](https://github.com/uspark-hq/uspark/issues/284)) ([16a8908](https://github.com/uspark-hq/uspark/commit/16a8908eeaff7edd03589168338c04d1677f78d9))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.12.1
+
 ## [0.22.0](https://github.com/uspark-hq/uspark/compare/web-v0.21.0...web-v0.22.0) (2025-09-13)
 
 
