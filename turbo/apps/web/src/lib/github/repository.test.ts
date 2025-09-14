@@ -9,12 +9,13 @@ import {
 import { initServices } from "../init-services";
 import { githubInstallations, githubRepos } from "../../db/schema/github";
 import { eq } from "drizzle-orm";
-import { createInstallationOctokit } from "./client";
+import { createInstallationOctokit, getInstallationDetails } from "./client";
 import type { Octokit } from "@octokit/core";
 
 // Mock the client module - we still need to mock external APIs
 vi.mock("./client", () => ({
   createInstallationOctokit: vi.fn(),
+  getInstallationDetails: vi.fn(),
 }));
 
 describe("GitHub Repository", () => {
@@ -55,6 +56,14 @@ describe("GitHub Repository", () => {
       } as unknown as Octokit;
       vi.mocked(createInstallationOctokit).mockResolvedValue(mockOctokit);
 
+      // Mock installation details to return a user account (not org)
+      vi.mocked(getInstallationDetails).mockResolvedValue({
+        account: {
+          type: "User",
+          login: "testuser",
+        },
+      } as Awaited<ReturnType<typeof getInstallationDetails>>);
+
       // Create repository
       const result = await createProjectRepository(
         testProjectId,
@@ -93,6 +102,57 @@ describe("GitHub Repository", () => {
       });
     });
 
+    it("should create a repository in an organization account", async () => {
+      // Setup GitHub API mock
+      const mockOctokit = {
+        request: vi.fn().mockResolvedValue({
+          data: {
+            id: 987654,
+            name: expectedRepoName,
+            full_name: `testorg/uspark-${testProjectId}`,
+            html_url: `https://github.com/testorg/uspark-${testProjectId}`,
+            clone_url: `https://github.com/testorg/uspark-${testProjectId}.git`,
+          },
+        }),
+      } as unknown as Octokit;
+      vi.mocked(createInstallationOctokit).mockResolvedValue(mockOctokit);
+
+      // Mock installation details to return an organization account
+      vi.mocked(getInstallationDetails).mockResolvedValue({
+        account: {
+          type: "Organization",
+          login: "testorg",
+        },
+      } as Awaited<ReturnType<typeof getInstallationDetails>>);
+
+      // Create repository
+      const result = await createProjectRepository(
+        testProjectId,
+        testInstallationId,
+      );
+
+      // Verify result
+      expect(result).toEqual({
+        repoId: 987654,
+        repoName: expectedRepoName,
+        fullName: `testorg/uspark-${testProjectId}`,
+        url: `https://github.com/testorg/uspark-${testProjectId}`,
+        cloneUrl: `https://github.com/testorg/uspark-${testProjectId}.git`,
+      });
+
+      // Verify correct API endpoint was called for organization
+      expect(mockOctokit.request).toHaveBeenCalledWith(
+        "POST /orgs/{org}/repos",
+        {
+          org: "testorg",
+          name: expectedRepoName,
+          private: true,
+          auto_init: true,
+          description: `uSpark sync repository for project ${testProjectId}`,
+        },
+      );
+    });
+
     it("should throw error if repository already exists", async () => {
       // Create existing repository in database
       const db = globalThis.services.db;
@@ -122,6 +182,14 @@ describe("GitHub Repository", () => {
         repoId: 987654,
       });
 
+      // Mock getInstallationDetails
+      vi.mocked(getInstallationDetails).mockResolvedValue({
+        account: {
+          type: "User",
+          login: "testuser",
+        },
+      } as Awaited<ReturnType<typeof getInstallationDetails>>);
+
       const result = await getProjectRepository(testProjectId);
 
       expect(result).toMatchObject({
@@ -129,6 +197,38 @@ describe("GitHub Repository", () => {
         installationId: testInstallationId,
         repoName: expectedRepoName,
         repoId: 987654,
+        accountType: "User",
+        fullName: "testuser/uspark-a1b2c3d4",
+      });
+    });
+
+    it("should return repository info with account type and full name", async () => {
+      // Create repository in database
+      const db = globalThis.services.db;
+      await db.insert(githubRepos).values({
+        projectId: testProjectId,
+        installationId: testInstallationId,
+        repoName: expectedRepoName,
+        repoId: 987654,
+      });
+
+      // Mock getInstallationDetails to return account info
+      vi.mocked(getInstallationDetails).mockResolvedValue({
+        account: {
+          type: "Organization",
+          login: "test-org",
+        },
+      } as Awaited<ReturnType<typeof getInstallationDetails>>);
+
+      const result = await getProjectRepository(testProjectId);
+
+      expect(result).toMatchObject({
+        projectId: testProjectId,
+        installationId: testInstallationId,
+        repoName: expectedRepoName,
+        repoId: 987654,
+        accountType: "Organization",
+        fullName: "test-org/uspark-a1b2c3d4",
       });
     });
 

@@ -1,4 +1,4 @@
-import { createInstallationOctokit } from "./client";
+import { createInstallationOctokit, getInstallationDetails } from "./client";
 import { initServices } from "../init-services";
 import { githubRepos, githubInstallations } from "../../db/schema/github";
 import { eq, and } from "drizzle-orm";
@@ -23,6 +23,9 @@ type RepositoryInfo = {
   installationId: number;
   repoName: string;
   repoId: number;
+  accountName?: string | null;
+  accountType?: string;
+  fullName?: string;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -55,16 +58,34 @@ export async function createProjectRepository(
   // Get installation Octokit client
   const octokit = await createInstallationOctokit(installationId);
 
+  // Get installation details to determine if it's an organization or user
+  const installation = await getInstallationDetails(installationId);
+
   // Generate repository name using first 8 characters of UUID for brevity
   const repoName = `uspark-${projectId.substring(0, 8)}`;
 
-  // Create repository on GitHub
-  const { data: repo } = await octokit.request("POST /user/repos", {
-    name: repoName,
-    private: true,
-    auto_init: true,
-    description: `uSpark sync repository for project ${projectId}`,
-  });
+  // Create repository on GitHub - use appropriate endpoint based on account type
+  let repo;
+  if (installation.account?.type === "Organization") {
+    // Create repository in organization
+    const { data } = await octokit.request("POST /orgs/{org}/repos", {
+      org: installation.account.login,
+      name: repoName,
+      private: true,
+      auto_init: true,
+      description: `uSpark sync repository for project ${projectId}`,
+    });
+    repo = data;
+  } else {
+    // Create repository for user account
+    const { data } = await octokit.request("POST /user/repos", {
+      name: repoName,
+      private: true,
+      auto_init: true,
+      description: `uSpark sync repository for project ${projectId}`,
+    });
+    repo = data;
+  }
 
   // Store repository information in database
   await db.insert(githubRepos).values({
@@ -96,8 +117,21 @@ export async function getProjectRepository(
   const db = globalThis.services.db;
 
   const repos = await db
-    .select()
+    .select({
+      id: githubRepos.id,
+      projectId: githubRepos.projectId,
+      installationId: githubRepos.installationId,
+      repoName: githubRepos.repoName,
+      repoId: githubRepos.repoId,
+      createdAt: githubRepos.createdAt,
+      updatedAt: githubRepos.updatedAt,
+      accountName: githubInstallations.accountName,
+    })
     .from(githubRepos)
+    .leftJoin(
+      githubInstallations,
+      eq(githubRepos.installationId, githubInstallations.installationId),
+    )
     .where(eq(githubRepos.projectId, projectId))
     .limit(1);
 
@@ -105,7 +139,15 @@ export async function getProjectRepository(
     return null;
   }
 
-  return repos[0] as RepositoryInfo;
+  const repo = repos[0]!;
+
+  // Get installation details to determine account type and get full name
+  const installation = await getInstallationDetails(repo.installationId);
+  return {
+    ...repo,
+    accountType: installation.account?.type,
+    fullName: `${installation.account?.login}/${repo.repoName}`,
+  };
 }
 
 /**

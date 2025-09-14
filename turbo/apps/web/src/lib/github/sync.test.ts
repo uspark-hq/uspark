@@ -19,6 +19,20 @@ vi.mock("./auth", () => ({
     .mockResolvedValue("ghs_test_installation_token_12345"),
 }));
 
+// Mock getInstallationDetails to avoid real API calls
+vi.mock("./client", async () => {
+  const actual = await vi.importActual<typeof import("./client")>("./client");
+  return {
+    ...actual,
+    getInstallationDetails: vi.fn().mockResolvedValue({
+      account: {
+        type: "User",
+        login: "testuser",
+      },
+    }),
+  };
+});
+
 describe("GitHub Sync", () => {
   beforeEach(async () => {
     // Set up environment variables for blob storage
