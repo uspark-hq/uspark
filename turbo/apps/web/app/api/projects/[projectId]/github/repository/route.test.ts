@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
+import "../../../../../../src/test/setup";
 import { NextRequest } from "next/server";
 import { GET, POST, DELETE } from "./route";
 import { auth } from "@clerk/nextjs/server";

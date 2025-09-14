@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import "../../../../../src/test/setup";
 import { POST } from "./route";
 import { DeviceAuthResponseSchema } from "@uspark/core";
 import { DEVICE_CODES_TBL } from "../../../../../src/db/schema/device-codes";

@@ -14,7 +14,6 @@ import { AGENT_SESSIONS_TBL } from "../../../../../../src/db/schema/agent-sessio
 import * as Y from "yjs";
 import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
-import "../../../../../../src/test/setup";
 import "../../../../../../src/test/msw-setup";
 
 // Note: Using real GitHub client with MSW mocking the API endpoints

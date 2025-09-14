@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.4.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.3.0...workspace-v1.4.0) (2025-09-13)
+
+
+### Features
+
+* refactor caddy proxy to turbo package with improved certificate management ([#278](https://github.com/uspark-hq/uspark/issues/278)) ([e56105b](https://github.com/uspark-hq/uspark/commit/e56105b7384d56c281ff4737c231adbfbb1dadf0))
 ## [1.3.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.2.0...workspace-v1.3.0) (2025-09-13)
 
 
