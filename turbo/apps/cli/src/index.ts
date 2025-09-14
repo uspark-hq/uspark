@@ -125,8 +125,14 @@ program
     await watchClaudeCommand(options);
   });
 
-// Parse arguments when run directly (not when imported for testing)
-// Check if this is the main module being run
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Export for testing
+export { program };
+
+// Parse arguments when run directly
+// Check if this file is being executed directly as a CLI
+if (
+  process.argv[1]?.endsWith("index.js") ||
+  process.argv[1]?.endsWith("index.ts")
+) {
   program.parse();
 }
