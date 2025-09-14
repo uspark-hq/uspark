@@ -15,8 +15,8 @@ test.describe("CLI Token Management", () => {
       page,
       signInParams: {
         strategy: "password",
-        identifier: process.env.E2E_CLERK_USER_USERNAME || process.env.E2E_CLERK_USER_EMAIL!,
-        password: process.env.E2E_CLERK_USER_PASSWORD!,
+        identifier: "e2e+clerk_test@uspark.ai",
+        password: "TestPassword123!",
       },
     });
 
