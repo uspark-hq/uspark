@@ -141,13 +141,16 @@ describe("GitHub Repository", () => {
       });
 
       // Verify correct API endpoint was called for organization
-      expect(mockOctokit.request).toHaveBeenCalledWith("POST /orgs/{org}/repos", {
-        org: "testorg",
-        name: expectedRepoName,
-        private: true,
-        auto_init: true,
-        description: `uSpark sync repository for project ${testProjectId}`,
-      });
+      expect(mockOctokit.request).toHaveBeenCalledWith(
+        "POST /orgs/{org}/repos",
+        {
+          org: "testorg",
+          name: expectedRepoName,
+          private: true,
+          auto_init: true,
+          description: `uSpark sync repository for project ${testProjectId}`,
+        },
+      );
     });
 
     it("should throw error if repository already exists", async () => {
