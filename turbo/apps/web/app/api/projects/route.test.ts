@@ -126,7 +126,9 @@ describe("/api/projects", () => {
         // Project IDs should be valid UUIDs
         expect(
           createdProjectIds.includes(project.id) ||
-            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(project.id),
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(
+              project.id,
+            ),
         ).toBe(true);
       });
 
