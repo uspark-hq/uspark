@@ -182,6 +182,14 @@ describe("GitHub Repository", () => {
         repoId: 987654,
       });
 
+      // Mock getInstallationDetails
+      vi.mocked(getInstallationDetails).mockResolvedValue({
+        account: {
+          type: "User",
+          login: "testuser",
+        },
+      } as Awaited<ReturnType<typeof getInstallationDetails>>);
+
       const result = await getProjectRepository(testProjectId);
 
       expect(result).toMatchObject({
@@ -189,6 +197,8 @@ describe("GitHub Repository", () => {
         installationId: testInstallationId,
         repoName: expectedRepoName,
         repoId: 987654,
+        accountType: "User",
+        fullName: "testuser/uspark-a1b2c3d4",
       });
     });
 
