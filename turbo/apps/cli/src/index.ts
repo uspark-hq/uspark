@@ -130,9 +130,11 @@ export { program };
 
 // Parse arguments when run directly
 // Check if this file is being executed directly as a CLI
+// Also check for 'uspark' in the command name for global installs
 if (
   process.argv[1]?.endsWith("index.js") ||
-  process.argv[1]?.endsWith("index.ts")
+  process.argv[1]?.endsWith("index.ts") ||
+  process.argv[1]?.endsWith("uspark")
 ) {
   program.parse();
 }
