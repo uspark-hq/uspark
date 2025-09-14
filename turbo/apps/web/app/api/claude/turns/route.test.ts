@@ -30,7 +30,17 @@ describe("POST /api/claude/turns", () => {
     initServices();
     const db = globalThis.services.db;
 
-    // Clean up any existing test data
+    // Clean up any existing test data - delete in correct order
+    const existingSessions = await db
+      .select({ id: SESSIONS_TBL.id })
+      .from(SESSIONS_TBL)
+      .innerJoin(PROJECTS_TBL, eq(SESSIONS_TBL.projectId, PROJECTS_TBL.id))
+      .where(eq(PROJECTS_TBL.userId, userId));
+
+    for (const session of existingSessions) {
+      await db.delete(TURNS_TBL).where(eq(TURNS_TBL.sessionId, session.id));
+      await db.delete(SESSIONS_TBL).where(eq(SESSIONS_TBL.id, session.id));
+    }
     await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.userId, userId));
 
     // Create a test project
@@ -235,7 +245,17 @@ describe("GET /api/claude/turns", () => {
     initServices();
     const db = globalThis.services.db;
 
-    // Clean up any existing test data
+    // Clean up any existing test data - delete in correct order
+    const existingSessions = await db
+      .select({ id: SESSIONS_TBL.id })
+      .from(SESSIONS_TBL)
+      .innerJoin(PROJECTS_TBL, eq(SESSIONS_TBL.projectId, PROJECTS_TBL.id))
+      .where(eq(PROJECTS_TBL.userId, userId));
+
+    for (const session of existingSessions) {
+      await db.delete(TURNS_TBL).where(eq(TURNS_TBL.sessionId, session.id));
+      await db.delete(SESSIONS_TBL).where(eq(SESSIONS_TBL.id, session.id));
+    }
     await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.userId, userId));
 
     // Create a test project
