@@ -30,7 +30,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider publishableKey={getClerkPublishableKey()}>
+    <ClerkProvider
+      publishableKey={getClerkPublishableKey()}
+      afterSignInUrl="/"
+      afterSignUpUrl="/"
+    >
       <html lang="en">
         <body className={inter.className}>{children}</body>
       </html>
