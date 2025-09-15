@@ -2,299 +2,384 @@
 
 ## Overview
 
-This document defines the polling system for real-time updates in uSpark. The system handles two main types of polling:
-1. **Claude execution status** - Monitor Turn/Block creation from E2B
-2. **Document changes** - Detect YJS document updates
+This document defines the polling system for real-time updates in uSpark. The system uses long polling for efficient real-time updates without constant client polling.
 
-## Core Requirements
+## Core Architecture
 
-### 1. Turn Status Polling
+### 1. YJS Snapshot Versioning
 
-Monitor the execution status of Claude Code in E2B containers.
+#### Database Schema
 
-#### Frontend Hook
+```sql
+-- New table for YJS snapshots
+CREATE TABLE project_snapshots (
+  id TEXT PRIMARY KEY NOT NULL,
+  project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
+  version INTEGER NOT NULL,
+  snapshot BYTEA NOT NULL, -- YJS state vector or full document
+  created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+  UNIQUE(project_id, version)
+);
 
-```typescript
-// hooks/useSessionPolling.ts
-interface UseSessionPollingOptions {
-  sessionId: string;
-  turnId?: string;
-  enabled?: boolean;
-  interval?: number; // default: 2000ms
-  onUpdate?: (turn: Turn) => void;
-  onComplete?: (turn: Turn) => void;
-  onError?: (error: Error) => void;
-}
+CREATE INDEX idx_snapshots_project_version ON project_snapshots(project_id, version);
 
-function useSessionPolling({
-  sessionId,
-  turnId,
-  enabled = true,
-  interval = 2000,
-  onUpdate,
-  onComplete,
-  onError
-}: UseSessionPollingOptions) {
-  // Poll GET /api/projects/{projectId}/sessions/{sessionId}/turns/{turnId}
-  // Check turn.status: pending | running | completed | failed
-  // Stop polling when status is completed or failed
-  // Call appropriate callbacks
-}
+-- Update projects table
+ALTER TABLE projects ADD COLUMN current_version INTEGER DEFAULT 0;
 ```
 
-#### Polling States
+#### Version Management
 
 ```typescript
-type TurnStatus = 'pending' | 'running' | 'completed' | 'failed';
-
-interface Turn {
+interface ProjectSnapshot {
   id: string;
-  status: TurnStatus;
-  blocks: Block[];
-  error?: string;
-  started_at?: Date;
-  completed_at?: Date;
-}
-```
-
-#### Usage Example
-
-```tsx
-function ChatInterface() {
-  const [currentTurnId, setCurrentTurnId] = useState<string>();
-
-  const { data: turn, isPolling } = useSessionPolling({
-    sessionId,
-    turnId: currentTurnId,
-    enabled: !!currentTurnId,
-    onComplete: (turn) => {
-      // Display completed response
-      setCurrentTurnId(undefined);
-    },
-    onError: (error) => {
-      // Show error message
-      console.error('Turn failed:', error);
-    }
-  });
-
-  // Show streaming blocks as they arrive
-  return (
-    <div>
-      {turn?.blocks.map(block => (
-        <BlockDisplay key={block.id} block={block} />
-      ))}
-      {isPolling && <LoadingIndicator />}
-    </div>
-  );
-}
-```
-
-### 2. Document Change Polling
-
-Monitor YJS document changes when Claude modifies files.
-
-#### Frontend Hook
-
-```typescript
-// hooks/useDocumentPolling.ts
-interface UseDocumentPollingOptions {
   projectId: string;
-  filePaths?: string[]; // Specific files to monitor
-  enabled?: boolean;
-  interval?: number; // default: 3000ms
-  onDocumentChange?: (changes: DocumentChange[]) => void;
+  version: number;
+  snapshot: Uint8Array; // YJS document state
+  createdAt: Date;
 }
 
-interface DocumentChange {
-  filePath: string;
-  lastModified: Date;
-  changeType: 'created' | 'modified' | 'deleted';
-}
-
-function useDocumentPolling({
-  projectId,
-  filePaths,
-  enabled = true,
-  interval = 3000,
-  onDocumentChange
-}: UseDocumentPollingOptions) {
-  // Poll GET /api/projects/{projectId}/files
-  // Compare file timestamps or version numbers
-  // Trigger YJS sync for changed files
-  // Call onDocumentChange callback
+interface Project {
+  // ... existing fields
+  currentVersion: number;
 }
 ```
 
-#### Usage Example
+### 2. Long Polling API
 
-```tsx
-function DocumentExplorer() {
-  const [documents, setDocuments] = useState<Document[]>([]);
+#### Get Project Updates (Long Poll)
 
-  useDocumentPolling({
-    projectId,
-    enabled: true,
-    onDocumentChange: (changes) => {
-      // Refresh document list
-      changes.forEach(change => {
-        if (change.changeType === 'created') {
-          // Add to list
-        } else if (change.changeType === 'modified') {
-          // Update in list
-        } else if (change.changeType === 'deleted') {
-          // Remove from list
-        }
-      });
+```http
+GET /api/projects/{projectId}/updates?version={clientVersion}
+```
+
+**Behavior:**
+- If `clientVersion < currentVersion`: Return diff immediately
+- If `clientVersion === currentVersion`: Hold request until update or timeout
+- If `clientVersion > currentVersion`: Return error (client ahead of server)
+
+**Request Parameters:**
+- `version`: Client's current version number
+- `timeout`: Max wait time in seconds (default: 30s)
+
+**Response:**
+
+```typescript
+interface UpdateResponse {
+  fromVersion: number;
+  toVersion: number;
+  operations: YjsDiffOperation[]; // YJS update operations
+  hasMore: boolean; // If client is multiple versions behind
+}
+
+interface YjsDiffOperation {
+  type: 'update' | 'delete' | 'insert';
+  data: Uint8Array; // YJS encoded operation
+}
+```
+
+#### Implementation
+
+```typescript
+// Backend API endpoint
+async function getProjectUpdates(
+  projectId: string,
+  clientVersion: number,
+  timeout: number = 30000
+): Promise<UpdateResponse> {
+  const project = await db.projects.findById(projectId);
+
+  // Client is behind - return diff immediately
+  if (clientVersion < project.currentVersion) {
+    const fromSnapshot = await db.projectSnapshots.findOne({
+      projectId,
+      version: clientVersion
+    });
+    const toSnapshot = await db.projectSnapshots.findOne({
+      projectId,
+      version: project.currentVersion
+    });
+
+    const operations = calculateYjsDiff(fromSnapshot, toSnapshot);
+    return {
+      fromVersion: clientVersion,
+      toVersion: project.currentVersion,
+      operations,
+      hasMore: false
+    };
+  }
+
+  // Client is current - wait for updates
+  if (clientVersion === project.currentVersion) {
+    return await waitForUpdate(projectId, clientVersion, timeout);
+  }
+
+  // Client is ahead - error
+  throw new Error('Client version ahead of server');
+}
+
+// Wait for project updates with timeout
+async function waitForUpdate(
+  projectId: string,
+  clientVersion: number,
+  timeout: number
+): Promise<UpdateResponse> {
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < timeout) {
+    // Check for updates every 100ms
+    await sleep(100);
+
+    const project = await db.projects.findById(projectId);
+    if (project.currentVersion > clientVersion) {
+      // Update available - calculate and return diff
+      return getProjectUpdates(projectId, clientVersion, 0);
     }
+  }
+
+  // Timeout - return empty response
+  return {
+    fromVersion: clientVersion,
+    toVersion: clientVersion,
+    operations: [],
+    hasMore: false
+  };
+}
+```
+
+### 3. Frontend Hook
+
+```typescript
+// hooks/useProjectSync.ts
+function useProjectSync(projectId: string) {
+  const [version, setVersion] = useState(0);
+  const [doc, setDoc] = useState<Y.Doc>();
+  const [syncing, setSyncing] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function sync() {
+      while (!cancelled) {
+        try {
+          setSyncing(true);
+
+          // Long poll for updates
+          const response = await fetch(
+            `/api/projects/${projectId}/updates?version=${version}`,
+            {
+              signal: AbortSignal.timeout(35000) // Slightly longer than server timeout
+            }
+          );
+
+          if (!response.ok) throw new Error('Sync failed');
+
+          const update: UpdateResponse = await response.json();
+
+          if (update.operations.length > 0) {
+            // Apply YJS operations to local document
+            applyOperations(doc, update.operations);
+            setVersion(update.toVersion);
+          }
+
+          setSyncing(false);
+        } catch (error) {
+          if (error.name === 'AbortError') {
+            // Timeout - retry immediately
+            continue;
+          }
+
+          console.error('Sync error:', error);
+          setSyncing(false);
+
+          // Exponential backoff on error
+          await sleep(Math.min(1000 * Math.pow(2, retryCount), 30000));
+          retryCount++;
+        }
+      }
+    }
+
+    sync();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, version]);
+
+  return { doc, version, syncing };
+}
+```
+
+### 4. Update Flow
+
+#### When Document Changes
+
+1. **Save Snapshot**:
+```typescript
+async function updateProject(projectId: string, yjsUpdate: Uint8Array) {
+  await db.transaction(async (tx) => {
+    // Get current project
+    const project = await tx.projects.findById(projectId);
+    const newVersion = project.currentVersion + 1;
+
+    // Save new snapshot
+    await tx.projectSnapshots.create({
+      projectId,
+      version: newVersion,
+      snapshot: yjsUpdate,
+      createdAt: new Date()
+    });
+
+    // Update project version
+    await tx.projects.update(projectId, {
+      currentVersion: newVersion
+    });
   });
 
-  return <FileTree documents={documents} />;
+  // This will unblock any waiting long-poll requests
 }
 ```
 
-### 3. Combined Polling Manager
+2. **Waiting Requests Unblock**:
+- All pending requests for this project check version
+- Return diff to clients that were waiting
 
-Coordinate multiple polling operations to avoid overwhelming the server.
+### 5. Turn Status Updates
+
+For Claude execution status, use a similar pattern:
+
+```http
+GET /api/sessions/{sessionId}/turns/{turnId}/updates?blockCount={clientBlockCount}
+```
 
 ```typescript
-// hooks/usePollingManager.ts
-class PollingManager {
-  private polls: Map<string, NodeJS.Timeout> = new Map();
-  private requestQueue: Array<() => Promise<void>> = [];
-  private maxConcurrent = 3;
-  private activeRequests = 0;
-
-  register(key: string, pollFn: () => Promise<void>, interval: number) {
-    // Deduplicate and manage polling intervals
-    // Queue requests if too many concurrent
-    // Automatic backoff on errors
-  }
-
-  unregister(key: string) {
-    // Clean up polling when component unmounts
-  }
-
-  pause() {
-    // Pause all polling (e.g., when tab is hidden)
-  }
-
-  resume() {
-    // Resume polling (e.g., when tab is visible)
-  }
+interface TurnUpdateResponse {
+  turnId: string;
+  status: 'pending' | 'running' | 'completed' | 'failed';
+  blocks: Block[]; // New blocks since clientBlockCount
+  hasMore: boolean;
 }
 
-// Global singleton
-export const pollingManager = new PollingManager();
-```
+// Long poll for turn updates
+async function getTurnUpdates(
+  turnId: string,
+  clientBlockCount: number,
+  timeout: number = 30000
+): Promise<TurnUpdateResponse> {
+  const turn = await db.turns.findById(turnId);
 
-## Implementation Strategy
+  // New blocks available - return immediately
+  if (turn.blocks.length > clientBlockCount) {
+    return {
+      turnId,
+      status: turn.status,
+      blocks: turn.blocks.slice(clientBlockCount),
+      hasMore: false
+    };
+  }
 
-### Backend Optimization
+  // Turn complete - return final status
+  if (turn.status === 'completed' || turn.status === 'failed') {
+    return {
+      turnId,
+      status: turn.status,
+      blocks: [],
+      hasMore: false
+    };
+  }
 
-1. **Efficient Status Endpoint**
-```typescript
-// GET /api/projects/{projectId}/sessions/{sessionId}/turns/{turnId}/status
-// Return minimal data for polling
-{
-  "status": "running",
-  "block_count": 3,
-  "last_updated": "2025-01-06T10:00:00Z"
+  // Wait for updates
+  return await waitForTurnUpdate(turnId, clientBlockCount, timeout);
 }
 ```
 
-2. **Batch Document Status**
-```typescript
-// POST /api/projects/{projectId}/files/status
-// Body: { "paths": ["file1.md", "file2.md"] }
-// Return only changed files
-{
-  "changes": [
-    {
-      "path": "file1.md",
-      "last_modified": "2025-01-06T10:00:00Z",
-      "version": 5
-    }
-  ]
-}
+## Advantages of This Approach
+
+1. **Efficiency**: No constant polling - server holds connection until update
+2. **Real-time**: Updates delivered immediately when available
+3. **Scalability**: Fewer requests than traditional polling
+4. **Reliability**: Version-based sync prevents lost updates
+5. **Simplicity**: No WebSocket complexity
+
+## Implementation Considerations
+
+### Connection Management
+
+1. **Timeout Handling**:
+- Server timeout: 30 seconds
+- Client timeout: 35 seconds (slightly longer)
+- Automatic reconnect on timeout
+
+2. **Error Recovery**:
+- Exponential backoff on errors
+- Version reset on sync failure
+- Full document reload as fallback
+
+### Performance Optimization
+
+1. **Snapshot Storage**:
+- Keep only recent snapshots (e.g., last 100 versions)
+- Periodic full snapshots for quick catchup
+- Compress snapshots with zlib
+
+2. **Diff Calculation**:
+- Cache frequently requested diffs
+- Batch multiple versions into single diff
+- Use YJS native diff format
+
+### Database Cleanup
+
+```sql
+-- Cleanup old snapshots (keep last 100 per project)
+DELETE FROM project_snapshots
+WHERE (project_id, version) NOT IN (
+  SELECT project_id, version
+  FROM project_snapshots
+  WHERE project_id = $1
+  ORDER BY version DESC
+  LIMIT 100
+);
 ```
-
-### Frontend Optimization
-
-1. **Intelligent Polling**
-- Start with 1s interval during active execution
-- Gradually increase to 5s after 30 seconds
-- Stop polling after 2 minutes timeout
-- Resume on user interaction
-
-2. **Request Deduplication**
-- Multiple components requesting same data share single poll
-- Cache results for 500ms to prevent duplicate requests
-
-3. **Error Handling**
-- Exponential backoff on errors (2s, 4s, 8s, 16s)
-- Max 5 retries before stopping
-- Clear error state on successful request
-
-### Performance Considerations
-
-1. **Network Efficiency**
-- Use ETags for document polling
-- Return 304 Not Modified when unchanged
-- Compress responses with gzip
-
-2. **Battery/CPU Optimization**
-- Pause polling when tab is not visible
-- Reduce frequency on mobile devices
-- Stop polling after user inactivity (5 minutes)
-
-3. **State Management**
-- Use React Query or SWR for caching
-- Optimistic updates for better UX
-- Invalidate cache on user actions
 
 ## Migration Path
 
-### Phase 1: Basic Implementation
-- Simple setInterval polling
-- No optimization
-- Direct API calls
+### Phase 1: Add Snapshot System
+1. Create `project_snapshots` table
+2. Add `current_version` to projects
+3. Start saving snapshots on updates
 
-### Phase 2: Optimization
-- Add PollingManager
-- Implement backoff
-- Request deduplication
+### Phase 2: Implement Long Polling
+1. Create `/updates` endpoint
+2. Implement version-based diff
+3. Add timeout handling
 
-### Phase 3: Advanced Features
-- WebSocket upgrade path (post-MVP)
-- Server-sent events option
-- Real-time collaboration
+### Phase 3: Frontend Integration
+1. Replace polling with long-poll hook
+2. Handle connection management
+3. Test error recovery
 
 ## Testing Strategy
 
-1. **Unit Tests**
-- Mock timers for polling intervals
-- Test backoff logic
-- Verify cleanup on unmount
+1. **Unit Tests**:
+- Version comparison logic
+- Diff calculation
+- Timeout handling
 
-2. **Integration Tests**
-- Test with real API endpoints
-- Verify state synchronization
-- Test error scenarios
+2. **Integration Tests**:
+- Multi-client sync
+- Network interruption recovery
+- Version conflict resolution
 
-3. **Performance Tests**
-- Monitor network requests
-- Check CPU usage
-- Measure battery impact
+3. **Load Tests**:
+- Many concurrent long-polls
+- Rapid update scenarios
+- Memory usage monitoring
 
-## Known Limitations
+## Comparison with Previous Approach
 
-1. **Polling Delay** - 2-3 second delay for updates
-2. **Network Load** - Continuous requests even when idle
-3. **Scale Limits** - Not suitable for >100 concurrent users
-
-## Post-MVP Improvements
-
-1. **WebSocket Upgrade** - Real-time bidirectional communication
-2. **Server-Sent Events** - One-way real-time updates
-3. **GraphQL Subscriptions** - Selective field updates
-4. **Push Notifications** - Background updates
+| Aspect | Old (Client Polling) | New (Long Polling) |
+|--------|---------------------|-------------------|
+| Requests/min | 20-30 per client | 2 per client |
+| Latency | 2-3 seconds | < 100ms |
+| Server Load | High | Low |
+| Complexity | Simple | Moderate |
+| Real-time | No | Yes |
