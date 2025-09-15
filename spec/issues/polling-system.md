@@ -65,18 +65,23 @@ GET /api/projects/{projectId}/updates?version={clientVersion}
 
 **Response:**
 
-```typescript
-interface UpdateResponse {
-  fromVersion: number;
-  toVersion: number;
-  operations: YjsDiffOperation[]; // YJS update operations
-  hasMore: boolean; // If client is multiple versions behind
-}
+- **Headers:**
+  - `Content-Type: application/octet-stream`
+  - `X-From-Version: {fromVersion}`
+  - `X-To-Version: {toVersion}`
+  - `X-Has-More: true/false` (if client needs to fetch more updates)
 
-interface YjsDiffOperation {
-  type: 'update' | 'delete' | 'insert';
-  data: Uint8Array; // YJS encoded operation
-}
+- **Body:** Binary YJS update data (combined diffs)
+
+```typescript
+// Client applies the binary diff directly
+const response = await fetch(`/api/projects/${projectId}/updates?version=${version}`);
+const fromVersion = response.headers.get('X-From-Version');
+const toVersion = response.headers.get('X-To-Version');
+const diffBinary = await response.arrayBuffer();
+
+// Apply to YJS document
+Y.applyUpdate(doc, new Uint8Array(diffBinary));
 ```
 
 #### Implementation
@@ -87,7 +92,7 @@ async function getProjectUpdates(
   projectId: string,
   clientVersion: number,
   timeout: number = 30000
-): Promise<UpdateResponse> {
+): Promise<Response> {
   const project = await db.projects.findById(projectId);
 
   // Client is behind - return diff immediately
@@ -98,20 +103,22 @@ async function getProjectUpdates(
       version: { gt: clientVersion, lte: project.currentVersion }
     });
 
-    // Combine all diff operations
-    const operations = diffs
+    // Combine all diff operations into single binary
+    const updates = diffs
       .filter(s => s.diff)
-      .map(s => ({
-        type: 'update' as const,
-        data: s.diff!
-      }));
+      .map(s => s.diff!);
 
-    return {
-      fromVersion: clientVersion,
-      toVersion: project.currentVersion,
-      operations,
-      hasMore: false
-    };
+    // Merge multiple updates into one
+    const mergedUpdate = Y.mergeUpdates(updates);
+
+    return new Response(mergedUpdate, {
+      headers: {
+        'Content-Type': 'application/octet-stream',
+        'X-From-Version': clientVersion.toString(),
+        'X-To-Version': project.currentVersion.toString(),
+        'X-Has-More': 'false'
+      }
+    });
   }
 
   // Client is current - wait for updates
@@ -128,7 +135,7 @@ async function waitForUpdate(
   projectId: string,
   clientVersion: number,
   timeout: number
-): Promise<UpdateResponse> {
+): Promise<Response> {
   const startTime = Date.now();
 
   while (Date.now() - startTime < timeout) {
@@ -142,13 +149,8 @@ async function waitForUpdate(
     }
   }
 
-  // Timeout - return empty response
-  return {
-    fromVersion: clientVersion,
-    toVersion: clientVersion,
-    operations: [],
-    hasMore: false
-  };
+  // Timeout - return 204 No Content
+  return new Response(null, { status: 204 });
 }
 ```
 
@@ -179,12 +181,18 @@ function useProjectSync(projectId: string) {
 
           if (!response.ok) throw new Error('Sync failed');
 
-          const update: UpdateResponse = await response.json();
+          if (response.status === 204) {
+            // No updates available (timeout)
+            continue;
+          }
 
-          if (update.operations.length > 0) {
-            // Apply YJS operations to local document
-            applyOperations(doc, update.operations);
-            setVersion(update.toVersion);
+          const toVersion = parseInt(response.headers.get('X-To-Version') || '0');
+          const diffBinary = await response.arrayBuffer();
+
+          if (diffBinary.byteLength > 0) {
+            // Apply YJS update directly
+            Y.applyUpdate(doc, new Uint8Array(diffBinary));
+            setVersion(toVersion);
           }
 
           setSyncing(false);

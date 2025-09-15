@@ -1,11 +1,11 @@
-import { setupTestDb, cleanupTestDb } from "./db-setup";
+import { setupFreshTestDb, cleanupFreshTestDb } from "./db-setup";
 
 export async function setup() {
-  console.log("Setting up test database...");
-  await setupTestDb();
+  console.log("Creating fresh test database...");
+  await setupFreshTestDb();
 }
 
 export async function teardown() {
-  console.log("Cleaning up test database...");
-  await cleanupTestDb();
+  console.log("Dropping test database...");
+  await cleanupFreshTestDb();
 }
