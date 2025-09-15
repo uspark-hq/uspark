@@ -38,7 +38,8 @@ export function initServices(): void {
       process.env.CLERK_SECRET_KEY = "sk_test_mock_secret_key_for_testing";
     }
     if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      process.env.BLOB_READ_WRITE_TOKEN = "vercel_blob_rw_test-store_secret-key";
+      process.env.BLOB_READ_WRITE_TOKEN =
+        "vercel_blob_rw_test-store_secret-key";
     }
     if (!process.env.GH_APP_ID) {
       process.env.GH_APP_ID = "test_github_app_id";
