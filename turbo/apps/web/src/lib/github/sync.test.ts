@@ -4,9 +4,6 @@ import * as Y from "yjs";
 import { initServices } from "../init-services";
 import { PROJECTS_TBL } from "../../db/schema/projects";
 import { githubRepos } from "../../db/schema/github";
-import { SESSIONS_TBL, TURNS_TBL, BLOCKS_TBL } from "../../db/schema/sessions";
-import { SHARE_LINKS_TBL } from "../../db/schema/share-links";
-import { AGENT_SESSIONS_TBL } from "../../db/schema/agent-sessions";
 import "../../test/msw-setup";
 
 // Note: Using real GitHub client with MSW mocking the API endpoints
