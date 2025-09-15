@@ -16,7 +16,8 @@ CREATE TABLE project_snapshots (
   id TEXT PRIMARY KEY NOT NULL,
   project_id TEXT NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   version INTEGER NOT NULL,
-  snapshot BYTEA NOT NULL, -- YJS state vector or full document
+  snapshot BYTEA NOT NULL, -- Full YJS document state at this version
+  diff BYTEA, -- YJS update operations from previous version (NULL for version 1)
   created_at TIMESTAMP DEFAULT NOW() NOT NULL,
   UNIQUE(project_id, version)
 );
@@ -34,7 +35,8 @@ interface ProjectSnapshot {
   id: string;
   projectId: string;
   version: number;
-  snapshot: Uint8Array; // YJS document state
+  snapshot: Uint8Array; // Full YJS document state
+  diff?: Uint8Array; // YJS update operations from version-1 to version
   createdAt: Date;
 }
 
@@ -90,16 +92,20 @@ async function getProjectUpdates(
 
   // Client is behind - return diff immediately
   if (clientVersion < project.currentVersion) {
-    const fromSnapshot = await db.projectSnapshots.findOne({
+    // Collect all diffs from clientVersion to currentVersion
+    const diffs = await db.projectSnapshots.findMany({
       projectId,
-      version: clientVersion
-    });
-    const toSnapshot = await db.projectSnapshots.findOne({
-      projectId,
-      version: project.currentVersion
+      version: { gt: clientVersion, lte: project.currentVersion }
     });
 
-    const operations = calculateYjsDiff(fromSnapshot, toSnapshot);
+    // Combine all diff operations
+    const operations = diffs
+      .filter(s => s.diff)
+      .map(s => ({
+        type: 'update' as const,
+        data: s.diff!
+      }));
+
     return {
       fromVersion: clientVersion,
       toVersion: project.currentVersion,
@@ -217,15 +223,31 @@ function useProjectSync(projectId: string) {
 ```typescript
 async function updateProject(projectId: string, yjsUpdate: Uint8Array) {
   await db.transaction(async (tx) => {
-    // Get current project
+    // Get current project and snapshot
     const project = await tx.projects.findById(projectId);
+    const previousSnapshot = project.currentVersion > 0
+      ? await tx.projectSnapshots.findOne({
+          projectId,
+          version: project.currentVersion
+        })
+      : null;
+
     const newVersion = project.currentVersion + 1;
 
-    // Save new snapshot
+    // Apply update to get new full state
+    const newDoc = new Y.Doc();
+    if (previousSnapshot) {
+      Y.applyUpdate(newDoc, previousSnapshot.snapshot);
+    }
+    Y.applyUpdate(newDoc, yjsUpdate);
+    const newSnapshot = Y.encodeStateAsUpdate(newDoc);
+
+    // Save new snapshot with diff
     await tx.projectSnapshots.create({
       projectId,
       version: newVersion,
-      snapshot: yjsUpdate,
+      snapshot: newSnapshot,
+      diff: yjsUpdate, // Store the actual update operations
       createdAt: new Date()
     });
 
@@ -318,13 +340,14 @@ async function getTurnUpdates(
 
 1. **Snapshot Storage**:
 - Keep only recent snapshots (e.g., last 100 versions)
-- Periodic full snapshots for quick catchup
-- Compress snapshots with zlib
+- Store both full snapshot and diff for efficient sync
+- Periodic consolidation: Every 50 versions, create a new base snapshot
+- Compress snapshots and diffs with zlib
 
-2. **Diff Calculation**:
-- Cache frequently requested diffs
-- Batch multiple versions into single diff
-- Use YJS native diff format
+2. **Diff Retrieval**:
+- No calculation needed - diffs are pre-stored
+- Combine multiple diffs when client is many versions behind
+- Direct YJS update operations, no conversion needed
 
 ### Database Cleanup
 
