@@ -1,81 +1,81 @@
-# User Story: Developer GitHub Sync
+# User Story: Solo Developer Managing AI Coding Projects
 
 ## Overview
 
-As a developer, I want to sync uSpark documents with GitHub repositories using standard git workflows, so that I can edit with my preferred tools while maintaining version control and team collaboration.
+As a solo developer using AI coding tools, I want uSpark to push project specs and documentation to my GitHub repository's `/specs` folder, so that all my AI tools can access consistent project context and I can track the evolution of my project's architecture.
 
 ## User Profile
 
-- **Role**: Software Developer / Technical Writer
-- **Tools**: VS Code, Cursor, Claude Code, or other preferred editors
+- **Role**: Solo Developer / Indie Hacker
+- **Tools**: Cursor, Windsurf, Claude Code, GitHub Copilot
 - **Pain Points**:
-  - Context switching between web editor and local IDE
-  - Unable to use familiar keyboard shortcuts and extensions
-  - Lack of version control for AI-generated content
-  - Difficulty integrating AI content into existing projects
+  - Each AI session starts from scratch, no project memory
+  - Context lost between different AI tools
+  - Hard to track what was planned vs what was built
+  - Technical debt accumulates without visibility
+  - Switching between projects loses all context
 
 ## Acceptance Criteria
 
-1. **GitHub Integration Setup**
+1. **GitHub Repository Integration**
 
-   - One-click GitHub OAuth authorization
-   - Automatic creation of dedicated docs repository (`{workspace}-docs`)
-   - No additional tools or CLI installation required
-   - Works with existing git installation
+   - Connect existing project repository (not a separate docs repo)
+   - uSpark pushes to `/specs` folder in the main repo
+   - Specs become part of project's version history
+   - Available to all AI tools that can read the repo
 
-2. **Bidirectional Sync**
+2. **Automatic Spec Generation**
 
-   - Web edits automatically commit and push to GitHub
-   - Git pushes automatically sync to uSpark (via webhooks)
-   - Sync completes within 5 seconds
-   - Full commit history preserved
+   - Task breakdowns saved as `tasks/feature-name.md`
+   - Architecture decisions saved as `architecture/decisions/ADR-xxx.md`
+   - Progress reports saved as `progress/YYYY-MM-DD.md`
+   - Technical debt tracked in `debt/registry.md`
 
-3. **Conflict Prevention**
+3. **Context Preservation**
 
-   - Web editor shows "Syncing..." when GitHub has newer commits
-   - Automatic pull before allowing new web edits
-   - Clear indication of sync status in UI
-   - No manual conflict resolution needed
+   - Each AI coding session starts with full project context
+   - Can ask "What was I working on?" and get accurate answer
+   - Previous attempts and failures documented
+   - Learn from what didn't work
 
-4. **Developer Experience**
+4. **Multi-Project Management**
 
-   - Standard git commands (clone, pull, push)
-   - Use any text editor or IDE
-   - Full offline editing support
-   - Batch operations support (grep, find, sed)
-   - Branch protection for main branch (optional)
+   - Switch between projects without losing context
+   - Each project maintains its own spec history
+   - Cross-project learnings can be applied
+   - Dashboard view of all active projects
 
 ## Example Workflow
 
-1. Developer connects GitHub account to uSpark
-2. uSpark creates `my-project-docs` repository
-3. Developer clones repository locally:
-   ```bash
-   git clone github.com/user/my-project-docs
-   cd my-project-docs
+1. Developer describes new feature: "Add real-time notifications"
+2. uSpark analyzes existing codebase, creates plan
+3. Pushes to repo:
    ```
-4. Opens PRD.md in VS Code, makes edits
-5. Commits and pushes changes:
-   ```bash
-   git commit -am "refine user requirements"
-   git push
+   /specs/tasks/real-time-notifications.md
+   /specs/architecture/decisions/ADR-004-websocket-vs-sse.md
    ```
-6. Changes appear in uSpark web UI within seconds
-7. Team can continue AI conversation based on updates
-8. All changes tracked in git history
+4. Developer opens Cursor, AI reads specs from repo
+5. Implements feature following the plan
+6. Commits code, uSpark analyzes changes
+7. Updates progress and identifies new debt:
+   ```
+   /specs/progress/2024-01-15.md
+   /specs/debt/registry.md (updated)
+   ```
+8. Next AI session has full context of what was built
 
 ## Technical Requirements
 
-- GitHub API integration for repository management
-- Webhook handlers for push events
-- Optimistic locking to prevent conflicts
-- Support for large documents (>1MB)
-- UTF-8 encoding for all markdown files
+- GitHub API for repository access and commits
+- Markdown formatting for all specs
+- Incremental updates (don't regenerate everything)
+- Respect .gitignore patterns
+- Support for monorepos and multiple projects
 
 ## Success Metrics
 
-- 90% of developers adopt GitHub sync within first week
-- Zero data loss during sync operations
-- Sync latency under 5 seconds for 95% of operations
-- Zero merge conflicts in normal usage
-- 100% compatibility with existing git tools
+- Context retention across sessions: 100%
+- Time to resume work after break: < 2 minutes
+- Technical debt visibility: All issues tracked
+- Project abandonment rate: < 20%
+- Cross-tool compatibility: Works with all major AI coding tools

@@ -1,54 +1,78 @@
-# User Story: Team Real-time Collaboration
+# User Story: Small Team Coordinating AI Development
 
 ## Overview
 
-As a team member, I want to collaborate with colleagues on AI-generated documents in real-time, so that we can build shared knowledge efficiently and maintain alignment across the team.
+As a technical team lead, I want to coordinate multiple developers using different AI coding tools, so that we build a coherent product architecture despite everyone working with AI assistance at different speeds and styles.
 
 ## User Profile
 
-- **Role**: Cross-functional team member (Designer, Developer, PM, etc.)
-- **Team Size**: 3-10 people working on the same project
+- **Role**: Technical Team Lead / Senior Developer
+- **Team Size**: 2-5 developers, all using AI tools
 - **Pain Points**:
-  - Knowledge silos between team members
-  - Difficulty tracking document changes
-  - Lost context when switching between chat and documents
+  - Each developer's AI generates different patterns
+  - Duplicate implementations of similar features
+  - Architecture drift from original design
+  - No visibility into what AI is building where
+  - Technical debt multiplies across team
 
 ## Acceptance Criteria
 
-1. **Real-time Collaboration**
+1. **Unified Task Distribution**
 
-   - See other users' cursors and selections
-   - Changes appear instantly for all viewers
-   - No conflicts or data loss during simultaneous editing
+   - Central task board with AI-ready prompts
+   - Each task has assigned owner and context
+   - No two developers working on overlapping code
+   - Clear dependencies between tasks
 
-2. **Collaborative AI Interaction**
+2. **Architecture Consistency**
 
-   - Any team member can continue AI conversation
-   - AI understands full document context and history
-   - Team can collectively refine documents through AI
+   - Shared architecture decisions in `/specs/architecture`
+   - AI prompts include architectural constraints
+   - Pattern library for common implementations
+   - Automatic detection of architecture violations
 
-3. **Change Visibility**
+3. **Progress Visibility**
 
-   - Clear indication of who made what changes
-   - Activity feed showing recent modifications
-   - Presence indicators for active collaborators
+   - Real-time view of what each developer is building
+   - Commit analysis shows actual vs planned progress
+   - Daily summary of changes across all repos
+   - Technical debt dashboard for entire team
 
-4. **Knowledge Persistence**
-   - All team interactions preserved
-   - Documents become team knowledge base
-   - Searchable across team workspace
+4. **Knowledge Sharing**
+
+   - Failed attempts documented for team learning
+   - Successful patterns become team templates
+   - Code review prep with architectural analysis
+   - Cross-pollination of good solutions
 
 ## Example Workflow
 
-1. PM creates initial product spec through AI conversation
-2. Designer joins and adds UI/UX considerations via chat
-3. Developer sees changes in real-time, adds technical constraints
-4. Team discusses implementation in comments
-5. AI helps refine based on collective input
-6. Final document reflects team consensus
+1. Lead describes feature: "We need user authentication with JWT"
+2. uSpark analyzes codebase and creates implementation plan
+3. Breaks into 3 parallel tasks:
+   - Backend: JWT token generation and validation
+   - Frontend: Login/logout UI components
+   - Database: User schema and session management
+4. Each developer gets personalized prompt with their context
+5. As commits come in, uSpark tracks progress:
+   - Backend dev finished early, helps with session management
+   - Frontend dev's AI used different state management, needs alignment
+   - Database implementation has security issue, flagged for review
+6. Daily standup automated: uSpark presents what was actually built
+7. Technical debt from all three parts consolidated and prioritized
+
+## Technical Requirements
+
+- Multi-repository support (backend, frontend, mobile)
+- Cross-repository dependency tracking
+- Unified commit analysis across team
+- Integration with GitHub pull requests
+- Support for different AI tool outputs
 
 ## Success Metrics
 
-- Increased document contribution from all team members
-- Faster decision-making through shared context
-- Knowledge retention improved across projects
+- Architecture consistency score: > 80%
+- Duplicate work eliminated: 0 overlapping implementations
+- Time to identify issues: Within same day
+- Technical debt per sprint: < 20% of new code
+- Team velocity: 2x compared to solo AI coding
