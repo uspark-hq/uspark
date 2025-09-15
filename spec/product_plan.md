@@ -25,9 +25,10 @@ AI Coding Practitioners (developers using Cursor/Windsurf/Claude Code):
 1. **Conversation System**: Natural language understanding and response generation
 2. **Document Engine**: Markdown document creation, editing, version control
 3. **Collaboration Layer**: Real-time multi-user collaboration based on YJS/CRDT
-4. **Sync System**:
-   - macOS File Provider Extension (Finder integration)
-   - `usync` command-line tool (cross-platform file sync)
+4. **GitHub Integration**:
+   - Pushes project specs and documentation to dedicated `/specs` folder in repo
+   - Maintains version history of all project decisions and plans
+   - Enables AI tools to access project context directly from repository
 
 ## **Data Storage**
 

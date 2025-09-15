@@ -36,9 +36,9 @@ uSpark analyzes commits to verify what was actually built vs planned, maintainin
 ## 🛠 Technical Stack
 
 - **Web App**: Next.js 15, PostgreSQL, YJS for real-time collaboration
-- **CLI Tool**: `usync` for local file synchronization
+- **GitHub Sync**: Pushes project specs to `/specs` folder in your repo
 - **Storage**: Content-addressed storage with S3, CRDT for collaboration
-- **Auth**: Clerk with device flow for CLI
+- **Auth**: Clerk for authentication
 
 ## 🚀 Quick Start
 
@@ -62,7 +62,7 @@ pnpm dev
 turbo/                    # Monorepo workspace
 ├── apps/
 │   ├── web/           # Main web application
-│   ├── cli/           # usync CLI tool
+│   ├── cli/           # (deprecated - to be removed)
 │   └── docs/          # Documentation
 ├── packages/          # Shared packages
 └── e2e/              # End-to-end tests
