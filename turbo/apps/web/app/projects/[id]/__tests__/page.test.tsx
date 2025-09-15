@@ -1,3 +1,4 @@
+import React from "react";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { useParams } from "next/navigation";
