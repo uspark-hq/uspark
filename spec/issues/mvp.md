@@ -2,15 +2,15 @@
 
 ## Overview
 
-This document defines the mid-term goals and user stories for the MVP release of Uspark. The MVP focuses on delivering core functionality for GitHub one-way synchronization (Web → GitHub), AI-assisted editing, and document sharing.
+This document defines the mid-term goals and user stories for the MVP release of Uspark. The MVP focuses on validating the core technical pipeline: managing AI coding projects through structured documents (tasks, specs, technical debt) that are edited via Claude Code in E2B containers and synced to GitHub for use by external AI coding tools.
 
 ## User Stories
 
 ### Story 1: GitHub One-Way Synchronization (For Human Users)
 
-**As a** developer  
-**I want to** push uSpark documents to GitHub repositories  
-**So that** I can backup my work and share it with team members who prefer GitHub
+**As a** technical CEO/founder or developer
+**I want to** push uSpark documents to GitHub repositories
+**So that** AI coding tools can access project context and specs from the repository
 
 #### Acceptance Criteria
 
@@ -42,9 +42,9 @@ This document defines the mid-term goals and user stories for the MVP release of
 
 ### Story 1b: uSpark CLI for E2B Container Synchronization (For AI Agents)
 
-**As an** AI agent running in E2B container  
-**I want to** use uspark CLI to sync project files between container and uSpark  
-**So that** I can modify files and have changes automatically reflected in the main project
+**As** Claude Code running in E2B container
+**I want to** use uspark CLI to sync project files between container and uSpark
+**So that** I can analyze and modify project management documents based on user prompts
 
 #### Acceptance Criteria
 
@@ -65,9 +65,9 @@ This document defines the mid-term goals and user stories for the MVP release of
 
 ### Story 2: Web-based AI Document Editing
 
-**As a** regular user  
-**I want to** access my project documents in a web interface and use Claude Code via a chat input  
-**So that** I can collaborate with AI to modify documents
+**As a** technical founder/developer
+**I want to** access my project documents in a web interface and use Claude Code via a chat input
+**So that** I can generate tasks, technical specs, and manage my AI coding workflow
 
 #### Acceptance Criteria
 
@@ -86,27 +86,26 @@ This document defines the mid-term goals and user stories for the MVP release of
 - Queue system for managing Claude tasks
 - Audit logging for all AI operations
 
-### Story 3: Document Sharing via Public Links
+### Story 3: Task Generation and AI Control (NEW MVP FOCUS)
 
-**As a** regular user  
-**I want to** create shareable links for my documents  
-**So that** others can view my document content
+**As a** technical founder using AI coding tools
+**I want to** generate structured tasks with prompts that control Claude Code
+**So that** I can orchestrate my AI coding workflow efficiently
 
 #### Acceptance Criteria
 
-- [x] "Share" button on document viewer ✅
-- [x] Generate unique, unguessable share links ✅
-- [x] View-only access for shared documents ✅
-- [x] Share entire project or individual files ✅ (individual files)
-- [x] Public preview page with clean UI ✅
+- [ ] Predefined prompt templates for common tasks (e.g., "Analyze codebase", "Generate task breakdown")
+- [ ] One-click prompt insertion into chat interface
+- [ ] Task documents automatically created from AI responses
+- [ ] Generated prompts optimized for Claude Code execution
+- [ ] Progress tracking as tasks are completed
 
 #### Technical Requirements
 
-- Secure token generation for share links
-- Public routes bypassing authentication
-- Read-only document rendering
-- Share link management database schema
-- Rate limiting for public endpoints
+- Prompt template system with variable substitution
+- Task document generation from Claude responses
+- Integration between task documents and Claude execution
+- Status tracking for task completion
 
 ## Implementation Priorities
 
@@ -157,46 +156,14 @@ This document defines the mid-term goals and user stories for the MVP release of
 7. [ ] Document change detection via YJS polling ❌
 8. [ ] AWS Bedrock STS token generation for E2B Claude Code tasks ❌
 
-### Phase 5: Sharing Features (Story 3)
+### Phase 5: Task Generation Pipeline (Story 3)
 
-1. ✅ Share link generation API
-2. ✅ Public document access API
-3. [x] Share management interface ✅
-4. ✅ Public document viewer page
+1. [ ] Prompt template library ("Analyze Architecture", "Break Down Feature", "Review Technical Debt")
+2. [ ] Template variable system (project context injection)
+3. [ ] Task document auto-generation from Claude responses
+4. [ ] Task → Claude Code execution pipeline
+5. [ ] Progress tracking system
 
-## Out of Scope for MVP
-
-The following features are explicitly excluded from the MVP:
-
-1. **Collaboration Features**
-
-   - Real-time collaborative editing
-   - User comments and annotations
-   - Change attribution and history
-
-2. **Advanced AI Features**
-
-   - Custom AI model selection
-   - Fine-tuning or training
-   - AI cost tracking and limits
-
-3. **Enterprise Features**
-
-   - Team workspaces
-   - Role-based access control
-   - SSO/SAML integration
-   - Audit logs export
-
-4. **Advanced Sync Features**
-
-   - Selective sync filters
-   - Bandwidth throttling
-   - Offline mode with queue
-
-5. **Payment & Billing**
-   - Subscription management
-   - Usage-based pricing
-   - Payment processing
 
 ## Technical Debt Status (Updated 2025-01-12)
 
@@ -229,23 +196,36 @@ The MVP is considered complete when:
 
 ## Next Steps After MVP
 
-Post-MVP priorities (not in scope for current release):
+Post-MVP priorities aligned with AI coding management:
 
-1. Team collaboration features
-2. Advanced AI capabilities
-3. Enterprise security features
-4. Performance optimizations
-5. Mobile applications
-6. API for third-party integrations
+1. **Task → Claude Code Pipeline Optimization**
+   - Advanced prompt engineering for different AI tools
+   - Task dependency management
+   - Automated task sequencing
+
+2. **Project Analysis Features**
+   - Codebase architecture analysis
+   - Technical debt scoring
+   - Progress vs plan tracking
+
+3. **Multi-Tool Support**
+   - Cursor integration
+   - Windsurf integration
+   - GitHub Copilot Workspace integration
+
+4. **Team Coordination**
+   - Task assignment and tracking
+   - Architecture consistency checks
+   - Unified technical debt dashboard
 
 ## Implementation Status Summary (2025-01-13)
 
-### Overall Completion: ~80%
+### Overall Completion: ~65%
 
 #### ✅ Completed Features (Working)
 - **Story 1 (GitHub)**: 100% - All MVP requirements completed ✅
 - **Story 1b (CLI)**: 85% - All CLI commands working, E2B container partially configured
-- **Story 3 (Sharing)**: 100% - Fully implemented with management interface
+- **Story 3 (Task Generation)**: 0% - New focus, not yet implemented
 
 #### 🟡 Partially Completed
 - **Story 2 (Web UI)**: 65% - UI complete, Claude sessions schema done, APIs missing
@@ -263,10 +243,10 @@ Post-MVP priorities (not in scope for current release):
 - **E2B integration partial** - watch-claude works but container setup incomplete
 
 ### Recommended Next Steps
-1. **Immediate**: Re-implement frontend components (useSessionPolling, display components)
-2. **Week 1**: Complete E2B container Claude CLI configuration
-3. **Week 2**: Integrate new polling system for real-time updates
-4. **Week 3**: Implement Session/Turn/Block API endpoints
+1. **Immediate**: Complete E2B container setup with uspark CLI
+2. **Week 1**: Implement prompt template system
+3. **Week 2**: Build task → Claude Code execution pipeline
+4. **Week 3**: Test end-to-end workflow with real projects
 
 ## Dependencies
 
