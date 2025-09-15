@@ -228,11 +228,17 @@ POST /api/projects/{projectId}/sessions/{sessionId}/interrupt
 
 ### 2. Turns 管理
 
-#### 创建新的对话轮次
+#### 创建新的对话轮次（调用 E2B 中的 Claude Code）
 
 ```http
 POST /api/projects/{projectId}/sessions/{sessionId}/turns
 ```
+
+**关键点**: 这个 API 是与 E2B 集成的核心接口
+- 创建 Turn 记录
+- **直接调用 E2B 容器中的 Claude Code**
+- 将 Claude 响应解析为 Blocks
+- 返回 Turn ID 供前端轮询
 
 请求体：
 

@@ -4,9 +4,6 @@ import * as Y from "yjs";
 import { initServices } from "../init-services";
 import { PROJECTS_TBL } from "../../db/schema/projects";
 import { githubRepos } from "../../db/schema/github";
-import { SESSIONS_TBL, TURNS_TBL, BLOCKS_TBL } from "../../db/schema/sessions";
-import { SHARE_LINKS_TBL } from "../../db/schema/share-links";
-import { AGENT_SESSIONS_TBL } from "../../db/schema/agent-sessions";
 import "../../test/msw-setup";
 
 // Note: Using real GitHub client with MSW mocking the API endpoints
@@ -41,15 +38,8 @@ describe("GitHub Sync", () => {
     // Initialize real services (will use test database)
     initServices();
 
-    // Clean up test data in correct order (child tables first)
-    const db = globalThis.services.db;
-    await db.delete(BLOCKS_TBL);
-    await db.delete(TURNS_TBL);
-    await db.delete(SESSIONS_TBL);
-    await db.delete(SHARE_LINKS_TBL);
-    await db.delete(AGENT_SESSIONS_TBL);
-    await db.delete(githubRepos);
-    await db.delete(PROJECTS_TBL);
+    // Clean up test data - no need since we're using fresh database
+    // Each test run gets a completely new database
   });
 
   describe("syncProjectToGitHub", () => {
@@ -109,7 +99,7 @@ describe("GitHub Sync", () => {
     });
 
     it("should return error when user is not authorized", async () => {
-      const projectId = "123e4567-e89b-12d3-a456-426614174000";
+      const projectId = "auth-test-" + Date.now() + "-" + Math.random();
       const userId = "user_123";
       const otherUserId = "user_456";
       const db = globalThis.services.db;
@@ -135,7 +125,7 @@ describe("GitHub Sync", () => {
     });
 
     it("should return error when repository not linked", async () => {
-      const projectId = "123e4567-e89b-12d3-a456-426614174000";
+      const projectId = "nolink-test-" + Date.now() + "-" + Math.random();
       const userId = "user_123";
       const db = globalThis.services.db;
 
@@ -160,7 +150,7 @@ describe("GitHub Sync", () => {
     });
 
     it("should return error when no files to sync", async () => {
-      const projectId = "123e4567-e89b-12d3-a456-426614174000";
+      const projectId = "nofiles-test-" + Date.now() + "-" + Math.random();
       const userId = "user_123";
       const db = globalThis.services.db;
 
@@ -193,7 +183,7 @@ describe("GitHub Sync", () => {
     });
 
     it("should throw error when blob storage not configured", async () => {
-      const projectId = "123e4567-e89b-12d3-a456-426614174000";
+      const projectId = "noblob-test-" + Date.now() + "-" + Math.random();
       const userId = "user_123";
       const db = globalThis.services.db;
 
@@ -238,7 +228,7 @@ describe("GitHub Sync", () => {
 
   describe("getSyncStatus", () => {
     it("should return linked status when repository exists", async () => {
-      const projectId = "123e4567-e89b-12d3-a456-426614174000";
+      const projectId = "linked-test-" + Date.now() + "-" + Math.random();
       const db = globalThis.services.db;
 
       // Insert test repository link
@@ -273,7 +263,7 @@ describe("GitHub Sync", () => {
   describe("extractFilesFromYDoc", () => {
     it("should extract files correctly from YDoc data", async () => {
       // This tests the YDoc parsing logic directly with real YDoc operations
-      const projectId = "123e4567-e89b-12d3-a456-426614174000";
+      const projectId = "extract-test-" + Date.now() + "-" + Math.random();
       const userId = "user_123";
       const db = globalThis.services.db;
 
