@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.22.4](https://github.com/uspark-hq/uspark/compare/web-v0.22.3...web-v0.22.4) (2025-09-15)
+
+
+### Bug Fixes
+
+* resolve test failures from environment setup and React imports ([#297](https://github.com/uspark-hq/uspark/issues/297)) ([1c3bb7a](https://github.com/uspark-hq/uspark/commit/1c3bb7adee1da8bf29e88aa4fedab9969b3f5639))
+* use correct GitHub API endpoint for repository creation based on account type ([#291](https://github.com/uspark-hq/uspark/issues/291)) ([3744acc](https://github.com/uspark-hq/uspark/commit/3744accac93285361d795a9188814dd1dc9c8e7f))
+
 ## [0.22.3](https://github.com/uspark-hq/uspark/compare/web-v0.22.2...web-v0.22.3) (2025-09-14)
 
 
