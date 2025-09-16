@@ -1,8 +1,4 @@
 import "@testing-library/jest-dom/vitest";
-import React from "react";
-
-// Make React available globally for all tests
-globalThis.React = React;
 
 // Polyfill URL.createObjectURL and URL.revokeObjectURL for jsdom
 // jsdom doesn't support these APIs by default

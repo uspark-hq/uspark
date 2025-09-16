@@ -36,6 +36,7 @@ export default defineConfig({
     projects: [
       // CLI Application - Node environment
       {
+        extends: false, // No need for React plugin
         test: {
           name: "cli",
           root: "./apps/cli",
@@ -47,6 +48,7 @@ export default defineConfig({
 
       // Core Package - Node environment with MSW
       {
+        extends: false, // No need for React plugin
         test: {
           name: "core",
           root: "./packages/core",
@@ -58,6 +60,7 @@ export default defineConfig({
 
       // Web Application - Mixed environments
       {
+        extends: true, // Inherit React plugin from root
         test: {
           name: "web",
           root: "./apps/web",
@@ -80,6 +83,7 @@ export default defineConfig({
 
       // UI Package - Happy-DOM environment (faster than jsdom)
       {
+        extends: true, // Inherit React plugin from root
         test: {
           name: "ui",
           root: "./packages/ui",
