@@ -109,11 +109,27 @@ global.fetch = async (url: string | URL | Request, init?: RequestInit) => {
     }
   }
 
+  // Handle blob token requests
+  if (urlStr.includes("/blob-token")) {
+    return new Response(
+      JSON.stringify({
+        token: "mock-blob-token",
+        expiresAt: new Date(Date.now() + 3600000).toISOString(),
+        uploadUrl: "http://localhost:3000/api/blobs/upload",
+        downloadUrlPrefix: "http://localhost:3000/api/blobs",
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+
   // Handle blob requests
   if (urlStr.includes("/api/blobs/")) {
-    const match = urlStr.match(/\/api\/blobs\/([^/]+)/);
-    if (match && match[1]) {
-      const hash = match[1];
+    const match = urlStr.match(/projects\/([^/]+)\/([^/]+)$/);
+    if (match && match[2]) {
+      const hash = match[2];
       const content = mockServer.getBlobContent(hash);
 
       if (content !== undefined) {
