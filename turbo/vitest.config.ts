@@ -1,6 +1,5 @@
 import { defineConfig } from "vitest/config";
 import react from "@vitejs/plugin-react";
-import { resolve } from "path";
 
 /**
  * Vitest Projects configuration for monorepo
@@ -91,13 +90,5 @@ export default defineConfig({
         },
       },
     ],
-  },
-
-  // Resolve aliases for Web and UI packages
-  resolve: {
-    alias: {
-      "~": resolve(__dirname, "./apps/web/src"),
-      "@": resolve(__dirname, "./packages/ui/src"),
-    },
   },
 });
