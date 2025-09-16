@@ -41,7 +41,7 @@ export default defineConfig({
           root: "./apps/cli",
           globals: true,
           environment: "node",
-          setupFiles: ["./apps/cli/src/test/setup.ts"],
+          setupFiles: ["./src/test/setup.ts"],
         },
       },
 
@@ -52,7 +52,7 @@ export default defineConfig({
           root: "./packages/core",
           globals: true,
           environment: "node",
-          setupFiles: ["./packages/core/src/test/msw-setup.ts"],
+          setupFiles: ["./src/test/msw-setup.ts"],
         },
       },
 
@@ -62,11 +62,8 @@ export default defineConfig({
           name: "web",
           root: "./apps/web",
           globals: true,
-          setupFiles: [
-            "./apps/web/src/test/setup.ts",
-            "./apps/web/src/test/db-setup.ts",
-          ],
-          globalSetup: "./apps/web/src/test/global-setup.ts",
+          setupFiles: ["./src/test/setup.ts", "./src/test/db-setup.ts"],
+          globalSetup: "./src/test/global-setup.ts",
           environmentMatchGlobs: [
             // Use Node environment for API route tests
             ["app/api/**/*.test.ts", "node"],
@@ -88,7 +85,7 @@ export default defineConfig({
           root: "./packages/ui",
           globals: true,
           environment: "happy-dom",
-          setupFiles: ["./packages/ui/src/test/setup.ts"],
+          setupFiles: ["./src/test/setup.ts"],
         },
       },
     ],
