@@ -7,7 +7,6 @@ import react from "@vitejs/plugin-react";
  */
 export default defineConfig({
   test: {
-    globals: true,
     passWithNoTests: true,
 
     // Coverage configuration (only at root level)
@@ -38,7 +37,6 @@ export default defineConfig({
         test: {
           name: "cli",
           root: "./apps/cli",
-          globals: true,
           environment: "node",
           setupFiles: ["./src/test/setup.ts"],
         },
@@ -49,7 +47,6 @@ export default defineConfig({
         test: {
           name: "core",
           root: "./packages/core",
-          globals: true,
           environment: "node",
           setupFiles: ["./src/test/msw-setup.ts"],
         },
@@ -61,7 +58,6 @@ export default defineConfig({
         test: {
           name: "web",
           root: "./apps/web",
-          globals: true,
           setupFiles: ["./src/test/setup.ts", "./src/test/db-setup.ts"],
           globalSetup: "./src/test/global-setup.ts",
           environmentMatchGlobs: [
@@ -84,7 +80,6 @@ export default defineConfig({
         test: {
           name: "ui",
           root: "./packages/ui",
-          globals: true,
           environment: "happy-dom",
           setupFiles: ["./src/test/setup.ts"],
         },
