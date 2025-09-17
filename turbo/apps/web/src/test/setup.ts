@@ -1,4 +1,13 @@
-import "@testing-library/jest-dom/vitest";
+import { expect, afterEach } from "vitest";
+import * as matchers from "@testing-library/jest-dom/matchers";
+import { cleanup } from "@testing-library/react";
+
+expect.extend(matchers);
+
+// Cleanup after each test when globals is disabled
+afterEach(() => {
+  cleanup();
+});
 
 // Polyfill URL.createObjectURL and URL.revokeObjectURL for jsdom
 // jsdom doesn't support these APIs by default
