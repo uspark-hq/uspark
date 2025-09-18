@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.24.0](https://github.com/uspark-hq/uspark/compare/web-v0.23.0...web-v0.24.0) (2025-09-18)
+
+
+### Features
+
+* add mock claude executor for testing execution flow ([#309](https://github.com/uspark-hq/uspark/issues/309)) ([515860a](https://github.com/uspark-hq/uspark/commit/515860a95f11a1434293b418f1bcbc23d0822347))
+
+
+### Bug Fixes
+
+* add detailed error logging for github repository creation ([#311](https://github.com/uspark-hq/uspark/issues/311)) ([efac93d](https://github.com/uspark-hq/uspark/commit/efac93de4afa86d52764c0dd1f2c314dc562a252))
+
 ## [0.23.0](https://github.com/uspark-hq/uspark/compare/web-v0.22.4...web-v0.23.0) (2025-09-18)
 
 
