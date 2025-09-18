@@ -1,8 +1,24 @@
 FROM node:22-slim
 
+# Install basic tools
+RUN apt-get update && apt-get install -y git curl
+
 # Install Claude Code CLI globally
 RUN npm install -g @anthropic-ai/claude-code
 
-RUN claude --version
+# Install uspark CLI globally
+RUN npm install -g @uspark/cli
 
+# Verify installations
+RUN claude --version
+RUN uspark --version
+
+# Create workspace directory
 WORKDIR /workspace
+
+# Add initialization script
+COPY init.sh /usr/local/bin/init.sh
+RUN chmod +x /usr/local/bin/init.sh
+
+# Set entrypoint to initialization script
+ENTRYPOINT ["/usr/local/bin/init.sh"]
