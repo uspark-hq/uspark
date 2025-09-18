@@ -166,9 +166,9 @@ export function BlockDisplay({ block }: BlockProps) {
                   overflow: "auto",
                 }}
               >
-                {block.content?.error
-                  ? `Error: ${block.content.error}`
-                  : block.content?.result || "No result"}
+                {(block.content?.error as string)
+                  ? `Error: ${block.content.error as string}`
+                  : (block.content?.result as string) || "No result"}
               </div>
             )}
           </div>
