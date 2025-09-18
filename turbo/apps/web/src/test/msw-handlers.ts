@@ -242,19 +242,25 @@ const projectsHandlers = [
   }),
 
   // GET /api/projects/:projectId/sessions/:sessionId/turns/:turnId - Get turn with blocks
-  http.get("*/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
-    return HttpResponse.json({
-      blocks: [],
-    });
-  }),
+  http.get(
+    "*/api/projects/:projectId/sessions/:sessionId/turns/:turnId",
+    () => {
+      return HttpResponse.json({
+        blocks: [],
+      });
+    },
+  ),
 
   // POST /api/projects/:projectId/sessions/:sessionId/mock-execute - Mock execute
-  http.post("*/api/projects/:projectId/sessions/:sessionId/mock-execute", () => {
-    return HttpResponse.json({
-      turn_id: `turn-${Date.now()}`,
-      status: "success",
-    });
-  }),
+  http.post(
+    "*/api/projects/:projectId/sessions/:sessionId/mock-execute",
+    () => {
+      return HttpResponse.json({
+        turn_id: `turn-${Date.now()}`,
+        status: "success",
+      });
+    },
+  ),
 
   // POST /api/projects/:projectId/sessions/:sessionId/interrupt - Interrupt session
   http.post("*/api/projects/:projectId/sessions/:sessionId/interrupt", () => {

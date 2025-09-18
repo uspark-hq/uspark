@@ -6,19 +6,15 @@ import { useSessionPolling } from "../use-session-polling";
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
-// Mock timers
-vi.useFakeTimers();
-
 describe("useSessionPolling", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.clearAllTimers();
+    vi.useFakeTimers();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
-    vi.runOnlyPendingTimers();
     vi.useRealTimers();
+    vi.restoreAllMocks();
   });
 
   it("should not start polling without sessionId", () => {
@@ -56,6 +52,9 @@ describe("useSessionPolling", () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
         "/api/projects/project-1/sessions/session-1/turns",
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+        }),
       );
     });
 
@@ -101,6 +100,9 @@ describe("useSessionPolling", () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
         "/api/projects/project-1/sessions/session-1/turns/turn-1",
+        expect.objectContaining({
+          signal: expect.any(AbortSignal),
+        }),
       );
     });
 
@@ -194,15 +196,10 @@ describe("useSessionPolling", () => {
       },
     ];
 
-    mockFetch
-      .mockResolvedValue({
-        ok: true,
-        json: async () => ({ turns: mockActiveTurns, blocks: [] }),
-      })
-      .mockResolvedValue({
-        ok: true,
-        json: async () => ({ blocks: [] }),
-      });
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ turns: mockActiveTurns, blocks: [] }),
+    });
 
     renderHook(() => useSessionPolling("project-1", "session-1"));
 
@@ -214,7 +211,7 @@ describe("useSessionPolling", () => {
     // Fast forward 1 second (should trigger poll for active turns)
     vi.advanceTimersByTime(1000);
 
-    await waitFor(() => {
+    await vi.waitFor(() => {
       expect(mockFetch).toHaveBeenCalledTimes(4); // Initial + one poll cycle
     });
   });
@@ -231,15 +228,10 @@ describe("useSessionPolling", () => {
       },
     ];
 
-    mockFetch
-      .mockResolvedValue({
-        ok: true,
-        json: async () => ({ turns: mockInactiveTurns, blocks: [] }),
-      })
-      .mockResolvedValue({
-        ok: true,
-        json: async () => ({ blocks: [] }),
-      });
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ turns: mockInactiveTurns, blocks: [] }),
+    });
 
     renderHook(() => useSessionPolling("project-1", "session-1"));
 
@@ -254,7 +246,7 @@ describe("useSessionPolling", () => {
     // Fast forward 4 more seconds (total 5 seconds, should trigger poll)
     vi.advanceTimersByTime(4000);
 
-    await waitFor(() => {
+    await vi.waitFor(() => {
       expect(mockFetch).toHaveBeenCalledTimes(4);
     });
   });
@@ -319,7 +311,7 @@ describe("useSessionPolling", () => {
     // Advance 1 second - should poll because turn is active
     vi.advanceTimersByTime(1000);
 
-    await waitFor(() => {
+    await vi.waitFor(() => {
       expect(mockFetch).toHaveBeenCalledTimes(4);
     });
 
@@ -331,7 +323,7 @@ describe("useSessionPolling", () => {
     // Advance 4 more seconds (total 5) - should poll
     vi.advanceTimersByTime(4000);
 
-    await waitFor(() => {
+    await vi.waitFor(() => {
       expect(mockFetch).toHaveBeenCalledTimes(6);
     });
   });

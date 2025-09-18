@@ -97,9 +97,7 @@ describe("Project Detail Page", () => {
 
     // Chat Input section
     expect(
-      screen.getByPlaceholderText(
-        "Ask Claude to help with your code...",
-      ),
+      screen.getByPlaceholderText("Ask Claude to help with your code..."),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Send" })).toBeInTheDocument();
   });
