@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.0](https://github.com/uspark-hq/uspark/compare/web-v0.22.4...web-v0.23.0) (2025-09-18)
+
+
+### Features
+
+* implement session API endpoints for claude execution ([#305](https://github.com/uspark-hq/uspark/issues/305)) ([a6d02af](https://github.com/uspark-hq/uspark/commit/a6d02af8e4e4d1316aa7402e20f3beea3d6c92e3))
+
 ## [0.22.4](https://github.com/uspark-hq/uspark/compare/web-v0.22.3...web-v0.22.4) (2025-09-15)
 
 
