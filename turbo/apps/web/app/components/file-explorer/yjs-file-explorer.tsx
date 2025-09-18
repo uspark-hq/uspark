@@ -37,14 +37,18 @@ export function YjsFileExplorer({
 
   useEffect(() => {
     async function loadProjectFiles(isInitialLoad = false) {
-      setProjectData((prev) => ({ ...prev, loading: isInitialLoad || prev.files.length === 0, error: undefined }));
+      setProjectData((prev) => ({
+        ...prev,
+        loading: isInitialLoad || prev.files.length === 0,
+        error: undefined,
+      }));
 
       try {
         // Fetch YJS document from the API
         const response = await fetch(`/api/projects/${projectId}`, {
           headers: {
-            'Cache-Control': 'no-cache',
-          }
+            "Cache-Control": "no-cache",
+          },
         });
 
         if (!response.ok) {

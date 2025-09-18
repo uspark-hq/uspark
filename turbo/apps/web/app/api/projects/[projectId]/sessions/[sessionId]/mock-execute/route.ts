@@ -92,9 +92,11 @@ export async function POST(
   }
 
   // Start async mock execution
-  executeMockClaudeAsync(turnId, projectId, userId, user_message).catch((error) => {
-    console.error("Mock execution failed:", error);
-  });
+  executeMockClaudeAsync(turnId, projectId, userId, user_message).catch(
+    (error) => {
+      console.error("Mock execution failed:", error);
+    },
+  );
 
   return NextResponse.json({
     id: newTurn.id,
@@ -106,7 +108,12 @@ export async function POST(
   });
 }
 
-async function executeMockClaudeAsync(turnId: string, projectId: string, userId: string, userMessage: string) {
+async function executeMockClaudeAsync(
+  turnId: string,
+  projectId: string,
+  userId: string,
+  userMessage: string,
+) {
   try {
     // Update status to in_progress
     await globalThis.services.db
@@ -131,11 +138,13 @@ async function executeMockClaudeAsync(turnId: string, projectId: string, userId:
       }
 
       // Check if this is a write_file tool use and should actually write to YJS
-      if (mockBlock.type === "tool_use" &&
-          mockBlock.content.tool_name === "write_file" &&
-          (userMessage.toLowerCase().includes("readme") ||
-           userMessage.toLowerCase().includes("document") ||
-           userMessage.toLowerCase().includes("create file"))) {
+      if (
+        mockBlock.type === "tool_use" &&
+        mockBlock.content.tool_name === "write_file" &&
+        (userMessage.toLowerCase().includes("readme") ||
+          userMessage.toLowerCase().includes("document") ||
+          userMessage.toLowerCase().includes("create file"))
+      ) {
         shouldWriteFile = true;
       }
 
@@ -149,10 +158,16 @@ async function executeMockClaudeAsync(turnId: string, projectId: string, userId:
       });
 
       // Actually write file to YJS if this is a write_file tool_use
-      if (shouldWriteFile && mockBlock.type === "tool_use" &&
-          mockBlock.content.tool_name === "write_file") {
+      if (
+        shouldWriteFile &&
+        mockBlock.type === "tool_use" &&
+        mockBlock.content.tool_name === "write_file"
+      ) {
         try {
-          const params = mockBlock.content.parameters as { path: string; content: string };
+          const params = mockBlock.content.parameters as {
+            path: string;
+            content: string;
+          };
           await writeFileToYjs(projectId, userId, params.path, params.content);
 
           // Update the following tool_result block to reflect successful YJS write
@@ -261,7 +276,11 @@ function generateMockBlocks(userMessage: string): MockBlock[] {
     ];
   }
 
-  if (lowerMessage.includes("readme") || lowerMessage.includes("document") || lowerMessage.includes("create file")) {
+  if (
+    lowerMessage.includes("readme") ||
+    lowerMessage.includes("document") ||
+    lowerMessage.includes("create file")
+  ) {
     return [
       {
         type: "thinking",

@@ -94,8 +94,6 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
     }
   };
 
-
-
   return (
     <div
       style={{

@@ -50,9 +50,13 @@ export async function writeFileToYjs(
 
   // Upload content to blob storage
   const contentBuffer = Buffer.from(content, "utf-8");
-  const blob = await put(`projects/${projectId}/${Date.now()}-${filePath.replace(/\//g, "-")}`, contentBuffer, {
-    access: "public",
-  });
+  const blob = await put(
+    `projects/${projectId}/${Date.now()}-${filePath.replace(/\//g, "-")}`,
+    contentBuffer,
+    {
+      access: "public",
+    },
+  );
 
   // Create file metadata
   const fileNode: FileNode = {
@@ -83,4 +87,3 @@ export async function writeFileToYjs(
     })
     .where(eq(PROJECTS_TBL.id, projectId));
 }
-

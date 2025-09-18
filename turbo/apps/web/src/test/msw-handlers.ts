@@ -262,7 +262,6 @@ const projectsHandlers = [
     },
   ),
 
-
   // GitHub repository endpoint for project page
   http.get("*/api/projects/:projectId/github/repository", () => {
     return HttpResponse.json({
