@@ -114,11 +114,15 @@ export async function createProjectRepository(
       accountType: installation.account?.type,
       accountLogin: installation.account?.login,
       repoName,
-      error
+      error,
     });
 
     if (error instanceof Error && "status" in error) {
-      const githubError = error as { status: number; message: string; response?: { data?: unknown } };
+      const githubError = error as {
+        status: number;
+        message: string;
+        response?: { data?: unknown };
+      };
 
       // 404 can mean either wrong endpoint or missing permissions
       if (githubError.status === 404) {
@@ -126,10 +130,12 @@ export async function createProjectRepository(
           // For user accounts, this might be a GitHub App limitation
           throw new Error(
             `Cannot create repository for user account. GitHub Apps may have limited permissions for personal accounts. ` +
-            `Please ensure: 1) The GitHub App is installed on your personal account, 2) The App has 'Administration: write' and 'Contents: write' permissions for repositories.`
+              `Please ensure: 1) The GitHub App is installed on your personal account, 2) The App has 'Administration: write' and 'Contents: write' permissions for repositories.`,
           );
         } else {
-          throw new Error(`GitHub API endpoint not found for organization ${installation.account.login}. Please check the GitHub App installation.`);
+          throw new Error(
+            `GitHub API endpoint not found for organization ${installation.account.login}. Please check the GitHub App installation.`,
+          );
         }
       }
 
@@ -137,13 +143,15 @@ export async function createProjectRepository(
       if (githubError.status === 403) {
         throw new Error(
           `Permission denied. Please ensure the GitHub App has 'Administration: write' and 'Contents: write' permissions. ` +
-          `Error: ${githubError.message}`
+            `Error: ${githubError.message}`,
         );
       }
 
       // 422 means validation error (e.g., repo already exists on GitHub)
       if (githubError.status === 422) {
-        throw new Error(`Repository creation failed. The repository name '${repoName}' may already exist on GitHub.`);
+        throw new Error(
+          `Repository creation failed. The repository name '${repoName}' may already exist on GitHub.`,
+        );
       }
     }
 
