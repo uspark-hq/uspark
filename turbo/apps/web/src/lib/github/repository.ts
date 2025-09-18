@@ -44,6 +44,8 @@ export async function createProjectRepository(
   initServices();
   const db = globalThis.services.db;
 
+  console.log("Starting repository creation:", { projectId, installationId });
+
   // Check if repository already exists for this project
   const existingRepo = await db
     .select()
@@ -55,11 +57,15 @@ export async function createProjectRepository(
     throw new Error(`Repository already exists for project ${projectId}`);
   }
 
+  console.log("Creating installation Octokit client...");
   // Get installation Octokit client
   const octokit = await createInstallationOctokit(installationId);
+  console.log("Octokit client created successfully");
 
+  console.log("Getting installation details...");
   // Get installation details to determine if it's an organization or user
   const installation = await getInstallationDetails(installationId);
+  console.log("Installation details retrieved successfully");
 
   console.log("Installation details:", {
     installationId,

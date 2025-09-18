@@ -41,9 +41,22 @@ export async function createInstallationOctokit(
  * Simple implementation for MVP
  */
 export async function getInstallationDetails(installationId: number) {
-  const app = createAppOctokit();
-  const octokit = await app.getInstallationOctokit(installationId);
+  console.log("getInstallationDetails: starting for installationId:", installationId);
 
-  const { data } = await octokit.request("GET /installation");
-  return data;
+  try {
+    const app = createAppOctokit();
+    console.log("getInstallationDetails: app created");
+
+    const octokit = await app.getInstallationOctokit(installationId);
+    console.log("getInstallationDetails: installation octokit obtained");
+
+    console.log("getInstallationDetails: calling GET /installation");
+    const { data } = await octokit.request("GET /installation");
+    console.log("getInstallationDetails: success, account:", data.account?.login, "type:", data.account?.type);
+
+    return data;
+  } catch (error) {
+    console.error("getInstallationDetails: failed", error);
+    throw error;
+  }
 }
