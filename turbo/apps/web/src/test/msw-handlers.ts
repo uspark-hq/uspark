@@ -220,6 +220,66 @@ const projectsHandlers = [
     };
     return HttpResponse.json(newProject, { status: 201 });
   }),
+
+  // Session endpoints for chat interface
+  // POST /api/projects/:projectId/sessions - Create session
+  http.post("*/api/projects/:projectId/sessions", async ({ request }) => {
+    const body = (await request.json()) as { title?: string };
+    return HttpResponse.json({
+      id: `session-${Date.now()}`,
+      title: body.title || "Claude Code Session",
+      projectId: request.url.split("/")[5], // Extract projectId from URL
+      createdAt: new Date().toISOString(),
+      status: "active",
+    });
+  }),
+
+  // GET /api/projects/:projectId/sessions/:sessionId/turns - Get turns
+  http.get("*/api/projects/:projectId/sessions/:sessionId/turns", () => {
+    return HttpResponse.json({
+      turns: [],
+    });
+  }),
+
+  // GET /api/projects/:projectId/sessions/:sessionId/turns/:turnId - Get turn with blocks
+  http.get("*/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
+    return HttpResponse.json({
+      blocks: [],
+    });
+  }),
+
+  // POST /api/projects/:projectId/sessions/:sessionId/mock-execute - Mock execute
+  http.post("*/api/projects/:projectId/sessions/:sessionId/mock-execute", () => {
+    return HttpResponse.json({
+      turn_id: `turn-${Date.now()}`,
+      status: "success",
+    });
+  }),
+
+  // POST /api/projects/:projectId/sessions/:sessionId/interrupt - Interrupt session
+  http.post("*/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
+    return HttpResponse.json({
+      id: "session-123",
+      status: "interrupted",
+    });
+  }),
+
+  // GitHub repository endpoint for project page
+  http.get("*/api/projects/:projectId/github/repository", () => {
+    return HttpResponse.json({
+      owner: "test-owner",
+      name: "test-repo",
+      fullName: "test-owner/test-repo",
+      isConnected: false,
+    });
+  }),
+
+  // GitHub installations endpoint
+  http.get("*/api/github/installations", () => {
+    return HttpResponse.json({
+      installations: [],
+    });
+  }),
 ];
 
 // Share API endpoints handlers

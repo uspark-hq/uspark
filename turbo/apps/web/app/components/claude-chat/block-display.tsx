@@ -29,7 +29,7 @@ export function BlockDisplay({ block }: BlockProps) {
               color: "rgba(156, 163, 175, 0.8)",
             }}
           >
-            💭 {block.content?.text || "Thinking..."}
+            💭 {(block.content?.text as string) || "Thinking..."}
           </div>
         );
 
@@ -45,7 +45,7 @@ export function BlockDisplay({ block }: BlockProps) {
               whiteSpace: "pre-wrap",
             }}
           >
-            {block.content?.text || ""}
+            {(block.content?.text as string) || ""}
           </div>
         );
 
@@ -72,7 +72,7 @@ export function BlockDisplay({ block }: BlockProps) {
             >
               <span style={{ fontSize: "16px" }}>🔧</span>
               <span style={{ fontWeight: "500", color: "#3b82f6" }}>
-                Tool: {block.content?.tool_name || "Unknown"}
+                Tool: {(block.content?.tool_name as string) || "Unknown"}
               </span>
               <span
                 style={{
