@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       try {
         const installationDetails =
           await getInstallationDetails(installationId);
-        accountName = installationDetails.account.login;
+        accountName = installationDetails.account?.login || "unknown";
       } catch (error) {
         console.error("Failed to fetch installation details:", error);
         // Fallback to placeholder if API call fails

@@ -25,10 +25,28 @@ vi.mock("@octokit/app", () => {
     }),
   };
 
+  const mockApp = {
+    getInstallationOctokit: vi.fn().mockResolvedValue(mockOctokit),
+    octokit: {
+      request: vi.fn().mockResolvedValue({
+        data: {
+          id: 12345,
+          account: {
+            login: "test-org",
+            type: "Organization",
+          },
+          repository_selection: "all",
+          permissions: {
+            contents: "write",
+            metadata: "read",
+          },
+        },
+      }),
+    },
+  };
+
   return {
-    App: vi.fn().mockImplementation(() => ({
-      getInstallationOctokit: vi.fn().mockResolvedValue(mockOctokit),
-    })),
+    App: vi.fn().mockImplementation(() => mockApp),
   };
 });
 
