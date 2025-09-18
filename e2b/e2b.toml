@@ -12,3 +12,14 @@
 
 dockerfile = "e2b.Dockerfile"
 template_id = "w6qe4mwx23icyuytq64y"
+
+# Environment variables for container runtime
+[env]
+# uSpark authentication token (required for file sync)
+USPARK_TOKEN = "${USPARK_TOKEN}"
+
+# Project ID to pull files from (set dynamically when creating sandbox)
+PROJECT_ID = "${PROJECT_ID}"
+
+# Claude API key for Claude Code CLI execution
+CLAUDE_API_KEY = "${CLAUDE_API_KEY}"
