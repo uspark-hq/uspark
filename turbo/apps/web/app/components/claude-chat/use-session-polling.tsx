@@ -140,7 +140,10 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
       }
     } finally {
       // Only update state if the request wasn't aborted
-      if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
+      if (
+        abortControllerRef.current &&
+        !abortControllerRef.current.signal.aborted
+      ) {
         setIsPolling(false);
       }
     }
