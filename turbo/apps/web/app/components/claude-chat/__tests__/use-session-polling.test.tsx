@@ -69,7 +69,10 @@ describe("useSessionPolling", () => {
       );
     });
 
-    expect(result.current.turns).toHaveLength(1);
+    await waitFor(() => {
+      expect(result.current.turns).toHaveLength(1);
+    });
+
     expect(result.current.turns[0].id).toBe("turn-1");
   });
 
