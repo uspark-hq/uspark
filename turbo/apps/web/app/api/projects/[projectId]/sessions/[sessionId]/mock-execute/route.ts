@@ -12,7 +12,7 @@ import { randomUUID } from "crypto";
 
 interface MockBlock {
   type: "thinking" | "content" | "tool_use" | "tool_result";
-  content: any;
+  content: Record<string, unknown>;
   delay?: number; // milliseconds to wait before creating this block
 }
 
@@ -42,10 +42,7 @@ export async function POST(
     );
 
   if (!project) {
-    return NextResponse.json(
-      { error: "project_not_found" },
-      { status: 404 },
-    );
+    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
   }
 
   // Verify session exists
@@ -148,13 +145,13 @@ async function executeMockClaudeAsync(turnId: string, userMessage: string) {
         completedAt: new Date(),
       })
       .where(eq(TURNS_TBL.id, turnId));
-  } catch (error: any) {
+  } catch (error) {
     // Mark turn as failed
     await globalThis.services.db
       .update(TURNS_TBL)
       .set({
         status: "failed",
-        errorMessage: error.message || "Unknown error",
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
         completedAt: new Date(),
       })
       .where(eq(TURNS_TBL.id, turnId));
@@ -171,7 +168,9 @@ function generateMockBlocks(userMessage: string): MockBlock[] {
     return [
       {
         type: "thinking",
-        content: { text: "The user is greeting me. I should respond politely." },
+        content: {
+          text: "The user is greeting me. I should respond politely.",
+        },
         delay: 500,
       },
       {
@@ -204,7 +203,8 @@ function generateMockBlocks(userMessage: string): MockBlock[] {
         type: "tool_result",
         content: {
           tool_use_id: `tool_${randomUUID()}`,
-          result: "Files found:\n- README.md\n- package.json\n- src/\n  - index.ts\n  - utils.ts",
+          result:
+            "Files found:\n- README.md\n- package.json\n- src/\n  - index.ts\n  - utils.ts",
           error: null,
         },
         delay: 500,

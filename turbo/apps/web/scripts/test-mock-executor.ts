@@ -96,7 +96,7 @@ async function getTurnStatus(
 
 async function testMockExecutor() {
   console.log("🧪 Testing Mock Claude Executor\n");
-  console.log("=" .repeat(50));
+  console.log("=".repeat(50));
 
   // Test configuration
   const TEST_TOKEN = process.env.TEST_AUTH_TOKEN || "test-token";
@@ -114,7 +114,10 @@ async function testMockExecutor() {
     { message: "Read the README file", description: "File operation test" },
     { message: "Write some code for me", description: "Code generation test" },
     { message: "I found an error in my code", description: "Debugging test" },
-    { message: "Analyze my project structure", description: "General request test" },
+    {
+      message: "Analyze my project structure",
+      description: "General request test",
+    },
   ];
 
   for (const testCase of testCases) {
@@ -160,9 +163,13 @@ async function testMockExecutor() {
 
             // Show block content preview
             if (block.type === "thinking" && block.content?.text) {
-              console.log(`       💭 "${block.content.text.substring(0, 50)}..."`);
+              console.log(
+                `       💭 "${block.content.text.substring(0, 50)}..."`,
+              );
             } else if (block.type === "content" && block.content?.text) {
-              console.log(`       💬 "${block.content.text.substring(0, 50)}..."`);
+              console.log(
+                `       💬 "${block.content.text.substring(0, 50)}..."`,
+              );
             } else if (block.type === "tool_use") {
               console.log(`       🔧 Tool: ${block.content?.tool_name}`);
             }

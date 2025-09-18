@@ -42,7 +42,7 @@ beforeEach(() => {
     db: mockDb,
     env: {},
     pool: null,
-  } as any;
+  } as never;
 });
 
 describe("Mock Execute API", () => {
@@ -84,7 +84,10 @@ describe("Mock Execute API", () => {
     });
 
     const context = {
-      params: Promise.resolve({ projectId: mockProjectId, sessionId: mockSessionId }),
+      params: Promise.resolve({
+        projectId: mockProjectId,
+        sessionId: mockSessionId,
+      }),
     };
 
     const response = await POST(request, context);
@@ -122,7 +125,10 @@ describe("Mock Execute API", () => {
     });
 
     const context = {
-      params: Promise.resolve({ projectId: mockProjectId, sessionId: mockSessionId }),
+      params: Promise.resolve({
+        projectId: mockProjectId,
+        sessionId: mockSessionId,
+      }),
     };
 
     const response = await POST(request, context);
@@ -145,7 +151,10 @@ describe("Mock Execute API", () => {
     });
 
     const context = {
-      params: Promise.resolve({ projectId: mockProjectId, sessionId: mockSessionId }),
+      params: Promise.resolve({
+        projectId: mockProjectId,
+        sessionId: mockSessionId,
+      }),
     };
 
     const response = await POST(request, context);
@@ -173,7 +182,10 @@ describe("Mock Execute API", () => {
     });
 
     const context = {
-      params: Promise.resolve({ projectId: mockProjectId, sessionId: mockSessionId }),
+      params: Promise.resolve({
+        projectId: mockProjectId,
+        sessionId: mockSessionId,
+      }),
     };
 
     const response = await POST(request, context);
@@ -203,7 +215,10 @@ describe("Mock Execute API", () => {
     });
 
     const context = {
-      params: Promise.resolve({ projectId: mockProjectId, sessionId: mockSessionId }),
+      params: Promise.resolve({
+        projectId: mockProjectId,
+        sessionId: mockSessionId,
+      }),
     };
 
     const response = await POST(request, context);
@@ -242,14 +257,17 @@ describe("Mock Execute API", () => {
       });
 
       const context = {
-        params: Promise.resolve({ projectId: mockProjectId, sessionId: mockSessionId }),
+        params: Promise.resolve({
+          projectId: mockProjectId,
+          sessionId: mockSessionId,
+        }),
       };
 
       const response = await POST(request, context);
       expect(response.status).toBe(200);
 
       // Wait a bit for async execution to start
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
 
       // The async execution should update the turn status
       // In a real test, we'd verify the blocks were created
@@ -283,7 +301,10 @@ describe("Mock Execute API", () => {
       });
 
       const context = {
-        params: Promise.resolve({ projectId: mockProjectId, sessionId: mockSessionId }),
+        params: Promise.resolve({
+          projectId: mockProjectId,
+          sessionId: mockSessionId,
+        }),
       };
 
       const response = await POST(request, context);
@@ -321,7 +342,10 @@ describe("Mock Execute API", () => {
       });
 
       const context = {
-        params: Promise.resolve({ projectId: mockProjectId, sessionId: mockSessionId }),
+        params: Promise.resolve({
+          projectId: mockProjectId,
+          sessionId: mockSessionId,
+        }),
       };
 
       const response = await POST(request, context);
