@@ -36,8 +36,8 @@ export function YjsFileExplorer({
   });
 
   useEffect(() => {
-    async function loadProjectFiles() {
-      setProjectData((prev) => ({ ...prev, loading: prev.files.length === 0, error: undefined }));
+    async function loadProjectFiles(isInitialLoad = false) {
+      setProjectData((prev) => ({ ...prev, loading: isInitialLoad || prev.files.length === 0, error: undefined }));
 
       try {
         // Fetch YJS document from the API
@@ -78,10 +78,10 @@ export function YjsFileExplorer({
 
     if (projectId) {
       // Initial load
-      loadProjectFiles();
+      loadProjectFiles(true);
 
       // Set up polling for real-time updates
-      const pollInterval = setInterval(loadProjectFiles, 3000); // Poll every 3 seconds
+      const pollInterval = setInterval(() => loadProjectFiles(false), 3000); // Poll every 3 seconds
 
       return () => {
         clearInterval(pollInterval);

@@ -281,9 +281,7 @@ const projectsHandlers = [
   }),
 
   // GET /api/projects/:projectId - Get project YJS data
-  http.get("*/api/projects/:projectId", ({ params }) => {
-    const { projectId } = params;
-
+  http.get("*/api/projects/:projectId", () => {
     // Mock empty YJS document (for testing)
     const mockYjsData = new Uint8Array([0, 0, 0, 0]); // Minimal YJS document
 

@@ -152,7 +152,7 @@ async function executeMockClaudeAsync(turnId: string, projectId: string, userId:
       if (shouldWriteFile && mockBlock.type === "tool_use" &&
           mockBlock.content.tool_name === "write_file") {
         try {
-          const params = mockBlock.content.parameters as any;
+          const params = mockBlock.content.parameters as { path: string; content: string };
           await writeFileToYjs(projectId, userId, params.path, params.content);
 
           // Update the following tool_result block to reflect successful YJS write

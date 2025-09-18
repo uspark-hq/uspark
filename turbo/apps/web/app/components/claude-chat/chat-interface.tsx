@@ -16,7 +16,7 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Poll for session updates
-  const { turns, isPolling, refetch } = useSessionPolling(projectId, sessionId);
+  const { turns, isPolling } = useSessionPolling(projectId, sessionId);
 
   // Initialize or get existing session
   useEffect(() => {
