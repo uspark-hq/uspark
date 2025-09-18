@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { YjsFileExplorer } from "../../components/file-explorer";
 import { GitHubSyncButton } from "../../components/github-sync-button";
+import { ChatInterface } from "../../components/claude-chat/chat-interface";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -159,8 +160,7 @@ export default function ProjectDetailPage() {
         style={{
           flex: 1,
           display: "grid",
-          gridTemplateColumns: "300px 1fr",
-          gridTemplateRows: "1fr auto",
+          gridTemplateColumns: "300px 1fr 400px",
           gap: "1px",
           backgroundColor: "rgba(156, 163, 175, 0.1)",
           overflow: "hidden",
@@ -171,7 +171,6 @@ export default function ProjectDetailPage() {
           style={{
             backgroundColor: "var(--background)",
             overflow: "auto",
-            gridRow: "span 2",
           }}
         >
           <div
@@ -332,97 +331,31 @@ export default function ProjectDetailPage() {
           </div>
         </div>
 
-        {/* Chat Input */}
+        {/* Claude Chat Interface */}
         <div
           style={{
             backgroundColor: "var(--background)",
-            borderTop: "1px solid rgba(156, 163, 175, 0.1)",
-            padding: "16px",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           <div
             style={{
+              padding: "12px 16px",
+              borderBottom: "1px solid rgba(156, 163, 175, 0.1)",
+              fontSize: "14px",
+              fontWeight: "500",
+              color: "var(--foreground)",
               display: "flex",
-              gap: "12px",
               alignItems: "center",
+              gap: "8px",
             }}
           >
-            <div
-              style={{
-                flex: 1,
-                position: "relative",
-              }}
-            >
-              <textarea
-                placeholder="Ask Claude Code to modify your project files..."
-                style={{
-                  width: "100%",
-                  minHeight: "80px",
-                  padding: "12px",
-                  border: "2px solid rgba(156, 163, 175, 0.2)",
-                  borderRadius: "8px",
-                  fontSize: "14px",
-                  fontFamily: "inherit",
-                  backgroundColor: "var(--background)",
-                  color: "var(--foreground)",
-                  resize: "vertical",
-                  outline: "none",
-                }}
-                onFocus={(e) => {
-                  e.target.style.borderColor = "rgba(59, 130, 246, 0.5)";
-                }}
-                onBlur={(e) => {
-                  e.target.style.borderColor = "rgba(156, 163, 175, 0.2)";
-                }}
-              />
-            </div>
-            <button
-              style={{
-                padding: "12px 24px",
-                backgroundColor: "#3b82f6",
-                color: "white",
-                border: "none",
-                borderRadius: "6px",
-                fontSize: "14px",
-                fontWeight: "500",
-                cursor: "pointer",
-                alignSelf: "flex-end",
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.backgroundColor = "#2563eb";
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.backgroundColor = "#3b82f6";
-              }}
-            >
-              Send
-            </button>
+            <span>💬</span>
+            <span>Claude Chat</span>
           </div>
-
-          <div
-            style={{
-              marginTop: "8px",
-              fontSize: "12px",
-              color: "rgba(156, 163, 175, 0.6)",
-              display: "flex",
-              alignItems: "center",
-              gap: "16px",
-            }}
-          >
-            <span>
-              💡 Try: &quot;Add error handling to the login function&quot; or
-              &quot;Create a new React component&quot;
-            </span>
-            <div
-              style={{
-                padding: "2px 6px",
-                backgroundColor: "rgba(156, 163, 175, 0.1)",
-                borderRadius: "3px",
-                fontSize: "11px",
-              }}
-            >
-              Claude Code Ready
-            </div>
+          <div style={{ flex: 1, overflow: "hidden" }}>
+            <ChatInterface projectId={projectId} />
           </div>
         </div>
       </div>
