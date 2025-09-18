@@ -97,9 +97,7 @@ describe("Project Detail Page", () => {
 
     // Chat Input section
     expect(
-      screen.getByPlaceholderText(
-        "Ask Claude Code to modify your project files...",
-      ),
+      screen.getByPlaceholderText("Ask Claude to help with your code..."),
     ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Send" })).toBeInTheDocument();
   });
@@ -217,7 +215,7 @@ describe("Project Detail Page", () => {
     render(<ProjectDetailPage />);
 
     const textarea = screen.getByPlaceholderText(
-      "Ask Claude Code to modify your project files...",
+      "Ask Claude to help with your code...",
     );
     const sendButton = screen.getByRole("button", { name: "Send" });
 
@@ -228,11 +226,11 @@ describe("Project Detail Page", () => {
     fireEvent.change(textarea, { target: { value: "Add a new component" } });
     expect(textarea).toHaveValue("Add a new component");
 
-    // Test hints and status
+    // Test chat interface hints and status
     expect(
-      screen.getByText(/Try: "Add error handling to the login function"/),
+      screen.getByText("Press Enter to send, Shift+Enter for new line"),
     ).toBeInTheDocument();
-    expect(screen.getByText("Claude Code Ready")).toBeInTheDocument();
+    expect(screen.getByText("Mock Mode")).toBeInTheDocument();
   });
 
   it("renders back to projects navigation link", () => {
