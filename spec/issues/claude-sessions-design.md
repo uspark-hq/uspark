@@ -235,10 +235,13 @@ POST /api/projects/{projectId}/sessions/{sessionId}/turns
 ```
 
 **关键点**: 这个 API 是与 E2B 集成的核心接口
-- 创建 Turn 记录
-- **直接调用 E2B 容器中的 Claude Code**
-- 将 Claude 响应解析为 Blocks
-- 返回 Turn ID 供前端轮询
+- 创建 Turn 记录（状态为 pending）
+- **异步触发 E2B 容器中的 Claude Code 执行**
+- 执行过程中自动：
+  - 更新 Turn 状态（pending → running → completed/failed）
+  - 实时插入 Claude 返回的 Blocks
+  - 更新 Session 的 updatedAt 时间戳
+- 立即返回 Turn ID 供前端轮询
 
 请求体：
 
@@ -254,36 +257,42 @@ POST /api/projects/{projectId}/sessions/{sessionId}/turns
 {
   "id": "turn-uuid",
   "session_id": "session-uuid",
-  "user_message": "用户输入的消息",
+  "user_prompt": "用户输入的消息",
   "status": "pending",
   "created_at": "2025-01-06T10:00:00Z"
 }
 ```
 
-#### 更新 turn 状态
-
-```http
-PATCH /api/projects/{projectId}/sessions/{sessionId}/turns/{turnId}
-```
-
-请求体：
-
-```json
-{
-  "status": "running" | "completed" | "failed",
-  "error_message": "错误信息（失败时）"
-}
-```
+**内部执行流程：**
+1. API 创建 Turn 记录后立即返回
+2. 后台任务启动 E2B 容器执行 Claude Code
+3. 监听 Claude 输出流，实时：
+   - 解析 thinking blocks → 插入数据库
+   - 解析 content blocks → 插入数据库
+   - 解析 tool_use/tool_result → 插入数据库
+   - 更新 Turn 状态和时间戳
+4. 前端通过轮询 API 获取实时更新
 
 ### 3. Blocks 管理
 
-#### 添加 block 到 turn
+#### 重要说明：Blocks 和 Turn 状态更新为内部操作
 
-内部方法，没有外部 API
+**不需要实现以下 API：**
+- ❌ `PATCH /api/projects/{projectId}/sessions/{sessionId}/turns/{turnId}` - 更新 turn 状态
+- ❌ `POST /api/projects/{projectId}/sessions/{sessionId}/turns/{turnId}/blocks` - 添加 blocks
 
-#### 批量添加 blocks
+**原因：**
+这两个操作应该在创建 Turn 后的 Claude Code 执行过程中自动完成：
+1. 当 `POST /turns` 创建新 Turn 后，会自动触发 E2B 中的 Claude Code 执行
+2. 执行过程中，系统内部会：
+   - 自动更新 Turn 状态（pending → running → completed/failed）
+   - 实时插入 Claude 返回的 Blocks（thinking、content、tool_use、tool_result）
+3. 这些更新通过内部数据库操作完成，不需要暴露为外部 API
 
-内部方法，没有外部 API
+这样设计确保了：
+- 数据一致性：状态和内容更新是原子性的
+- 安全性：外部无法篡改执行过程中的状态
+- 简洁性：减少不必要的 API 端点
 
 ### 4. 轮询接口
 
