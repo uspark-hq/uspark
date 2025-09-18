@@ -139,7 +139,10 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
         console.error("Failed to fetch session data:", error);
       }
     } finally {
-      setIsPolling(false);
+      // Only update state if the request wasn't aborted
+      if (abortControllerRef.current && !abortControllerRef.current.signal.aborted) {
+        setIsPolling(false);
+      }
     }
   };
 
