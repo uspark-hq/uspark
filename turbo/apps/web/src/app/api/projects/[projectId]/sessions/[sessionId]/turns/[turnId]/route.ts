@@ -23,15 +23,12 @@ export async function GET(
       sessionId: string;
       turnId: string;
     };
-  }
+  },
 ) {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json(
-      { error: "unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   initServices();
@@ -41,19 +38,11 @@ export async function GET(
   const [project] = await globalThis.services.db
     .select()
     .from(PROJECTS_TBL)
-    .where(
-      and(
-        eq(PROJECTS_TBL.id, projectId),
-        eq(PROJECTS_TBL.userId, userId)
-      )
-    )
+    .where(and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)))
     .limit(1);
 
   if (!project) {
-    return NextResponse.json(
-      { error: "project_not_found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
   }
 
   // Verify session exists
@@ -63,16 +52,13 @@ export async function GET(
     .where(
       and(
         eq(SESSIONS_TBL.id, sessionId),
-        eq(SESSIONS_TBL.projectId, projectId)
-      )
+        eq(SESSIONS_TBL.projectId, projectId),
+      ),
     )
     .limit(1);
 
   if (!session) {
-    return NextResponse.json(
-      { error: "session_not_found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "session_not_found" }, { status: 404 });
   }
 
   // Get turn
@@ -98,4 +84,3 @@ export async function GET(
     blocks,
   });
 }
-

@@ -12,15 +12,12 @@ import { nanoid } from "nanoid";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { projectId: string } }
+  { params }: { params: { projectId: string } },
 ) {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json(
-      { error: "unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   initServices();
@@ -35,19 +32,11 @@ export async function GET(
   const [project] = await globalThis.services.db
     .select()
     .from(PROJECTS_TBL)
-    .where(
-      and(
-        eq(PROJECTS_TBL.id, projectId),
-        eq(PROJECTS_TBL.userId, userId)
-      )
-    )
+    .where(and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)))
     .limit(1);
 
   if (!project) {
-    return NextResponse.json(
-      { error: "project_not_found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
   }
 
   // Get sessions with turn count
@@ -88,15 +77,12 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { projectId: string } }
+  { params }: { params: { projectId: string } },
 ) {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json(
-      { error: "unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   initServices();
@@ -110,19 +96,11 @@ export async function POST(
   const [project] = await globalThis.services.db
     .select()
     .from(PROJECTS_TBL)
-    .where(
-      and(
-        eq(PROJECTS_TBL.id, projectId),
-        eq(PROJECTS_TBL.userId, userId)
-      )
-    )
+    .where(and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)))
     .limit(1);
 
   if (!project) {
-    return NextResponse.json(
-      { error: "project_not_found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
   }
 
   // Create session

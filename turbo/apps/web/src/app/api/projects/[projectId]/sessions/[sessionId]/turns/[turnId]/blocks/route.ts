@@ -23,7 +23,7 @@ export async function POST(
       sessionId: string;
       turnId: string;
     };
-  }
+  },
 ) {
   initServices();
   const { projectId, sessionId, turnId } = params;
@@ -35,7 +35,7 @@ export async function POST(
   if (!Array.isArray(blocks) || blocks.length === 0) {
     return NextResponse.json(
       { error: "blocks array is required and must not be empty" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -46,16 +46,13 @@ export async function POST(
     .where(
       and(
         eq(SESSIONS_TBL.id, sessionId),
-        eq(SESSIONS_TBL.projectId, projectId)
-      )
+        eq(SESSIONS_TBL.projectId, projectId),
+      ),
     )
     .limit(1);
 
   if (!session) {
-    return NextResponse.json(
-      { error: "Session not found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
   // Verify turn exists
@@ -79,24 +76,26 @@ export async function POST(
 
   // Prepare blocks for insertion
   const now = new Date();
-  const blocksToInsert: NewBlock[] = blocks.map((block: { type: string; content: unknown }, index: number) => {
-    // Validate block type
-    const validTypes = ["thinking", "content", "tool_use", "tool_result"];
-    if (!validTypes.includes(block.type)) {
-      throw new Error(
-        `Invalid block type: ${block.type}. Must be one of: ${validTypes.join(", ")}`
-      );
-    }
+  const blocksToInsert: NewBlock[] = blocks.map(
+    (block: { type: string; content: unknown }, index: number) => {
+      // Validate block type
+      const validTypes = ["thinking", "content", "tool_use", "tool_result"];
+      if (!validTypes.includes(block.type)) {
+        throw new Error(
+          `Invalid block type: ${block.type}. Must be one of: ${validTypes.join(", ")}`,
+        );
+      }
 
-    return {
-      id: `block_${nanoid()}`,
-      turnId,
-      type: block.type,
-      content: block.content,
-      sequenceNumber: startSequence + index,
-      createdAt: now,
-    };
-  });
+      return {
+        id: `block_${nanoid()}`,
+        turnId,
+        type: block.type,
+        content: block.content,
+        sequenceNumber: startSequence + index,
+        createdAt: now,
+      };
+    },
+  );
 
   // Insert blocks
   const insertedBlocks = await globalThis.services.db
@@ -115,6 +114,6 @@ export async function POST(
       blocks: insertedBlocks,
       count: insertedBlocks.length,
     },
-    { status: 201 }
+    { status: 201 },
   );
 }

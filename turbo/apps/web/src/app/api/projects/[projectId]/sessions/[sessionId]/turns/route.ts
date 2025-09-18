@@ -4,7 +4,7 @@ import { initServices } from "../../../../../../../lib/init-services";
 import {
   SESSIONS_TBL,
   TURNS_TBL,
-  BLOCKS_TBL
+  BLOCKS_TBL,
 } from "../../../../../../../db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../../../db/schema/projects";
 import { eq, and, sql } from "drizzle-orm";
@@ -16,15 +16,12 @@ import { nanoid } from "nanoid";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { projectId: string; sessionId: string } }
+  { params }: { params: { projectId: string; sessionId: string } },
 ) {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json(
-      { error: "unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   initServices();
@@ -39,19 +36,11 @@ export async function GET(
   const [project] = await globalThis.services.db
     .select()
     .from(PROJECTS_TBL)
-    .where(
-      and(
-        eq(PROJECTS_TBL.id, projectId),
-        eq(PROJECTS_TBL.userId, userId)
-      )
-    )
+    .where(and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)))
     .limit(1);
 
   if (!project) {
-    return NextResponse.json(
-      { error: "project_not_found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
   }
 
   // Verify session exists
@@ -61,16 +50,13 @@ export async function GET(
     .where(
       and(
         eq(SESSIONS_TBL.id, sessionId),
-        eq(SESSIONS_TBL.projectId, projectId)
-      )
+        eq(SESSIONS_TBL.projectId, projectId),
+      ),
     )
     .limit(1);
 
   if (!session) {
-    return NextResponse.json(
-      { error: "session_not_found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "session_not_found" }, { status: 404 });
   }
 
   // Get turns
@@ -93,10 +79,10 @@ export async function GET(
 
       return {
         ...turn,
-        block_ids: blocks.map(b => b.id),
+        block_ids: blocks.map((b) => b.id),
         block_count: blocks.length,
       };
-    })
+    }),
   );
 
   // Get total count
@@ -119,15 +105,12 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { projectId: string; sessionId: string } }
+  { params }: { params: { projectId: string; sessionId: string } },
 ) {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json(
-      { error: "unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   initServices();
@@ -140,7 +123,7 @@ export async function POST(
   if (!user_message) {
     return NextResponse.json(
       { error: "user_message is required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
@@ -148,19 +131,11 @@ export async function POST(
   const [project] = await globalThis.services.db
     .select()
     .from(PROJECTS_TBL)
-    .where(
-      and(
-        eq(PROJECTS_TBL.id, projectId),
-        eq(PROJECTS_TBL.userId, userId)
-      )
-    )
+    .where(and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)))
     .limit(1);
 
   if (!project) {
-    return NextResponse.json(
-      { error: "project_not_found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
   }
 
   // Verify session exists
@@ -170,16 +145,13 @@ export async function POST(
     .where(
       and(
         eq(SESSIONS_TBL.id, sessionId),
-        eq(SESSIONS_TBL.projectId, projectId)
-      )
+        eq(SESSIONS_TBL.projectId, projectId),
+      ),
     )
     .limit(1);
 
   if (!session) {
-    return NextResponse.json(
-      { error: "session_not_found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "session_not_found" }, { status: 404 });
   }
 
   // Create turn

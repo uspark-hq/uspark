@@ -11,15 +11,12 @@ import { eq, and } from "drizzle-orm";
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { projectId: string; sessionId: string } }
+  { params }: { params: { projectId: string; sessionId: string } },
 ) {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json(
-      { error: "unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   initServices();
@@ -29,19 +26,11 @@ export async function GET(
   const [project] = await globalThis.services.db
     .select()
     .from(PROJECTS_TBL)
-    .where(
-      and(
-        eq(PROJECTS_TBL.id, projectId),
-        eq(PROJECTS_TBL.userId, userId)
-      )
-    )
+    .where(and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)))
     .limit(1);
 
   if (!project) {
-    return NextResponse.json(
-      { error: "project_not_found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
   }
 
   // Get session
@@ -51,16 +40,13 @@ export async function GET(
     .where(
       and(
         eq(SESSIONS_TBL.id, sessionId),
-        eq(SESSIONS_TBL.projectId, projectId)
-      )
+        eq(SESSIONS_TBL.projectId, projectId),
+      ),
     )
     .limit(1);
 
   if (!session) {
-    return NextResponse.json(
-      { error: "Session not found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
   // Get turn IDs for this session
@@ -72,7 +58,7 @@ export async function GET(
 
   return NextResponse.json({
     ...session,
-    turn_ids: turns.map(t => t.id),
+    turn_ids: turns.map((t) => t.id),
   });
 }
 
@@ -82,15 +68,12 @@ export async function GET(
  */
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { projectId: string; sessionId: string } }
+  { params }: { params: { projectId: string; sessionId: string } },
 ) {
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json(
-      { error: "unauthorized" },
-      { status: 401 }
-    );
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   initServices();
@@ -100,19 +83,11 @@ export async function DELETE(
   const [project] = await globalThis.services.db
     .select()
     .from(PROJECTS_TBL)
-    .where(
-      and(
-        eq(PROJECTS_TBL.id, projectId),
-        eq(PROJECTS_TBL.userId, userId)
-      )
-    )
+    .where(and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)))
     .limit(1);
 
   if (!project) {
-    return NextResponse.json(
-      { error: "project_not_found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
   }
 
   // Verify session exists and belongs to project
@@ -122,16 +97,13 @@ export async function DELETE(
     .where(
       and(
         eq(SESSIONS_TBL.id, sessionId),
-        eq(SESSIONS_TBL.projectId, projectId)
-      )
+        eq(SESSIONS_TBL.projectId, projectId),
+      ),
     )
     .limit(1);
 
   if (!session) {
-    return NextResponse.json(
-      { error: "Session not found" },
-      { status: 404 }
-    );
+    return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
   // Delete session (cascades to turns and blocks)
