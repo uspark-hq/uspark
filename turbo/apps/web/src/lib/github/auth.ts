@@ -21,10 +21,21 @@ export async function getInstallationToken(
     privateKey: privateKey,
   });
 
-  const installationAuthentication = await auth({
-    type: "installation",
-    installationId,
-  });
+  try {
+    const installationAuthentication = await auth({
+      type: "installation",
+      installationId,
+    });
 
-  return installationAuthentication.token;
+    console.log("Installation token obtained for:", {
+      installationId,
+      tokenPrefix: installationAuthentication.token.substring(0, 10) + "...",
+      expiresAt: installationAuthentication.expiresAt,
+    });
+
+    return installationAuthentication.token;
+  } catch (error) {
+    console.error("Failed to get installation token:", error);
+    throw error;
+  }
 }

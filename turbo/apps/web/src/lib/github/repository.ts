@@ -61,30 +61,101 @@ export async function createProjectRepository(
   // Get installation details to determine if it's an organization or user
   const installation = await getInstallationDetails(installationId);
 
+  console.log("Installation details:", {
+    installationId,
+    account: installation.account,
+    accountType: installation.account?.type,
+    accountLogin: installation.account?.login,
+  });
+
   // Generate repository name using first 8 characters of UUID for brevity
   const repoName = `uspark-${projectId.substring(0, 8)}`;
 
   // Create repository on GitHub - use appropriate endpoint based on account type
   let repo;
-  if (installation.account?.type === "Organization") {
-    // Create repository in organization
-    const { data } = await octokit.request("POST /orgs/{org}/repos", {
-      org: installation.account.login,
-      name: repoName,
-      private: true,
-      auto_init: true,
-      description: `uSpark sync repository for project ${projectId}`,
+
+  try {
+    if (installation.account?.type === "Organization") {
+      // Create repository in organization
+      console.log("Creating org repository:", {
+        endpoint: "POST /orgs/{org}/repos",
+        org: installation.account.login,
+        name: repoName,
+      });
+
+      const { data } = await octokit.request("POST /orgs/{org}/repos", {
+        org: installation.account.login,
+        name: repoName,
+        private: true,
+        auto_init: true,
+        description: `uSpark sync repository for project ${projectId}`,
+      });
+      repo = data;
+    } else {
+      // For user accounts, use the user endpoint
+      console.log("Creating user repository:", {
+        endpoint: "POST /user/repos",
+        name: repoName,
+        accountType: installation.account?.type,
+        accountLogin: installation.account?.login,
+      });
+
+      const { data } = await octokit.request("POST /user/repos", {
+        name: repoName,
+        private: true,
+        auto_init: true,
+        description: `uSpark sync repository for project ${projectId}`,
+      });
+      repo = data;
+    }
+  } catch (error: unknown) {
+    console.error("GitHub API Error Details:", {
+      installationId,
+      accountType: installation.account?.type,
+      accountLogin: installation.account?.login,
+      repoName,
+      error,
     });
-    repo = data;
-  } else {
-    // Create repository for user account
-    const { data } = await octokit.request("POST /user/repos", {
-      name: repoName,
-      private: true,
-      auto_init: true,
-      description: `uSpark sync repository for project ${projectId}`,
-    });
-    repo = data;
+
+    if (error instanceof Error && "status" in error) {
+      const githubError = error as {
+        status: number;
+        message: string;
+        response?: { data?: unknown };
+      };
+
+      // 404 can mean either wrong endpoint or missing permissions
+      if (githubError.status === 404) {
+        if (installation.account?.type !== "Organization") {
+          // For user accounts, this might be a GitHub App limitation
+          throw new Error(
+            `Cannot create repository for user account. GitHub Apps may have limited permissions for personal accounts. ` +
+              `Please ensure: 1) The GitHub App is installed on your personal account, 2) The App has 'Administration: write' and 'Contents: write' permissions for repositories.`,
+          );
+        } else {
+          throw new Error(
+            `GitHub API endpoint not found for organization ${installation.account.login}. Please check the GitHub App installation.`,
+          );
+        }
+      }
+
+      // 403 means permission denied
+      if (githubError.status === 403) {
+        throw new Error(
+          `Permission denied. Please ensure the GitHub App has 'Administration: write' and 'Contents: write' permissions. ` +
+            `Error: ${githubError.message}`,
+        );
+      }
+
+      // 422 means validation error (e.g., repo already exists on GitHub)
+      if (githubError.status === 422) {
+        throw new Error(
+          `Repository creation failed. The repository name '${repoName}' may already exist on GitHub.`,
+        );
+      }
+    }
+
+    throw error;
   }
 
   // Store repository information in database
