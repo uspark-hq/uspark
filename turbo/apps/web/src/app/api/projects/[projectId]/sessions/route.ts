@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../../lib/init-services";
 import { SESSIONS_TBL, TURNS_TBL } from "../../../../../db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../db/schema/projects";
-import { eq, desc, sql } from "drizzle-orm";
+import { eq, desc, sql, and } from "drizzle-orm";
 import { nanoid } from "nanoid";
 
 /**
@@ -13,6 +14,15 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { projectId: string } }
 ) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json(
+      { error: "unauthorized" },
+      { status: 401 }
+    );
+  }
+
   initServices();
   const { projectId } = params;
 
@@ -21,16 +31,21 @@ export async function GET(
   const limit = parseInt(searchParams.get("limit") || "20", 10);
   const offset = parseInt(searchParams.get("offset") || "0", 10);
 
-  // Verify project exists
+  // Verify project exists and user owns it
   const [project] = await globalThis.services.db
     .select()
     .from(PROJECTS_TBL)
-    .where(eq(PROJECTS_TBL.id, projectId))
+    .where(
+      and(
+        eq(PROJECTS_TBL.id, projectId),
+        eq(PROJECTS_TBL.userId, userId)
+      )
+    )
     .limit(1);
 
   if (!project) {
     return NextResponse.json(
-      { error: "Project not found" },
+      { error: "project_not_found" },
       { status: 404 }
     );
   }
@@ -75,6 +90,15 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { projectId: string } }
 ) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json(
+      { error: "unauthorized" },
+      { status: 401 }
+    );
+  }
+
   initServices();
   const { projectId } = params;
 
@@ -82,16 +106,21 @@ export async function POST(
   const body = await request.json();
   const { title } = body;
 
-  // Verify project exists
+  // Verify project exists and user owns it
   const [project] = await globalThis.services.db
     .select()
     .from(PROJECTS_TBL)
-    .where(eq(PROJECTS_TBL.id, projectId))
+    .where(
+      and(
+        eq(PROJECTS_TBL.id, projectId),
+        eq(PROJECTS_TBL.userId, userId)
+      )
+    )
     .limit(1);
 
   if (!project) {
     return NextResponse.json(
-      { error: "Project not found" },
+      { error: "project_not_found" },
       { status: 404 }
     );
   }

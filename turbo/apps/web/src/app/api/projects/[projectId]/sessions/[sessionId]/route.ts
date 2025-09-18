@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
+import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../../../lib/init-services";
 import { SESSIONS_TBL, TURNS_TBL } from "../../../../../../db/schema/sessions";
+import { PROJECTS_TBL } from "../../../../../../db/schema/projects";
 import { eq, and } from "drizzle-orm";
 
 /**
@@ -11,8 +13,36 @@ export async function GET(
   request: NextRequest,
   { params }: { params: { projectId: string; sessionId: string } }
 ) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json(
+      { error: "unauthorized" },
+      { status: 401 }
+    );
+  }
+
   initServices();
   const { projectId, sessionId } = params;
+
+  // First verify user owns the project
+  const [project] = await globalThis.services.db
+    .select()
+    .from(PROJECTS_TBL)
+    .where(
+      and(
+        eq(PROJECTS_TBL.id, projectId),
+        eq(PROJECTS_TBL.userId, userId)
+      )
+    )
+    .limit(1);
+
+  if (!project) {
+    return NextResponse.json(
+      { error: "project_not_found" },
+      { status: 404 }
+    );
+  }
 
   // Get session
   const [session] = await globalThis.services.db
@@ -54,8 +84,36 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { projectId: string; sessionId: string } }
 ) {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return NextResponse.json(
+      { error: "unauthorized" },
+      { status: 401 }
+    );
+  }
+
   initServices();
   const { projectId, sessionId } = params;
+
+  // First verify user owns the project
+  const [project] = await globalThis.services.db
+    .select()
+    .from(PROJECTS_TBL)
+    .where(
+      and(
+        eq(PROJECTS_TBL.id, projectId),
+        eq(PROJECTS_TBL.userId, userId)
+      )
+    )
+    .limit(1);
+
+  if (!project) {
+    return NextResponse.json(
+      { error: "project_not_found" },
+      { status: 404 }
+    );
+  }
 
   // Verify session exists and belongs to project
   const [session] = await globalThis.services.db
