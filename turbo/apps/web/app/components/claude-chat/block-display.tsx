@@ -84,7 +84,7 @@ export function BlockDisplay({ block }: BlockProps) {
                 {isExpanded ? "▼" : "▶"}
               </span>
             </div>
-            {isExpanded && block.content?.parameters && (
+            {isExpanded && block.content?.parameters != null && (
               <pre
                 style={{
                   margin: "8px 0 0 0",
