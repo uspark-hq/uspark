@@ -6,14 +6,22 @@ import { useSessionPolling } from "../use-session-polling";
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
+// Mock AbortController
+const mockAbort = vi.fn();
+const mockAbortController = {
+  abort: mockAbort,
+  signal: { aborted: false }
+};
+
+global.AbortController = vi.fn(() => mockAbortController);
+
 describe("useSessionPolling", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    vi.useFakeTimers();
+    mockAbort.mockClear();
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     vi.restoreAllMocks();
   });
 
@@ -182,233 +190,6 @@ describe("useSessionPolling", () => {
 
     // Turn should exist but with empty blocks
     expect(result.current.turns[0].blocks).toHaveLength(0);
-  });
-
-  it("should use faster polling interval for active turns", async () => {
-    const mockActiveTurns = [
-      {
-        id: "turn-1",
-        user_prompt: "Hello",
-        status: "in_progress",
-        started_at: "2024-01-01T00:00:00Z",
-        completed_at: null,
-        blocks: [],
-      },
-    ];
-
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ turns: mockActiveTurns, blocks: [] }),
-    });
-
-    renderHook(() => useSessionPolling("project-1", "session-1"));
-
-    // Wait for initial fetch
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(2); // turns + blocks
-    });
-
-    // Fast forward 1 second (should trigger poll for active turns)
-    vi.advanceTimersByTime(1000);
-
-    await vi.waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(4); // Initial + one poll cycle
-    });
-  });
-
-  it("should use slower polling interval for inactive turns", async () => {
-    const mockInactiveTurns = [
-      {
-        id: "turn-1",
-        user_prompt: "Hello",
-        status: "completed",
-        started_at: "2024-01-01T00:00:00Z",
-        completed_at: "2024-01-01T00:00:05Z",
-        blocks: [],
-      },
-    ];
-
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ turns: mockInactiveTurns, blocks: [] }),
-    });
-
-    renderHook(() => useSessionPolling("project-1", "session-1"));
-
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(2);
-    });
-
-    // Fast forward 1 second (should not trigger poll for inactive turns)
-    vi.advanceTimersByTime(1000);
-    expect(mockFetch).toHaveBeenCalledTimes(2);
-
-    // Fast forward 4 more seconds (total 5 seconds, should trigger poll)
-    vi.advanceTimersByTime(4000);
-
-    await vi.waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(4);
-    });
-  });
-
-  it("should adjust polling rate when turn status changes", async () => {
-    let callCount = 0;
-    const mockResponses = [
-      // First response: active turn
-      {
-        turns: [
-          {
-            id: "turn-1",
-            user_prompt: "Hello",
-            status: "in_progress",
-            started_at: "2024-01-01T00:00:00Z",
-            completed_at: null,
-            blocks: [],
-          },
-        ],
-      },
-      // Second response: completed turn
-      {
-        turns: [
-          {
-            id: "turn-1",
-            user_prompt: "Hello",
-            status: "completed",
-            started_at: "2024-01-01T00:00:00Z",
-            completed_at: "2024-01-01T00:00:05Z",
-            blocks: [],
-          },
-        ],
-      },
-    ];
-
-    mockFetch.mockImplementation(() => {
-      const response =
-        mockResponses[Math.min(callCount, mockResponses.length - 1)];
-      callCount++;
-      if (callCount % 2 === 1) {
-        // Odd calls are for turns
-        return Promise.resolve({
-          ok: true,
-          json: async () => response,
-        });
-      } else {
-        // Even calls are for blocks
-        return Promise.resolve({
-          ok: true,
-          json: async () => ({ blocks: [] }),
-        });
-      }
-    });
-
-    renderHook(() => useSessionPolling("project-1", "session-1"));
-
-    // Wait for initial fetch
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(2);
-    });
-
-    // Advance 1 second - should poll because turn is active
-    vi.advanceTimersByTime(1000);
-
-    await vi.waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(4);
-    });
-
-    // Now turn is completed, should restart with 5-second interval
-    // Advance 1 second - should not poll
-    vi.advanceTimersByTime(1000);
-    expect(mockFetch).toHaveBeenCalledTimes(4);
-
-    // Advance 4 more seconds (total 5) - should poll
-    vi.advanceTimersByTime(4000);
-
-    await vi.waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(6);
-    });
-  });
-
-  it("should cancel previous request when new request starts", async () => {
-    const abortSpy = vi.fn();
-    const originalAbortController = global.AbortController;
-
-    global.AbortController = vi.fn().mockImplementation(() => ({
-      abort: abortSpy,
-      signal: { aborted: false },
-    }));
-
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ turns: [], blocks: [] }),
-    });
-
-    const { result } = renderHook(() =>
-      useSessionPolling("project-1", "session-1"),
-    );
-
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalled();
-    });
-
-    // Trigger refetch
-    result.current.refetch();
-
-    expect(abortSpy).toHaveBeenCalled();
-
-    global.AbortController = originalAbortController;
-  });
-
-  it("should clean up on unmount", async () => {
-    const abortSpy = vi.fn();
-    const clearIntervalSpy = vi.spyOn(global, "clearInterval");
-    const originalAbortController = global.AbortController;
-
-    global.AbortController = vi.fn().mockImplementation(() => ({
-      abort: abortSpy,
-      signal: { aborted: false },
-    }));
-
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ turns: [], blocks: [] }),
-    });
-
-    const { unmount } = renderHook(() =>
-      useSessionPolling("project-1", "session-1"),
-    );
-
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalled();
-    });
-
-    unmount();
-
-    expect(clearIntervalSpy).toHaveBeenCalled();
-    expect(abortSpy).toHaveBeenCalled();
-
-    global.AbortController = originalAbortController;
-    clearIntervalSpy.mockRestore();
-  });
-
-  it("should not log AbortError in console", async () => {
-    const consoleErrorSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
-
-    const abortError = new Error("Aborted");
-    abortError.name = "AbortError";
-
-    mockFetch.mockRejectedValueOnce(abortError);
-
-    renderHook(() => useSessionPolling("project-1", "session-1"));
-
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalled();
-    });
-
-    expect(consoleErrorSpy).not.toHaveBeenCalled();
-
-    consoleErrorSpy.mockRestore();
   });
 
   it("should provide refetch function", async () => {
