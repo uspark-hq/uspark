@@ -9,6 +9,7 @@ import {
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import { writeFileToYjs } from "../../../../../../../src/lib/yjs-file-writer";
 
 interface MockBlock {
   type: "thinking" | "content" | "tool_use" | "tool_result";
@@ -91,7 +92,7 @@ export async function POST(
   }
 
   // Start async mock execution
-  executeMockClaudeAsync(turnId, user_message).catch((error) => {
+  executeMockClaudeAsync(turnId, projectId, userId, user_message).catch((error) => {
     console.error("Mock execution failed:", error);
   });
 
@@ -105,7 +106,7 @@ export async function POST(
   });
 }
 
-async function executeMockClaudeAsync(turnId: string, userMessage: string) {
+async function executeMockClaudeAsync(turnId: string, projectId: string, userId: string, userMessage: string) {
   try {
     // Update status to in_progress
     await globalThis.services.db
@@ -121,10 +122,21 @@ async function executeMockClaudeAsync(turnId: string, userMessage: string) {
 
     // Create blocks with delays to simulate real-time execution
     let sequenceNumber = 0;
+    let shouldWriteFile = false;
+
     for (const mockBlock of mockBlocks) {
       // Wait for specified delay
       if (mockBlock.delay) {
         await new Promise((resolve) => setTimeout(resolve, mockBlock.delay));
+      }
+
+      // Check if this is a write_file tool use and should actually write to YJS
+      if (mockBlock.type === "tool_use" &&
+          mockBlock.content.tool_name === "write_file" &&
+          (userMessage.toLowerCase().includes("readme") ||
+           userMessage.toLowerCase().includes("document") ||
+           userMessage.toLowerCase().includes("create file"))) {
+        shouldWriteFile = true;
       }
 
       // Create block
@@ -135,6 +147,36 @@ async function executeMockClaudeAsync(turnId: string, userMessage: string) {
         content: mockBlock.content,
         sequenceNumber: sequenceNumber++,
       });
+
+      // Actually write file to YJS if this is a write_file tool_use
+      if (shouldWriteFile && mockBlock.type === "tool_use" &&
+          mockBlock.content.tool_name === "write_file") {
+        try {
+          const params = mockBlock.content.parameters as any;
+          await writeFileToYjs(projectId, userId, params.path, params.content);
+
+          // Update the following tool_result block to reflect successful YJS write
+          const nextBlock = mockBlocks[sequenceNumber];
+          if (nextBlock && nextBlock.type === "tool_result") {
+            nextBlock.content = {
+              ...nextBlock.content,
+              result: `File '${params.path}' written to YJS filesystem successfully. The file is now visible in the file explorer!`,
+            };
+          }
+        } catch (error) {
+          console.error("Failed to write file to YJS:", error);
+          // Update the following tool_result block to reflect the error
+          const nextBlock = mockBlocks[sequenceNumber];
+          if (nextBlock && nextBlock.type === "tool_result") {
+            nextBlock.content = {
+              ...nextBlock.content,
+              error: `Failed to write file to YJS filesystem: ${error instanceof Error ? error.message : "Unknown error"}`,
+              result: null,
+            };
+          }
+        }
+        shouldWriteFile = false;
+      }
     }
 
     // Mark turn as completed
@@ -215,6 +257,82 @@ function generateMockBlocks(userMessage: string): MockBlock[] {
           text: "I found several files in your workspace. Would you like me to read any specific file?",
         },
         delay: 500,
+      },
+    ];
+  }
+
+  if (lowerMessage.includes("readme") || lowerMessage.includes("document") || lowerMessage.includes("create file")) {
+    return [
+      {
+        type: "thinking",
+        content: {
+          text: "The user wants me to create a README or documentation file. I'll write a README.md file to the YJS filesystem so it appears in the file explorer.",
+        },
+        delay: 500,
+      },
+      {
+        type: "content",
+        content: {
+          text: "I'll create a README.md file for your project. This will be written to the YJS filesystem and should appear in your file explorer!",
+        },
+        delay: 1000,
+      },
+      {
+        type: "tool_use",
+        content: {
+          tool_name: "write_file",
+          parameters: {
+            path: "README.md",
+            content: `# ${lowerMessage.includes("project") ? "Project" : "My"} README
+
+This is a README file created by Claude Code through the mock execution system!
+
+## Features
+
+- ✅ Created via YJS filesystem integration
+- ✅ Appears in the file explorer in real-time
+- ✅ Demonstrates the connection between Claude execution and file synchronization
+
+## How it works
+
+1. User sends a message to Claude
+2. Mock execution processes the request
+3. File is written to YJS document and blob storage
+4. Frontend file explorer automatically updates via YJS synchronization
+
+## Generated at
+
+${new Date().toLocaleString()}
+
+---
+
+This demonstrates the full integration between:
+- Frontend chat interface
+- Mock execution backend
+- YJS filesystem
+- Real-time file synchronization
+
+Pretty cool! 🚀`,
+          },
+          tool_use_id: `tool_${randomUUID()}`,
+        },
+        delay: 1500,
+      },
+      {
+        type: "tool_result",
+        content: {
+          tool_use_id: `tool_${randomUUID()}`,
+          result: "File 'README.md' will be written to YJS filesystem...",
+          error: null,
+        },
+        delay: 500,
+      },
+      {
+        type: "content",
+        content: {
+          text: "Perfect! I've created a comprehensive README.md file that demonstrates the YJS filesystem integration. The file should now be visible in your project's file explorer on the left. This shows the complete flow from chat interface → mock execution → YJS filesystem → real-time frontend updates!",
+        },
+        delay: 800,
       },
     ];
   }
