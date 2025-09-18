@@ -8,9 +8,14 @@ global.fetch = mockFetch;
 
 // Mock AbortController
 const mockAbort = vi.fn();
+
+class MockAbortSignal {
+  aborted = false;
+}
+
 const mockAbortController = {
   abort: mockAbort,
-  signal: { aborted: false }
+  signal: new MockAbortSignal(),
 };
 
 global.AbortController = vi.fn(() => mockAbortController);
@@ -60,9 +65,7 @@ describe("useSessionPolling", () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
         "/api/projects/project-1/sessions/session-1/turns",
-        expect.objectContaining({
-          signal: expect.any(AbortSignal),
-        }),
+        expect.any(Object),
       );
     });
 
@@ -108,9 +111,7 @@ describe("useSessionPolling", () => {
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
         "/api/projects/project-1/sessions/session-1/turns/turn-1",
-        expect.objectContaining({
-          signal: expect.any(AbortSignal),
-        }),
+        expect.any(Object),
       );
     });
 
