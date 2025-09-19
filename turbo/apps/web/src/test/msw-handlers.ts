@@ -241,6 +241,18 @@ const projectsHandlers = [
     });
   }),
 
+  // POST /api/projects/:projectId/sessions/:sessionId/turns - Create turn
+  http.post("*/api/projects/:projectId/sessions/:sessionId/turns", async ({ request }) => {
+    const body = (await request.json()) as { user_message: string };
+    return HttpResponse.json({
+      id: `turn-${Date.now()}`,
+      user_prompt: body.user_message,
+      status: "pending",
+      blocks: [],
+      createdAt: new Date().toISOString(),
+    });
+  }),
+
   // GET /api/projects/:projectId/sessions/:sessionId/turns/:turnId - Get turn with blocks
   http.get(
     "*/api/projects/:projectId/sessions/:sessionId/turns/:turnId",
@@ -261,6 +273,32 @@ const projectsHandlers = [
       });
     },
   ),
+
+  // GET /api/projects/:projectId/sessions/:sessionId/updates - Long polling updates
+  http.get("*/api/projects/:projectId/sessions/:sessionId/updates", async ({ request }) => {
+    const url = new URL(request.url);
+    const timeout = url.searchParams.get("timeout");
+
+    // For immediate requests (refetch), return 204 immediately
+    if (timeout === "0") {
+      return new HttpResponse(null, { status: 204 });
+    } else {
+      // For long polling requests, simulate waiting but respond to abort signals
+      return new Promise((resolve, reject) => {
+        const timeoutId = setTimeout(() => {
+          resolve(new HttpResponse(null, { status: 204 }));
+        }, 200); // Short delay for tests instead of 30 seconds
+
+        // Listen for abort signal
+        if (request.signal) {
+          request.signal.addEventListener('abort', () => {
+            clearTimeout(timeoutId);
+            reject(new Error('Aborted'));
+          });
+        }
+      });
+    }
+  }),
 
   // GitHub repository endpoint for project page
   http.get("*/api/projects/:projectId/github/repository", () => {

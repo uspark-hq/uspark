@@ -54,7 +54,9 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
           }
 
           abortControllerRef.current = new AbortController();
-          setIsPolling(true);
+          if (!isCancelledRef.current) {
+            setIsPolling(true);
+          }
 
           // Build current state string: turn1:blockCount1,turn2:blockCount2
           const stateString = buildStateString();
@@ -74,6 +76,8 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
 
           // 204 No Content means no updates (timeout)
           if (response.status === 204) {
+            // Add a small delay before continuing to avoid tight loops in tests
+            await new Promise((resolve) => setTimeout(resolve, 50));
             continue; // Continue polling
           }
 
@@ -81,7 +85,9 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
           const update: SessionUpdate = await response.json();
 
           // Update turns with the latest data
-          setTurns(update.turns);
+          if (!isCancelledRef.current) {
+            setTurns(update.turns);
+          }
         } catch (error: unknown) {
           if (error instanceof Error && error.name === "AbortError") {
             // Request was aborted, this is expected
@@ -95,7 +101,9 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
             await new Promise((resolve) => setTimeout(resolve, 2000));
           }
         } finally {
-          setIsPolling(false);
+          if (!isCancelledRef.current) {
+            setIsPolling(false);
+          }
         }
       }
     };
@@ -138,7 +146,9 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
           }),
         );
 
-        setTurns(turnsWithBlocks);
+        if (!isCancelledRef.current) {
+          setTurns(turnsWithBlocks);
+        }
       } catch (error) {
         console.error("Failed to fetch initial session data:", error);
       }
@@ -163,7 +173,7 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
   };
 
   const refetch = async () => {
-    if (!sessionId) return;
+    if (!sessionId || isCancelledRef.current) return;
 
     try {
       // Build current state for comparison
@@ -175,7 +185,9 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
 
       if (response.ok && response.status !== 204) {
         const update: SessionUpdate = await response.json();
-        setTurns(update.turns);
+        if (!isCancelledRef.current) {
+          setTurns(update.turns);
+        }
       }
     } catch (error) {
       console.error("Failed to refetch:", error);

@@ -1,6 +1,7 @@
 import { expect, afterEach } from "vitest";
 import * as matchers from "@testing-library/jest-dom/matchers";
 import { cleanup } from "@testing-library/react";
+import "./msw-setup"; // Setup MSW for HTTP request mocking
 
 expect.extend(matchers);
 
