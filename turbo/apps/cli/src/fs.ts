@@ -95,8 +95,8 @@ export class FileSystem {
   }
 
   getUpdate(): Uint8Array {
-    const stateVector = Y.encodeStateVector(this.ydoc);
-    return Y.encodeStateAsUpdate(this.ydoc, stateVector);
+    // Return the full state as an update (relative to empty state)
+    return Y.encodeStateAsUpdate(this.ydoc);
   }
 
   private async computeHash(bytes: Uint8Array): Promise<string> {
