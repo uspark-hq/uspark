@@ -18,7 +18,9 @@ const mockAbortController = {
   signal: new MockAbortSignal(),
 };
 
-global.AbortController = vi.fn(() => mockAbortController) as unknown as typeof AbortController;
+global.AbortController = vi.fn(
+  () => mockAbortController,
+) as unknown as typeof AbortController;
 
 describe("useSessionPolling", () => {
   beforeEach(() => {
