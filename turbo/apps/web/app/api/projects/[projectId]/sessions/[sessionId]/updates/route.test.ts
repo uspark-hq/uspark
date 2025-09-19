@@ -355,9 +355,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
       createdTurnIds.push(turn!.id);
 
       // Empty client state
-      const request = new NextRequest(
-        "http://localhost:3000?state=&timeout=0",
-      );
+      const request = new NextRequest("http://localhost:3000?state=&timeout=0");
       const context = { params: Promise.resolve({ projectId, sessionId }) };
 
       const response = await GET(request, context);
@@ -428,11 +426,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         })
         .returning();
 
-      createdTurnIds.push(
-        pendingTurn!.id,
-        runningTurn!.id,
-        completedTurn!.id,
-      );
+      createdTurnIds.push(pendingTurn!.id, runningTurn!.id, completedTurn!.id);
 
       // Client has seen all turns (no updates)
       const request = new NextRequest(

@@ -34,9 +34,7 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
   const isCancelledRef = useRef(false);
 
   const buildStateString = useCallback(() => {
-    return turns
-      .map(turn => `${turn.id}:${turn.blocks.length}`)
-      .join(",");
+    return turns.map((turn) => `${turn.id}:${turn.blocks.length}`).join(",");
   }, [turns]);
 
   useEffect(() => {

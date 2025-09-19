@@ -41,14 +41,13 @@ export async function GET(
   // Parse client state into a map
   const clientTurnStates = new Map<string, number>();
   if (clientState) {
-    clientState.split(",").forEach(part => {
+    clientState.split(",").forEach((part) => {
       const [turnId, count] = part.split(":");
       if (turnId && count) {
         clientTurnStates.set(turnId, parseInt(count, 10));
       }
     });
   }
-
 
   // Verify project exists and belongs to user
   const [project] = await globalThis.services.db
@@ -91,7 +90,6 @@ export async function GET(
       .where(eq(TURNS_TBL.sessionId, sessionId))
       .orderBy(asc(TURNS_TBL.createdAt));
 
-
     // Get blocks for each turn and check for updates
     let hasUpdates = false;
     const turnsWithBlocks = await Promise.all(
@@ -106,7 +104,10 @@ export async function GET(
         const clientBlockCount = clientTurnStates.get(turn.id);
 
         // Check if this turn is new or has new blocks
-        if (clientBlockCount === undefined || currentBlockCount > clientBlockCount) {
+        if (
+          clientBlockCount === undefined ||
+          currentBlockCount > clientBlockCount
+        ) {
           hasUpdates = true;
         }
 
@@ -130,7 +131,7 @@ export async function GET(
 
     // Check if there are any active turns
     const hasActiveTurns = turns.some(
-      turn => turn.status === "in_progress" || turn.status === "pending",
+      (turn) => turn.status === "in_progress" || turn.status === "pending",
     );
 
     // If no active turns and no updates, return immediately to avoid unnecessary waiting
