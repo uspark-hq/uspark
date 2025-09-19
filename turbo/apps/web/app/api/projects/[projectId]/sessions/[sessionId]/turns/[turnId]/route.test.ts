@@ -18,6 +18,11 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
 }));
 
+// Mock the mock executor to prevent it from actually running in tests
+vi.mock("../mock-executor", () => ({
+  triggerMockExecution: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 

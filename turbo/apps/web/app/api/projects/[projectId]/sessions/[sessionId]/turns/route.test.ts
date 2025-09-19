@@ -18,6 +18,11 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
 }));
 
+// Mock the mock executor to prevent it from actually running in tests
+vi.mock("./mock-executor", () => ({
+  triggerMockExecution: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 
@@ -192,6 +197,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       expect(data.id).toMatch(/^turn_/);
       expect(data).toHaveProperty("session_id", sessionId);
       expect(data).toHaveProperty("user_message", userMessage);
+      // Status is pending initially (mock executor runs async)
       expect(data).toHaveProperty("status", "pending");
       expect(data).toHaveProperty("created_at");
 

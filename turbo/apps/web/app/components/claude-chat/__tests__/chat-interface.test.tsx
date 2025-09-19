@@ -135,7 +135,7 @@ describe("ChatInterface", () => {
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
-        "/api/projects/project-1/sessions/session-123/mock-execute",
+        "/api/projects/project-1/sessions/session-123/turns",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -175,7 +175,7 @@ describe("ChatInterface", () => {
 
     await waitFor(() => {
       expect(mockFetch).toHaveBeenCalledWith(
-        "/api/projects/project-1/sessions/session-123/mock-execute",
+        "/api/projects/project-1/sessions/session-123/turns",
         expect.anything(),
       );
     });
