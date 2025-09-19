@@ -61,11 +61,23 @@ export async function createProjectRepository(
   // Get installation details to determine if it's an organization or user
   const installation = await getInstallationDetails(installationId);
 
+  // Handle both user and organization account types
+  const accountType = installation.account
+    ? "type" in installation.account
+      ? installation.account.type
+      : "Organization"
+    : "unknown";
+  const accountLogin = installation.account
+    ? "login" in installation.account
+      ? installation.account.login
+      : installation.account.slug || installation.account.name
+    : "unknown";
+
   console.log("Installation details:", {
     installationId,
     account: installation.account,
-    accountType: installation.account?.type,
-    accountLogin: installation.account?.login,
+    accountType,
+    accountLogin,
   });
 
   // Generate repository name using first 8 characters of UUID for brevity
@@ -75,16 +87,16 @@ export async function createProjectRepository(
   let repo;
 
   try {
-    if (installation.account?.type === "Organization") {
+    if (accountType === "Organization") {
       // Create repository in organization
       console.log("Creating org repository:", {
         endpoint: "POST /orgs/{org}/repos",
-        org: installation.account.login,
+        org: accountLogin,
         name: repoName,
       });
 
       const { data } = await octokit.request("POST /orgs/{org}/repos", {
-        org: installation.account.login,
+        org: accountLogin,
         name: repoName,
         private: true,
         auto_init: true,
@@ -134,7 +146,7 @@ export async function createProjectRepository(
           );
         } else {
           throw new Error(
-            `GitHub API endpoint not found for organization ${installation.account.login}. Please check the GitHub App installation.`,
+            `GitHub API endpoint not found for organization ${accountLogin}. Please check the GitHub App installation.`,
           );
         }
       }
