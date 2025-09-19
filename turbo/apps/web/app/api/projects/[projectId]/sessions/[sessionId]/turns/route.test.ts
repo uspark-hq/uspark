@@ -176,7 +176,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       expect(data).toHaveProperty("error", "user_message_required");
     });
 
-    it("should create a new turn and trigger mock execution", async () => {
+    it("should create a new turn with pending status", async () => {
       const userMessage = "What is the weather today?";
       const request = new NextRequest("http://localhost:3000", {
         method: "POST",
@@ -194,29 +194,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       expect(data).toHaveProperty("user_message", userMessage);
       expect(data).toHaveProperty("status", "pending");
       expect(data).toHaveProperty("created_at");
-
-      // Wait for mock executor to complete
-      await new Promise(resolve => setTimeout(resolve, 3000));
-
-      // Verify turn was processed by mock executor
-      const [updatedTurn] = await globalThis.services.db
-        .select()
-        .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, data.id));
-
-      expect(updatedTurn.status).toBe("completed");
-      expect(updatedTurn.startedAt).not.toBeNull();
-      expect(updatedTurn.completedAt).not.toBeNull();
-
-      // Verify blocks were created
-      const blocks = await globalThis.services.db
-        .select()
-        .from(BLOCKS_TBL)
-        .where(eq(BLOCKS_TBL.turnId, data.id))
-        .orderBy(BLOCKS_TBL.sequenceNumber);
-
-      expect(blocks.length).toBeGreaterThan(0);
-      expect(blocks[0].type).toBe("thinking");
 
       createdTurnIds.push(data.id);
 

@@ -18,7 +18,6 @@ interface MockExecutionParams {
 interface MockBlock {
   type: "thinking" | "content" | "tool_use" | "tool_result";
   content: Record<string, unknown>;
-  delay?: number;
 }
 
 /**
@@ -30,6 +29,9 @@ export async function triggerMockExecution(params: MockExecutionParams) {
 
   initServices();
   const db = globalThis.services.db;
+
+  // Defer execution to ensure the API response is sent first
+  await new Promise(resolve => process.nextTick(resolve));
 
   try {
     // Update turn status to in_progress
@@ -44,13 +46,9 @@ export async function triggerMockExecution(params: MockExecutionParams) {
     // Determine mock blocks based on user message
     const mockBlocks = generateMockBlocks(userMessage, projectId);
 
-    // Create blocks with delays to simulate streaming
+    // Create blocks immediately without delays
     let sequenceNumber = 0;
     for (const mockBlock of mockBlocks) {
-      if (mockBlock.delay) {
-        await new Promise((resolve) => setTimeout(resolve, mockBlock.delay));
-      }
-
       const blockId = `block_${randomUUID()}`;
       await db.insert(BLOCKS_TBL).values({
         id: blockId,
@@ -130,14 +128,12 @@ function generateMockBlocks(
         content: {
           text: "I'll help you create a README file for this project. Let me generate comprehensive documentation based on the project context.",
         },
-        delay: 500,
       },
       {
         type: "content",
         content: {
           text: "I'll create a comprehensive README file for your project with all the essential sections.",
         },
-        delay: 1000,
       },
       {
         type: "tool_use",
@@ -148,7 +144,6 @@ function generateMockBlocks(
             content: generateReadmeContent(projectId),
           },
         },
-        delay: 1500,
       },
       {
         type: "tool_result",
@@ -161,14 +156,12 @@ function generateMockBlocks(
             message: "File created successfully",
           },
         },
-        delay: 2000,
       },
       {
         type: "content",
         content: {
           text: "I've created a README.md file with comprehensive documentation for your project. The file includes sections for project overview, installation, usage, features, and more. You can now see it in the file explorer.",
         },
-        delay: 2500,
       },
     );
   } else if (message.includes("analyze") || message.includes("explain")) {
@@ -179,14 +172,12 @@ function generateMockBlocks(
         content: {
           text: "Let me analyze the project structure and provide insights...",
         },
-        delay: 500,
       },
       {
         type: "content",
         content: {
           text: `Based on my analysis of the project:\n\n1. **Architecture**: This appears to be a Next.js application with TypeScript\n2. **Key Features**: Session management, turn-based conversations, and real-time updates\n3. **Database**: Using Drizzle ORM with PostgreSQL\n4. **Authentication**: Clerk for user authentication\n\nThe project follows a clean architecture pattern with clear separation of concerns.`,
         },
-        delay: 1500,
       },
     );
   } else {
@@ -197,14 +188,12 @@ function generateMockBlocks(
         content: {
           text: "Processing your request...",
         },
-        delay: 500,
       },
       {
         type: "content",
         content: {
           text: `I understand you want to: "${userMessage}"\n\nI'm here to help! This is a mock response demonstrating the chat interface. In production, this would connect to Claude for real AI assistance.\n\nYou can try asking me to:\n- Create a README file\n- Analyze the project structure\n- Explain the codebase`,
         },
-        delay: 1000,
       },
     );
   }
