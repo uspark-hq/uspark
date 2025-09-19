@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams } from "next/navigation";
 import { YjsFileExplorer } from "../../components/file-explorer";
 import { GitHubSyncButton } from "../../components/github-sync-button";
@@ -14,6 +14,7 @@ export default function ProjectDetailPage() {
   const [loadingContent, setLoadingContent] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [showShareSuccess, setShowShareSuccess] = useState(false);
+  const shareSuccessTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Mock file content loading for now
   const loadFileContent = async (filePath: string) => {
@@ -58,6 +59,15 @@ export default function ProjectDetailPage() {
     }
   }, [selectedFile]);
 
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (shareSuccessTimeoutRef.current) {
+        clearTimeout(shareSuccessTimeoutRef.current);
+      }
+    };
+  }, []);
+
   const handleShare = async () => {
     if (!selectedFile) return;
 
@@ -82,7 +92,10 @@ export default function ProjectDetailPage() {
         await navigator.clipboard.writeText(data.url);
 
         // Hide success message after 3 seconds
-        setTimeout(() => setShowShareSuccess(false), 3000);
+        shareSuccessTimeoutRef.current = setTimeout(
+          () => setShowShareSuccess(false),
+          3000,
+        );
       } else {
         console.error("Failed to create share link");
       }
