@@ -18,11 +18,6 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
 }));
 
-// Mock the mock executor to prevent it from actually running in tests
-vi.mock("./mock-executor", () => ({
-  triggerMockExecution: vi.fn().mockResolvedValue(undefined),
-}));
-
 import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 
@@ -181,7 +176,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       expect(data).toHaveProperty("error", "user_message_required");
     });
 
-    it("should create a new turn with pending status", async () => {
+    it("should create a new turn and trigger mock execution", async () => {
       const userMessage = "What is the weather today?";
       const request = new NextRequest("http://localhost:3000", {
         method: "POST",
@@ -197,9 +192,31 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       expect(data.id).toMatch(/^turn_/);
       expect(data).toHaveProperty("session_id", sessionId);
       expect(data).toHaveProperty("user_message", userMessage);
-      // Status is pending initially (mock executor runs async)
       expect(data).toHaveProperty("status", "pending");
       expect(data).toHaveProperty("created_at");
+
+      // Wait for mock executor to complete
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
+      // Verify turn was processed by mock executor
+      const [updatedTurn] = await globalThis.services.db
+        .select()
+        .from(TURNS_TBL)
+        .where(eq(TURNS_TBL.id, data.id));
+
+      expect(updatedTurn.status).toBe("completed");
+      expect(updatedTurn.startedAt).not.toBeNull();
+      expect(updatedTurn.completedAt).not.toBeNull();
+
+      // Verify blocks were created
+      const blocks = await globalThis.services.db
+        .select()
+        .from(BLOCKS_TBL)
+        .where(eq(BLOCKS_TBL.turnId, data.id))
+        .orderBy(BLOCKS_TBL.sequenceNumber);
+
+      expect(blocks.length).toBeGreaterThan(0);
+      expect(blocks[0].type).toBe("thinking");
 
       createdTurnIds.push(data.id);
 

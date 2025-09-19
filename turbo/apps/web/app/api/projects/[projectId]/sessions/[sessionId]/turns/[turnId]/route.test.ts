@@ -18,11 +18,6 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
 }));
 
-// Mock the mock executor to prevent it from actually running in tests
-vi.mock("../mock-executor", () => ({
-  triggerMockExecution: vi.fn().mockResolvedValue(undefined),
-}));
-
 import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 
@@ -182,7 +177,10 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
       expect(data).toHaveProperty("error", "turn_not_found");
     });
 
-    it("should return turn details without blocks", async () => {
+    it("should return turn details with auto-generated blocks", async () => {
+      // Wait for mock executor to complete
+      await new Promise(resolve => setTimeout(resolve, 3000));
+
       const request = new NextRequest("http://localhost:3000");
       const context = {
         params: Promise.resolve({ projectId, sessionId, turnId }),
@@ -195,11 +193,16 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
       expect(data).toHaveProperty("id", turnId);
       expect(data).toHaveProperty("session_id", sessionId);
       expect(data).toHaveProperty("user_prompt", "Test prompt");
-      expect(data).toHaveProperty("status", "pending");
-      expect(data).toHaveProperty("started_at", null);
-      expect(data).toHaveProperty("completed_at", null);
+      expect(data).toHaveProperty("status", "completed");
+      expect(data).toHaveProperty("started_at");
+      expect(data.started_at).not.toBeNull();
+      expect(data).toHaveProperty("completed_at");
+      expect(data.completed_at).not.toBeNull();
       expect(data).toHaveProperty("blocks");
-      expect(data.blocks).toEqual([]);
+      // Mock executor should have created some blocks
+      expect(data.blocks.length).toBeGreaterThan(0);
+      // First block should be thinking
+      expect(data.blocks[0].type).toBe("thinking");
     });
 
     it("should return turn details with blocks in sequence order", async () => {
