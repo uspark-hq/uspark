@@ -65,11 +65,16 @@ export async function getInstallationDetails(installationId: number) {
         ? data.account.login
         : data.account.slug || data.account.name
       : "unknown";
+    const accountType = data.account
+      ? "type" in data.account
+        ? data.account.type
+        : "Organization"
+      : "unknown";
     console.log(
       "getInstallationDetails: success, account:",
       accountIdentifier,
       "type:",
-      data.account?.type,
+      accountType,
     );
 
     return data;
