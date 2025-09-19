@@ -49,6 +49,7 @@ export async function GET(
     });
   }
 
+
   // Verify project exists and belongs to user
   const [project] = await globalThis.services.db
     .select()
@@ -79,14 +80,17 @@ export async function GET(
   // Long polling implementation
   const startTime = Date.now();
   const pollInterval = 100; // Check every 100ms
+  let firstCheck = true;
 
-  while (Date.now() - startTime < timeout) {
+  while (firstCheck || Date.now() - startTime < timeout) {
+    firstCheck = false;
     // Get all turns for the session
     const turns = await globalThis.services.db
       .select()
       .from(TURNS_TBL)
       .where(eq(TURNS_TBL.sessionId, sessionId))
       .orderBy(asc(TURNS_TBL.createdAt));
+
 
     // Get blocks for each turn and check for updates
     let hasUpdates = false;
@@ -99,10 +103,10 @@ export async function GET(
           .orderBy(asc(BLOCKS_TBL.sequenceNumber));
 
         const currentBlockCount = blocks.length;
-        const clientBlockCount = clientTurnStates.get(turn.id) || 0;
+        const clientBlockCount = clientTurnStates.get(turn.id);
 
         // Check if this turn is new or has new blocks
-        if (!clientTurnStates.has(turn.id) || currentBlockCount > clientBlockCount) {
+        if (clientBlockCount === undefined || currentBlockCount > clientBlockCount) {
           hasUpdates = true;
         }
 
@@ -131,23 +135,6 @@ export async function GET(
 
     // If no active turns and no updates, return immediately to avoid unnecessary waiting
     if (!hasActiveTurns) {
-      // Still check one more time before returning
-      await new Promise((resolve) => setTimeout(resolve, pollInterval));
-
-      // Final check for any last-second updates
-      const finalTurns = await globalThis.services.db
-        .select()
-        .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.sessionId, sessionId));
-
-      const finalHasUpdates = finalTurns.some(turn =>
-        !clientTurnStates.has(turn.id)
-      );
-
-      if (finalHasUpdates) {
-        continue; // New update available, loop will handle it
-      }
-
       // No updates and no active turns - return 204 No Content
       return new Response(null, { status: 204 });
     }

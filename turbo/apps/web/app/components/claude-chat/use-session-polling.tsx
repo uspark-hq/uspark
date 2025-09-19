@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 
 interface Block {
   id: string;
@@ -33,6 +33,12 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
   const abortControllerRef = useRef<AbortController | null>(null);
   const isCancelledRef = useRef(false);
 
+  const buildStateString = useCallback(() => {
+    return turns
+      .map(turn => `${turn.id}:${turn.blocks.length}`)
+      .join(",");
+  }, [turns]);
+
   useEffect(() => {
     if (!sessionId) return;
 
@@ -51,9 +57,7 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
           setIsPolling(true);
 
           // Build current state string: turn1:blockCount1,turn2:blockCount2
-          const stateString = turns
-            .map(turn => `${turn.id}:${turn.blocks.length}`)
-            .join(",");
+          const stateString = buildStateString();
 
           // Long poll for updates with state comparison
           const response = await fetch(
@@ -150,7 +154,7 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
         abortControllerRef.current = null;
       }
     };
-  }, [projectId, sessionId]);
+  }, [projectId, sessionId, buildStateString]);
 
   const hasActiveTurns = () => {
     return turns.some(
@@ -163,9 +167,7 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
 
     try {
       // Build current state for comparison
-      const stateString = turns
-        .map(turn => `${turn.id}:${turn.blocks.length}`)
-        .join(",");
+      const stateString = buildStateString();
 
       const response = await fetch(
         `/api/projects/${projectId}/sessions/${sessionId}/updates?state=${encodeURIComponent(stateString)}&timeout=0`,
