@@ -13,8 +13,6 @@ interface Turn {
   id: string;
   userPrompt: string;
   status: "pending" | "in_progress" | "completed" | "failed";
-  version: number;
-  blockCount: number;
   startedAt: string | null;
   completedAt: string | null;
   errorMessage?: string | null;
@@ -22,11 +20,8 @@ interface Turn {
 }
 
 interface SessionUpdate {
-  version: number;
-  hasMore: boolean;
   session: {
     id: string;
-    version: number;
     updatedAt: string;
   };
   turns: Turn[];
@@ -34,7 +29,6 @@ interface SessionUpdate {
 
 export function useSessionPolling(projectId: string, sessionId: string | null) {
   const [turns, setTurns] = useState<Turn[]>([]);
-  const [version, setVersion] = useState(0);
   const [isPolling, setIsPolling] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isCancelledRef = useRef(false);
@@ -56,12 +50,16 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
           abortControllerRef.current = new AbortController();
           setIsPolling(true);
 
-          // Long poll for updates with version tracking
+          // Build current state string: turn1:blockCount1,turn2:blockCount2
+          const stateString = turns
+            .map(turn => `${turn.id}:${turn.blocks.length}`)
+            .join(",");
+
+          // Long poll for updates with state comparison
           const response = await fetch(
-            `/api/projects/${projectId}/sessions/${sessionId}/updates?version=${version}&timeout=30000`,
+            `/api/projects/${projectId}/sessions/${sessionId}/updates?state=${encodeURIComponent(stateString)}&timeout=30000`,
             {
               signal: abortControllerRef.current.signal,
-              // Use a slightly longer timeout than server to account for network latency
               ...{ next: { revalidate: 0 } },
             },
           );
@@ -72,43 +70,14 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
 
           // 204 No Content means no updates (timeout)
           if (response.status === 204) {
-            const serverVersion = response.headers.get("X-Session-Version");
-            if (serverVersion) {
-              const newVersion = parseInt(serverVersion, 10);
-              if (newVersion > version) {
-                setVersion(newVersion);
-              }
-            }
             continue; // Continue polling
           }
 
           // Parse the update response
           const update: SessionUpdate = await response.json();
 
-          if (update.version > version) {
-            // Merge turns with existing ones
-            setTurns((prevTurns) => {
-              const turnMap = new Map<string, Turn>();
-
-              // Add existing turns
-              prevTurns.forEach(turn => turnMap.set(turn.id, turn));
-
-              // Update or add new turns
-              update.turns.forEach(turn => {
-                const existing = turnMap.get(turn.id);
-                if (!existing || turn.version > existing.version) {
-                  turnMap.set(turn.id, turn);
-                }
-              });
-
-              return Array.from(turnMap.values()).sort((a, b) => {
-                // Sort by creation time (assuming IDs are chronological)
-                return a.id.localeCompare(b.id);
-              });
-            });
-
-            setVersion(update.version);
-          }
+          // Update turns with the latest data
+          setTurns(update.turns);
         } catch (error: unknown) {
           if (error instanceof Error && error.name === "AbortError") {
             // Request was aborted, this is expected
@@ -151,27 +120,21 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
               );
 
               if (!turnResponse.ok) {
-                return { ...turn, blocks: [], version: 0, blockCount: 0 };
+                return { ...turn, blocks: [] };
               }
 
               const turnData = await turnResponse.json();
               return {
                 ...turn,
                 blocks: turnData.blocks || [],
-                version: turn.version || 0,
-                blockCount: turn.blockCount || turnData.blocks?.length || 0,
               };
             } catch {
-              return { ...turn, blocks: [], version: 0, blockCount: 0 };
+              return { ...turn, blocks: [] };
             }
           }),
         );
 
         setTurns(turnsWithBlocks);
-
-        // Set initial version to max turn version
-        const maxVersion = Math.max(0, ...turnsWithBlocks.map((t: Turn) => t.version || 0));
-        setVersion(maxVersion);
       } catch (error) {
         console.error("Failed to fetch initial session data:", error);
       }
@@ -187,7 +150,7 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
         abortControllerRef.current = null;
       }
     };
-  }, [projectId, sessionId, version]);
+  }, [projectId, sessionId]);
 
   const hasActiveTurns = () => {
     return turns.some(
@@ -199,22 +162,18 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
     if (!sessionId) return;
 
     try {
+      // Build current state for comparison
+      const stateString = turns
+        .map(turn => `${turn.id}:${turn.blocks.length}`)
+        .join(",");
+
       const response = await fetch(
-        `/api/projects/${projectId}/sessions/${sessionId}/updates?version=${version}&timeout=0`,
+        `/api/projects/${projectId}/sessions/${sessionId}/updates?state=${encodeURIComponent(stateString)}&timeout=0`,
       );
 
       if (response.ok && response.status !== 204) {
         const update: SessionUpdate = await response.json();
-
-        if (update.version > version) {
-          setTurns((prevTurns) => {
-            const turnMap = new Map<string, Turn>();
-            prevTurns.forEach(turn => turnMap.set(turn.id, turn));
-            update.turns.forEach(turn => turnMap.set(turn.id, turn));
-            return Array.from(turnMap.values()).sort((a, b) => a.id.localeCompare(b.id));
-          });
-          setVersion(update.version);
-        }
+        setTurns(update.turns);
       }
     } catch (error) {
       console.error("Failed to refetch:", error);
@@ -226,6 +185,5 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
     isPolling,
     refetch,
     hasActiveTurns: hasActiveTurns(),
-    version,
   };
 }

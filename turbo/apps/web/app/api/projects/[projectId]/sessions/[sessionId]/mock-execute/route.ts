@@ -4,11 +4,11 @@ import { initServices } from "../../../../../../../src/lib/init-services";
 import {
   SESSIONS_TBL,
   TURNS_TBL,
+  BLOCKS_TBL,
 } from "../../../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
 import { randomUUID } from "crypto";
-import { VersionManager } from "../../../../../../../src/lib/services/version-manager";
 
 interface MockBlock {
   type: "thinking" | "content" | "tool_use" | "tool_result";
@@ -71,22 +71,17 @@ export async function POST(
     );
   }
 
-  // Create new turn with version management
-  const versionManager = new VersionManager(globalThis.services.db);
+  // Create new turn
   const turnId = `turn_${randomUUID()}`;
-
-  // Use version manager to create turn
-  await versionManager.createTurn({
-    id: turnId,
-    sessionId,
-    userPrompt: user_message,
-    status: "pending",
-  });
-
   const [newTurn] = await globalThis.services.db
-    .select()
-    .from(TURNS_TBL)
-    .where(eq(TURNS_TBL.id, turnId));
+    .insert(TURNS_TBL)
+    .values({
+      id: turnId,
+      sessionId,
+      userPrompt: user_message,
+      status: "pending",
+    })
+    .returning();
 
   if (!newTurn) {
     return NextResponse.json(
@@ -95,7 +90,7 @@ export async function POST(
     );
   }
 
-  // Start async mock execution with version manager
+  // Start async mock execution
   executeMockClaudeAsync(turnId, user_message).catch((error) => {
     console.error("Mock execution failed:", error);
   });
@@ -111,13 +106,15 @@ export async function POST(
 }
 
 async function executeMockClaudeAsync(turnId: string, userMessage: string) {
-  const versionManager = new VersionManager(globalThis.services.db);
-
   try {
-    // Update status to in_progress with version increment
-    await versionManager.updateTurnStatus(turnId, "in_progress", {
-      startedAt: new Date(),
-    });
+    // Update status to in_progress
+    await globalThis.services.db
+      .update(TURNS_TBL)
+      .set({
+        status: "in_progress",
+        startedAt: new Date(),
+      })
+      .where(eq(TURNS_TBL.id, turnId));
 
     // Generate mock blocks based on the user message
     const mockBlocks = generateMockBlocks(userMessage);
@@ -130,8 +127,8 @@ async function executeMockClaudeAsync(turnId: string, userMessage: string) {
         await new Promise((resolve) => setTimeout(resolve, mockBlock.delay));
       }
 
-      // Create block with version management
-      await versionManager.addBlock({
+      // Create block
+      await globalThis.services.db.insert(BLOCKS_TBL).values({
         id: `block_${randomUUID()}`,
         turnId,
         type: mockBlock.type,
@@ -140,16 +137,24 @@ async function executeMockClaudeAsync(turnId: string, userMessage: string) {
       });
     }
 
-    // Mark turn as completed with version increment
-    await versionManager.updateTurnStatus(turnId, "completed", {
-      completedAt: new Date(),
-    });
+    // Mark turn as completed
+    await globalThis.services.db
+      .update(TURNS_TBL)
+      .set({
+        status: "completed",
+        completedAt: new Date(),
+      })
+      .where(eq(TURNS_TBL.id, turnId));
   } catch (error) {
-    // Mark turn as failed with version increment
-    await versionManager.updateTurnStatus(turnId, "failed", {
-      errorMessage: error instanceof Error ? error.message : "Unknown error",
-      completedAt: new Date(),
-    });
+    // Mark turn as failed
+    await globalThis.services.db
+      .update(TURNS_TBL)
+      .set({
+        status: "failed",
+        errorMessage: error instanceof Error ? error.message : "Unknown error",
+        completedAt: new Date(),
+      })
+      .where(eq(TURNS_TBL.id, turnId));
 
     throw error;
   }

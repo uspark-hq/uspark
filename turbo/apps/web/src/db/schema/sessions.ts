@@ -12,7 +12,6 @@ export const SESSIONS_TBL = pgTable("sessions", {
     .notNull()
     .references(() => PROJECTS_TBL.id),
   title: text("title"), // Optional session title
-  version: integer("version").notNull().default(0), // Version counter for updates
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
@@ -25,8 +24,6 @@ export const TURNS_TBL = pgTable("turns", {
     .references(() => SESSIONS_TBL.id, { onDelete: "cascade" }),
   userPrompt: text("user_prompt").notNull(), // User's input message
   status: text("status").notNull().default("pending"), // pending, running, completed, failed
-  version: integer("version").notNull().default(0), // Version counter for turn updates
-  blockCount: integer("block_count").notNull().default(0), // Number of blocks in this turn
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
   errorMessage: text("error_message"), // Error details if status is failed
