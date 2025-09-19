@@ -16,6 +16,7 @@ import {
   type ListTurnsResponse,
   type TurnErrorResponse,
 } from "@uspark/core";
+import { triggerMockExecution } from "./mock-executor";
 
 /**
  * POST /api/projects/:projectId/sessions/:sessionId/turns
@@ -111,6 +112,18 @@ export async function POST(
     };
     return NextResponse.json(error, { status: 500 });
   }
+
+  // Trigger mock execution asynchronously (don't wait for it)
+  // In production, this would trigger real Claude execution via E2B
+  triggerMockExecution({
+    turnId,
+    sessionId,
+    projectId,
+    userMessage: user_message,
+    userId,
+  }).catch((err) => {
+    console.error("Failed to trigger mock execution:", err);
+  });
 
   const response: CreateTurnResponse = {
     id: newTurn.id,

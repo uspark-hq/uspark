@@ -44,8 +44,13 @@ export class ProjectSync {
     const apiUrl = options.apiUrl;
     const token = options.token;
 
-    // Get update from FileSystem's YDoc
+    // Get incremental update from FileSystem's YDoc
     const update = this.fs.getUpdate();
+
+    // Only sync if there are actual changes
+    if (update.length === 0) {
+      return; // No changes to sync
+    }
 
     const response = await fetch(`${apiUrl}/api/projects/${projectId}`, {
       method: "PATCH",
@@ -59,6 +64,9 @@ export class ProjectSync {
     if (!response.ok) {
       throw new Error(`Failed to sync to remote: ${response.statusText}`);
     }
+
+    // Mark the current state as synced
+    this.fs.markAsSynced();
   }
 
   async pullFile(

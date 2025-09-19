@@ -60,11 +60,21 @@ export async function getInstallationDetails(installationId: number) {
         installation_id: installationId,
       },
     );
+    const accountIdentifier = data.account
+      ? "login" in data.account
+        ? data.account.login
+        : data.account.slug || data.account.name
+      : "unknown";
+    const accountType = data.account
+      ? "type" in data.account
+        ? data.account.type
+        : "Organization"
+      : "unknown";
     console.log(
       "getInstallationDetails: success, account:",
-      data.account?.login,
+      accountIdentifier,
       "type:",
-      data.account?.type,
+      accountType,
     );
 
     return data;

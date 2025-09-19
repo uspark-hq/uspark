@@ -12,7 +12,16 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
-  // Protect all routes except public ones
+  // Check if this might be a CLI token request
+  const authHeader = request.headers.get("Authorization");
+  const hasCliToken = authHeader && authHeader.includes("usp_live_");
+
+  // Skip Clerk auth for CLI token requests - will be handled at API route level
+  if (hasCliToken) {
+    return;
+  }
+
+  // For non-CLI token requests, use regular Clerk authentication
   if (!isPublicRoute(request)) {
     await auth.protect();
   }

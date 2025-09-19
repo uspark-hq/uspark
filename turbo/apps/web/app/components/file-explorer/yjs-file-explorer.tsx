@@ -36,12 +36,20 @@ export function YjsFileExplorer({
   });
 
   useEffect(() => {
-    async function loadProjectFiles() {
-      setProjectData((prev) => ({ ...prev, loading: true, error: undefined }));
+    async function loadProjectFiles(isInitialLoad = false) {
+      setProjectData((prev) => ({
+        ...prev,
+        loading: isInitialLoad || prev.files.length === 0,
+        error: undefined,
+      }));
 
       try {
         // Fetch YJS document from the API
-        const response = await fetch(`/api/projects/${projectId}`);
+        const response = await fetch(`/api/projects/${projectId}`, {
+          headers: {
+            "Cache-Control": "no-cache",
+          },
+        });
 
         if (!response.ok) {
           throw new Error(`Failed to load project: ${response.statusText}`);
@@ -73,7 +81,15 @@ export function YjsFileExplorer({
     }
 
     if (projectId) {
-      loadProjectFiles();
+      // Initial load
+      loadProjectFiles(true);
+
+      // Set up polling for real-time updates
+      const pollInterval = setInterval(() => loadProjectFiles(false), 3000); // Poll every 3 seconds
+
+      return () => {
+        clearInterval(pollInterval);
+      };
     }
   }, [projectId]);
 
