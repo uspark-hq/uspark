@@ -132,7 +132,9 @@ describe("Claude Session Management API Integration", () => {
       expect(getResponse.status).toBe(200);
       expect(getResponse.data.id).toBe(turnId);
       expect(getResponse.data.user_prompt).toBe("Test prompt");
-      expect(getResponse.data.blocks).toEqual([]);
+      // Mock executor creates blocks automatically
+      expect(Array.isArray(getResponse.data.blocks)).toBe(true);
+      expect(getResponse.data.blocks.length).toBeGreaterThan(0);
     });
 
     it("should support pagination for turns", async () => {
