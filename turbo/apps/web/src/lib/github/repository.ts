@@ -108,8 +108,8 @@ export async function createProjectRepository(
       console.log("Creating user repository:", {
         endpoint: "POST /user/repos",
         name: repoName,
-        accountType: installation.account?.type,
-        accountLogin: installation.account?.login,
+        accountType,
+        accountLogin,
       });
 
       const { data } = await octokit.request("POST /user/repos", {
