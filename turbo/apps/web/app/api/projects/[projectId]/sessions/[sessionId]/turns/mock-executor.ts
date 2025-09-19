@@ -31,7 +31,7 @@ export async function triggerMockExecution(params: MockExecutionParams) {
   const db = globalThis.services.db;
 
   // Defer execution to ensure the API response is sent first
-  await new Promise(resolve => process.nextTick(resolve));
+  await new Promise((resolve) => process.nextTick(resolve));
 
   try {
     // Update turn status to in_progress

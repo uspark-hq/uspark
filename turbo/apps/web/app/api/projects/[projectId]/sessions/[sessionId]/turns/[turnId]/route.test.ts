@@ -197,12 +197,21 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
     });
 
     it("should return turn details with blocks in sequence order", async () => {
-      // Create blocks
+      // Create a new turn directly without triggering mock executor
+      const manualTurnId = `turn_manual_${Date.now()}`;
+      await globalThis.services.db.insert(TURNS_TBL).values({
+        id: manualTurnId,
+        sessionId,
+        userPrompt: "Manual test prompt",
+        status: "completed",
+      });
+
+      // Create blocks for this manual turn
       const [block1] = await globalThis.services.db
         .insert(BLOCKS_TBL)
         .values({
           id: `block_thinking_${Date.now()}`,
-          turnId,
+          turnId: manualTurnId,
           type: "thinking",
           content: { text: "Let me think about this..." },
           sequenceNumber: 0,
@@ -213,7 +222,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         .insert(BLOCKS_TBL)
         .values({
           id: `block_tool_${Date.now()}`,
-          turnId,
+          turnId: manualTurnId,
           type: "tool_use",
           content: {
             tool_name: "read_file",
@@ -228,7 +237,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         .insert(BLOCKS_TBL)
         .values({
           id: `block_result_${Date.now()}`,
-          turnId,
+          turnId: manualTurnId,
           type: "tool_result",
           content: {
             tool_use_id: "tool_123",
@@ -243,7 +252,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         .insert(BLOCKS_TBL)
         .values({
           id: `block_content_${Date.now()}`,
-          turnId,
+          turnId: manualTurnId,
           type: "content",
           content: {
             text: "Based on the file, the answer is...",
@@ -256,7 +265,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
 
       const request = new NextRequest("http://localhost:3000");
       const context = {
-        params: Promise.resolve({ projectId, sessionId, turnId }),
+        params: Promise.resolve({ projectId, sessionId, turnId: manualTurnId }),
       };
 
       const response = await GET(request, context);
