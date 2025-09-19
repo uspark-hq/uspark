@@ -21,21 +21,19 @@ export default function SharesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const fetchShares = async () => {
-    try {
-      const response = await fetch("/api/shares");
-      if (response.ok) {
-        const data = await response.json();
-        setShares(data.shares || []);
-      }
-    } catch (error) {
-      console.error("Error fetching shares:", error);
-    } finally {
-      setLoading(false);
+    const response = await fetch("/api/shares");
+    if (response.ok) {
+      const data = await response.json();
+      setShares(data.shares || []);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
-    fetchShares();
+    fetchShares().catch((error) => {
+      console.error("Error fetching shares:", error);
+      setLoading(false);
+    });
   }, []);
 
   const handleDelete = async (shareId: string) => {
@@ -62,12 +60,8 @@ export default function SharesPage() {
   };
 
   const handleCopyLink = async (url: string) => {
-    try {
-      await navigator.clipboard.writeText(url);
-      // You could add a toast notification here
-    } catch (error) {
-      console.error("Failed to copy link:", error);
-    }
+    await navigator.clipboard.writeText(url);
+    // You could add a toast notification here
   };
 
   const formatDate = (dateString: string) => {

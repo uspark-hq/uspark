@@ -20,50 +20,40 @@ interface ShareMetadata {
 async function fetchShareMetadata(
   token: string,
 ): Promise<ShareMetadata | null> {
-  try {
-    const response = await fetch(`/api/share/${token}`, {
-      cache: "no-store",
-    });
+  const response = await fetch(`/api/share/${token}`, {
+    cache: "no-store",
+  });
 
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error(`HTTP error! status: ${response.status}`);
+  if (!response.ok) {
+    if (response.status === 404) {
+      return null;
     }
-
-    return await response.json();
-  } catch (error) {
-    console.error("Failed to fetch share metadata:", error);
-    return null;
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
+
+  return await response.json();
 }
 
 async function fetchFileContent(
   metadata: ShareMetadata,
 ): Promise<string | null> {
-  try {
-    // If we have a blob_url, fetch directly from it
-    if (metadata.blob_url) {
-      const response = await fetch(metadata.blob_url, {
-        cache: "no-store",
-      });
+  // If we have a blob_url, fetch directly from it
+  if (metadata.blob_url) {
+    const response = await fetch(metadata.blob_url, {
+      cache: "no-store",
+    });
 
-      if (!response.ok) {
-        console.error("Failed to fetch from blob storage:", response.status);
-        return null;
-      }
-
-      return await response.text();
+    if (!response.ok) {
+      console.error("Failed to fetch from blob storage:", response.status);
+      return null;
     }
 
-    // Fallback: blob_url not available
-    console.warn("Blob URL not available");
-    return null;
-  } catch (error) {
-    console.error("Failed to fetch file content:", error);
-    return null;
+    return await response.text();
   }
+
+  // Fallback: blob_url not available
+  console.warn("Blob URL not available");
+  return null;
 }
 
 export default function SharePage({ params }: SharePageProps) {

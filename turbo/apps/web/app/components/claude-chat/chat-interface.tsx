@@ -180,7 +180,7 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
                         fontSize: "14px",
                       }}
                     >
-                      {turn.user_prompt}
+                      {turn.userPrompt}
                     </div>
                   </div>
                 </div>

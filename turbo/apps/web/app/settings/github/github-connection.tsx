@@ -18,26 +18,24 @@ export function GitHubConnection() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    fetchInstallationStatus();
+    fetchInstallationStatus().catch((err) => {
+      setError("Network error");
+      console.error("Error fetching installation status:", err);
+      setLoading(false);
+    });
   }, []);
 
   const fetchInstallationStatus = async () => {
-    try {
-      const response = await fetch("/api/github/installation-status");
-      if (response.ok) {
-        const data = await response.json();
-        if (data.installation) {
-          setInstallation(data.installation);
-        }
-      } else if (response.status !== 404) {
-        setError("Failed to fetch installation status");
+    const response = await fetch("/api/github/installation-status");
+    if (response.ok) {
+      const data = await response.json();
+      if (data.installation) {
+        setInstallation(data.installation);
       }
-    } catch (err) {
-      setError("Network error");
-      console.error("Error fetching installation status:", err);
-    } finally {
-      setLoading(false);
+    } else if (response.status !== 404) {
+      setError("Failed to fetch installation status");
     }
+    setLoading(false);
   };
 
   const handleConnect = () => {

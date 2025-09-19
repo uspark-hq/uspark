@@ -19,33 +19,26 @@ export async function getUserId(request: NextRequest): Promise<string | null> {
     // Verify CLI token
     initServices();
 
-    try {
-      const now = new Date();
+    const now = new Date();
 
-      // Look up the token in the database
-      const [tokenRecord] = await globalThis.services.db
-        .select()
-        .from(CLI_TOKENS_TBL)
-        .where(
-          and(
-            eq(CLI_TOKENS_TBL.token, token),
-            gt(CLI_TOKENS_TBL.expiresAt, now),
-          ),
-        )
-        .limit(1);
+    // Look up the token in the database
+    const [tokenRecord] = await globalThis.services.db
+      .select()
+      .from(CLI_TOKENS_TBL)
+      .where(
+        and(eq(CLI_TOKENS_TBL.token, token), gt(CLI_TOKENS_TBL.expiresAt, now)),
+      )
+      .limit(1);
 
-      if (tokenRecord) {
-        // Update last used timestamp
-        await globalThis.services.db
-          .update(CLI_TOKENS_TBL)
-          .set({ lastUsedAt: now })
-          .where(eq(CLI_TOKENS_TBL.token, token))
-          .catch(console.error); // Non-critical update
+    if (tokenRecord) {
+      // Update last used timestamp
+      await globalThis.services.db
+        .update(CLI_TOKENS_TBL)
+        .set({ lastUsedAt: now })
+        .where(eq(CLI_TOKENS_TBL.token, token))
+        .catch(console.error); // Non-critical update
 
-        return tokenRecord.userId;
-      }
-    } catch (error) {
-      console.error("Failed to verify CLI token:", error);
+      return tokenRecord.userId;
     }
   }
 
