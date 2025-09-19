@@ -62,6 +62,29 @@ class MockYjsServer {
     return this.blobStorage.get(hash);
   }
 
+  // Get the YDoc for a project (for testing verification)
+  getProjectDoc(projectId: string): Doc | undefined {
+    return this.projects.get(projectId);
+  }
+
+  // Verify that a file exists in the project
+  hasFile(projectId: string, filePath: string): boolean {
+    const project = this.projects.get(projectId);
+    if (!project) return false;
+
+    const files = project.getMap("files");
+    return files.has(filePath);
+  }
+
+  // Get all files in a project
+  getAllFiles(projectId: string): string[] {
+    const project = this.projects.get(projectId);
+    if (!project) return [];
+
+    const files = project.getMap("files");
+    return Array.from(files.keys());
+  }
+
   reset(): void {
     this.projects.clear();
     this.blobStorage.clear();

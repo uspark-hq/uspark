@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import * as Y from "yjs";
 import { initServices } from "../../../../src/lib/init-services";
+import { getUserId } from "../../../../src/lib/auth/get-user-id";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
 
@@ -10,10 +10,10 @@ import { eq, and } from "drizzle-orm";
  * Returns the complete YDoc state as binary data
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   context: { params: Promise<{ projectId: string }> },
 ) {
-  const { userId } = await auth();
+  const userId = await getUserId(request);
 
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -71,7 +71,7 @@ export async function PATCH(
   request: NextRequest,
   context: { params: Promise<{ projectId: string }> },
 ) {
-  const { userId } = await auth();
+  const userId = await getUserId(request);
 
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
