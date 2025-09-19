@@ -75,8 +75,8 @@ This document defines the mid-term goals and user stories for the MVP release of
 - [x] Document explorer showing project file tree ✅
 - [x] Document viewer/editor for selected files ✅
 - [x] Chat interface for entering Claude Code prompts ✅ (UI only)
-- [ ] Execution status indicators (via polling) ❌
-- [ ] Document updates as Claude makes changes (via YJS polling) ❌
+- [x] Execution status indicators (via polling) ✅ (PR #320)
+- [x] Document updates as Claude makes changes (via YJS polling) ✅ (PR #320)
 
 #### Technical Requirements
 
@@ -134,8 +134,8 @@ This document defines the mid-term goals and user stories for the MVP release of
 2. ✅ Implement `uspark push` command
 3. ✅ Implement `uspark watch-claude` command
 4. ✅ Update FileSystem class for direct blob access
-5. [ ] E2B container configuration with pre-installed CLI ❌
-6. [ ] Container initialization scripts ❌
+5. [x] E2B container configuration with pre-installed CLI ✅ (PR #314)
+6. [x] Container initialization scripts ✅ (PR #314)
 
 ### Phase 3: Web Interface Foundation (Story 2 - Part 1)
 
@@ -148,12 +148,12 @@ This document defines the mid-term goals and user stories for the MVP release of
 ### Phase 4: AI Integration (Story 2 - Part 2)
 
 1. [x] Claude execution API endpoints ✅ (Session APIs implemented)
-2. [ ] E2B container setup and configuration ❌
+2. [x] E2B container setup and configuration ✅ (PR #314)
 3. [x] uspark watch-claude command implementation ✅
 4. [ ] Claude Code runtime integration ❌
-5. [x] Chat interface component ✅ (UI only, no backend integration)
-6. [ ] Polling system for status updates ❌ (backend exists, frontend hook missing)
-7. [ ] Document change detection via YJS polling ❌
+5. [x] Chat interface component ✅ (UI and backend integrated)
+6. [x] Polling system for status updates ✅ (PR #320)
+7. [x] Document change detection via YJS polling ✅ (PR #320)
 8. [ ] AWS Bedrock STS token generation for E2B Claude Code tasks ❌
 
 ### Phase 5: Task Generation Pipeline (Story 3)
@@ -220,33 +220,60 @@ Post-MVP priorities aligned with AI coding management:
 
 ## Implementation Status Summary (2025-01-13)
 
-### Overall Completion: ~65%
+### Overall Completion: ~80%
 
 #### ✅ Completed Features (Working)
 - **Story 1 (GitHub)**: 100% - All MVP requirements completed ✅
-- **Story 1b (CLI)**: 85% - All CLI commands working, E2B container partially configured
+- **Story 1b (CLI)**: 100% - All CLI commands working, E2B container fully configured ✅
+- **Story 2 (Web UI)**: 85% - UI complete, APIs complete, long polling implemented ✅
 - **Story 3 (Task Generation)**: 0% - New focus, not yet implemented
 
 #### 🟡 Partially Completed
-- **Story 2 (Web UI)**: 65% - UI complete, Claude sessions schema done, APIs missing
-- **Phase 4 (AI)**: 40% - Session APIs exist, E2B/Claude integration missing
+- **Phase 4 (AI)**: 60% - Session APIs complete, mock execution working, real Claude integration pending
 
 #### ❌ Critical Gaps
-1. **Claude execution in E2B** - Container has Claude CLI but missing uspark CLI
-2. **Real-time updates** - Polling hooks need to be re-implemented
-3. **Session/Turn/Block APIs** - Schema exists but API endpoints not implemented
+1. **Real Claude execution in E2B** - Mock executor implemented, real Claude integration pending
+2. **AWS Bedrock STS tokens** - For Claude API authentication in E2B
+3. **Prompt template system** - Story 3 foundation
 
-### Key Findings
-- **Strong backend infrastructure** with complete APIs and database schema
-- **Frontend implementation in closed PRs not satisfactory** - needs complete re-implementation
-- **GitHub sync fully implemented** with Git Trees API for efficient sync ✅
-- **E2B integration partial** - watch-claude works but container setup incomplete
+### Key Findings After Recent PRs
+
+**PR #320 (Long Polling)**: ✅ Completed
+- Simplified long polling system implemented
+- Real-time session updates working
+- Frontend `useSessionPolling` hook refactored
+- State-based tracking with `turnId:blockCount` format
+
+**PR #314 (E2B Container)**: ✅ Completed
+- Complete E2B Dockerfile with both Claude Code CLI and uspark CLI
+- Container initialization script (`init.sh`) with environment validation
+- Automatic project file synchronization on startup
+- E2B template configuration (`e2b.toml`) ready
+
+### Updated Implementation Status
+
+#### Story 2 (Web AI Interface): 85% ✅
+- [x] Web dashboard showing list of projects ✅
+- [x] Document explorer showing project file tree ✅
+- [x] Document viewer/editor for selected files ✅
+- [x] Chat interface for entering Claude Code prompts ✅
+- [x] Execution status indicators (via polling) ✅ (PR #320)
+- [x] Document updates as Claude makes changes (via YJS polling) ✅ (PR #320)
+
+#### Story 1b (CLI Integration): 100% ✅
+- [x] `uspark pull --project-id <id>` downloads entire project to container ✅
+- [x] `uspark push <file-path> --project-id <id>` uploads changes immediately ✅
+- [x] `uspark watch-claude` monitors Claude output and syncs file changes ✅
+- [x] Authentication via environment variable (USPARK_TOKEN) ✅
+- [x] E2B container pre-configured with Claude Code CLI ✅
+- [x] E2B container pre-configured with uspark CLI ✅ (PR #314)
+- [x] Container initialization scripts ✅ (PR #314)
 
 ### Recommended Next Steps
-1. **Immediate**: Complete E2B container setup with uspark CLI
-2. **Week 1**: Implement prompt template system
-3. **Week 2**: Build task → Claude Code execution pipeline
-4. **Week 3**: Test end-to-end workflow with real projects
+1. **Immediate**: Implement real Claude execution (replace mock-executor)
+2. **Week 1**: AWS Bedrock STS token generation for E2B authentication
+3. **Week 2**: Implement prompt template system (Story 3)
+4. **Week 3**: Task document auto-generation pipeline
 
 ## Dependencies
 
