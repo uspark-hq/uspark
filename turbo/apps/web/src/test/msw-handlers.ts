@@ -262,14 +262,6 @@ const projectsHandlers = [
     },
   ),
 
-  // POST /api/projects/:projectId/sessions/:sessionId/interrupt - Interrupt session
-  http.post("*/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
-    return HttpResponse.json({
-      id: "session-123",
-      status: "interrupted",
-    });
-  }),
-
   // GitHub repository endpoint for project page
   http.get("*/api/projects/:projectId/github/repository", () => {
     return HttpResponse.json({
@@ -284,6 +276,20 @@ const projectsHandlers = [
   http.get("*/api/github/installations", () => {
     return HttpResponse.json({
       installations: [],
+    });
+  }),
+
+  // GET /api/projects/:projectId - Get project YJS data
+  http.get("*/api/projects/:projectId", () => {
+    // Mock empty YJS document (for testing)
+    const mockYjsData = new Uint8Array([0, 0, 0, 0]); // Minimal YJS document
+
+    return new HttpResponse(mockYjsData, {
+      status: 200,
+      headers: {
+        "Content-Type": "application/octet-stream",
+        "X-Version": "1",
+      },
     });
   }),
 ];
@@ -474,6 +480,17 @@ const blobHandlers = [
       return HttpResponse.arrayBuffer(new ArrayBuffer(100));
     },
   ),
+
+  // Mock blob upload (PUT request for Vercel blob storage)
+  http.put("https://*.blob.vercel-storage.com/projects/*", () => {
+    return HttpResponse.json({
+      url: `https://test-blob.public.blob.vercel-storage.com/projects/test-project/test-file-${Date.now()}`,
+      downloadUrl: `https://test-blob.public.blob.vercel-storage.com/projects/test-project/test-file-${Date.now()}`,
+      pathname: `/projects/test-project/test-file-${Date.now()}`,
+      size: 1024,
+      uploadedAt: new Date().toISOString(),
+    });
+  }),
 ];
 
 // Export all handlers

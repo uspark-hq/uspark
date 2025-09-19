@@ -12,12 +12,11 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isInterrupting, setIsInterrupting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Poll for session updates
-  const { turns, isPolling, refetch } = useSessionPolling(projectId, sessionId);
+  const { turns, isPolling } = useSessionPolling(projectId, sessionId);
 
   // Initialize or get existing session
   useEffect(() => {
@@ -93,52 +92,6 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleInterrupt = async () => {
-    if (!sessionId || isInterrupting) return;
-
-    setIsInterrupting(true);
-    setError(null); // Clear any previous errors
-    try {
-      const response = await fetch(
-        `/api/projects/${projectId}/sessions/${sessionId}/interrupt`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          setError("You are not authorized. Please log in again.");
-        } else if (response.status === 404) {
-          setError("Session not found. Please refresh the page.");
-        } else if (response.status >= 500) {
-          setError("Server error. Failed to stop the session.");
-        } else {
-          setError("Failed to stop the session. Please try again.");
-        }
-        throw new Error("Failed to interrupt session");
-      }
-
-      // Refresh the turns to get updated status
-      refetch();
-    } catch (err) {
-      console.error("Failed to interrupt session:", err);
-      if (!error) {
-        // Only set error if not already set above
-        setError("Network error. Failed to stop the session.");
-      }
-    } finally {
-      setIsInterrupting(false);
-    }
-  };
-
-  const hasActiveTurns = () => {
-    return turns.some(
-      (turn) => turn.status === "pending" || turn.status === "in_progress",
-    );
   };
 
   return (
@@ -429,33 +382,6 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
             }}
           />
           <div style={{ display: "flex", gap: "8px" }}>
-            {hasActiveTurns() && (
-              <button
-                onClick={handleInterrupt}
-                disabled={isInterrupting}
-                style={{
-                  padding: "12px 16px",
-                  backgroundColor: "#ef4444",
-                  color: "white",
-                  border: "none",
-                  borderRadius: "6px",
-                  fontSize: "14px",
-                  fontWeight: "500",
-                  cursor: isInterrupting ? "not-allowed" : "pointer",
-                  opacity: isInterrupting ? 0.5 : 1,
-                }}
-                onMouseOver={(e) => {
-                  if (!isInterrupting) {
-                    e.currentTarget.style.backgroundColor = "#dc2626";
-                  }
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.backgroundColor = "#ef4444";
-                }}
-              >
-                {isInterrupting ? "Stopping..." : "Stop"}
-              </button>
-            )}
             <button
               onClick={handleSubmit}
               disabled={isSubmitting || !message.trim() || !sessionId}
