@@ -138,7 +138,7 @@ export async function createProjectRepository(
 
       // 404 can mean either wrong endpoint or missing permissions
       if (githubError.status === 404) {
-        if (installation.account?.type !== "Organization") {
+        if (accountType !== "Organization") {
           // For user accounts, this might be a GitHub App limitation
           throw new Error(
             `Cannot create repository for user account. GitHub Apps may have limited permissions for personal accounts. ` +
@@ -226,10 +226,23 @@ export async function getProjectRepository(
 
   // Get installation details to determine account type and get full name
   const installation = await getInstallationDetails(repo.installationId);
+
+  // Handle both user and organization account types
+  const accountType = installation.account
+    ? "type" in installation.account
+      ? installation.account.type
+      : "Organization"
+    : "unknown";
+  const accountLogin = installation.account
+    ? "login" in installation.account
+      ? installation.account.login
+      : installation.account.slug || installation.account.name
+    : "unknown";
+
   return {
     ...repo,
-    accountType: installation.account?.type,
-    fullName: `${installation.account?.login}/${repo.repoName}`,
+    accountType,
+    fullName: `${accountLogin}/${repo.repoName}`,
   };
 }
 
