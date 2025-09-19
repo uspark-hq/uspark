@@ -123,8 +123,8 @@ export async function createProjectRepository(
   } catch (error: unknown) {
     console.error("GitHub API Error Details:", {
       installationId,
-      accountType: installation.account?.type,
-      accountLogin: installation.account?.login,
+      accountType,
+      accountLogin,
       repoName,
       error,
     });
