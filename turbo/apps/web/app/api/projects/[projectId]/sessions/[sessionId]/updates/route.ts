@@ -7,11 +7,11 @@ import {
   BLOCKS_TBL,
 } from "../../../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
-import { eq, and, asc } from "drizzle-orm";
+import { eq, and, asc, gt } from "drizzle-orm";
 
 /**
  * GET /api/projects/:projectId/sessions/:sessionId/updates
- * Poll for session updates
+ * Long poll for session updates with version-based tracking
  */
 export async function GET(
   request: NextRequest,
@@ -26,6 +26,14 @@ export async function GET(
   initServices();
   const { projectId, sessionId } = await context.params;
 
+  // Parse query parameters
+  const url = new URL(request.url);
+  const clientVersion = parseInt(url.searchParams.get("version") || "0");
+  const timeout = Math.min(
+    parseInt(url.searchParams.get("timeout") || "30000"),
+    60000, // Max 60 seconds
+  );
+
   // Verify project exists and belongs to user
   const [project] = await globalThis.services.db
     .select()
@@ -38,92 +46,128 @@ export async function GET(
     return NextResponse.json({ error: "project_not_found" }, { status: 404 });
   }
 
-  // Verify session exists
-  const [session] = await globalThis.services.db
-    .select()
-    .from(SESSIONS_TBL)
-    .where(
-      and(
-        eq(SESSIONS_TBL.id, sessionId),
-        eq(SESSIONS_TBL.projectId, projectId),
-      ),
-    );
+  // Long polling implementation
+  const startTime = Date.now();
+  const pollInterval = 100; // Check every 100ms
 
-  if (!session) {
-    return NextResponse.json({ error: "session_not_found" }, { status: 404 });
-  }
+  while (Date.now() - startTime < timeout) {
+    // Get current session with version
+    const [session] = await globalThis.services.db
+      .select()
+      .from(SESSIONS_TBL)
+      .where(
+        and(
+          eq(SESSIONS_TBL.id, sessionId),
+          eq(SESSIONS_TBL.projectId, projectId),
+        ),
+      );
 
-  // Parse query parameters
-  const url = new URL(request.url);
-  const lastTurnIndex = parseInt(
-    url.searchParams.get("last_turn_index") || "-1",
-  );
-  const lastBlockIndex = parseInt(
-    url.searchParams.get("last_block_index") || "-1",
-  );
-
-  // Get all turns
-  const allTurns = await globalThis.services.db
-    .select({
-      id: TURNS_TBL.id,
-      status: TURNS_TBL.status,
-      createdAt: TURNS_TBL.createdAt,
-    })
-    .from(TURNS_TBL)
-    .where(eq(TURNS_TBL.sessionId, sessionId))
-    .orderBy(asc(TURNS_TBL.createdAt));
-
-  // Determine new turns (after the last known index)
-  const newTurnIds = allTurns.slice(lastTurnIndex + 1).map((turn) => turn.id);
-
-  // For the last known turn, check for new blocks
-  const updatedTurns: Array<{
-    id: string;
-    status: string;
-    new_block_ids: string[];
-    block_count: number;
-  }> = [];
-
-  if (lastTurnIndex >= 0 && lastTurnIndex < allTurns.length) {
-    const lastKnownTurn = allTurns[lastTurnIndex];
-
-    if (lastKnownTurn) {
-      const blocks = await globalThis.services.db
-        .select({ id: BLOCKS_TBL.id })
-        .from(BLOCKS_TBL)
-        .where(eq(BLOCKS_TBL.turnId, lastKnownTurn.id))
-        .orderBy(asc(BLOCKS_TBL.sequenceNumber));
-
-      const newBlockIds = blocks
-        .slice(lastBlockIndex + 1)
-        .map((block) => block.id);
-
-      if (newBlockIds.length > 0 || lastKnownTurn.status !== "pending") {
-        updatedTurns.push({
-          id: lastKnownTurn.id,
-          status: lastKnownTurn.status,
-          new_block_ids: newBlockIds,
-          block_count: blocks.length,
-        });
-      }
+    if (!session) {
+      return NextResponse.json({ error: "session_not_found" }, { status: 404 });
     }
+
+    // Check if there are updates
+    if (session.version > clientVersion) {
+      // Get all turns with updates
+      const turns = await globalThis.services.db
+        .select({
+          id: TURNS_TBL.id,
+          status: TURNS_TBL.status,
+          version: TURNS_TBL.version,
+          blockCount: TURNS_TBL.blockCount,
+          userPrompt: TURNS_TBL.userPrompt,
+          startedAt: TURNS_TBL.startedAt,
+          completedAt: TURNS_TBL.completedAt,
+          errorMessage: TURNS_TBL.errorMessage,
+          createdAt: TURNS_TBL.createdAt,
+        })
+        .from(TURNS_TBL)
+        .where(
+          and(
+            eq(TURNS_TBL.sessionId, sessionId),
+            gt(TURNS_TBL.version, clientVersion),
+          ),
+        )
+        .orderBy(asc(TURNS_TBL.createdAt));
+
+      // Get blocks for updated turns
+      const turnsWithBlocks = await Promise.all(
+        turns.map(async (turn) => {
+          const blocks = await globalThis.services.db
+            .select()
+            .from(BLOCKS_TBL)
+            .where(eq(BLOCKS_TBL.turnId, turn.id))
+            .orderBy(asc(BLOCKS_TBL.sequenceNumber));
+
+          return {
+            ...turn,
+            blocks,
+          };
+        }),
+      );
+
+      // Return updates immediately
+      return NextResponse.json({
+        version: session.version,
+        hasMore: false,
+        session: {
+          id: sessionId,
+          version: session.version,
+          updatedAt: session.updatedAt.toISOString(),
+        },
+        turns: turnsWithBlocks,
+      });
+    }
+
+    // Check if there are any active turns
+    const [activeTurn] = await globalThis.services.db
+      .select({ id: TURNS_TBL.id })
+      .from(TURNS_TBL)
+      .where(
+        and(
+          eq(TURNS_TBL.sessionId, sessionId),
+          eq(TURNS_TBL.status, "in_progress"),
+        ),
+      )
+      .limit(1);
+
+    // If no active turns and no updates, return immediately to avoid unnecessary waiting
+    if (!activeTurn && session.version === clientVersion) {
+      // Still check one more time before returning
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+
+      const [finalSession] = await globalThis.services.db
+        .select()
+        .from(SESSIONS_TBL)
+        .where(eq(SESSIONS_TBL.id, sessionId));
+
+      if (finalSession && finalSession.version > clientVersion) {
+        continue; // New update available, loop will handle it
+      }
+
+      // No updates and no active turns - return 204 No Content
+      return new Response(null, {
+        status: 204,
+        headers: {
+          "X-Session-Version": session.version.toString(),
+        }
+      });
+    }
+
+    // Wait before next check
+    await new Promise((resolve) => setTimeout(resolve, pollInterval));
   }
 
-  // Check if there are any active (running) turns
-  const hasActiveTurns = allTurns.some(
-    (turn) =>
-      turn.status === "running" ||
-      turn.status === "pending" ||
-      turn.status === "in_progress",
-  );
+  // Timeout reached - return 204 No Content
+  const [finalSession] = await globalThis.services.db
+    .select({ version: SESSIONS_TBL.version })
+    .from(SESSIONS_TBL)
+    .where(eq(SESSIONS_TBL.id, sessionId));
 
-  return NextResponse.json({
-    session: {
-      id: sessionId,
-      updated_at: session.updatedAt.toISOString(),
-    },
-    new_turn_ids: newTurnIds,
-    updated_turns: updatedTurns,
-    has_active_turns: hasActiveTurns,
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "X-Session-Version": finalSession?.version?.toString() || "0",
+    }
   });
 }
