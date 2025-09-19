@@ -215,12 +215,11 @@ describe("Claude Session Management API Integration", () => {
       const initialState = await apiCallWithQuery(
         getUpdates,
         { projectId, sessionId },
-        {},
+        { state: "", timeout: "0" },
       );
 
-      expect(initialState.status).toBe(200);
-      expect(initialState.data.has_active_turns).toBe(false);
-      expect(initialState.data.new_turn_ids).toEqual([]);
+      // Should return 204 No Content when no turns exist
+      expect(initialState.status).toBe(204);
 
       // Create a turn
       const turnResponse = await apiCall(
@@ -230,17 +229,17 @@ describe("Claude Session Management API Integration", () => {
         { user_message: "New message" },
       );
 
-      // Poll for updates - pass -1 to get all turns (no last known turn)
+      // Poll for updates with empty state - should see the new turn
       const updates = await apiCallWithQuery(
         getUpdates,
         { projectId, sessionId },
-        { last_turn_index: "-1" },
+        { state: "", timeout: "0" },
       );
 
       expect(updates.status).toBe(200);
-      expect(updates.data.has_active_turns).toBe(true);
-      expect(updates.data.new_turn_ids).toHaveLength(1);
-      expect(updates.data.new_turn_ids[0]).toBe(turnResponse.data.id);
+      expect(updates.data.turns).toHaveLength(1);
+      expect(updates.data.turns[0].id).toBe(turnResponse.data.id);
+      expect(updates.data.session.id).toBe(sessionId);
     });
   });
 
