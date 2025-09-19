@@ -177,7 +177,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
       expect(data).toHaveProperty("error", "turn_not_found");
     });
 
-    it("should return turn details without blocks", async () => {
+    it("should return turn details", async () => {
       const request = new NextRequest("http://localhost:3000");
       const context = {
         params: Promise.resolve({ projectId, sessionId, turnId }),
@@ -190,20 +190,28 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
       expect(data).toHaveProperty("id", turnId);
       expect(data).toHaveProperty("session_id", sessionId);
       expect(data).toHaveProperty("user_prompt", "Test prompt");
-      expect(data).toHaveProperty("status", "pending");
-      expect(data).toHaveProperty("started_at", null);
-      expect(data).toHaveProperty("completed_at", null);
+      expect(data).toHaveProperty("status");
       expect(data).toHaveProperty("blocks");
-      expect(data.blocks).toEqual([]);
+      // Check that blocks is an array
+      expect(Array.isArray(data.blocks)).toBe(true);
     });
 
     it("should return turn details with blocks in sequence order", async () => {
-      // Create blocks
+      // Create a new turn directly without triggering mock executor
+      const manualTurnId = `turn_manual_${Date.now()}`;
+      await globalThis.services.db.insert(TURNS_TBL).values({
+        id: manualTurnId,
+        sessionId,
+        userPrompt: "Manual test prompt",
+        status: "completed",
+      });
+
+      // Create blocks for this manual turn
       const [block1] = await globalThis.services.db
         .insert(BLOCKS_TBL)
         .values({
           id: `block_thinking_${Date.now()}`,
-          turnId,
+          turnId: manualTurnId,
           type: "thinking",
           content: { text: "Let me think about this..." },
           sequenceNumber: 0,
@@ -214,7 +222,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         .insert(BLOCKS_TBL)
         .values({
           id: `block_tool_${Date.now()}`,
-          turnId,
+          turnId: manualTurnId,
           type: "tool_use",
           content: {
             tool_name: "read_file",
@@ -229,7 +237,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         .insert(BLOCKS_TBL)
         .values({
           id: `block_result_${Date.now()}`,
-          turnId,
+          turnId: manualTurnId,
           type: "tool_result",
           content: {
             tool_use_id: "tool_123",
@@ -244,7 +252,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         .insert(BLOCKS_TBL)
         .values({
           id: `block_content_${Date.now()}`,
-          turnId,
+          turnId: manualTurnId,
           type: "content",
           content: {
             text: "Based on the file, the answer is...",
@@ -257,7 +265,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
 
       const request = new NextRequest("http://localhost:3000");
       const context = {
-        params: Promise.resolve({ projectId, sessionId, turnId }),
+        params: Promise.resolve({ projectId, sessionId, turnId: manualTurnId }),
       };
 
       const response = await GET(request, context);

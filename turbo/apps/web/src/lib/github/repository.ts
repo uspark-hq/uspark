@@ -61,11 +61,23 @@ export async function createProjectRepository(
   // Get installation details to determine if it's an organization or user
   const installation = await getInstallationDetails(installationId);
 
+  // Handle both user and organization account types
+  const accountType = installation.account
+    ? "type" in installation.account
+      ? installation.account.type
+      : "Organization"
+    : "unknown";
+  const accountLogin = installation.account
+    ? "login" in installation.account
+      ? installation.account.login
+      : installation.account.slug || installation.account.name
+    : "unknown";
+
   console.log("Installation details:", {
     installationId,
     account: installation.account,
-    accountType: installation.account?.type,
-    accountLogin: installation.account?.login,
+    accountType,
+    accountLogin,
   });
 
   // Generate repository name using first 8 characters of UUID for brevity
@@ -75,16 +87,16 @@ export async function createProjectRepository(
   let repo;
 
   try {
-    if (installation.account?.type === "Organization") {
+    if (accountType === "Organization") {
       // Create repository in organization
       console.log("Creating org repository:", {
         endpoint: "POST /orgs/{org}/repos",
-        org: installation.account.login,
+        org: accountLogin,
         name: repoName,
       });
 
       const { data } = await octokit.request("POST /orgs/{org}/repos", {
-        org: installation.account.login,
+        org: accountLogin,
         name: repoName,
         private: true,
         auto_init: true,
@@ -96,8 +108,8 @@ export async function createProjectRepository(
       console.log("Creating user repository:", {
         endpoint: "POST /user/repos",
         name: repoName,
-        accountType: installation.account?.type,
-        accountLogin: installation.account?.login,
+        accountType,
+        accountLogin,
       });
 
       const { data } = await octokit.request("POST /user/repos", {
@@ -111,8 +123,8 @@ export async function createProjectRepository(
   } catch (error: unknown) {
     console.error("GitHub API Error Details:", {
       installationId,
-      accountType: installation.account?.type,
-      accountLogin: installation.account?.login,
+      accountType,
+      accountLogin,
       repoName,
       error,
     });
@@ -126,7 +138,7 @@ export async function createProjectRepository(
 
       // 404 can mean either wrong endpoint or missing permissions
       if (githubError.status === 404) {
-        if (installation.account?.type !== "Organization") {
+        if (accountType !== "Organization") {
           // For user accounts, this might be a GitHub App limitation
           throw new Error(
             `Cannot create repository for user account. GitHub Apps may have limited permissions for personal accounts. ` +
@@ -134,7 +146,7 @@ export async function createProjectRepository(
           );
         } else {
           throw new Error(
-            `GitHub API endpoint not found for organization ${installation.account.login}. Please check the GitHub App installation.`,
+            `GitHub API endpoint not found for organization ${accountLogin}. Please check the GitHub App installation.`,
           );
         }
       }
@@ -214,10 +226,23 @@ export async function getProjectRepository(
 
   // Get installation details to determine account type and get full name
   const installation = await getInstallationDetails(repo.installationId);
+
+  // Handle both user and organization account types
+  const accountType = installation.account
+    ? "type" in installation.account
+      ? installation.account.type
+      : "Organization"
+    : "unknown";
+  const accountLogin = installation.account
+    ? "login" in installation.account
+      ? installation.account.login
+      : installation.account.slug || installation.account.name
+    : "unknown";
+
   return {
     ...repo,
-    accountType: installation.account?.type,
-    fullName: `${installation.account?.login}/${repo.repoName}`,
+    accountType,
+    fullName: `${accountLogin}/${repo.repoName}`,
   };
 }
 

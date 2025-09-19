@@ -52,6 +52,38 @@ describe("sync commands", () => {
       );
     });
 
+    it("should actually update the YDoc with pushed files", async () => {
+      // Create test files
+      await fs.writeFile("file1.txt", "content1");
+      await fs.mkdir("dir", { recursive: true });
+      await fs.writeFile("dir/file2.txt", "content2");
+
+      // Push the first file
+      await pushCommand("file1.txt", { projectId: "proj-123" });
+
+      // Verify the file is in the YDoc
+      expect(mockServer.hasFile("proj-123", "file1.txt")).toBe(true);
+      expect(mockServer.hasFile("proj-123", "dir/file2.txt")).toBe(false);
+
+      // Push the second file
+      await pushCommand("dir/file2.txt", { projectId: "proj-123" });
+
+      // Verify both files are now in the YDoc
+      expect(mockServer.hasFile("proj-123", "file1.txt")).toBe(true);
+      expect(mockServer.hasFile("proj-123", "dir/file2.txt")).toBe(true);
+
+      // Verify the YDoc structure
+      const projectDoc = mockServer.getProjectDoc("proj-123");
+      expect(projectDoc).toBeDefined();
+
+      const files = projectDoc?.getMap("files");
+      expect(files?.size).toBe(2);
+
+      const file1Node = files?.get("file1.txt") as { hash: string };
+      expect(file1Node).toBeDefined();
+      expect(file1Node.hash).toBeDefined();
+    });
+
     it("should push all files with --all flag", async () => {
       // Create test files in different directories
       await fs.writeFile("file1.txt", "content1");
@@ -75,6 +107,20 @@ describe("sync commands", () => {
       expect(console.log).toHaveBeenCalledWith(
         chalk.green("✓ Successfully pushed 2 files"),
       );
+
+      // Verify the files are actually in the YDoc
+      expect(mockServer.hasFile("proj-123", "file1.txt")).toBe(true);
+      expect(mockServer.hasFile("proj-123", "subdir/file2.txt")).toBe(true);
+      expect(mockServer.hasFile("proj-123", "node_modules/test.js")).toBe(
+        false,
+      );
+      expect(mockServer.hasFile("proj-123", ".git/config")).toBe(false);
+
+      // Verify total file count
+      const allFiles = mockServer.getAllFiles("proj-123");
+      expect(allFiles).toHaveLength(2);
+      expect(allFiles).toContain("file1.txt");
+      expect(allFiles).toContain("subdir/file2.txt");
     });
 
     it("should fail fast on network errors", async () => {
