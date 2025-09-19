@@ -77,32 +77,50 @@ describe("YJS FileSystem", () => {
     expect(files.size).toBe(0);
   });
 
-  it("should generate update that can be applied incrementally", async () => {
+  it("should generate incremental updates with base document tracking", async () => {
     const fs = new FileSystem();
 
     // Write first file
     await fs.writeFile("/file1.txt", "content1");
-    const update1 = fs.getUpdate();
+    const fullUpdate = fs.getUpdate();
 
-    // Write second file
+    // Apply the update (simulating sync from server)
+    const serverDoc = new Y.Doc();
+    Y.applyUpdate(serverDoc, fullUpdate);
+
+    // Mark as synced to establish base state
+    fs.markAsSynced();
+
+    // Write second file (local change)
     await fs.writeFile("/file2.txt", "content2");
-    const update2 = fs.getUpdate();
 
-    // Apply updates to separate docs
-    const doc1 = new Y.Doc();
-    Y.applyUpdate(doc1, update1);
+    // Get incremental update (should only contain file2)
+    const incrementalUpdate = fs.getUpdate();
 
-    const doc2 = new Y.Doc();
-    Y.applyUpdate(doc2, update2);
+    // Apply incremental update to server doc
+    Y.applyUpdate(serverDoc, incrementalUpdate);
 
-    // doc1 should have only file1
-    const files1 = doc1.getMap("files");
-    expect(files1.get("/file1.txt")).toBeDefined();
-    expect(files1.get("/file2.txt")).toBeUndefined();
+    // Verify server doc now has both files
+    const files = serverDoc.getMap("files");
+    expect(files.get("/file1.txt")).toBeDefined();
+    expect(files.get("/file2.txt")).toBeDefined();
 
-    // doc2 should have both files (since update2 contains full state)
-    const files2 = doc2.getMap("files");
-    expect(files2.get("/file1.txt")).toBeDefined();
-    expect(files2.get("/file2.txt")).toBeDefined();
+    // Verify incremental update is smaller than full state
+    const newFullUpdate = Y.encodeStateAsUpdate(serverDoc);
+    expect(incrementalUpdate.length).toBeLessThan(newFullUpdate.length);
+  });
+
+  it("should return empty update when no changes since sync", async () => {
+    const fs = new FileSystem();
+
+    // Write a file and mark as synced
+    await fs.writeFile("/file1.txt", "content1");
+    fs.markAsSynced();
+
+    // Get update without any changes
+    const update = fs.getUpdate();
+
+    // Should be empty or very small (just metadata)
+    expect(update.length).toBeLessThan(20);
   });
 });

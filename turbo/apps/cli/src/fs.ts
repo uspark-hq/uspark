@@ -4,6 +4,7 @@ import type { FileNode, BlobInfo } from "@uspark/core";
 
 export class FileSystem {
   private ydoc: Y.Doc;
+  private baseDoc: Y.Doc | null = null; // Track the base state from server
   private files: Y.Map<FileNode>;
   private blobs: Y.Map<BlobInfo>;
   private blobCache: Map<string, string>;
@@ -92,11 +93,35 @@ export class FileSystem {
 
   applyUpdate(update: Uint8Array): void {
     Y.applyUpdate(this.ydoc, update);
+
+    // Also update the base document to track server state
+    if (!this.baseDoc) {
+      this.baseDoc = new Y.Doc();
+    }
+    Y.applyUpdate(this.baseDoc, update);
   }
 
   getUpdate(): Uint8Array {
-    // Return the full state as an update (relative to empty state)
-    return Y.encodeStateAsUpdate(this.ydoc);
+    if (!this.baseDoc) {
+      // If no base document, return full state
+      return Y.encodeStateAsUpdate(this.ydoc);
+    }
+
+    // Compute the difference between current state and base state
+    const baseStateVector = Y.encodeStateVector(this.baseDoc);
+    return Y.encodeStateAsUpdate(this.ydoc, baseStateVector);
+  }
+
+  /**
+   * Mark the current state as synced with the server
+   */
+  markAsSynced(): void {
+    if (!this.baseDoc) {
+      this.baseDoc = new Y.Doc();
+    }
+    // Update base document to match current state
+    const currentState = Y.encodeStateAsUpdate(this.ydoc);
+    Y.applyUpdate(this.baseDoc, currentState);
   }
 
   private async computeHash(bytes: Uint8Array): Promise<string> {
