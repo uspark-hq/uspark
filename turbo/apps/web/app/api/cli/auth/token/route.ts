@@ -147,8 +147,9 @@ export async function POST(request: NextRequest) {
       } catch (error) {
         console.error("Failed to create CLI token:", error);
         const errorResponse: TokenExchangeError = {
-          error: "server_error",
-          error_description: "Failed to generate authentication token.",
+          error: "invalid_request",
+          error_description:
+            "Failed to generate authentication token. Please try again.",
         };
         return NextResponse.json(errorResponse, { status: 500 });
       }
