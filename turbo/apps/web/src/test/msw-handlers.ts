@@ -270,6 +270,14 @@ const projectsHandlers = [
     });
   }),
 
+  // GET /api/projects/:projectId/sessions/:sessionId/updates - Session updates endpoint
+  http.get("*/api/projects/:projectId/sessions/:sessionId/updates", () => {
+    return HttpResponse.json({
+      updates: [],
+      hasMoreUpdates: false,
+    });
+  }),
+
   // GitHub repository endpoint for project page
   http.get("*/api/projects/:projectId/github/repository", () => {
     return HttpResponse.json({

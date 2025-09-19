@@ -48,6 +48,12 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
   }, [projectId, sessionId]);
 
   const startPolling = () => {
+    // Clear any existing interval first
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+      intervalRef.current = null;
+    }
+
     // Poll every second when there are active turns, every 5 seconds otherwise
     const pollInterval = hasActiveTurns() ? 1000 : 5000;
 
