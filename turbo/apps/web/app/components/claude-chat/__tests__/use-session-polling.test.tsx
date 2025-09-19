@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { renderHook, waitFor } from "@testing-library/react";
+import { renderHook, waitFor, act } from "@testing-library/react";
 import { useSessionPolling } from "../use-session-polling";
 
 // Mock fetch
@@ -18,7 +18,7 @@ const mockAbortController = {
   signal: new MockAbortSignal(),
 };
 
-global.AbortController = vi.fn(() => mockAbortController);
+global.AbortController = vi.fn(() => mockAbortController) as unknown as typeof AbortController;
 
 describe("useSessionPolling", () => {
   beforeEach(() => {
@@ -36,89 +36,312 @@ describe("useSessionPolling", () => {
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
-  it("should fetch turns on mount with sessionId", async () => {
-    const mockTurns = [
-      {
-        id: "turn-1",
-        user_prompt: "Hello",
-        status: "completed",
-        started_at: "2024-01-01T00:00:00Z",
-        completed_at: "2024-01-01T00:00:05Z",
-        blocks: [],
+  it("should use long polling with version tracking", async () => {
+    const mockProjectId = "test-project";
+    const mockSessionId = "sess_test123";
+
+    // Mock initial fetch response (regular turns endpoint)
+    const initialTurns = {
+      turns: [
+        {
+          id: "turn_1",
+          user_prompt: "Hello",
+          status: "completed",
+          version: 1,
+          block_count: 2,
+        },
+      ],
+    };
+
+    // Mock turn detail response
+    const turnDetail = {
+      blocks: [
+        {
+          id: "block_1",
+          type: "content",
+          content: { text: "Hi!" },
+          sequence_number: 0,
+        },
+        {
+          id: "block_2",
+          type: "content",
+          content: { text: "How are you?" },
+          sequence_number: 1,
+        },
+      ],
+    };
+
+    // Mock long poll response with update
+    const updateResponse = {
+      version: 2,
+      hasMore: false,
+      session: {
+        id: mockSessionId,
+        version: 2,
+        updatedAt: new Date().toISOString(),
       },
-    ];
+      turns: [
+        {
+          id: "turn_2",
+          userPrompt: "New message",
+          status: "in_progress",
+          version: 2,
+          blockCount: 1,
+          blocks: [
+            {
+              id: "block_3",
+              type: "thinking",
+              content: { text: "Processing..." },
+              sequenceNumber: 0,
+            },
+          ],
+        },
+      ],
+    };
 
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ turns: mockTurns }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ blocks: [] }),
-      });
+    let fetchCallCount = 0;
+    mockFetch.mockImplementation(async (url: string) => {
+      fetchCallCount++;
 
-    const { result } = renderHook(() =>
-      useSessionPolling("project-1", "session-1"),
-    );
+      if (url.includes("/turns") && !url.includes("/turn_")) {
+        // Initial turns list
+        return {
+          ok: true,
+          json: async () => initialTurns,
+        };
+      }
 
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith(
-        "/api/projects/project-1/sessions/session-1/turns",
-        expect.any(Object),
-      );
+      if (url.includes("/turns/turn_1")) {
+        // Turn detail
+        return {
+          ok: true,
+          json: async () => turnDetail,
+        };
+      }
+
+      if (url.includes("/updates")) {
+        // Long polling endpoint
+        if (fetchCallCount <= 3) {
+          // First call returns 204 (no updates)
+          return {
+            ok: true,
+            status: 204,
+            headers: {
+              get: (header: string) =>
+                header === "X-Session-Version" ? "1" : null,
+            },
+          };
+        } else {
+          // Second call returns update
+          return {
+            ok: true,
+            status: 200,
+            json: async () => updateResponse,
+          };
+        }
+      }
+
+      return {
+        ok: false,
+        status: 404,
+      };
     });
 
+    const { result } = renderHook(() =>
+      useSessionPolling(mockProjectId, mockSessionId),
+    );
+
+    // Wait for initial fetch
     await waitFor(() => {
       expect(result.current.turns).toHaveLength(1);
     });
 
-    expect(result.current.turns[0].id).toBe("turn-1");
-  });
+    // Verify initial state
+    expect(result.current.version).toBe(1);
+    expect(result.current.turns[0].id).toBe("turn_1");
 
-  it("should fetch blocks for each turn", async () => {
-    const mockTurns = [
-      {
-        id: "turn-1",
-        user_prompt: "Hello",
-        status: "completed",
-        started_at: "2024-01-01T00:00:00Z",
-        completed_at: "2024-01-01T00:00:05Z",
-        blocks: [],
+    // Wait for long poll to receive update
+    await waitFor(
+      () => {
+        expect(result.current.turns).toHaveLength(2);
       },
-    ];
-
-    const mockBlocks = [
-      {
-        id: "block-1",
-        type: "content",
-        content: { text: "Hello there!" },
-        sequence_number: 0,
-      },
-    ];
-
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ turns: mockTurns }),
-      })
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ blocks: mockBlocks }),
-      });
-
-    const { result } = renderHook(() =>
-      useSessionPolling("project-1", "session-1"),
+      { timeout: 5000 },
     );
 
-    await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledWith(
-        "/api/projects/project-1/sessions/session-1/turns/turn-1",
-        expect.any(Object),
-      );
+    // Verify updated state
+    expect(result.current.version).toBe(2);
+    expect(result.current.turns[1].id).toBe("turn_2");
+    expect(result.current.turns[1].status).toBe("in_progress");
+    expect(result.current.hasActiveTurns).toBe(true);
+  });
+
+  it("should handle 204 No Content responses correctly", async () => {
+    const mockProjectId = "test-project";
+    const mockSessionId = "sess_test456";
+
+    const initialTurns = {
+      turns: [],
+    };
+
+    mockFetch.mockImplementation(async (url: string) => {
+      if (url.includes("/turns") && !url.includes("/turn_")) {
+        return {
+          ok: true,
+          json: async () => initialTurns,
+        };
+      }
+
+      if (url.includes("/updates")) {
+        // Always return 204 (no updates)
+        return {
+          ok: true,
+          status: 204,
+          headers: {
+            get: (header: string) =>
+              header === "X-Session-Version" ? "0" : null,
+          },
+        };
+      }
+
+      return {
+        ok: false,
+        status: 404,
+      };
     });
 
-    expect(result.current.turns[0].blocks).toEqual(mockBlocks);
+    const { result } = renderHook(() =>
+      useSessionPolling(mockProjectId, mockSessionId),
+    );
+
+    // Wait for initial fetch
+    await waitFor(() => {
+      expect(result.current.isPolling).toBe(false);
+    });
+
+    // Verify state remains empty
+    expect(result.current.turns).toHaveLength(0);
+    expect(result.current.version).toBe(0);
+    expect(result.current.hasActiveTurns).toBe(false);
+  });
+
+  it("should merge turns correctly when receiving updates", async () => {
+    const mockProjectId = "test-project";
+    const mockSessionId = "sess_test789";
+
+    // First setup initial fetch
+    mockFetch.mockImplementation(async (url: string) => {
+      if (url.includes("/turns") && !url.includes("/turn_")) {
+        return {
+          ok: true,
+          json: async () => ({
+            turns: [
+              {
+                id: "turn_1",
+                user_prompt: "First",
+                status: "completed",
+                version: 1,
+                block_count: 1,
+              },
+            ],
+          }),
+        };
+      }
+
+      if (url.includes("/turns/turn_1")) {
+        return {
+          ok: true,
+          json: async () => ({
+            blocks: [],
+          }),
+        };
+      }
+
+      if (url.includes("/updates") && url.includes("version=0")) {
+        return {
+          ok: true,
+          status: 204,
+          headers: {
+            get: (header: string) =>
+              header === "X-Session-Version" ? "1" : null,
+          },
+        };
+      }
+
+      if (url.includes("/updates") && url.includes("version=1")) {
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({
+            version: 3,
+            hasMore: false,
+            session: {
+              id: mockSessionId,
+              version: 3,
+              updatedAt: new Date().toISOString(),
+            },
+            turns: [
+              {
+                id: "turn_1",
+                userPrompt: "First",
+                status: "completed",
+                version: 2,
+                blockCount: 2,
+                blocks: [
+                  {
+                    id: "block_1",
+                    type: "content",
+                    content: {},
+                    sequenceNumber: 0,
+                  },
+                  {
+                    id: "block_2",
+                    type: "content",
+                    content: {},
+                    sequenceNumber: 1,
+                  },
+                ],
+              },
+              {
+                id: "turn_2",
+                userPrompt: "Second",
+                status: "in_progress",
+                version: 3,
+                blockCount: 0,
+                blocks: [],
+              },
+            ],
+          }),
+        };
+      }
+
+      return {
+        ok: false,
+        status: 404,
+      };
+    });
+
+    const { result } = renderHook(() =>
+      useSessionPolling(mockProjectId, mockSessionId),
+    );
+
+    // Wait for initial state
+    await waitFor(() => {
+      expect(result.current.turns).toHaveLength(1);
+    });
+
+    // Call refetch to get updates
+    await act(async () => {
+      await result.current.refetch();
+    });
+
+    // Verify merged state
+    await waitFor(() => {
+      expect(result.current.turns).toHaveLength(2);
+    });
+
+    expect(result.current.turns[0].blockCount).toBe(2);
+    expect(result.current.turns[1].id).toBe("turn_2");
+    expect(result.current.version).toBe(3);
   });
 
   it("should handle fetch errors gracefully", async () => {
@@ -134,7 +357,7 @@ describe("useSessionPolling", () => {
 
     await waitFor(() => {
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "Failed to fetch session data:",
+        "Failed to fetch initial session data:",
         expect.any(Error),
       );
     });
@@ -162,44 +385,27 @@ describe("useSessionPolling", () => {
     expect(result.current.turns).toHaveLength(0);
   });
 
-  it("should handle failed blocks response gracefully", async () => {
-    const mockTurns = [
-      {
-        id: "turn-1",
-        user_prompt: "Hello",
-        status: "completed",
-        started_at: "2024-01-01T00:00:00Z",
-        completed_at: "2024-01-01T00:00:05Z",
-        blocks: [],
-      },
-    ];
-
-    mockFetch
-      .mockResolvedValueOnce({
-        ok: true,
-        json: async () => ({ turns: mockTurns }),
-      })
-      .mockResolvedValueOnce({
+  it("should provide refetch function", async () => {
+    mockFetch.mockImplementation(async (url: string) => {
+      if (url.includes("/turns") && !url.includes("/turn_")) {
+        return {
+          ok: true,
+          json: async () => ({ turns: [] }),
+        };
+      }
+      if (url.includes("/updates")) {
+        return {
+          ok: true,
+          status: 204,
+          headers: {
+            get: () => "0",
+          },
+        };
+      }
+      return {
         ok: false,
         status: 404,
-      });
-
-    const { result } = renderHook(() =>
-      useSessionPolling("project-1", "session-1"),
-    );
-
-    await waitFor(() => {
-      expect(result.current.turns).toHaveLength(1);
-    });
-
-    // Turn should exist but with empty blocks
-    expect(result.current.turns[0].blocks).toHaveLength(0);
-  });
-
-  it("should provide refetch function", async () => {
-    mockFetch.mockResolvedValue({
-      ok: true,
-      json: async () => ({ turns: [], blocks: [] }),
+      };
     });
 
     const { result } = renderHook(() =>
@@ -211,10 +417,36 @@ describe("useSessionPolling", () => {
     });
 
     // Call refetch
-    result.current.refetch();
+    await act(async () => {
+      await result.current.refetch();
+    });
 
     await waitFor(() => {
-      expect(mockFetch).toHaveBeenCalledTimes(2);
+      // Should have been called with updates endpoint for refetch
+      expect(mockFetch).toHaveBeenCalledWith(
+        expect.stringContaining("/updates"),
+        expect.any(Object),
+      );
     });
+  });
+
+  it("should cleanup on unmount", async () => {
+    mockFetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({ turns: [] }),
+    });
+
+    const { unmount } = renderHook(() =>
+      useSessionPolling("project-1", "session-1"),
+    );
+
+    await waitFor(() => {
+      expect(mockFetch).toHaveBeenCalled();
+    });
+
+    unmount();
+
+    // Should abort the controller on unmount
+    expect(mockAbort).toHaveBeenCalled();
   });
 });

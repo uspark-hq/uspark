@@ -102,7 +102,7 @@ describe("/api/cli/auth/token", () => {
     if (validationResult.success) {
       expect(validationResult.data.access_token).toBeTruthy();
       expect(validationResult.data.token_type).toBe("Bearer");
-      expect(validationResult.data.expires_in).toBe(3600);
+      expect(validationResult.data.expires_in).toBe(90 * 24 * 60 * 60); // 90 days in seconds
       expect(validationResult.data.refresh_token).toBeTruthy();
     }
 
