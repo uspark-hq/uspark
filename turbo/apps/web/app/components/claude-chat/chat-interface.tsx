@@ -58,9 +58,9 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
     setMessage("");
 
     try {
-      // Use mock executor for now
+      // Create a new turn using the real API
       const response = await fetch(
-        `/api/projects/${projectId}/sessions/${sessionId}/mock-execute`,
+        `/api/projects/${projectId}/sessions/${sessionId}/turns`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
