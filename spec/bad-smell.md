@@ -25,9 +25,10 @@ This document defines code quality issues and anti-patterns to identify during c
 
 ## 5. Timer and Delay Analysis
 - Identify artificial delays and timers in production code
-- Check for advancedTimer or fakeTimer usage in tests
+- **PROHIBIT fakeTimer/useFakeTimers usage in tests** - they mask real timing issues
 - Flag timeout increases to pass tests
 - Suggest deterministic alternatives to time-based solutions
+- Tests should handle real async behavior, not manipulate time
 
 ## 6. Dynamic Import Analysis
 - Identify dynamic `import()` calls that could be static imports
@@ -63,9 +64,9 @@ This document defines code quality issues and anti-patterns to identify during c
 ## 10. Artificial Delays in Tests
 - Tests should NOT contain artificial delays like `setTimeout` or `await new Promise(resolve => setTimeout(resolve, ms))`
 - Artificial delays cause test flakiness and slow CI/CD pipelines
-- Use mock timers (`vi.useFakeTimers()`) for time-dependent logic
+- **DO NOT use `vi.useFakeTimers()` or mock timers** - handle real async behavior properly
 - Use proper event sequencing and async/await instead of delays
-- Delays mask actual race conditions that should be fixed
+- Delays and fake timers mask actual race conditions that should be fixed
 
 ## 11. Hardcoded URLs and Configuration
 - Never hardcode URLs or environment-specific values
@@ -87,15 +88,3 @@ This document defines code quality issues and anti-patterns to identify during c
   await POST("/api/projects", { json: { name } });
   ```
 
-## 13. Timer Cleanup in React Components
-- Always clean up timers in React components using useEffect cleanup
-- Prevents memory leaks and "setState on unmounted component" warnings
-- Example:
-  ```typescript
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      // action
-    }, delay);
-    return () => clearTimeout(timeoutId);
-  }, [dependencies]);
-  ```
