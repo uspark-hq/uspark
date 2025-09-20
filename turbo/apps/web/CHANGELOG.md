@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.0](https://github.com/uspark-hq/uspark/compare/web-v0.26.2...web-v0.27.0) (2025-09-20)
+
+
+### Features
+
+* implement vercel blob client token upload for CLI ([#343](https://github.com/uspark-hq/uspark/issues/343)) ([0c89919](https://github.com/uspark-hq/uspark/commit/0c89919e38add1c7610575991eb5b2e4e49407c9))
+
 ## [0.26.2](https://github.com/uspark-hq/uspark/compare/web-v0.26.1...web-v0.26.2) (2025-09-20)
 
 

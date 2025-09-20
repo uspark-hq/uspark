@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.0](https://github.com/uspark-hq/uspark/compare/cli-v0.9.4...cli-v0.10.0) (2025-09-20)
+
+
+### Features
+
+* implement vercel blob client token upload for CLI ([#343](https://github.com/uspark-hq/uspark/issues/343)) ([0c89919](https://github.com/uspark-hq/uspark/commit/0c89919e38add1c7610575991eb5b2e4e49407c9))
+
 ## [0.9.4](https://github.com/uspark-hq/uspark/compare/cli-v0.9.3...cli-v0.9.4) (2025-09-20)
 
 
