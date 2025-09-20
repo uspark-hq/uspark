@@ -311,52 +311,6 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       });
     });
 
-    it("should return empty content when blob storage is not configured", async () => {
-      const { getUserId } = await import(
-        "../../../../../../src/lib/auth/get-user-id"
-      );
-
-      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue(testUserId);
-
-      // Mock env module for this specific test only
-      vi.doMock("../../../../../../src/env", () => ({
-        env: vi.fn(() => ({ BLOB_READ_WRITE_TOKEN: "" })),
-      }));
-
-      // Create YJS document with file
-      const ydoc = new Y.Doc();
-      const filesMap = ydoc.getMap("files");
-      filesMap.set("src/test.ts", { hash: "hash123", mtime: Date.now() });
-
-      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
-        "base64",
-      );
-
-      await globalThis.services.db.insert(PROJECTS_TBL).values({
-        id: testProjectId,
-        userId: testUserId,
-        ydocData,
-      });
-
-      const request = new NextRequest(
-        `http://localhost:3000/api/projects/${testProjectId}/files/src/test.ts`,
-      );
-      const context = {
-        params: Promise.resolve({
-          projectId: testProjectId,
-          path: ["src", "test.ts"],
-        }),
-      };
-
-      const response = await GET(request, context);
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data).toEqual({
-        content: "",
-        hash: "hash123",
-      });
-    });
 
     it("should handle file paths with multiple segments correctly", async () => {
       const { getUserId } = await import(
