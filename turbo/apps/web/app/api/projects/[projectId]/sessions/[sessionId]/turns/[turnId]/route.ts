@@ -77,13 +77,13 @@ export async function GET(
     id: block.id,
     type: block.type,
     content: block.content,
-    sequence_number: block.sequenceNumber,
+    sequenceNumber: block.sequenceNumber,
   }));
 
   return NextResponse.json({
     id: turn.id,
     session_id: turn.sessionId,
-    user_prompt: turn.userPrompt,
+    userPrompt: turn.userPrompt,
     status: turn.status,
     started_at: turn.startedAt,
     completed_at: turn.completedAt,

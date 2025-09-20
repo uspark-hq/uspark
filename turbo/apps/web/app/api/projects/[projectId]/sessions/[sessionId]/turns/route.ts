@@ -216,7 +216,7 @@ export async function GET(
   const turns = await globalThis.services.db
     .select({
       id: TURNS_TBL.id,
-      user_prompt: TURNS_TBL.userPrompt,
+      userPrompt: TURNS_TBL.userPrompt,
       status: TURNS_TBL.status,
       started_at: TURNS_TBL.startedAt,
       completed_at: TURNS_TBL.completedAt,
@@ -256,7 +256,7 @@ export async function GET(
   const response: ListTurnsResponse = {
     turns: turnsWithBlocks.map((t) => ({
       id: t.id,
-      user_prompt: t.user_prompt,
+      userPrompt: t.userPrompt,
       status: t.status as
         | "pending"
         | "in_progress"
