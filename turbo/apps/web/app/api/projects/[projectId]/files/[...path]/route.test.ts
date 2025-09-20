@@ -102,9 +102,9 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
 
       // Create project with empty YJS doc (no files in the files map)
       const emptyYdoc = new Y.Doc();
-      const emptyYdocData = Buffer.from(Y.encodeStateAsUpdate(emptyYdoc)).toString(
-        "base64",
-      );
+      const emptyYdocData = Buffer.from(
+        Y.encodeStateAsUpdate(emptyYdoc),
+      ).toString("base64");
       await globalThis.services.db.insert(PROJECTS_TBL).values({
         id: testProjectId,
         userId: testUserId,
