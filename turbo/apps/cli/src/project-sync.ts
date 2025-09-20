@@ -1,5 +1,6 @@
 import { FileSystem } from "./fs";
 import { writeFile, readFile, mkdir } from "fs/promises";
+import { put } from "@vercel/blob";
 import { dirname, join } from "path";
 import { createHash } from "crypto";
 
@@ -167,9 +168,9 @@ export class ProjectSync {
 
     // 4. Upload blob if not exists
     if (!this.fs.getBlobInfo(localHash)) {
-      // Get STS token for blob access
+      // Get client token for this specific file hash
       const tokenResponse = await fetch(
-        `${apiUrl}/api/projects/${projectId}/blob-token`,
+        `${apiUrl}/api/projects/${projectId}/blob-token?hash=${localHash}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -183,32 +184,25 @@ export class ProjectSync {
         );
       }
 
-      const { uploadUrl, token: blobToken } = (await tokenResponse.json()) as {
+      const { token: blobToken } = (await tokenResponse.json()) as {
         token: string;
         expiresAt: string;
         uploadUrl: string;
         downloadUrlPrefix: string;
       };
 
-      // Upload blob directly to Vercel Blob Storage with project isolation
-      const uploadResponse = await fetch(
-        `${uploadUrl}/projects/${projectId}/${localHash}`,
-        {
-          method: "PUT",
-          headers: {
-            Authorization: `Bearer ${blobToken}`,
-            "Content-Type": "text/plain",
-          },
-          body: content,
-        },
-      );
+      // Upload blob using exact path that matches the token
+      const blobPath = `projects/${projectId}/${localHash}`;
 
-      if (!uploadResponse.ok) {
-        const errorText = await uploadResponse.text();
-        throw new Error(
-          `Failed to upload blob: ${uploadResponse.status} ${uploadResponse.statusText}\n${errorText}`,
-        );
-      }
+      console.log(`Uploading blob with path: ${blobPath}`);
+      console.log(`Token: ${blobToken.substring(0, 50)}...`);
+
+      const blob = await put(blobPath, content, {
+        access: "public",
+        token: blobToken,
+      });
+
+      console.log(`Blob uploaded successfully: ${blob.url}`);
 
       // Store locally as well
       this.fs.setBlob(localHash, content);
@@ -288,50 +282,42 @@ export class ProjectSync {
       }
     }
 
-    if (blobsToUpload.size > 0) {
-      // Get STS token for blob access
-      const tokenResponse = await fetch(
-        `${apiUrl}/api/projects/${projectId}/blob-token`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
+    // Upload each blob with its own token
+    for (const hash of blobsToUpload) {
+      const content = contentMap.get(hash);
+      if (content) {
+        // Get client token for this specific file hash
+        const tokenResponse = await fetch(
+          `${apiUrl}/api/projects/${projectId}/blob-token?hash=${hash}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           },
-        },
-      );
+        );
 
-      if (tokenResponse.ok) {
-        const { uploadUrl, token: blobToken } =
-          (await tokenResponse.json()) as {
-            token: string;
-            expiresAt: string;
-            uploadUrl: string;
-            downloadUrlPrefix: string;
-          };
-
-        // Upload all new blobs
-        for (const hash of blobsToUpload) {
-          const content = contentMap.get(hash);
-          if (content) {
-            const uploadResponse = await fetch(
-              `${uploadUrl}/projects/${projectId}/${hash}`,
-              {
-                method: "PUT",
-                headers: {
-                  Authorization: `Bearer ${blobToken}`,
-                  "Content-Type": "text/plain",
-                },
-                body: content,
-              },
-            );
-
-            if (!uploadResponse.ok) {
-              const errorText = await uploadResponse.text();
-              throw new Error(
-                `Failed to upload blob: ${uploadResponse.status} ${uploadResponse.statusText}\n${errorText}`,
-              );
-            }
-          }
+        if (!tokenResponse.ok) {
+          throw new Error(
+            `Failed to get blob token for ${hash}: ${tokenResponse.statusText}`,
+          );
         }
+
+        const { token: blobToken } = (await tokenResponse.json()) as {
+          token: string;
+          expiresAt: string;
+          uploadUrl: string;
+          downloadUrlPrefix: string;
+        };
+
+        // Upload blob using exact path that matches the token
+        const blobPath = `projects/${projectId}/${hash}`;
+
+        const blob = await put(blobPath, content, {
+          access: "public",
+          token: blobToken,
+        });
+
+        console.log(`Blob uploaded successfully: ${blob.url}`);
       }
     }
 

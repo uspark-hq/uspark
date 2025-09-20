@@ -8,12 +8,13 @@ import { env } from "../../../../../src/env";
 import { type BlobTokenResponse, type BlobTokenError } from "@uspark/core";
 
 /**
- * GET /api/projects/:projectId/blob-token
+ * GET /api/projects/:projectId/blob-token?hash=<file_hash>
  * Returns temporary client token for direct Vercel Blob Storage access
  * Supports both Clerk session auth and CLI token auth
+ * Requires hash parameter to generate token for specific file path
  */
 export async function GET(
-  _request: NextRequest,
+  request: NextRequest,
   context: { params: Promise<{ projectId: string }> },
 ) {
   const userId = await getUserId();
@@ -28,6 +29,18 @@ export async function GET(
 
   initServices();
   const { projectId } = await context.params;
+
+  // Get hash parameter from query string
+  const { searchParams } = new URL(request.url);
+  const hash = searchParams.get('hash');
+
+  if (!hash) {
+    const error: BlobTokenError = {
+      error: "missing_hash",
+      error_description: "Hash parameter is required",
+    };
+    return NextResponse.json(error, { status: 400 });
+  }
 
   // Verify user has access to project
   const [project] = await globalThis.services.db
@@ -55,10 +68,12 @@ export async function GET(
     return NextResponse.json(error, { status: 500 });
   }
 
-  // Generate a secure client token with project-scoped permissions
+  // Generate client token for specific file path
+  // Use exact path: projects/{projectId}/{hash}
+  const filePath = `projects/${projectId}/${hash}`;
   const clientToken = await generateClientTokenFromReadWriteToken({
     token: readWriteToken,
-    pathname: `projects/${projectId}/*`,
+    pathname: filePath,
     validUntil: Date.now() + 10 * 60 * 1000, // 10 minutes
     allowedContentTypes: ["text/*", "application/*", "image/*"],
   });
