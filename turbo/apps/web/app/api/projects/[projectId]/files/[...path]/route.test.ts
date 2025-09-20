@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterAll } from "vitest";
 import { GET } from "./route";
 import { NextRequest } from "next/server";
 import * as Y from "yjs";
@@ -7,15 +7,16 @@ import {
   http,
   HttpResponse,
 } from "../../../../../../src/test/msw-setup";
+import { PROJECTS_TBL } from "../../../../../../src/db/schema/projects";
+import { initServices } from "../../../../../../src/lib/init-services";
+import { eq } from "drizzle-orm";
 
 // Mock dependencies
 vi.mock("../../../../../../src/lib/auth/get-user-id", () => ({
   getUserId: vi.fn(),
 }));
 
-vi.mock("../../../../../../src/lib/init-services", () => ({
-  initServices: vi.fn(),
-}));
+// Don't mock init-services - use real services with test database
 
 vi.mock("../../../../../../src/env", () => ({
   env: vi.fn(() => ({ BLOB_READ_WRITE_TOKEN: "test-token" })),
@@ -28,17 +29,14 @@ vi.mock("@vercel/blob/client", () => ({
 }));
 
 describe("/api/projects/[projectId]/files/[...path]", () => {
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
-
-    // Setup default mock database
-    globalThis.services = {
-      db: {
-        select: vi.fn().mockReturnThis(),
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-      },
-    };
+    // Initialize services (required for globalThis.services)
+    initServices();
+    // Clean up any existing test data - only delete our test project
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.id, "test-project"));
   });
 
   describe("GET", () => {
@@ -71,8 +69,7 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       );
       (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue("user-123");
 
-      // Mock empty project result
-      globalThis.services.db.where = vi.fn().mockResolvedValue([]);
+      // No project exists in database (already cleaned in beforeEach)
 
       const request = new NextRequest(
         "http://localhost:3000/api/projects/test-project/files/src/test.ts",
@@ -91,18 +88,23 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       expect(data).toEqual({ error: "project_not_found" });
     });
 
-    it("should return 404 when project has no files", async () => {
+    it("should return 404 when file is not found in empty project", async () => {
       const { getUserId } = await import(
         "../../../../../../src/lib/auth/get-user-id"
       );
       (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue("user-123");
 
-      // Mock project without ydocData
-      globalThis.services.db.where = vi
-        .fn()
-        .mockResolvedValue([
-          { id: "test-project", userId: "user-123", ydocData: null },
-        ]);
+      // Insert project with empty YJS doc (no files in the files map)
+      const emptyYdoc = new Y.Doc();
+      const emptyYdocData = Buffer.from(Y.encodeStateAsUpdate(emptyYdoc)).toString(
+        "base64",
+      );
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: "test-project",
+        userId: "user-123",
+        name: "Test Project",
+        ydocData: emptyYdocData,
+      });
 
       const request = new NextRequest(
         "http://localhost:3000/api/projects/test-project/files/src/test.ts",
@@ -118,7 +120,7 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       const data = await response.json();
 
       expect(response.status).toBe(404);
-      expect(data).toEqual({ error: "no_files_in_project" });
+      expect(data).toEqual({ error: "file_not_found" });
     });
 
     it("should return 404 when file is not found in YJS document", async () => {
@@ -135,11 +137,13 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         "base64",
       );
 
-      globalThis.services.db.where = vi
-        .fn()
-        .mockResolvedValue([
-          { id: "test-project", userId: "user-123", ydocData },
-        ]);
+      // Insert project with ydocData
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: "test-project",
+        userId: "user-123",
+        name: "Test Project",
+        ydocData,
+      });
 
       const request = new NextRequest(
         "http://localhost:3000/api/projects/test-project/files/src/test.ts",
@@ -176,11 +180,13 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         "base64",
       );
 
-      globalThis.services.db.where = vi
-        .fn()
-        .mockResolvedValue([
-          { id: "test-project", userId: "user-123", ydocData },
-        ]);
+      // Insert project with ydocData
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: "test-project",
+        userId: "user-123",
+        name: "Test Project",
+        ydocData,
+      });
 
       const request = new NextRequest(
         "http://localhost:3000/api/projects/test-project/files/src/test.ts",
@@ -217,11 +223,13 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         "base64",
       );
 
-      globalThis.services.db.where = vi
-        .fn()
-        .mockResolvedValue([
-          { id: "test-project", userId: "user-123", ydocData },
-        ]);
+      // Insert project with ydocData
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: "test-project",
+        userId: "user-123",
+        name: "Test Project",
+        ydocData,
+      });
 
       // Set up MSW handler for blob storage
       server.use(
@@ -268,11 +276,13 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         "base64",
       );
 
-      globalThis.services.db.where = vi
-        .fn()
-        .mockResolvedValue([
-          { id: "test-project", userId: "user-123", ydocData },
-        ]);
+      // Insert project with ydocData
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: "test-project",
+        userId: "user-123",
+        name: "Test Project",
+        ydocData,
+      });
 
       // Set up MSW handler for blob storage returning 404
       server.use(
@@ -324,11 +334,13 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         "base64",
       );
 
-      globalThis.services.db.where = vi
-        .fn()
-        .mockResolvedValue([
-          { id: "test-project", userId: "user-123", ydocData },
-        ]);
+      // Insert project with ydocData
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: "test-project",
+        userId: "user-123",
+        name: "Test Project",
+        ydocData,
+      });
 
       const request = new NextRequest(
         "http://localhost:3000/api/projects/test-project/files/src/test.ts",
@@ -373,11 +385,13 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         "base64",
       );
 
-      globalThis.services.db.where = vi
-        .fn()
-        .mockResolvedValue([
-          { id: "test-project", userId: "user-123", ydocData },
-        ]);
+      // Insert project with ydocData
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: "test-project",
+        userId: "user-123",
+        name: "Test Project",
+        ydocData,
+      });
 
       const request = new NextRequest(
         "http://localhost:3000/api/projects/test-project/files/src/components/Button.tsx",

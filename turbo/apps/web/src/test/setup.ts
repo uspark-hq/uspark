@@ -28,7 +28,10 @@ process.env.BLOB_READ_WRITE_TOKEN = "vercel_blob_rw_test-store_secret-key";
 // Mock GitHub App environment variables for testing
 // Note: These are test values that will be mocked by MSW, not used for real crypto
 process.env.GH_APP_ID = "test_github_app_id";
-process.env.GH_APP_PRIVATE_KEY = "test_private_key_placeholder";
+// Base64 encoded test private key (decodes to "test_private_key_placeholder")
+process.env.GH_APP_PRIVATE_KEY = Buffer.from(
+  "test_private_key_placeholder",
+).toString("base64");
 process.env.GH_WEBHOOK_SECRET = "test_github_webhook_secret";
 
 // Verify required environment variables are set

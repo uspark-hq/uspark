@@ -60,18 +60,7 @@ vi.mock("./auth", () => ({
   getInstallationToken: vi.fn().mockResolvedValue("test-installation-token"),
 }));
 
-// Mock init-services
-vi.mock("../init-services", () => ({
-  initServices: vi.fn(() => {
-    globalThis.services = {
-      env: {
-        GH_APP_ID: "test-app-id",
-        GH_APP_PRIVATE_KEY: "test-private-key",
-        GH_WEBHOOK_SECRET: "test-webhook-secret",
-      },
-    } as never;
-  }),
-}));
+// Don't mock init-services - use real services with test environment variables
 
 describe("GitHub Client", () => {
   beforeEach(() => {
