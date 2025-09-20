@@ -46,40 +46,35 @@ export async function getInstallationDetails(installationId: number) {
     installationId,
   );
 
-  try {
-    // Use App-level client with JWT token to get installation details
-    const app = createAppOctokit();
-    console.log("getInstallationDetails: app created");
+  // Use App-level client with JWT token to get installation details
+  const app = createAppOctokit();
+  console.log("getInstallationDetails: app created");
 
-    console.log(
-      "getInstallationDetails: calling GET /app/installations/{installation_id}",
-    );
-    const { data } = await app.octokit.request(
-      "GET /app/installations/{installation_id}",
-      {
-        installation_id: installationId,
-      },
-    );
-    const accountIdentifier = data.account
-      ? "login" in data.account
-        ? data.account.login
-        : data.account.slug || data.account.name
-      : "unknown";
-    const accountType = data.account
-      ? "type" in data.account
-        ? data.account.type
-        : "Organization"
-      : "unknown";
-    console.log(
-      "getInstallationDetails: success, account:",
-      accountIdentifier,
-      "type:",
-      accountType,
-    );
+  console.log(
+    "getInstallationDetails: calling GET /app/installations/{installation_id}",
+  );
+  const { data } = await app.octokit.request(
+    "GET /app/installations/{installation_id}",
+    {
+      installation_id: installationId,
+    },
+  );
+  const accountIdentifier = data.account
+    ? "login" in data.account
+      ? data.account.login
+      : data.account.slug || data.account.name
+    : "unknown";
+  const accountType = data.account
+    ? "type" in data.account
+      ? data.account.type
+      : "Organization"
+    : "unknown";
+  console.log(
+    "getInstallationDetails: success, account:",
+    accountIdentifier,
+    "type:",
+    accountType,
+  );
 
-    return data;
-  } catch (error) {
-    console.error("getInstallationDetails: failed", error);
-    throw error;
-  }
+  return data;
 }
