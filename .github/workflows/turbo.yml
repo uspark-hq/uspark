@@ -275,6 +275,19 @@ jobs:
     if: github.event_name == 'pull_request' && needs.change-detection.outputs.web-changed == 'true' && needs.deploy-web.outputs.preview-url != ''
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/toolchain-init
+
+      - name: Setup pnpm global directory
+        run: |
+          mkdir -p $HOME/.local/share/pnpm
+          pnpm config set global-bin-dir $HOME/.local/share/pnpm
+          echo "$HOME/.local/share/pnpm" >> $GITHUB_PATH
+
+      - name: Build CLI
+        run: cd turbo && pnpm --filter @uspark/cli build
+
+      - name: Setup CLI globally
+        run: cd turbo/apps/cli && pnpm link --global
 
       - name: Install npm dependencies for e2e tests
         run: |
@@ -296,3 +309,4 @@ jobs:
           BASE_URL: ${{ needs.deploy-web.outputs.preview-url }}
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          API_HOST: ${{ needs.deploy-web.outputs.preview-url }}
