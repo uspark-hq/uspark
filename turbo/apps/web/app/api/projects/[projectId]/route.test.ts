@@ -13,6 +13,15 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
 }));
 
+// Mock next/headers - needs to be hoisted before imports
+vi.mock("next/headers", () => ({
+  headers: vi.fn(() => new Headers()),
+  cookies: vi.fn(() => ({
+    get: vi.fn(() => undefined),
+    set: vi.fn(),
+  })),
+}));
+
 import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 

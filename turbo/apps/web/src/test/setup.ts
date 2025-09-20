@@ -1,4 +1,4 @@
-import { expect, afterEach } from "vitest";
+import { expect, afterEach, vi } from "vitest";
 import * as matchers from "@testing-library/jest-dom/matchers";
 import { cleanup } from "@testing-library/react";
 import "./msw-setup"; // Setup MSW for HTTP request mocking
@@ -35,3 +35,16 @@ process.env.GH_WEBHOOK_SECRET = "test_github_webhook_secret";
 if (!process.env.DATABASE_URL) {
   throw new Error("DATABASE_URL environment variable is required for tests");
 }
+
+// Mock next/headers for testing
+vi.mock("next/headers", () => ({
+  headers: vi.fn(() => {
+    const h = new Headers();
+    // Return empty headers by default, tests can override if needed
+    return h;
+  }),
+  cookies: vi.fn(() => ({
+    get: vi.fn(() => undefined),
+    set: vi.fn(),
+  })),
+}));

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getUserId } from "../../../../../src/lib/auth/get-user-id";
 import { generateClientTokenFromReadWriteToken } from "@vercel/blob/client";
 import { initServices } from "../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
@@ -10,12 +10,13 @@ import { type BlobTokenResponse, type BlobTokenError } from "@uspark/core";
 /**
  * GET /api/projects/:projectId/blob-token
  * Returns temporary client token for direct Vercel Blob Storage access
+ * Supports both Clerk session auth and CLI token auth
  */
 export async function GET(
   _request: NextRequest,
   context: { params: Promise<{ projectId: string }> },
 ) {
-  const { userId } = await auth();
+  const userId = await getUserId();
 
   if (!userId) {
     const error: BlobTokenError = {
