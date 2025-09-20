@@ -32,10 +32,19 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
   const [isPolling, setIsPolling] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isCancelledRef = useRef(false);
+  const turnsRef = useRef<Turn[]>([]);
 
-  const buildStateString = useCallback(() => {
-    return turns.map((turn) => `${turn.id}:${turn.blocks.length}`).join(",");
+  // Update ref whenever turns changes
+  useEffect(() => {
+    turnsRef.current = turns;
   }, [turns]);
+
+  // Build state string from the current turns in ref
+  const buildStateString = useCallback(() => {
+    return turnsRef.current
+      .map((turn) => `${turn.id}:${turn.blocks.length}`)
+      .join(",");
+  }, []);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -72,9 +81,20 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
             throw new Error(`Failed to fetch updates: ${response.status}`);
           }
 
-          // 204 No Content means no updates (timeout)
+          // 204 No Content means no updates (timeout or no active turns)
           if (response.status === 204) {
-            // Add a small delay before continuing to avoid tight loops in tests
+            // Check if we have any active turns locally
+            const hasActive = turnsRef.current.some(
+              (turn) =>
+                turn.status === "pending" || turn.status === "in_progress",
+            );
+
+            if (!hasActive) {
+              // No active turns, stop polling to avoid unnecessary requests
+              break;
+            }
+
+            // Add a small delay before continuing to avoid tight loops
             await new Promise((resolve) => setTimeout(resolve, 50));
             continue; // Continue polling
           }
@@ -162,7 +182,7 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
         abortControllerRef.current = null;
       }
     };
-  }, [projectId, sessionId, buildStateString]);
+  }, [projectId, sessionId, buildStateString]); // buildStateString is stable due to empty deps
 
   const hasActiveTurns = () => {
     return turns.some(

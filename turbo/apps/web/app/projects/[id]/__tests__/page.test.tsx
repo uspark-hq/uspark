@@ -61,7 +61,7 @@ describe("Project Detail Page", () => {
         const filePath = url.pathname.split("/files/")[1];
 
         if (!filePath) {
-          return new Response("File path not found", { status: 404 });
+          return HttpResponse.json({ content: "", hash: "mock-hash" });
         }
 
         // Return mock content based on file extension

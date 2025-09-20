@@ -121,14 +121,6 @@ export async function createProjectRepository(
       repo = data;
     }
   } catch (error: unknown) {
-    console.error("GitHub API Error Details:", {
-      installationId,
-      accountType,
-      accountLogin,
-      repoName,
-      error,
-    });
-
     if (error instanceof Error && "status" in error) {
       const githubError = error as {
         status: number;

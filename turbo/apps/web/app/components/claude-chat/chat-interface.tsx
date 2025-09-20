@@ -35,8 +35,7 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
         } else {
           setError("Failed to initialize session. Please refresh the page.");
         }
-      } catch (err) {
-        console.error("Failed to initialize session:", err);
+      } catch {
         setError("Failed to connect to server. Please check your connection.");
       }
     };
