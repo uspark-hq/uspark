@@ -13,6 +13,15 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(() => Promise.resolve({ userId: mockUserId })),
 }));
 
+// Mock next/headers
+vi.mock("next/headers", () => ({
+  headers: vi.fn(() => new Headers()),
+  cookies: vi.fn(() => ({
+    get: vi.fn(() => undefined),
+    set: vi.fn(),
+  })),
+}));
+
 // Mock @vercel/blob client token generation
 vi.mock("@vercel/blob/client", () => ({
   generateClientTokenFromReadWriteToken: vi.fn(async (options) => {
