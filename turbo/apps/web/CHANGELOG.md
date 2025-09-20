@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.26.0](https://github.com/uspark-hq/uspark/compare/web-v0.25.0...web-v0.26.0) (2025-09-20)
+
+
+### Features
+
+* update landing page to align with MVP specification and product positioning ([#328](https://github.com/uspark-hq/uspark/issues/328)) ([958e734](https://github.com/uspark-hq/uspark/commit/958e734186fd526c29304bc7fe0d7cca11cfb913))
+
+
+### Bug Fixes
+
+* add cli token authentication support to blob-token and project apis ([#329](https://github.com/uspark-hq/uspark/issues/329)) ([ca7e4d3](https://github.com/uspark-hq/uspark/commit/ca7e4d30a3c5473c17dfad20f8109a3d58d2e444))
+
 ## [0.25.0](https://github.com/uspark-hq/uspark/compare/web-v0.24.0...web-v0.25.0) (2025-09-20)
 
 
