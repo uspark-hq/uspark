@@ -36,12 +36,47 @@ describe("/api/github/setup", () => {
       account: {
         login: "test-org",
         type: "Organization",
+        id: 123456,
+        node_id: "MDEyOk9yZ2FuaXphdGlvbjEyMzQ1Ng==",
+        avatar_url: "https://avatars.githubusercontent.com/u/123456?v=4",
+        gravatar_id: "",
+        url: "https://api.github.com/users/test-org",
+        html_url: "https://github.com/test-org",
+        followers_url: "https://api.github.com/users/test-org/followers",
+        following_url:
+          "https://api.github.com/users/test-org/following{/other_user}",
+        gists_url: "https://api.github.com/users/test-org/gists{/gist_id}",
+        starred_url:
+          "https://api.github.com/users/test-org/starred{/owner}{/repo}",
+        subscriptions_url:
+          "https://api.github.com/users/test-org/subscriptions",
+        organizations_url: "https://api.github.com/users/test-org/orgs",
+        repos_url: "https://api.github.com/users/test-org/repos",
+        events_url: "https://api.github.com/users/test-org/events{/privacy}",
+        received_events_url:
+          "https://api.github.com/users/test-org/received_events",
+        site_admin: false,
       },
       repository_selection: "all",
       permissions: {
         contents: "write",
         metadata: "read",
       },
+      access_tokens_url: `https://api.github.com/app/installations/${installationId}/access_tokens`,
+      repositories_url: `https://api.github.com/installation/repositories`,
+      html_url: `https://github.com/apps/test-app/installations/${installationId}`,
+      app_id: 123,
+      app_slug: "test-app",
+      target_id: 123456,
+      target_type: "Organization",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+      has_multiple_single_files: false,
+      single_file_paths: [],
+      single_file_name: null,
+      suspended_at: null,
+      suspended_by: null,
+      events: [],
     });
 
     // Clean up any existing test installations

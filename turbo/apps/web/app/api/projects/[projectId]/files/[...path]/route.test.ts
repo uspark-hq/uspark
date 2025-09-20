@@ -1,7 +1,10 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { GET } from "./route";
 import { NextRequest } from "next/server";
 import * as Y from "yjs";
+import { initServices } from "../../../../../../src/lib/init-services";
+import { PROJECTS_TBL } from "../../../../../../src/db/schema/projects";
+import { eq } from "drizzle-orm";
 import {
   server,
   http,
@@ -13,14 +16,6 @@ vi.mock("../../../../../../src/lib/auth/get-user-id", () => ({
   getUserId: vi.fn(),
 }));
 
-vi.mock("../../../../../../src/lib/init-services", () => ({
-  initServices: vi.fn(),
-}));
-
-vi.mock("../../../../../../src/env", () => ({
-  env: vi.fn(() => ({ BLOB_READ_WRITE_TOKEN: "test-token" })),
-}));
-
 vi.mock("@vercel/blob/client", () => ({
   generateClientTokenFromReadWriteToken: vi
     .fn()
@@ -28,17 +23,24 @@ vi.mock("@vercel/blob/client", () => ({
 }));
 
 describe("/api/projects/[projectId]/files/[...path]", () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
+  const testProjectId = "test-file-route-" + Date.now() + "-" + Math.random();
+  const testUserId = "test-user-file-route";
 
-    // Setup default mock database
-    globalThis.services = {
-      db: {
-        select: vi.fn().mockReturnThis(),
-        from: vi.fn().mockReturnThis(),
-        where: vi.fn().mockReturnThis(),
-      },
-    };
+  beforeEach(async () => {
+    vi.clearAllMocks();
+    initServices();
+
+    // Clean up any existing test data
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.id, testProjectId));
+  });
+
+  afterEach(async () => {
+    // Clean up test data
+    await globalThis.services.db
+      .delete(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.id, testProjectId));
   });
 
   describe("GET", () => {
@@ -71,15 +73,12 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       );
       (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue("user-123");
 
-      // Mock empty project result
-      globalThis.services.db.where = vi.fn().mockResolvedValue([]);
-
       const request = new NextRequest(
-        "http://localhost:3000/api/projects/test-project/files/src/test.ts",
+        "http://localhost:3000/api/projects/non-existent/files/src/test.ts",
       );
       const context = {
         params: Promise.resolve({
-          projectId: "test-project",
+          projectId: "non-existent-project",
           path: ["src", "test.ts"],
         }),
       };
@@ -95,21 +94,21 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       const { getUserId } = await import(
         "../../../../../../src/lib/auth/get-user-id"
       );
-      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue("user-123");
+      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue(testUserId);
 
-      // Mock project without ydocData
-      globalThis.services.db.where = vi
-        .fn()
-        .mockResolvedValue([
-          { id: "test-project", userId: "user-123", ydocData: null },
-        ]);
+      // Create project without ydocData
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: testProjectId,
+        userId: testUserId,
+        ydocData: "", // Empty string instead of null
+      });
 
       const request = new NextRequest(
-        "http://localhost:3000/api/projects/test-project/files/src/test.ts",
+        `http://localhost:3000/api/projects/${testProjectId}/files/src/test.ts`,
       );
       const context = {
         params: Promise.resolve({
-          projectId: "test-project",
+          projectId: testProjectId,
           path: ["src", "test.ts"],
         }),
       };
@@ -125,7 +124,7 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       const { getUserId } = await import(
         "../../../../../../src/lib/auth/get-user-id"
       );
-      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue("user-123");
+      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue(testUserId);
 
       // Create YJS document with different file
       const ydoc = new Y.Doc();
@@ -135,18 +134,18 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         "base64",
       );
 
-      globalThis.services.db.where = vi
-        .fn()
-        .mockResolvedValue([
-          { id: "test-project", userId: "user-123", ydocData },
-        ]);
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: testProjectId,
+        userId: testUserId,
+        ydocData,
+      });
 
       const request = new NextRequest(
-        "http://localhost:3000/api/projects/test-project/files/src/test.ts",
+        `http://localhost:3000/api/projects/${testProjectId}/files/src/test.ts`,
       );
       const context = {
         params: Promise.resolve({
-          projectId: "test-project",
+          projectId: testProjectId,
           path: ["src", "test.ts"],
         }),
       };
@@ -162,7 +161,7 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       const { getUserId } = await import(
         "../../../../../../src/lib/auth/get-user-id"
       );
-      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue("user-123");
+      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue(testUserId);
 
       // Create YJS document with file and blob content
       const ydoc = new Y.Doc();
@@ -176,18 +175,18 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         "base64",
       );
 
-      globalThis.services.db.where = vi
-        .fn()
-        .mockResolvedValue([
-          { id: "test-project", userId: "user-123", ydocData },
-        ]);
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: testProjectId,
+        userId: testUserId,
+        ydocData,
+      });
 
       const request = new NextRequest(
-        "http://localhost:3000/api/projects/test-project/files/src/test.ts",
+        `http://localhost:3000/api/projects/${testProjectId}/files/src/test.ts`,
       );
       const context = {
         params: Promise.resolve({
-          projectId: "test-project",
+          projectId: testProjectId,
           path: ["src", "test.ts"],
         }),
       };
@@ -206,7 +205,7 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       const { getUserId } = await import(
         "../../../../../../src/lib/auth/get-user-id"
       );
-      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue("user-123");
+      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue(testUserId);
 
       // Create YJS document with file but no blob content
       const ydoc = new Y.Doc();
@@ -217,16 +216,16 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         "base64",
       );
 
-      globalThis.services.db.where = vi
-        .fn()
-        .mockResolvedValue([
-          { id: "test-project", userId: "user-123", ydocData },
-        ]);
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: testProjectId,
+        userId: testUserId,
+        ydocData,
+      });
 
       // Set up MSW handler for blob storage
       server.use(
         http.get(
-          "https://blob.vercel-storage.com/files/projects/test-project/hash123",
+          `https://blob.vercel-storage.com/files/projects/${testProjectId}/hash123`,
           () => {
             return HttpResponse.text("export function test() {}");
           },
@@ -234,11 +233,11 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       );
 
       const request = new NextRequest(
-        "http://localhost:3000/api/projects/test-project/files/src/test.ts",
+        `http://localhost:3000/api/projects/${testProjectId}/files/src/test.ts`,
       );
       const context = {
         params: Promise.resolve({
-          projectId: "test-project",
+          projectId: testProjectId,
           path: ["src", "test.ts"],
         }),
       };
@@ -257,7 +256,7 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       const { getUserId } = await import(
         "../../../../../../src/lib/auth/get-user-id"
       );
-      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue("user-123");
+      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue(testUserId);
 
       // Create YJS document with file but no blob content
       const ydoc = new Y.Doc();
@@ -268,16 +267,16 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         "base64",
       );
 
-      globalThis.services.db.where = vi
-        .fn()
-        .mockResolvedValue([
-          { id: "test-project", userId: "user-123", ydocData },
-        ]);
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: testProjectId,
+        userId: testUserId,
+        ydocData,
+      });
 
       // Set up MSW handler for blob storage returning 404
       server.use(
         http.get(
-          "https://blob.vercel-storage.com/files/projects/test-project/hash123",
+          `https://blob.vercel-storage.com/files/projects/${testProjectId}/hash123`,
           () => {
             return new HttpResponse(null, { status: 404 });
           },
@@ -285,11 +284,11 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       );
 
       const request = new NextRequest(
-        "http://localhost:3000/api/projects/test-project/files/src/test.ts",
+        `http://localhost:3000/api/projects/${testProjectId}/files/src/test.ts`,
       );
       const context = {
         params: Promise.resolve({
-          projectId: "test-project",
+          projectId: testProjectId,
           path: ["src", "test.ts"],
         }),
       };
@@ -310,7 +309,7 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       );
       const { env } = await import("../../../../../../src/env");
 
-      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue("user-123");
+      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue(testUserId);
       (env as ReturnType<typeof vi.fn>).mockReturnValue({
         BLOB_READ_WRITE_TOKEN: "",
       });
@@ -324,18 +323,18 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         "base64",
       );
 
-      globalThis.services.db.where = vi
-        .fn()
-        .mockResolvedValue([
-          { id: "test-project", userId: "user-123", ydocData },
-        ]);
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: testProjectId,
+        userId: testUserId,
+        ydocData,
+      });
 
       const request = new NextRequest(
-        "http://localhost:3000/api/projects/test-project/files/src/test.ts",
+        `http://localhost:3000/api/projects/${testProjectId}/files/src/test.ts`,
       );
       const context = {
         params: Promise.resolve({
-          projectId: "test-project",
+          projectId: testProjectId,
           path: ["src", "test.ts"],
         }),
       };
@@ -354,7 +353,7 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       const { getUserId } = await import(
         "../../../../../../src/lib/auth/get-user-id"
       );
-      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue("user-123");
+      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue(testUserId);
 
       // Create YJS document with nested file path
       const ydoc = new Y.Doc();
@@ -373,18 +372,18 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         "base64",
       );
 
-      globalThis.services.db.where = vi
-        .fn()
-        .mockResolvedValue([
-          { id: "test-project", userId: "user-123", ydocData },
-        ]);
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: testProjectId,
+        userId: testUserId,
+        ydocData,
+      });
 
       const request = new NextRequest(
-        "http://localhost:3000/api/projects/test-project/files/src/components/Button.tsx",
+        `http://localhost:3000/api/projects/${testProjectId}/files/src/components/Button.tsx`,
       );
       const context = {
         params: Promise.resolve({
-          projectId: "test-project",
+          projectId: testProjectId,
           path: ["src", "components", "Button.tsx"],
         }),
       };
