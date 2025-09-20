@@ -7,7 +7,7 @@ interface BlockProps {
     id: string;
     type: string;
     content: Record<string, unknown>;
-    sequence_number: number;
+    sequenceNumber: number;
   };
 }
 

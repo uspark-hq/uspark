@@ -59,7 +59,7 @@ describe("GitHubConnection", () => {
     render(<GitHubConnection />);
 
     // Wait for component to potentially load
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Look for connect-related elements
     // This test focuses on user interactions rather than HTTP requests
@@ -69,7 +69,7 @@ describe("GitHubConnection", () => {
     render(<GitHubConnection />);
 
     // Wait for any initial loading to complete
-    await new Promise(resolve => setTimeout(resolve, 200));
+    await new Promise((resolve) => setTimeout(resolve, 200));
 
     // The component should render and handle interactions
     // MSW handlers will manage any HTTP requests

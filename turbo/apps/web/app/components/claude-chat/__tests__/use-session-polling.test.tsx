@@ -33,11 +33,11 @@ describe("useSessionPolling", () => {
     expect(result.current.hasActiveTurns).toBe(false);
 
     // Wait a bit to let initialization complete
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Cleanup
     unmount();
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
   });
 
   it("should provide refetch function", async () => {
@@ -49,7 +49,7 @@ describe("useSessionPolling", () => {
     expect(typeof result.current.refetch).toBe("function");
 
     // Wait a bit for hook to settle
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     // Verify function is callable (don't await to avoid timeout)
     expect(() => result.current.refetch()).not.toThrow();
@@ -65,12 +65,12 @@ describe("useSessionPolling", () => {
     );
 
     // Wait a bit to let the hook initialize
-    await new Promise(resolve => setTimeout(resolve, 100));
+    await new Promise((resolve) => setTimeout(resolve, 100));
 
     unmount();
 
     // Wait for the polling loop to check isCancelledRef and exit
-    await new Promise(resolve => setTimeout(resolve, 300));
+    await new Promise((resolve) => setTimeout(resolve, 300));
 
     // The test passes if no memory leaks or infinite loops occur
     // AbortController should properly cancel ongoing requests
