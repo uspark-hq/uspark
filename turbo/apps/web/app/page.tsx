@@ -34,9 +34,9 @@ export default function Home() {
               </span>
             </h1>
             <p className={styles.heroSubtitle}>
-              Transform individual AI coding sessions into structured software projects.
-              uSpark orchestrates Claude Code, Cursor, and Windsurf through systematic
-              documentation and task management.
+              Transform individual AI coding sessions into structured software
+              projects. uSpark orchestrates Claude Code, Cursor, and Windsurf
+              through systematic documentation and task management.
             </p>
 
             <div className={styles.heroCta}>
@@ -72,7 +72,9 @@ export default function Home() {
               <div className={styles.animatedArrow}>↓</div>
               <div className={styles.demoStep} data-step="3">
                 <div className={styles.generatedDoc}>
-                  <div className={styles.docHeader}>📋 implementation-tasks.md</div>
+                  <div className={styles.docHeader}>
+                    📋 implementation-tasks.md
+                  </div>
                   <div className={styles.docContent}>
                     <p># Task Breakdown</p>
                     <p>## Task 1: Setup API endpoints</p>
@@ -88,14 +90,17 @@ export default function Home() {
 
       {/* Transformation Demo Section */}
       <section className={styles.demo}>
-        <h2 className={styles.sectionTitle}>Your AI Coding Workflow, Managed</h2>
+        <h2 className={styles.sectionTitle}>
+          Your AI Coding Workflow, Managed
+        </h2>
         <div className={styles.demoContainer}>
           <div className={styles.demoStep}>
             <span className={styles.stepNumber}>1</span>
             <h3>Connect GitHub</h3>
             <div className={styles.chatExample}>
               <p className={styles.userMessage}>
-                uSpark analyzes your codebase structure and understands your project context
+                uSpark analyzes your codebase structure and understands your
+                project context
               </p>
             </div>
           </div>
@@ -134,9 +139,7 @@ export default function Home() {
 
       {/* Core Concepts Section */}
       <section className={styles.concepts}>
-        <h2 className={styles.sectionTitle}>
-          Built for AI Coding at Scale
-        </h2>
+        <h2 className={styles.sectionTitle}>Built for AI Coding at Scale</h2>
         <div className={styles.conceptsGrid}>
           <div className={styles.conceptCard}>
             <div className={styles.conceptIcon}>
@@ -145,7 +148,8 @@ export default function Home() {
             <h3>Project Intelligence</h3>
             <p>
               Understands your codebase through GitHub integration. Provides
-              architectural insights and maintains context across all AI sessions.
+              architectural insights and maintains context across all AI
+              sessions.
             </p>
           </div>
           <div className={styles.conceptCard}>
@@ -155,7 +159,8 @@ export default function Home() {
             <h3>Task Orchestration</h3>
             <p>
               Breaks down complex requirements into AI-executable tasks with
-              high-quality prompts optimized for Claude Code, Cursor, or Windsurf.
+              high-quality prompts optimized for Claude Code, Cursor, or
+              Windsurf.
             </p>
           </div>
           <div className={styles.conceptCard}>
@@ -233,17 +238,16 @@ export default function Home() {
               <span className={styles.storyLabel}>Solo Developers</span>
               <h3>From MVP to Production</h3>
               <p>
-                &quot;I can build features quickly with AI, but struggled with project
-                organization. uSpark breaks down my requirements into perfect prompts
-                for Claude Code, tracks what&apos;s built, and helps me manage the
-                technical debt that comes with rapid AI development.&quot;
+                &quot;I can build features quickly with AI, but struggled with
+                project organization. uSpark breaks down my requirements into
+                perfect prompts for Claude Code, tracks what&apos;s built, and
+                helps me manage the technical debt that comes with rapid AI
+                development.&quot;
               </p>
               <div className={styles.storyMetrics}>
                 <div className={styles.metric}>
                   <span className={styles.metricValue}>10x</span>
-                  <span className={styles.metricLabel}>
-                    More Organized
-                  </span>
+                  <span className={styles.metricLabel}>More Organized</span>
                 </div>
                 <div className={styles.metric}>
                   <span className={styles.metricValue}>GitHub</span>
@@ -258,10 +262,11 @@ export default function Home() {
               <span className={styles.storyLabel}>Tech Leads</span>
               <h3>Managing AI-Assisted Teams</h3>
               <p>
-                &quot;My team uses different AI tools - Cursor, Windsurf, Claude Code.
-                uSpark is our single source of truth. It generates consistent tasks,
-                tracks actual progress through commits, and maintains our architectural
-                decisions across all AI-generated code.&quot;
+                &quot;My team uses different AI tools - Cursor, Windsurf, Claude
+                Code. uSpark is our single source of truth. It generates
+                consistent tasks, tracks actual progress through commits, and
+                maintains our architectural decisions across all AI-generated
+                code.&quot;
               </p>
               <div className={styles.storyMetrics}>
                 <div className={styles.metric}>
@@ -295,17 +300,16 @@ export default function Home() {
               <span className={styles.storyLabel}>Indie Hackers</span>
               <h3>Ship Fast, Stay Organized</h3>
               <p>
-                &quot;I&apos;m building products with AI but lacked engineering discipline.
-                uSpark gives me structure - task breakdowns, technical specs, and a clear
-                record of what&apos;s been built. It&apos;s like having a technical co-founder
-                who keeps everything organized.&quot;
+                &quot;I&apos;m building products with AI but lacked engineering
+                discipline. uSpark gives me structure - task breakdowns,
+                technical specs, and a clear record of what&apos;s been built.
+                It&apos;s like having a technical co-founder who keeps
+                everything organized.&quot;
               </p>
               <div className={styles.storyMetrics}>
                 <div className={styles.metric}>
                   <span className={styles.metricValue}>Structure</span>
-                  <span className={styles.metricLabel}>
-                    Added
-                  </span>
+                  <span className={styles.metricLabel}>Added</span>
                 </div>
                 <div className={styles.metric}>
                   <span className={styles.metricValue}>Tech Debt</span>
@@ -322,8 +326,8 @@ export default function Home() {
         <div className={styles.finalCtaContent}>
           <h2>AI Can Write Code, But It Can&apos;t Manage Projects</h2>
           <p className={styles.finalCtaTopText}>
-            Bridge the gap between AI coding and software engineering.
-            Start managing your AI development workflow properly.
+            Bridge the gap between AI coding and software engineering. Start
+            managing your AI development workflow properly.
           </p>
           <SignUpButton mode="modal">
             <Button size="lg" className={styles.primaryButton}>
@@ -331,8 +335,8 @@ export default function Home() {
             </Button>
           </SignUpButton>
           <p className={styles.finalCtaBottomText}>
-            Free to start. Works with Claude Code, Cursor, and Windsurf.
-            Your project intelligence grows with every commit.
+            Free to start. Works with Claude Code, Cursor, and Windsurf. Your
+            project intelligence grows with every commit.
           </p>
         </div>
         <div className={styles.finalCtaBackground}></div>
