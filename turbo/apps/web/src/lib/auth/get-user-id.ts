@@ -1,17 +1,18 @@
 import { auth } from "@clerk/nextjs/server";
-import { NextRequest } from "next/server";
+import { headers } from "next/headers";
 import { initServices } from "../init-services";
 import { CLI_TOKENS_TBL } from "../../db/schema/cli-tokens";
 import { eq, and, gt } from "drizzle-orm";
 
 /**
- * Get the authenticated user ID from either Clerk session or CLI token
- * @param request - The Next.js request object
+ * Get the authenticated user ID from either Clerk session or CLI token.
+ * Uses AsyncLocalStorage via Next.js headers() to avoid requiring a request parameter.
  * @returns The user ID if authenticated, null otherwise
  */
-export async function getUserId(request: NextRequest): Promise<string | null> {
-  // Check for CLI token in Authorization header
-  const authHeader = request.headers.get("Authorization");
+export async function getUserId(): Promise<string | null> {
+  // Get headers from AsyncLocalStorage
+  const headersList = await headers();
+  const authHeader = headersList.get("Authorization");
 
   if (authHeader && authHeader.startsWith("Bearer usp_live_")) {
     const token = authHeader.substring(7); // Remove "Bearer " prefix
