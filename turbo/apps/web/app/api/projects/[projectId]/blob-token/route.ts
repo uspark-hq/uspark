@@ -32,7 +32,7 @@ export async function GET(
 
   // Get hash parameter from query string
   const { searchParams } = new URL(request.url);
-  const hash = searchParams.get('hash');
+  const hash = searchParams.get("hash");
 
   if (!hash) {
     const error: BlobTokenError = {
