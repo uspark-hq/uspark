@@ -311,7 +311,6 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       });
     });
 
-
     it("should handle file paths with multiple segments correctly", async () => {
       const { getUserId } = await import(
         "../../../../../../src/lib/auth/get-user-id"
