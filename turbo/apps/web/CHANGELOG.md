@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.25.0](https://github.com/uspark-hq/uspark/compare/web-v0.24.0...web-v0.25.0) (2025-09-20)
+
+
+### Features
+
+* add frontend chat interface with interruption and error handling ([#312](https://github.com/uspark-hq/uspark/issues/312)) ([fac8e49](https://github.com/uspark-hq/uspark/commit/fac8e4939ba553f270ee1bfde33b8830b3de98f6))
+* implement simplified long polling for real-time session updates ([#320](https://github.com/uspark-hq/uspark/issues/320)) ([2f01238](https://github.com/uspark-hq/uspark/commit/2f0123867318a69fd926d8ff69cbcc98e1423d3c))
+* integrate yjs filesystem with mock-execute and enable real-time file synchronization ([#315](https://github.com/uspark-hq/uspark/issues/315)) ([08e45bf](https://github.com/uspark-hq/uspark/commit/08e45bf67d727267397fb222819c1bd4e292da4a))
+
+
+### Bug Fixes
+
+* apply prettier formatting to test files ([#327](https://github.com/uspark-hq/uspark/issues/327)) ([4e5b592](https://github.com/uspark-hq/uspark/commit/4e5b592203723568567de0223ac42439ac73c2e1))
+* cli authentication and ydoc sync issues ([#321](https://github.com/uspark-hq/uspark/issues/321)) ([e474fe1](https://github.com/uspark-hq/uspark/commit/e474fe14eee09265d222b8685cda82e3a83582c6))
+* format ([#324](https://github.com/uspark-hq/uspark/issues/324)) ([b2f2d6f](https://github.com/uspark-hq/uspark/commit/b2f2d6fbb5838493b8812359bacb04c32bbbc97f))
+* resolve test memory leaks and failures by removing fetch mocks ([#326](https://github.com/uspark-hq/uspark/issues/326)) ([ede6fb8](https://github.com/uspark-hq/uspark/commit/ede6fb8837f113bfb1c167f009b57a18ba2c82b9))
+* resolve timeout cleanup issue causing test failures ([#318](https://github.com/uspark-hq/uspark/issues/318)) ([5f8225e](https://github.com/uspark-hq/uspark/commit/5f8225e2a62626aed532e9b240bb7625dae141b7))
+* use correct GitHub API endpoint for installation details ([#313](https://github.com/uspark-hq/uspark/issues/313)) ([f5e787a](https://github.com/uspark-hq/uspark/commit/f5e787a39394dcb28da5161196f5287662638bfb))
+
 ## [0.24.0](https://github.com/uspark-hq/uspark/compare/web-v0.23.0...web-v0.24.0) (2025-09-18)
 
 

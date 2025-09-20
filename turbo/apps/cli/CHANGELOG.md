@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.9.3](https://github.com/uspark-hq/uspark/compare/cli-v0.9.2...cli-v0.9.3) (2025-09-20)
+
+
+### Bug Fixes
+
+* cli authentication and ydoc sync issues ([#321](https://github.com/uspark-hq/uspark/issues/321)) ([e474fe1](https://github.com/uspark-hq/uspark/commit/e474fe14eee09265d222b8685cda82e3a83582c6))
+
 ## [0.9.2](https://github.com/uspark-hq/uspark/compare/cli-v0.9.1...cli-v0.9.2) (2025-09-14)
 
 
