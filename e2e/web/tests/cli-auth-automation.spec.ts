@@ -26,7 +26,7 @@ test.describe("CLI Authentication Automation", () => {
           output += data.toString();
 
           // 匹配设备码 (格式: XXXX-XXXX)
-          const match = output.match(/enter this code:\s*([A-Z0-9]{4}-[A-Z0-9]{4})/i);
+          const match = output.match(/(?:And\s+)?enter this code:\s*([A-Z0-9]{4}-[A-Z0-9]{4})/i);
           if (match) {
             clearTimeout(timeout);
             resolve(match[1]);
@@ -51,12 +51,15 @@ test.describe("CLI Authentication Automation", () => {
       // 访问 CLI 认证页面
       await page.goto("/cli-auth");
 
-      // 输入设备码
-      const codeInput = await page.waitForSelector(
-        'input[placeholder*="code"], input[name*="code"], input#code',
-        { timeout: 5000 }
-      );
-      await codeInput.fill(deviceCode);
+      // 输入设备码 - 页面使用8个独立的单字符输入框
+      await page.waitForSelector('input[type="text"]:first-of-type', { timeout: 5000 });
+
+      // 填入设备码 (移除连字符)
+      const cleanCode = deviceCode.replace('-', '');
+      for (let i = 0; i < cleanCode.length; i++) {
+        const input = page.locator(`input[type="text"]`).nth(i);
+        await input.fill(cleanCode[i]);
+      }
 
       // 提交认证
       const submitButton = page.locator('button[type="submit"], button:has-text("Verify")').first();
@@ -103,8 +106,8 @@ test.describe("CLI Authentication Automation", () => {
     // 导航到 CLI 认证页面
     await page.goto("/cli-auth");
 
-    // 等待页面加载
-    await expect(page.locator('input[placeholder*="code"], input#code')).toBeVisible();
+    // 等待页面加载 - 检查8个独立的输入框
+    await expect(page.locator('input[type="text"]').first()).toBeVisible();
 
     // 保持页面打开 30 秒，供手动测试
     await page.waitForTimeout(30000);
