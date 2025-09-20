@@ -204,7 +204,10 @@ export class ProjectSync {
       );
 
       if (!uploadResponse.ok) {
-        console.warn(`Failed to upload blob ${localHash}, continuing anyway`);
+        const errorText = await uploadResponse.text();
+        throw new Error(
+          `Failed to upload blob: ${uploadResponse.status} ${uploadResponse.statusText}\n${errorText}`,
+        );
       }
 
       // Store locally as well
@@ -322,7 +325,10 @@ export class ProjectSync {
             );
 
             if (!uploadResponse.ok) {
-              console.warn(`Failed to upload blob ${hash}, continuing anyway`);
+              const errorText = await uploadResponse.text();
+              throw new Error(
+                `Failed to upload blob: ${uploadResponse.status} ${uploadResponse.statusText}\n${errorText}`,
+              );
             }
           }
         }
