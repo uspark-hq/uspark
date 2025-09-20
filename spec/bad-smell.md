@@ -41,3 +41,61 @@ This document defines code quality issues and anti-patterns to identify during c
 - Avoid mocking `globalThis.services.db` - use actual database operations
 - Test environment variables are properly set up for database access
 - Real database usage ensures tests catch actual integration issues
+
+## 8. Test Mock Cleanup
+- All test files MUST call `vi.clearAllMocks()` in `beforeEach` hooks
+- Prevents mock state leakage between tests
+- Eliminates flaky test behavior from persistent mock state
+- Example:
+  ```typescript
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+  ```
+
+## 9. TypeScript `any` Type Usage
+- Project has zero tolerance for `any` types
+- Use `unknown` for truly unknown types and implement proper type narrowing
+- Define proper interfaces for API responses and data structures
+- Use generics for flexible typing instead of `any`
+- `any` disables TypeScript's type checking and should never be used
+
+## 10. Artificial Delays in Tests
+- Tests should NOT contain artificial delays like `setTimeout` or `await new Promise(resolve => setTimeout(resolve, ms))`
+- Artificial delays cause test flakiness and slow CI/CD pipelines
+- Use mock timers (`vi.useFakeTimers()`) for time-dependent logic
+- Use proper event sequencing and async/await instead of delays
+- Delays mask actual race conditions that should be fixed
+
+## 11. Hardcoded URLs and Configuration
+- Never hardcode URLs or environment-specific values
+- Use centralized configuration from `env()` function
+- Avoid hardcoded fallback URLs like `"https://uspark.dev"`
+- Server-side code should not use `NEXT_PUBLIC_` environment variables
+- All configuration should be environment-aware
+
+## 12. Direct Database Operations in Tests
+- Tests should use API endpoints for data setup, not direct database operations
+- Direct DB operations duplicate business logic from API endpoints
+- Makes tests brittle when schema or business logic changes
+- Example - use API instead of direct DB:
+  ```typescript
+  // ❌ Bad: Direct database operation
+  await db.insert(PROJECTS_TBL).values({ id, userId, name });
+
+  // ✅ Good: Use API endpoint
+  await POST("/api/projects", { json: { name } });
+  ```
+
+## 13. Timer Cleanup in React Components
+- Always clean up timers in React components using useEffect cleanup
+- Prevents memory leaks and "setState on unmounted component" warnings
+- Example:
+  ```typescript
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      // action
+    }, delay);
+    return () => clearTimeout(timeoutId);
+  }, [dependencies]);
+  ```
