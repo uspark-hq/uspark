@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.9.4](https://github.com/uspark-hq/uspark/compare/cli-v0.9.3...cli-v0.9.4) (2025-09-20)
+
+
+### Bug Fixes
+
+* make blob upload failures fail fast in cli push command ([#331](https://github.com/uspark-hq/uspark/issues/331)) ([e27c63d](https://github.com/uspark-hq/uspark/commit/e27c63d50e7920dbd5bad715315eeaa871de9afd))
+* replace mock file content with real content from YJS and blob storage ([#333](https://github.com/uspark-hq/uspark/issues/333)) ([ac288bd](https://github.com/uspark-hq/uspark/commit/ac288bd7a743c1457b23558e65833fad0def15b9))
+* use correct blob storage url in cli pull command ([#332](https://github.com/uspark-hq/uspark/issues/332)) ([7d6da8c](https://github.com/uspark-hq/uspark/commit/7d6da8c5a47bc9ad44dcf5b8cf922deb4a247362))
+
 ## [0.9.3](https://github.com/uspark-hq/uspark/compare/cli-v0.9.2...cli-v0.9.3) (2025-09-20)
 
 

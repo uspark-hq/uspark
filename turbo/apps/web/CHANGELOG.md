@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.1](https://github.com/uspark-hq/uspark/compare/web-v0.26.0...web-v0.26.1) (2025-09-20)
+
+
+### Bug Fixes
+
+* replace mock file content with real content from YJS and blob storage ([#333](https://github.com/uspark-hq/uspark/issues/333)) ([ac288bd](https://github.com/uspark-hq/uspark/commit/ac288bd7a743c1457b23558e65833fad0def15b9))
+
 ## [0.26.0](https://github.com/uspark-hq/uspark/compare/web-v0.25.0...web-v0.26.0) (2025-09-20)
 
 
