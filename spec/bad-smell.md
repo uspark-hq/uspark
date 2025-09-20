@@ -34,3 +34,10 @@ This document defines code quality issues and anti-patterns to identify during c
 - Convert runtime dynamic imports to static imports at file top
 - Preserve type-only imports (JSDoc/TypeScript annotations)
 - Flag unnecessary async operations from dynamic imports
+
+## 7. Database and Service Mocking in Web Tests
+- Tests under `apps/web` should NOT mock `globalThis.services`
+- Use real database connections for tests - test database is already configured
+- Avoid mocking `globalThis.services.db` - use actual database operations
+- Test environment variables are properly set up for database access
+- Real database usage ensures tests catch actual integration issues
