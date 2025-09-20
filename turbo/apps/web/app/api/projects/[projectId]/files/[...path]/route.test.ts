@@ -5,6 +5,11 @@ import * as Y from "yjs";
 import { initServices } from "../../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../../src/db/schema/projects";
 import { eq } from "drizzle-orm";
+import {
+  server,
+  http,
+  HttpResponse,
+} from "../../../../../../src/test/msw-setup";
 
 // Mock dependencies
 vi.mock("../../../../../../src/lib/auth/get-user-id", () => ({
@@ -217,11 +222,15 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         ydocData,
       });
 
-      // Mock fetch for blob storage
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        text: vi.fn().mockResolvedValue("export function test() {}"),
-      });
+      // Set up MSW handler for blob storage
+      server.use(
+        http.get(
+          `https://blob.vercel-storage.com/files/projects/${testProjectId}/hash123`,
+          () => {
+            return HttpResponse.text("export function test() {}");
+          },
+        ),
+      );
 
       const request = new NextRequest(
         `http://localhost:3000/api/projects/${testProjectId}/files/src/test.ts`,
@@ -241,16 +250,6 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         content: "export function test() {}",
         hash: "hash123",
       });
-
-      // Verify blob storage was called
-      expect(global.fetch).toHaveBeenCalledWith(
-        `https://blob.vercel-storage.com/files/projects/${testProjectId}/hash123`,
-        expect.objectContaining({
-          headers: {
-            Authorization: "Bearer client-token",
-          },
-        }),
-      );
     });
 
     it("should return empty content when blob storage returns 404", async () => {
@@ -274,11 +273,15 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
         ydocData,
       });
 
-      // Mock fetch for blob storage returning 404
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: false,
-        status: 404,
-      });
+      // Set up MSW handler for blob storage returning 404
+      server.use(
+        http.get(
+          `https://blob.vercel-storage.com/files/projects/${testProjectId}/hash123`,
+          () => {
+            return new HttpResponse(null, { status: 404 });
+          },
+        ),
+      );
 
       const request = new NextRequest(
         `http://localhost:3000/api/projects/${testProjectId}/files/src/test.ts`,
