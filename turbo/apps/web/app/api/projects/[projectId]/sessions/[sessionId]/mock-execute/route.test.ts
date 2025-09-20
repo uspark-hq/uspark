@@ -51,7 +51,9 @@ describe("Mock Execute API", () => {
   const mockUserId = "user_test123";
 
   beforeEach(() => {
-    vi.mocked(auth).mockResolvedValue({ userId: mockUserId });
+    vi.mocked(auth).mockResolvedValue({ userId: mockUserId } as Awaited<
+      ReturnType<typeof auth>
+    >);
   });
 
   it("should create a turn and start mock execution", async () => {
@@ -114,7 +116,9 @@ describe("Mock Execute API", () => {
   });
 
   it("should return 401 if user is not authenticated", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: null });
+    vi.mocked(auth).mockResolvedValue({ userId: null } as Awaited<
+      ReturnType<typeof auth>
+    >);
 
     const request = new NextRequest("http://localhost:3000/api/test", {
       method: "POST",
