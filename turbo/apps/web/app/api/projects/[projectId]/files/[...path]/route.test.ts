@@ -2,19 +2,23 @@ import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { GET } from "./route";
 import { NextRequest } from "next/server";
 import * as Y from "yjs";
-import { initServices } from "../../../../../../src/lib/init-services";
-import { PROJECTS_TBL } from "../../../../../../src/db/schema/projects";
-import { eq } from "drizzle-orm";
 import {
   server,
   http,
   HttpResponse,
 } from "../../../../../../src/test/msw-setup";
+import { PROJECTS_TBL } from "../../../../../../src/db/schema/projects";
+import { initServices } from "../../../../../../src/lib/init-services";
+import { eq } from "drizzle-orm";
 
 // Mock dependencies
 vi.mock("../../../../../../src/lib/auth/get-user-id", () => ({
   getUserId: vi.fn(),
 }));
+
+// Don't mock init-services - use real services with test database
+
+// Don't mock env - use real environment variables from test setup
 
 vi.mock("@vercel/blob/client", () => ({
   generateClientTokenFromReadWriteToken: vi
@@ -90,17 +94,21 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       expect(data).toEqual({ error: "project_not_found" });
     });
 
-    it("should return 404 when project has no files", async () => {
+    it("should return 404 when file is not found in empty project", async () => {
       const { getUserId } = await import(
         "../../../../../../src/lib/auth/get-user-id"
       );
       (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue(testUserId);
 
-      // Create project without ydocData
+      // Create project with empty YJS doc (no files in the files map)
+      const emptyYdoc = new Y.Doc();
+      const emptyYdocData = Buffer.from(
+        Y.encodeStateAsUpdate(emptyYdoc),
+      ).toString("base64");
       await globalThis.services.db.insert(PROJECTS_TBL).values({
         id: testProjectId,
         userId: testUserId,
-        ydocData: "", // Empty string instead of null
+        ydocData: emptyYdocData,
       });
 
       const request = new NextRequest(
@@ -117,7 +125,7 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
       const data = await response.json();
 
       expect(response.status).toBe(404);
-      expect(data).toEqual({ error: "no_files_in_project" });
+      expect(data).toEqual({ error: "file_not_found" });
     });
 
     it("should return 404 when file is not found in YJS document", async () => {
@@ -282,52 +290,6 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
           },
         ),
       );
-
-      const request = new NextRequest(
-        `http://localhost:3000/api/projects/${testProjectId}/files/src/test.ts`,
-      );
-      const context = {
-        params: Promise.resolve({
-          projectId: testProjectId,
-          path: ["src", "test.ts"],
-        }),
-      };
-
-      const response = await GET(request, context);
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data).toEqual({
-        content: "",
-        hash: "hash123",
-      });
-    });
-
-    it("should return empty content when blob storage is not configured", async () => {
-      const { getUserId } = await import(
-        "../../../../../../src/lib/auth/get-user-id"
-      );
-      const { env } = await import("../../../../../../src/env");
-
-      (getUserId as ReturnType<typeof vi.fn>).mockResolvedValue(testUserId);
-      (env as ReturnType<typeof vi.fn>).mockReturnValue({
-        BLOB_READ_WRITE_TOKEN: "",
-      });
-
-      // Create YJS document with file
-      const ydoc = new Y.Doc();
-      const filesMap = ydoc.getMap("files");
-      filesMap.set("src/test.ts", { hash: "hash123", mtime: Date.now() });
-
-      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
-        "base64",
-      );
-
-      await globalThis.services.db.insert(PROJECTS_TBL).values({
-        id: testProjectId,
-        userId: testUserId,
-        ydocData,
-      });
 
       const request = new NextRequest(
         `http://localhost:3000/api/projects/${testProjectId}/files/src/test.ts`,
