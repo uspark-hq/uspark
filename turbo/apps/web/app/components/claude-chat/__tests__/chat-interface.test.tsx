@@ -38,13 +38,15 @@ describe("ChatInterface", () => {
     render(<ChatInterface projectId="project-1" />);
 
     // Should show the placeholder text
-    expect(screen.getByText(/start a conversation with claude/i)).toBeInTheDocument();
+    expect(
+      screen.getByText(/start a conversation with claude/i),
+    ).toBeInTheDocument();
   });
 
   it("displays turns when they exist", async () => {
     // Mock useSessionPolling to return some turns
     const mockUseSessionPolling = vi.mocked(
-      await import("../use-session-polling")
+      await import("../use-session-polling"),
     ).useSessionPolling;
 
     mockUseSessionPolling.mockReturnValue({
@@ -148,7 +150,7 @@ describe("ChatInterface", () => {
   it("shows polling indicator when polling is active", async () => {
     // Mock useSessionPolling to return polling state
     const mockUseSessionPolling = vi.mocked(
-      await import("../use-session-polling")
+      await import("../use-session-polling"),
     ).useSessionPolling;
 
     mockUseSessionPolling.mockReturnValue({
