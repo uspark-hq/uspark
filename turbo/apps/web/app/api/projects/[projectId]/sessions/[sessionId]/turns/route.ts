@@ -79,7 +79,7 @@ export async function POST(
     // Check if the specific error is about missing user_message
     const firstIssue = parseResult.error.issues[0];
     const errorCode =
-      firstIssue?.path[0] === "user_message"
+      firstIssue?.path[0] === "userMessage"
         ? "user_message_required"
         : "invalid_request";
 
@@ -90,7 +90,7 @@ export async function POST(
     return NextResponse.json(error, { status: 400 });
   }
 
-  const { user_message } = parseResult.data;
+  const { userMessage } = parseResult.data;
 
   // Create new turn
   const turnId = `turn_${randomUUID()}`;
@@ -99,7 +99,7 @@ export async function POST(
     .values({
       id: turnId,
       sessionId,
-      userPrompt: user_message,
+      userPrompt: userMessage,
       status: "pending",
     })
     .returning();
@@ -127,15 +127,15 @@ export async function POST(
 
   const response: CreateTurnResponse = {
     id: newTurn.id,
-    session_id: newTurn.sessionId,
-    user_message: newTurn.userPrompt,
+    sessionId: newTurn.sessionId,
+    userMessage: newTurn.userPrompt,
     status: newTurn.status as
       | "pending"
       | "in_progress"
       | "completed"
       | "failed"
       | "interrupted",
-    created_at: newTurn.createdAt.toISOString(),
+    createdAt: newTurn.createdAt.toISOString(),
   };
 
   return NextResponse.json(response);
@@ -263,11 +263,11 @@ export async function GET(
         | "completed"
         | "failed"
         | "interrupted",
-      started_at: t.started_at ? t.started_at.toISOString() : null,
-      completed_at: t.completed_at ? t.completed_at.toISOString() : null,
-      created_at: t.created_at.toISOString(),
-      block_count: t.block_count,
-      block_ids: t.block_ids,
+      startedAt: t.started_at ? t.started_at.toISOString() : null,
+      completedAt: t.completed_at ? t.completed_at.toISOString() : null,
+      createdAt: t.created_at.toISOString(),
+      blockCount: t.block_count,
+      blockIds: t.block_ids,
     })),
     total,
   };

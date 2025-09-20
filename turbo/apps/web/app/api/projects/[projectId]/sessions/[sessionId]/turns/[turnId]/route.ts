@@ -82,11 +82,12 @@ export async function GET(
 
   return NextResponse.json({
     id: turn.id,
-    session_id: turn.sessionId,
+    sessionId: turn.sessionId,
     userPrompt: turn.userPrompt,
     status: turn.status,
-    started_at: turn.startedAt,
-    completed_at: turn.completedAt,
+    startedAt: turn.startedAt,
+    completedAt: turn.completedAt,
+    createdAt: turn.createdAt,
     blocks: parsedBlocks,
   });
 }

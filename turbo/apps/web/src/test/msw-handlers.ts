@@ -245,10 +245,10 @@ const projectsHandlers = [
   http.post(
     "*/api/projects/:projectId/sessions/:sessionId/turns",
     async ({ request }) => {
-      const body = (await request.json()) as { user_message: string };
+      const body = (await request.json()) as { userMessage: string };
       return HttpResponse.json({
         id: `turn-${Date.now()}`,
-        user_prompt: body.user_message,
+        userPrompt: body.userMessage,
         status: "pending",
         blocks: [],
         createdAt: new Date().toISOString(),

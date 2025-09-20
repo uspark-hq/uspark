@@ -37,17 +37,17 @@ export type Block = z.infer<typeof BlockSchema>;
 
 // Create turn request
 export const CreateTurnRequestSchema = z.object({
-  user_message: z.string().min(1),
+  userMessage: z.string().min(1),
 });
 export type CreateTurnRequest = z.infer<typeof CreateTurnRequestSchema>;
 
 // Create turn response
 export const CreateTurnResponseSchema = z.object({
   id: z.string().startsWith("turn_"),
-  session_id: z.string().startsWith("sess_"),
-  user_message: z.string(),
+  sessionId: z.string().startsWith("sess_"),
+  userMessage: z.string(),
   status: TurnStatusSchema,
-  created_at: z.date().or(z.string()),
+  createdAt: z.date().or(z.string()),
 });
 export type CreateTurnResponse = z.infer<typeof CreateTurnResponseSchema>;
 
@@ -61,13 +61,13 @@ export type ListTurnsQuery = z.infer<typeof ListTurnsQuerySchema>;
 // Turn with blocks
 export const TurnWithBlocksSchema = z.object({
   id: z.string().startsWith("turn_"),
-  user_prompt: z.string(),
+  userPrompt: z.string(),
   status: TurnStatusSchema,
-  started_at: z.date().or(z.string()).nullable(),
-  completed_at: z.date().or(z.string()).nullable(),
-  created_at: z.date().or(z.string()),
-  block_count: z.number(),
-  block_ids: z.array(z.string()),
+  startedAt: z.date().or(z.string()).nullable(),
+  completedAt: z.date().or(z.string()).nullable(),
+  createdAt: z.date().or(z.string()),
+  blockCount: z.number(),
+  blockIds: z.array(z.string()),
 });
 export type TurnWithBlocks = z.infer<typeof TurnWithBlocksSchema>;
 
@@ -81,12 +81,12 @@ export type ListTurnsResponse = z.infer<typeof ListTurnsResponseSchema>;
 // Get turn response
 export const GetTurnResponseSchema = z.object({
   id: z.string().startsWith("turn_"),
-  session_id: z.string().startsWith("sess_"),
-  user_prompt: z.string(),
+  sessionId: z.string().startsWith("sess_"),
+  userPrompt: z.string(),
   status: TurnStatusSchema,
-  started_at: z.date().or(z.string()).nullable(),
-  completed_at: z.date().or(z.string()).nullable(),
-  created_at: z.date().or(z.string()),
+  startedAt: z.date().or(z.string()).nullable(),
+  completedAt: z.date().or(z.string()).nullable(),
+  createdAt: z.date().or(z.string()),
   blocks: z.array(BlockSchema),
 });
 export type GetTurnResponse = z.infer<typeof GetTurnResponseSchema>;
