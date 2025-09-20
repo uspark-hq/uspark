@@ -32,10 +32,19 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
   const [isPolling, setIsPolling] = useState(false);
   const abortControllerRef = useRef<AbortController | null>(null);
   const isCancelledRef = useRef(false);
+  const turnsRef = useRef<Turn[]>([]);
 
-  const buildStateString = useCallback(() => {
-    return turns.map((turn) => `${turn.id}:${turn.blocks.length}`).join(",");
+  // Update ref whenever turns changes
+  useEffect(() => {
+    turnsRef.current = turns;
   }, [turns]);
+
+  // Build state string from the current turns in ref
+  const buildStateString = useCallback(() => {
+    return turnsRef.current
+      .map((turn) => `${turn.id}:${turn.blocks.length}`)
+      .join(",");
+  }, []);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -162,7 +171,7 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
         abortControllerRef.current = null;
       }
     };
-  }, [projectId, sessionId, buildStateString]);
+  }, [projectId, sessionId, buildStateString]); // buildStateString is stable due to empty deps
 
   const hasActiveTurns = () => {
     return turns.some(
