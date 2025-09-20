@@ -8,7 +8,7 @@ describe("BlockDisplay", () => {
       id: "block-1",
       type: "thinking",
       content: { text: "Analyzing the request..." },
-      sequence_number: 0,
+      sequenceNumber: 0,
     };
 
     render(<BlockDisplay block={block} />);
@@ -21,7 +21,7 @@ describe("BlockDisplay", () => {
       id: "block-2",
       type: "content",
       content: { text: "Here is my response" },
-      sequence_number: 1,
+      sequenceNumber: 1,
     };
 
     render(<BlockDisplay block={block} />);
@@ -37,7 +37,7 @@ describe("BlockDisplay", () => {
         parameters: { path: "/test.txt" },
         tool_use_id: "tool-123",
       },
-      sequence_number: 2,
+      sequenceNumber: 2,
     };
 
     render(<BlockDisplay block={block} />);
@@ -64,7 +64,7 @@ describe("BlockDisplay", () => {
         error: "File not found",
         result: null,
       },
-      sequence_number: 3,
+      sequenceNumber: 3,
     };
 
     render(<BlockDisplay block={block} />);
@@ -81,7 +81,7 @@ describe("BlockDisplay", () => {
         result: "File content here",
         error: null,
       },
-      sequence_number: 4,
+      sequenceNumber: 4,
     };
 
     render(<BlockDisplay block={block} />);
@@ -94,7 +94,7 @@ describe("BlockDisplay", () => {
       id: "block-6",
       type: "unknown_type",
       content: {},
-      sequence_number: 5,
+      sequenceNumber: 5,
     };
 
     render(<BlockDisplay block={block} />);

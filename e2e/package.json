@@ -1,0 +1,27 @@
+{
+  "name": "e2e",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "auth": "tsx cli-auth-automation.ts",
+    "auth:local": "tsx cli-auth-local.ts",
+    "auth:interactive": "tsx cli-auth-interactive.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@clerk/testing": "^1.12.6",
+    "@types/node": "^24.5.2",
+    "dotenv": "^17.2.2",
+    "playwright": "^1.55.0"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.5"
+  }
+}

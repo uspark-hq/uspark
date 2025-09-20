@@ -60,6 +60,10 @@ describe("Project Detail Page", () => {
         const url = new URL(request.url);
         const filePath = url.pathname.split("/files/")[1];
 
+        if (!filePath) {
+          return new Response("File path not found", { status: 404 });
+        }
+
         // Return mock content based on file extension
         let content = "";
         if (filePath.endsWith(".ts") || filePath.endsWith(".tsx")) {
