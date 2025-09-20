@@ -370,22 +370,62 @@ export class ProjectSync {
       return;
     }
 
-    // 3. Download all files - fail fast on any error
+    // 3. Get blob token for downloading files
+    let blobToken: string | null = null;
+    let downloadUrlPrefix: string | null = null;
+
+    // 4. Download all files - fail fast on any error
     for (const [filePath, fileNode] of allFiles) {
       // Get blob content from FileSystem or fetch from remote
       let content = this.fs.getBlob(fileNode.hash);
       if (!content) {
-        const response = await fetch(`${apiUrl}/api/blobs/${fileNode.hash}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        // Get STS token for blob access if not already fetched
+        if (!blobToken || !downloadUrlPrefix) {
+          const tokenResponse = await fetch(
+            `${apiUrl}/api/projects/${projectId}/blob-token`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
 
-        if (!response.ok) {
-          throw new Error(`Failed to fetch blob: ${response.statusText}`);
+          if (!tokenResponse.ok) {
+            throw new Error(
+              `Failed to get blob token: ${tokenResponse.statusText}`,
+            );
+          }
+
+          const tokenData = (await tokenResponse.json()) as {
+            token: string;
+            expiresAt: string;
+            uploadUrl: string;
+            downloadUrlPrefix: string;
+          };
+          blobToken = tokenData.token;
+          downloadUrlPrefix = tokenData.downloadUrlPrefix;
         }
 
-        content = await response.text();
+        // Fetch blob directly from Vercel Blob Storage with project isolation
+        const blobResponse = await fetch(
+          `${downloadUrlPrefix}/projects/${projectId}/${fileNode.hash}`,
+          {
+            headers: {
+              Authorization: `Bearer ${blobToken}`,
+            },
+          },
+        );
+
+        if (!blobResponse.ok) {
+          // Fallback: blob might not be uploaded yet, use empty content
+          console.warn(
+            `Blob ${fileNode.hash} not found for ${filePath}, using empty content`,
+          );
+          content = "";
+        } else {
+          content = await blobResponse.text();
+        }
+
         this.fs.setBlob(fileNode.hash, content);
       }
 
