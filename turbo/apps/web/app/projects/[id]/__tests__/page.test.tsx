@@ -55,6 +55,33 @@ describe("Project Detail Page", () => {
           },
         });
       }),
+      // Mock file content API endpoints
+      http.get("*/api/projects/:projectId/files/*", ({ request }) => {
+        const url = new URL(request.url);
+        const filePath = url.pathname.split("/files/")[1];
+
+        // Return mock content based on file extension
+        let content = "";
+        if (filePath.endsWith(".ts") || filePath.endsWith(".tsx")) {
+          content = `// ${decodeURIComponent(filePath)}\nexport function Component() {\n  return <div>Hello from ${decodeURIComponent(filePath)}</div>;\n}`;
+        } else if (filePath.endsWith(".json")) {
+          content = JSON.stringify(
+            {
+              name: "example-project",
+              version: "1.0.0",
+              description: `Content for ${decodeURIComponent(filePath)}`,
+            },
+            null,
+            2,
+          );
+        } else if (filePath.endsWith(".md")) {
+          content = `# ${decodeURIComponent(filePath)}\n\nThis is a markdown file.\n\n## Features\n\n- Feature 1\n- Feature 2\n- Feature 3`;
+        } else {
+          content = `Content of ${decodeURIComponent(filePath)}\n\nThis is sample file content.`;
+        }
+
+        return HttpResponse.json({ content, hash: "mock-hash" });
+      }),
     );
   });
 
