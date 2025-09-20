@@ -1,3 +1,14 @@
+// Mock @vercel/blob module BEFORE other imports
+vi.mock("@vercel/blob", () => ({
+  put: vi.fn().mockResolvedValue({
+    url: "https://mock-store-id.public.blob.vercel-storage.com/projects/test/mock-hash",
+    pathname: "projects/test/mock-hash",
+    contentType: "text/plain",
+    downloadUrl:
+      "https://mock-store-id.public.blob.vercel-storage.com/projects/test/mock-hash",
+  }),
+}));
+
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { pushCommand, pullCommand } from "../sync";
 import chalk from "chalk";
@@ -7,6 +18,7 @@ import { tmpdir } from "os";
 import { http, HttpResponse } from "msw";
 import { mockServer } from "../../test/mock-server";
 import { server } from "../../test/setup";
+import { put } from "@vercel/blob";
 
 describe("sync commands", () => {
   let tempDir: string;
@@ -22,6 +34,16 @@ describe("sync commands", () => {
 
     // Reset mock server
     mockServer.reset();
+
+    // Reset and reconfigure the @vercel/blob mock
+    vi.mocked(put).mockResolvedValue({
+      url: "https://mock-store-id.public.blob.vercel-storage.com/projects/test/mock-hash",
+      pathname: "projects/test/mock-hash",
+      contentType: "text/plain",
+      contentDisposition: 'attachment; filename="test"',
+      downloadUrl:
+        "https://mock-store-id.public.blob.vercel-storage.com/projects/test/mock-hash",
+    });
 
     // Mock console methods
     console.log = vi.fn();

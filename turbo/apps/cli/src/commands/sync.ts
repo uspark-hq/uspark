@@ -5,7 +5,7 @@ import { join } from "path";
 
 export async function pullCommand(
   filePath: string,
-  options: { projectId: string; output?: string },
+  options: { projectId: string; output?: string; verbose?: boolean },
 ): Promise<void> {
   const { token, apiUrl, sync } = await requireAuth();
 
@@ -19,6 +19,7 @@ export async function pullCommand(
     {
       token,
       apiUrl,
+      verbose: options.verbose,
     },
     options.output,
   );
@@ -30,6 +31,7 @@ export async function pullCommand(
 export async function pullAllCommand(options: {
   projectId: string;
   output?: string;
+  verbose?: boolean;
 }): Promise<void> {
   const { token, apiUrl, sync } = await requireAuth();
 
@@ -38,6 +40,7 @@ export async function pullAllCommand(options: {
     {
       token,
       apiUrl,
+      verbose: options.verbose,
     },
     options.output,
   );

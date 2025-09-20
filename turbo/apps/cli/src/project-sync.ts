@@ -7,6 +7,7 @@ import { createHash } from "crypto";
 interface SyncOptions {
   token: string;
   apiUrl: string;
+  verbose?: boolean;
 }
 
 export class ProjectSync {
@@ -14,6 +15,12 @@ export class ProjectSync {
 
   constructor(fs?: FileSystem) {
     this.fs = fs || new FileSystem();
+  }
+
+  private log(message: string, verbose?: boolean) {
+    if (verbose) {
+      console.log(message);
+    }
   }
 
   private async computeFileHash(content: string): Promise<string> {
@@ -24,6 +31,11 @@ export class ProjectSync {
     const apiUrl = options.apiUrl;
     const token = options.token;
 
+    this.log(
+      `🌐 Fetching project data from: ${apiUrl}/api/projects/${projectId}`,
+      options.verbose,
+    );
+
     const response = await fetch(`${apiUrl}/api/projects/${projectId}`, {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -31,14 +43,29 @@ export class ProjectSync {
     });
 
     if (!response.ok) {
+      console.error(
+        `❌ Failed to fetch project: ${response.status} ${response.statusText}`,
+      );
       throw new Error(`Failed to fetch project: ${response.statusText}`);
     }
+
+    this.log(
+      `✅ Received project data (${response.headers.get("content-length")} bytes)`,
+      options.verbose,
+    );
 
     const buffer = await response.arrayBuffer();
     const update = new Uint8Array(buffer);
 
+    this.log(
+      `📦 Applying YJS update (${update.length} bytes)`,
+      options.verbose,
+    );
+
     // Apply update to the FileSystem's YDoc
     this.fs.applyUpdate(update);
+
+    this.log("✅ YJS update applied successfully", options.verbose);
   }
 
   async syncToRemote(projectId: string, options: SyncOptions): Promise<void> {
@@ -70,6 +97,29 @@ export class ProjectSync {
     this.fs.markAsSynced();
   }
 
+  private async getStoreId(apiUrl: string, token: string): Promise<string> {
+    const response = await fetch(`${apiUrl}/api/blob-store`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to get store ID: ${response.statusText}`);
+    }
+
+    const { storeId } = (await response.json()) as { storeId: string };
+    return storeId;
+  }
+
+  private getPublicBlobUrl(
+    storeId: string,
+    projectId: string,
+    hash: string,
+  ): string {
+    return `https://${storeId}.public.blob.vercel-storage.com/projects/${projectId}/${hash}`;
+  }
+
   async pullFile(
     projectId: string,
     filePath: string,
@@ -91,39 +141,14 @@ export class ProjectSync {
     // 3. Get blob content from FileSystem or fetch from remote
     let content = this.fs.getBlob(fileNode.hash);
     if (!content) {
-      // Get STS token for blob access with specific file hash
-      const tokenResponse = await fetch(
-        `${apiUrl}/api/projects/${projectId}/blob-token?hash=${fileNode.hash}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
+      // Get store ID from server
+      const storeId = await this.getStoreId(apiUrl, token);
 
-      if (!tokenResponse.ok) {
-        throw new Error(
-          `Failed to get blob token: ${tokenResponse.statusText}`,
-        );
-      }
+      // Construct public blob URL
+      const blobUrl = this.getPublicBlobUrl(storeId, projectId, fileNode.hash);
 
-      const { downloadUrlPrefix, token: blobToken } =
-        (await tokenResponse.json()) as {
-          token: string;
-          expiresAt: string;
-          uploadUrl: string;
-          downloadUrlPrefix: string;
-        };
-
-      // Fetch blob directly from Vercel Blob Storage with project isolation
-      const blobResponse = await fetch(
-        `${downloadUrlPrefix}/projects/${projectId}/${fileNode.hash}`,
-        {
-          headers: {
-            Authorization: `Bearer ${blobToken}`,
-          },
-        },
-      );
+      // Fetch blob directly from Vercel Blob Storage (no auth needed for public blobs)
+      const blobResponse = await fetch(blobUrl);
 
       if (!blobResponse.ok) {
         // Fallback: blob might not be uploaded yet, use empty content
@@ -346,54 +371,48 @@ export class ProjectSync {
     const apiUrl = options.apiUrl;
     const token = options.token;
 
+    this.log(`📦 Starting pull for project: ${projectId}`, options.verbose);
+
     // 1. Sync from remote to get latest state
+    this.log("🔄 Syncing from remote...", options.verbose);
     await this.syncFromRemote(projectId, options);
 
     // 2. Get all files from the YJS document
+    this.log("📁 Getting all files from YJS document...", options.verbose);
     const allFiles = this.fs.getAllFiles();
+    this.log(`📊 Found ${allFiles.size} files in project`, options.verbose);
 
     if (allFiles.size === 0) {
+      console.log("ℹ️  No files found in project");
       return;
     }
 
-    // 3. Download all files - fail fast on any error
+    // 3. Get store ID once for all files
+    this.log("🔑 Getting store ID...", options.verbose);
+    const storeId = await this.getStoreId(apiUrl, token);
+    this.log(`🏪 Store ID: ${storeId}`, options.verbose);
+
+    // 4. Download all files - fail fast on any error
+    this.log("⬇️  Starting file downloads...", options.verbose);
     for (const [filePath, fileNode] of allFiles) {
+      this.log(
+        `📄 Processing file: ${filePath} (hash: ${fileNode.hash})`,
+        options.verbose,
+      );
+
       // Get blob content from FileSystem or fetch from remote
       let content = this.fs.getBlob(fileNode.hash);
       if (!content) {
-        // Get STS token for blob access with specific file hash
-        const tokenResponse = await fetch(
-          `${apiUrl}/api/projects/${projectId}/blob-token?hash=${fileNode.hash}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
+        // Construct public blob URL
+        const blobUrl = this.getPublicBlobUrl(
+          storeId,
+          projectId,
+          fileNode.hash,
         );
+        this.log(`🌐 Fetching from: ${blobUrl}`, options.verbose);
 
-        if (!tokenResponse.ok) {
-          throw new Error(
-            `Failed to get blob token: ${tokenResponse.statusText}`,
-          );
-        }
-
-        const { downloadUrlPrefix, token: blobToken } =
-          (await tokenResponse.json()) as {
-            token: string;
-            expiresAt: string;
-            uploadUrl: string;
-            downloadUrlPrefix: string;
-          };
-
-        // Fetch blob directly from Vercel Blob Storage with project isolation
-        const blobResponse = await fetch(
-          `${downloadUrlPrefix}/projects/${projectId}/${fileNode.hash}`,
-          {
-            headers: {
-              Authorization: `Bearer ${blobToken}`,
-            },
-          },
-        );
+        // Fetch blob directly from Vercel Blob Storage (no auth needed for public blobs)
+        const blobResponse = await fetch(blobUrl);
 
         if (!blobResponse.ok) {
           // Fallback: blob might not be uploaded yet, use empty content
@@ -403,15 +422,27 @@ export class ProjectSync {
           content = "";
         } else {
           content = await blobResponse.text();
+          this.log(
+            `✅ Downloaded ${content.length} bytes for ${filePath}`,
+            options.verbose,
+          );
         }
 
         this.fs.setBlob(fileNode.hash, content);
+      } else {
+        this.log(`💾 Using cached content for ${filePath}`, options.verbose);
       }
 
       // Write to local filesystem
       const localPath = outputDir ? join(outputDir, filePath) : filePath;
+      this.log(`💾 Writing to: ${localPath}`, options.verbose);
       await mkdir(dirname(localPath), { recursive: true });
       await writeFile(localPath, content, "utf8");
+
+      // Always show progress for each file
+      console.log(`✓ ${filePath}`);
     }
+
+    console.log(`🎉 Successfully pulled ${allFiles.size} files`);
   }
 }
