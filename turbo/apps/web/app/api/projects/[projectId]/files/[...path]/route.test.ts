@@ -2,7 +2,11 @@ import { describe, expect, it, vi, beforeEach } from "vitest";
 import { GET } from "./route";
 import { NextRequest } from "next/server";
 import * as Y from "yjs";
-import { server, http, HttpResponse } from "../../../../../../src/test/msw-setup";
+import {
+  server,
+  http,
+  HttpResponse,
+} from "../../../../../../src/test/msw-setup";
 
 // Mock dependencies
 vi.mock("../../../../../../src/lib/auth/get-user-id", () => ({
@@ -221,9 +225,12 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
 
       // Set up MSW handler for blob storage
       server.use(
-        http.get("https://blob.vercel-storage.com/files/projects/test-project/hash123", () => {
-          return HttpResponse.text("export function test() {}");
-        }),
+        http.get(
+          "https://blob.vercel-storage.com/files/projects/test-project/hash123",
+          () => {
+            return HttpResponse.text("export function test() {}");
+          },
+        ),
       );
 
       const request = new NextRequest(
@@ -269,9 +276,12 @@ describe("/api/projects/[projectId]/files/[...path]", () => {
 
       // Set up MSW handler for blob storage returning 404
       server.use(
-        http.get("https://blob.vercel-storage.com/files/projects/test-project/hash123", () => {
-          return new HttpResponse(null, { status: 404 });
-        }),
+        http.get(
+          "https://blob.vercel-storage.com/files/projects/test-project/hash123",
+          () => {
+            return new HttpResponse(null, { status: 404 });
+          },
+        ),
       );
 
       const request = new NextRequest(
