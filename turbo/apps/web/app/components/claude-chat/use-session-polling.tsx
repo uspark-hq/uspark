@@ -81,9 +81,20 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
             throw new Error(`Failed to fetch updates: ${response.status}`);
           }
 
-          // 204 No Content means no updates (timeout)
+          // 204 No Content means no updates (timeout or no active turns)
           if (response.status === 204) {
-            // Add a small delay before continuing to avoid tight loops in tests
+            // Check if we have any active turns locally
+            const hasActive = turnsRef.current.some(
+              (turn) =>
+                turn.status === "pending" || turn.status === "in_progress",
+            );
+
+            if (!hasActive) {
+              // No active turns, stop polling to avoid unnecessary requests
+              break;
+            }
+
+            // Add a small delay before continuing to avoid tight loops
             await new Promise((resolve) => setTimeout(resolve, 50));
             continue; // Continue polling
           }
