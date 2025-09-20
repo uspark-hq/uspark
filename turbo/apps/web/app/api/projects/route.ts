@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getUserId } from "../../../src/lib/auth/get-user-id";
 import * as Y from "yjs";
 import { initServices } from "../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
@@ -16,7 +16,7 @@ import {
  * Returns list of user's projects
  */
 export async function GET() {
-  const { userId } = await auth();
+  const userId = await getUserId();
 
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
@@ -51,7 +51,7 @@ export async function GET() {
  * Creates a new project
  */
 export async function POST(request: NextRequest) {
-  const { userId } = await auth();
+  const userId = await getUserId();
 
   if (!userId) {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });

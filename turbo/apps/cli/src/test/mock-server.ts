@@ -132,6 +132,19 @@ global.fetch = async (url: string | URL | Request, init?: RequestInit) => {
     }
   }
 
+  // Handle blob-store endpoint
+  if (urlStr.includes("/api/blob-store")) {
+    return new Response(
+      JSON.stringify({
+        storeId: "mock-store-id",
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      },
+    );
+  }
+
   // Handle blob token requests
   if (urlStr.includes("/blob-token")) {
     return new Response(
@@ -148,7 +161,28 @@ global.fetch = async (url: string | URL | Request, init?: RequestInit) => {
     );
   }
 
-  // Handle blob requests
+  // Handle public blob storage URLs (new implementation)
+  if (urlStr.includes(".public.blob.vercel-storage.com/projects/")) {
+    const match = urlStr.match(/projects\/([^/]+)\/([^/]+)$/);
+    if (match && match[2]) {
+      const hash = match[2];
+      const content = mockServer.getBlobContent(hash);
+
+      if (content !== undefined) {
+        return new Response(content, {
+          status: 200,
+          headers: { "Content-Type": "text/plain" },
+        });
+      } else {
+        return new Response("Blob not found", {
+          status: 404,
+          statusText: "Not Found",
+        });
+      }
+    }
+  }
+
+  // Handle blob requests (legacy)
   if (urlStr.includes("/api/blobs/")) {
     const match = urlStr.match(/projects\/([^/]+)\/([^/]+)$/);
     if (match && match[2]) {

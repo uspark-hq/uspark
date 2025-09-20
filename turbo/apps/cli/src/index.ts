@@ -71,20 +71,27 @@ program
     "Local output path (defaults to same as remote path)",
   )
   .option("--all", "Pull all files from the project")
+  .option("--verbose", "Show detailed logging information")
   .action(
     async (
       filePath: string | undefined,
-      options: { projectId: string; output?: string; all?: boolean },
+      options: {
+        projectId: string;
+        output?: string;
+        all?: boolean;
+        verbose?: boolean;
+      },
     ) => {
       if (options.all) {
         // Pull all files
         await pullAllCommand({
           projectId: options.projectId,
           output: options.output,
+          verbose: options.verbose,
         });
       } else if (filePath) {
         // Pull single file
-        await pullCommand(filePath, options);
+        await pullCommand(filePath, { ...options, verbose: options.verbose });
       } else {
         console.error(
           chalk.red("Error: Either provide a file path or use --all flag"),

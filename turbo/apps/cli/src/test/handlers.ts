@@ -55,10 +55,17 @@ export const handlers = [
     },
   ),
 
+  // GET /api/blob-store - Return store ID
+  http.get(`${API_BASE_URL}/api/blob-store`, () => {
+    return HttpResponse.json({
+      storeId: "mock-store-id",
+    });
+  }),
+
   // GET /api/projects/:projectId/blob-token - Return STS token for blob access
   http.get(`${API_BASE_URL}/api/projects/:projectId/blob-token`, () => {
     return HttpResponse.json({
-      token: "mock-blob-token",
+      token: "vercel_blob_rw_123456789_abcdefghijklmnopqrstuvwxyz",
       expiresAt: new Date(Date.now() + 600000).toISOString(),
       uploadUrl: "https://blob.mock/upload",
       downloadUrlPrefix: "https://blob.mock/download",
@@ -80,6 +87,19 @@ export const handlers = [
         return HttpResponse.text(content);
       }
       return new HttpResponse("", { status: 404 });
+    },
+  ),
+
+  // Mock public Vercel blob storage URLs
+  http.get(
+    "https://mock-store-id.public.blob.vercel-storage.com/projects/:projectId/:hash",
+    ({ params }) => {
+      const { hash } = params;
+      const content = mockServer.getBlobContent(hash as string);
+      if (content) {
+        return HttpResponse.text(content);
+      }
+      return new HttpResponse("Blob not found", { status: 404 });
     },
   ),
 

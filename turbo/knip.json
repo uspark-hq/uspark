@@ -27,7 +27,8 @@
     "apps/docs": {
       "entry": ["source.config.ts"],
       "project": ["**/*.{ts,tsx,mdx,js,mjs}"],
-      "ignoreDependencies": []
+      "ignoreDependencies": ["tailwindcss"],
+      "ignoreBinaries": ["fumadocs-mdx"]
     },
     "apps/workspace": {
       "entry": ["src/main.ts", "**/*.{test,btest}.ts?(x)", "vitest.setup.*.ts"],

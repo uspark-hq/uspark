@@ -21,6 +21,7 @@
   },
   "dependencies": {
     "@uspark/core": "workspace:*",
+    "@vercel/blob": "^1.1.1",
     "chalk": "^5.6.0",
     "commander": "^14.0.0",
     "signal-timers": "^1.0.4"
