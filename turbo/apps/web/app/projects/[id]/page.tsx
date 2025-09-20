@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { YjsFileExplorer } from "../../components/file-explorer";
 import { GitHubSyncButton } from "../../components/github-sync-button";
@@ -16,40 +16,37 @@ export default function ProjectDetailPage() {
   const [showShareSuccess, setShowShareSuccess] = useState(false);
   const shareSuccessTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Mock file content loading for now
-  const loadFileContent = async (filePath: string) => {
-    setLoadingContent(true);
+  // Load real file content from API
+  const loadFileContent = useCallback(
+    async (filePath: string) => {
+      setLoadingContent(true);
 
-    // Mock content based on file extension (no artificial delay)
-    const ext = filePath.split(".").pop()?.toLowerCase();
-    let mockContent = "";
-
-    switch (ext) {
-      case "ts":
-      case "tsx":
-        mockContent = `// ${filePath}\nexport function Component() {\n  return <div>Hello from ${filePath}</div>;\n}`;
-        break;
-      case "json":
-        mockContent = JSON.stringify(
-          {
-            name: "example-project",
-            version: "1.0.0",
-            description: `Content for ${filePath}`,
-          },
-          null,
-          2,
+      try {
+        // Split the path and encode each segment for the catch-all route
+        const pathSegments = filePath
+          .split("/")
+          .map(encodeURIComponent)
+          .join("/");
+        const response = await fetch(
+          `/api/projects/${projectId}/files/${pathSegments}`,
         );
-        break;
-      case "md":
-        mockContent = `# ${filePath}\n\nThis is a markdown file.\n\n## Features\n\n- Feature 1\n- Feature 2\n- Feature 3`;
-        break;
-      default:
-        mockContent = `Content of ${filePath}\n\nThis is sample file content.`;
-    }
 
-    setFileContent(mockContent);
-    setLoadingContent(false);
-  };
+        if (response.ok) {
+          const data = await response.json();
+          setFileContent(data.content || "");
+        } else {
+          console.error(`Failed to load file content: ${response.statusText}`);
+          setFileContent("");
+        }
+      } catch (error) {
+        console.error("Error loading file content:", error);
+        setFileContent("");
+      } finally {
+        setLoadingContent(false);
+      }
+    },
+    [projectId],
+  );
 
   useEffect(() => {
     if (selectedFile) {
@@ -57,7 +54,7 @@ export default function ProjectDetailPage() {
     } else {
       setFileContent(undefined);
     }
-  }, [selectedFile]);
+  }, [selectedFile, loadFileContent]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -335,9 +332,8 @@ export default function ProjectDetailPage() {
                   Select a file to view its content
                 </div>
                 <div style={{ fontSize: "12px", maxWidth: "300px" }}>
-                  Click on any file in the explorer to see its content here. In
-                  the final implementation, this will show real file content
-                  from the YJS document.
+                  Click on any file in the explorer to see its content here.
+                  Files are loaded from the YJS document and blob storage.
                 </div>
               </div>
             )}
