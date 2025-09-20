@@ -29,12 +29,12 @@ interface Block {
   id: string;
   type: string;
   content: any;
-  sequence_number: number;
+  sequenceNumber: number;
 }
 
 interface TurnWithBlocks {
   id: string;
-  user_prompt: string;
+  userPrompt: string;
   status: string;
   started_at: string | null;
   completed_at: string | null;

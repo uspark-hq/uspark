@@ -189,7 +189,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
       const data = await response.json();
       expect(data).toHaveProperty("id", turnId);
       expect(data).toHaveProperty("session_id", sessionId);
-      expect(data).toHaveProperty("user_prompt", "Test prompt");
+      expect(data).toHaveProperty("userPrompt", "Test prompt");
       expect(data).toHaveProperty("status");
       expect(data).toHaveProperty("blocks");
       // Check that blocks is an array
@@ -277,21 +277,21 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
       // Check blocks are in sequence order
       expect(data.blocks[0].type).toBe("thinking");
       expect(data.blocks[0].content.text).toBe("Let me think about this...");
-      expect(data.blocks[0].sequence_number).toBe(0);
+      expect(data.blocks[0].sequenceNumber).toBe(0);
 
       expect(data.blocks[1].type).toBe("tool_use");
       expect(data.blocks[1].content.tool_name).toBe("read_file");
-      expect(data.blocks[1].sequence_number).toBe(1);
+      expect(data.blocks[1].sequenceNumber).toBe(1);
 
       expect(data.blocks[2].type).toBe("tool_result");
       expect(data.blocks[2].content.result).toBe("File contents...");
-      expect(data.blocks[2].sequence_number).toBe(2);
+      expect(data.blocks[2].sequenceNumber).toBe(2);
 
       expect(data.blocks[3].type).toBe("content");
       expect(data.blocks[3].content.text).toBe(
         "Based on the file, the answer is...",
       );
-      expect(data.blocks[3].sequence_number).toBe(3);
+      expect(data.blocks[3].sequenceNumber).toBe(3);
     });
   });
 });

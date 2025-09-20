@@ -131,7 +131,7 @@ describe("Claude Session Management API Integration", () => {
 
       expect(getResponse.status).toBe(200);
       expect(getResponse.data.id).toBe(turnId);
-      expect(getResponse.data.user_prompt).toBe("Test prompt");
+      expect(getResponse.data.userPrompt).toBe("Test prompt");
       // Mock executor creates blocks automatically
       expect(Array.isArray(getResponse.data.blocks)).toBe(true);
       expect(getResponse.data.blocks.length).toBeGreaterThan(0);
@@ -166,8 +166,8 @@ describe("Claude Session Management API Integration", () => {
       );
 
       expect(page2.data.turns).toHaveLength(2);
-      expect(page2.data.turns[0].user_prompt).not.toBe(
-        page1.data.turns[0].user_prompt,
+      expect(page2.data.turns[0].userPrompt).not.toBe(
+        page1.data.turns[0].userPrompt,
       );
     });
   });

@@ -76,7 +76,7 @@ describe("ChatInterface", () => {
       turns: [
         {
           id: "turn-1",
-          user_prompt: "Hello Claude",
+          userPrompt: "Hello Claude",
           status: "completed",
           started_at: "2024-01-01T00:00:00Z",
           completed_at: "2024-01-01T00:00:05Z",
@@ -85,7 +85,7 @@ describe("ChatInterface", () => {
               id: "block-1",
               type: "content",
               content: { text: "Hello! How can I help you today?" },
-              sequence_number: 0,
+              sequenceNumber: 0,
             },
           ],
         },
@@ -308,7 +308,7 @@ describe("ChatInterface", () => {
       turns: [
         {
           id: "turn-1",
-          user_prompt: "Hello Claude",
+          userPrompt: "Hello Claude",
           status: "in_progress",
           started_at: "2024-01-01T00:00:00Z",
           completed_at: null,
@@ -331,7 +331,7 @@ describe("ChatInterface", () => {
       turns: [
         {
           id: "turn-1",
-          user_prompt: "Hello Claude",
+          userPrompt: "Hello Claude",
           status: "failed",
           started_at: "2024-01-01T00:00:00Z",
           completed_at: "2024-01-01T00:00:05Z",

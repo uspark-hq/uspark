@@ -47,7 +47,7 @@ describe("useSessionPolling", () => {
       turns: [
         {
           id: "turn_1",
-          user_prompt: "Hello",
+          userPrompt: "Hello",
           status: "completed",
           version: 1,
           block_count: 2,
@@ -62,13 +62,13 @@ describe("useSessionPolling", () => {
           id: "block_1",
           type: "content",
           content: { text: "Hi!" },
-          sequence_number: 0,
+          sequenceNumber: 0,
         },
         {
           id: "block_2",
           type: "content",
           content: { text: "How are you?" },
-          sequence_number: 1,
+          sequenceNumber: 1,
         },
       ],
     };
@@ -239,7 +239,7 @@ describe("useSessionPolling", () => {
             turns: [
               {
                 id: "turn_1",
-                user_prompt: "First",
+                userPrompt: "First",
                 status: "completed",
                 version: 1,
                 block_count: 1,

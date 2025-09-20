@@ -77,35 +77,29 @@ export default function SharePage({ params }: SharePageProps) {
     async function loadShareData() {
       setLoading(true);
 
-      try {
-        // First, fetch the metadata
-        const meta = await fetchShareMetadata(token!);
+      // First, fetch the metadata
+      const meta = await fetchShareMetadata(token!);
 
-        if (!meta) {
-          setError("Share not found");
-          setLoading(false);
-          return;
-        }
-
-        setMetadata(meta);
-
-        // Then, fetch the actual content using the metadata (which includes blob_url)
-        const fileContent = await fetchFileContent(meta);
-
-        if (fileContent === null) {
-          // If blob fetch fails, show a message but don't error out completely
-          setContent("");
-          console.warn("Could not fetch file content from blob storage");
-        } else {
-          setContent(fileContent);
-        }
-
+      if (!meta) {
+        setError("Share not found");
         setLoading(false);
-      } catch (error) {
-        console.error("Failed to fetch share metadata:", error);
-        setLoading(false);
-        notFound();
+        return;
       }
+
+      setMetadata(meta);
+
+      // Then, fetch the actual content using the metadata (which includes blob_url)
+      const fileContent = await fetchFileContent(meta);
+
+      if (fileContent === null) {
+        // If blob fetch fails, show a message but don't error out completely
+        setContent("");
+        console.warn("Could not fetch file content from blob storage");
+      } else {
+        setContent(fileContent);
+      }
+
+      setLoading(false);
     }
 
     loadShareData();

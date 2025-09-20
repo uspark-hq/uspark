@@ -371,8 +371,8 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       const response2 = await GET(request2, context);
       const data2 = await response2.json();
       expect(data2.turns).toHaveLength(2);
-      expect(data2.turns[0].user_prompt).toBe("Question 2");
-      expect(data2.turns[1].user_prompt).toBe("Question 3");
+      expect(data2.turns[0].userPrompt).toBe("Question 2");
+      expect(data2.turns[1].userPrompt).toBe("Question 3");
 
       // Test offset beyond available data
       const request3 = new NextRequest("http://localhost:3000?offset=10");
@@ -434,9 +434,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       const data = await response.json();
 
       expect(data.turns).toHaveLength(3);
-      expect(data.turns[0].user_prompt).toBe("First");
-      expect(data.turns[1].user_prompt).toBe("Second");
-      expect(data.turns[2].user_prompt).toBe("Third");
+      expect(data.turns[0].userPrompt).toBe("First");
+      expect(data.turns[1].userPrompt).toBe("Second");
+      expect(data.turns[2].userPrompt).toBe("Third");
     });
 
     it("should not return turns from other sessions", async () => {
@@ -494,7 +494,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       const data = await response.json();
 
       expect(data.turns).toHaveLength(1);
-      expect(data.turns[0].user_prompt).toBe("My turn");
+      expect(data.turns[0].userPrompt).toBe("My turn");
 
       // Clean up
       await globalThis.services.db
