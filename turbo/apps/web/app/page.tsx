@@ -27,16 +27,16 @@ export default function Home() {
         <div className={styles.heroContent}>
           <div className={styles.heroText}>
             <h1 className={styles.heroTitle}>
-              Your AI conversations,
+              The Manager for
               <br />
               <span className={styles.heroTitleGradient}>
-                forever organized
+                ALL AI Coding Tools
               </span>
             </h1>
             <p className={styles.heroSubtitle}>
-              Stop losing brilliant ideas to chat history. uSpark transforms
-              every AI conversation into searchable, editable documents that
-              grow with your team.
+              Transform individual AI coding sessions into structured software projects.
+              uSpark orchestrates Claude Code, Cursor, and Windsurf through systematic
+              documentation and task management.
             </p>
 
             <div className={styles.heroCta}>
@@ -54,15 +54,14 @@ export default function Home() {
               <div className={styles.demoStep} data-step="1">
                 <div className={styles.chatMessage}>
                   <p>
-                    &quot;Create a PRD for user authentication with SSO
-                    support&quot;
+                    &quot;Break down this feature into AI-executable tasks&quot;
                   </p>
                 </div>
               </div>
               <div className={styles.animatedArrow}>↓</div>
               <div className={styles.demoStep} data-step="2">
                 <div className={styles.aiProcessing}>
-                  <p>AI is generating your document...</p>
+                  <p>Analyzing codebase and generating tasks...</p>
                   <div className={styles.loadingDots}>
                     <span></span>
                     <span></span>
@@ -73,12 +72,12 @@ export default function Home() {
               <div className={styles.animatedArrow}>↓</div>
               <div className={styles.demoStep} data-step="3">
                 <div className={styles.generatedDoc}>
-                  <div className={styles.docHeader}>📄 user-auth-prd.md</div>
+                  <div className={styles.docHeader}>📋 implementation-tasks.md</div>
                   <div className={styles.docContent}>
-                    <p># User Authentication PRD</p>
-                    <p>## Overview</p>
-                    <p>## User Stories</p>
-                    <p>## Technical Requirements</p>
+                    <p># Task Breakdown</p>
+                    <p>## Task 1: Setup API endpoints</p>
+                    <p>## Task 2: Implement UI components</p>
+                    <p>## Task 3: Add validation logic</p>
                   </div>
                 </div>
               </div>
@@ -89,46 +88,45 @@ export default function Home() {
 
       {/* Transformation Demo Section */}
       <section className={styles.demo}>
-        <h2 className={styles.sectionTitle}>See the Magic Happen</h2>
+        <h2 className={styles.sectionTitle}>Your AI Coding Workflow, Managed</h2>
         <div className={styles.demoContainer}>
           <div className={styles.demoStep}>
             <span className={styles.stepNumber}>1</span>
-            <h3>You Chat</h3>
+            <h3>Connect GitHub</h3>
             <div className={styles.chatExample}>
               <p className={styles.userMessage}>
-                &quot;I need a PRD for a new user onboarding flow with email
-                verification and progress tracking&quot;
+                uSpark analyzes your codebase structure and understands your project context
               </p>
             </div>
           </div>
           <div className={styles.demoArrow}>→</div>
           <div className={styles.demoStep}>
             <span className={styles.stepNumber}>2</span>
-            <h3>AI Creates</h3>
+            <h3>Generate Tasks</h3>
             <div className={styles.documentPreview}>
-              <code>📄 user-onboarding-prd.md</code>
+              <code>📋 task-breakdown.md</code>
               <p className={styles.previewContent}>
-                # User Onboarding Flow PRD
+                # Feature Tasks
                 <br />
-                ## Overview
+                ## Task 1: API Setup
                 <br />
-                ## User Stories
+                ## Task 2: Database Schema
                 <br />
-                ## Requirements
+                ## Task 3: Frontend UI
                 <br />
-                ## Success Metrics...
+                With optimized prompts...
               </p>
             </div>
           </div>
           <div className={styles.demoArrow}>→</div>
           <div className={styles.demoStep}>
             <span className={styles.stepNumber}>3</span>
-            <h3>You Own</h3>
+            <h3>Execute with AI</h3>
             <div className={styles.ownershipFeatures}>
-              <p>✅ Edit anywhere</p>
-              <p>✅ Share with team</p>
-              <p>✅ Version history</p>
-              <p>✅ Export anytime</p>
+              <p>✅ Claude Code execution</p>
+              <p>✅ Sync to GitHub</p>
+              <p>✅ Track progress</p>
+              <p>✅ Manage tech debt</p>
             </div>
           </div>
         </div>
@@ -137,47 +135,47 @@ export default function Home() {
       {/* Core Concepts Section */}
       <section className={styles.concepts}>
         <h2 className={styles.sectionTitle}>
-          Finally, AI That Creates Reusable Knowledge
+          Built for AI Coding at Scale
         </h2>
         <div className={styles.conceptsGrid}>
           <div className={styles.conceptCard}>
             <div className={styles.conceptIcon}>
-              <span className={styles.iconGradient}>💬</span>
+              <span className={styles.iconGradient}>🧠</span>
             </div>
-            <h3>Chat Naturally, Save Automatically</h3>
+            <h3>Project Intelligence</h3>
             <p>
-              Just describe what you need. Every conversation becomes a
-              structured document you can edit, share, and reuse forever.
+              Understands your codebase through GitHub integration. Provides
+              architectural insights and maintains context across all AI sessions.
             </p>
           </div>
           <div className={styles.conceptCard}>
             <div className={styles.conceptIcon}>
-              <span className={styles.iconGradient}>📝</span>
+              <span className={styles.iconGradient}>📋</span>
             </div>
-            <h3>Professional Documents in Seconds</h3>
+            <h3>Task Orchestration</h3>
             <p>
-              Generate PRDs, technical specs, or content briefs instantly. AI
-              creates the structure, you refine the details.
+              Breaks down complex requirements into AI-executable tasks with
+              high-quality prompts optimized for Claude Code, Cursor, or Windsurf.
             </p>
           </div>
           <div className={styles.conceptCard}>
             <div className={styles.conceptIcon}>
-              <span className={styles.iconGradient}>👥</span>
+              <span className={styles.iconGradient}>📊</span>
             </div>
-            <h3>Real-Time Team Collaboration</h3>
+            <h3>Progress Tracking</h3>
             <p>
-              See teammates&apos; edits live. Continue each other&apos;s AI
-              conversations. Build shared knowledge together, naturally.
+              Analyzes commit history and code changes to track real progress.
+              Code doesn&apos;t lie - see what was actually built vs planned.
             </p>
           </div>
           <div className={styles.conceptCard}>
             <div className={styles.conceptIcon}>
-              <span className={styles.iconGradient}>💻</span>
+              <span className={styles.iconGradient}>🔍</span>
             </div>
-            <h3>Edit Anywhere You Like</h3>
+            <h3>Technical Debt Management</h3>
             <p>
-              Sync to your Mac, use VS Code, or stay in the browser. Your
-              documents, your tools, your workflow.
+              Identifies and tracks issues in AI-generated code. Systematic
+              improvement through documented decisions and learnings.
             </p>
           </div>
         </div>
@@ -186,34 +184,34 @@ export default function Home() {
       {/* Why uSpark Section */}
       <section className={styles.whyUspark}>
         <h2 className={styles.sectionTitle}>
-          The Missing Link in Your AI Workflow
+          The Missing Management Layer for AI Coding
         </h2>
         <div className={styles.comparisonGrid}>
           <div className={`${styles.comparisonCard} ${styles.grayedOut}`}>
-            <h3>ChatGPT / Claude</h3>
+            <h3>Cursor / Windsurf / Claude Code</h3>
             <div className={styles.comparisonContent}>
-              <p className={styles.problem}>❌ Linear chat history</p>
-              <p className={styles.problem}>❌ Can&apos;t edit responses</p>
-              <p className={styles.problem}>❌ No team collaboration</p>
-              <p className={styles.problem}>❌ Lost after session ends</p>
+              <p className={styles.problem}>❌ No project context</p>
+              <p className={styles.problem}>❌ Session starts from scratch</p>
+              <p className={styles.problem}>❌ No task management</p>
+              <p className={styles.problem}>❌ Zero switching cost</p>
             </div>
           </div>
           <div className={`${styles.comparisonCard} ${styles.grayedOut}`}>
-            <h3>Notion / Docs</h3>
+            <h3>Linear / Jira</h3>
             <div className={styles.comparisonContent}>
-              <p className={styles.problem}>❌ AI is just a feature</p>
-              <p className={styles.problem}>❌ Manual organization</p>
-              <p className={styles.problem}>❌ Complex structures</p>
-              <p className={styles.problem}>❌ Not AI-native</p>
+              <p className={styles.problem}>❌ Can&apos;t understand code</p>
+              <p className={styles.problem}>❌ No AI prompt generation</p>
+              <p className={styles.problem}>❌ Built for humans only</p>
+              <p className={styles.problem}>❌ No codebase analysis</p>
             </div>
           </div>
           <div className={styles.comparisonCard}>
             <h3>uSpark</h3>
             <div className={styles.comparisonContent}>
-              <p className={styles.solution}>✓ Every chat → document</p>
-              <p className={styles.solution}>✓ Edit anywhere, anytime</p>
-              <p className={styles.solution}>✓ Real-time collaboration</p>
-              <p className={styles.solution}>✓ AI-native from day one</p>
+              <p className={styles.solution}>✓ Maintains project memory</p>
+              <p className={styles.solution}>✓ GitHub-native integration</p>
+              <p className={styles.solution}>✓ AI task orchestration</p>
+              <p className={styles.solution}>✓ Accumulated wisdom</p>
             </div>
           </div>
         </div>
@@ -221,7 +219,7 @@ export default function Home() {
 
       {/* User Stories Section */}
       <section className={styles.stories}>
-        <h2 className={styles.sectionTitle}>Built for Teams Who Ship</h2>
+        <h2 className={styles.sectionTitle}>For AI Coding Practitioners</h2>
         <div className={styles.storiesContainer}>
           <div className={styles.storyCard}>
             <div className={styles.storyImage}>
@@ -232,24 +230,24 @@ export default function Home() {
               </div>
             </div>
             <div className={styles.storyContent}>
-              <span className={styles.storyLabel}>Product Managers</span>
-              <h3>PRDs in Minutes, Not Hours</h3>
+              <span className={styles.storyLabel}>Solo Developers</span>
+              <h3>From MVP to Production</h3>
               <p>
-                &quot;I describe the feature in plain English. uSpark generates
-                a complete PRD with user stories, requirements, and acceptance
-                criteria. I refine it through conversation. What took 3 hours
-                now takes 20 minutes.&quot;
+                &quot;I can build features quickly with AI, but struggled with project
+                organization. uSpark breaks down my requirements into perfect prompts
+                for Claude Code, tracks what&apos;s built, and helps me manage the
+                technical debt that comes with rapid AI development.&quot;
               </p>
               <div className={styles.storyMetrics}>
                 <div className={styles.metric}>
-                  <span className={styles.metricValue}>70%</span>
+                  <span className={styles.metricValue}>10x</span>
                   <span className={styles.metricLabel}>
-                    Faster PRD Creation
+                    More Organized
                   </span>
                 </div>
                 <div className={styles.metric}>
-                  <span className={styles.metricValue}>100%</span>
-                  <span className={styles.metricLabel}>Consistent Format</span>
+                  <span className={styles.metricValue}>GitHub</span>
+                  <span className={styles.metricLabel}>Synced</span>
                 </div>
               </div>
             </div>
@@ -257,22 +255,22 @@ export default function Home() {
 
           <div className={styles.storyCard}>
             <div className={styles.storyContent}>
-              <span className={styles.storyLabel}>Engineering Teams</span>
-              <h3>Documentation That Stays Updated</h3>
+              <span className={styles.storyLabel}>Tech Leads</span>
+              <h3>Managing AI-Assisted Teams</h3>
               <p>
-                &quot;Our technical docs live where we work. Edit in VS Code,
-                sync automatically, collaborate in real-time. The AI understands
-                our codebase context and helps maintain consistency across all
-                docs.&quot;
+                &quot;My team uses different AI tools - Cursor, Windsurf, Claude Code.
+                uSpark is our single source of truth. It generates consistent tasks,
+                tracks actual progress through commits, and maintains our architectural
+                decisions across all AI-generated code.&quot;
               </p>
               <div className={styles.storyMetrics}>
                 <div className={styles.metric}>
-                  <span className={styles.metricValue}>2 sec</span>
-                  <span className={styles.metricLabel}>Sync Time</span>
+                  <span className={styles.metricValue}>All Tools</span>
+                  <span className={styles.metricLabel}>Supported</span>
                 </div>
                 <div className={styles.metric}>
-                  <span className={styles.metricValue}>Zero</span>
-                  <span className={styles.metricLabel}>Context Switching</span>
+                  <span className={styles.metricValue}>Real-time</span>
+                  <span className={styles.metricLabel}>Progress</span>
                 </div>
               </div>
             </div>
@@ -294,24 +292,24 @@ export default function Home() {
               </div>
             </div>
             <div className={styles.storyContent}>
-              <span className={styles.storyLabel}>Design Teams</span>
-              <h3>From Ideas to Specifications</h3>
+              <span className={styles.storyLabel}>Indie Hackers</span>
+              <h3>Ship Fast, Stay Organized</h3>
               <p>
-                &quot;We brainstorm with AI, and every idea becomes a document.
-                Design specs, user research notes, feature proposals - all
-                searchable, all connected. Our entire design system is now
-                AI-aware.&quot;
+                &quot;I&apos;m building products with AI but lacked engineering discipline.
+                uSpark gives me structure - task breakdowns, technical specs, and a clear
+                record of what&apos;s been built. It&apos;s like having a technical co-founder
+                who keeps everything organized.&quot;
               </p>
               <div className={styles.storyMetrics}>
                 <div className={styles.metric}>
-                  <span className={styles.metricValue}>5x</span>
+                  <span className={styles.metricValue}>Structure</span>
                   <span className={styles.metricLabel}>
-                    More Ideas Captured
+                    Added
                   </span>
                 </div>
                 <div className={styles.metric}>
-                  <span className={styles.metricValue}>90%</span>
-                  <span className={styles.metricLabel}>Reuse Rate</span>
+                  <span className={styles.metricValue}>Tech Debt</span>
+                  <span className={styles.metricLabel}>Tracked</span>
                 </div>
               </div>
             </div>
@@ -322,10 +320,10 @@ export default function Home() {
       {/* Final CTA Section */}
       <section className={styles.finalCta}>
         <div className={styles.finalCtaContent}>
-          <h2>Stop Losing Your Best Ideas to Chat History</h2>
+          <h2>AI Can Write Code, But It Can&apos;t Manage Projects</h2>
           <p className={styles.finalCtaTopText}>
-            Every conversation with AI should build your knowledge base, not
-            disappear into the void.
+            Bridge the gap between AI coding and software engineering.
+            Start managing your AI development workflow properly.
           </p>
           <SignUpButton mode="modal">
             <Button size="lg" className={styles.primaryButton}>
@@ -333,8 +331,8 @@ export default function Home() {
             </Button>
           </SignUpButton>
           <p className={styles.finalCtaBottomText}>
-            Free to start. No credit card required. Your documents stay yours
-            forever.
+            Free to start. Works with Claude Code, Cursor, and Windsurf.
+            Your project intelligence grows with every commit.
           </p>
         </div>
         <div className={styles.finalCtaBackground}></div>
@@ -348,7 +346,7 @@ export default function Home() {
             <span className={styles.footerLogoSpark}>Spark</span>
           </div>
           <p className={styles.footerText}>
-            © 2025 uSpark. Where conversations become knowledge.
+            © 2025 uSpark. The Manager for ALL AI Coding Tools.
           </p>
         </div>
       </footer>
