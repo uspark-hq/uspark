@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.26.2](https://github.com/uspark-hq/uspark/compare/web-v0.26.1...web-v0.26.2) (2025-09-20)
+
+
+### Bug Fixes
+
+* remove console.error + throw anti-pattern ([#337](https://github.com/uspark-hq/uspark/issues/337)) ([ea3687c](https://github.com/uspark-hq/uspark/commit/ea3687cad315b0f0aef85e40818bd83d29dd5647))
+* replace fetch mock with MSW in route.test.ts ([#339](https://github.com/uspark-hq/uspark/issues/339)) ([8543548](https://github.com/uspark-hq/uspark/commit/85435484643d5fa9920818d90aaa3a325d643442))
+
 ## [0.26.1](https://github.com/uspark-hq/uspark/compare/web-v0.26.0...web-v0.26.1) (2025-09-20)
 
 
