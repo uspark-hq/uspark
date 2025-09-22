@@ -39,8 +39,8 @@ vi.mock("../../../../../../src/lib/github/client", () => ({
 
 describe("/api/projects/[projectId]/github/repository", () => {
   const projectId = `test-project-${Date.now()}-${process.pid}`;
-  const userId = `user_${Date.now()}_${process.pid}`;  // Make userId unique too
-  const installationId = 12345;  // Keep fixed to match MSW handlers
+  const userId = `user_${Date.now()}_${process.pid}`; // Make userId unique too
+  const installationId = 12345; // Keep fixed to match MSW handlers
 
   beforeEach(async () => {
     vi.clearAllMocks();
