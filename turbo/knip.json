@@ -10,8 +10,7 @@
         "scripts/*.ts",
         "src/test/setup.ts",
         "src/test/db-setup.ts",
-        "src/test/global-setup.ts",
-        "src/lib/get-user-claude-token.ts"
+        "src/test/global-setup.ts"
       ],
       "project": ["**/*.{ts,tsx}", "scripts/**/*.ts"],
       "next": {
@@ -66,7 +65,8 @@
     "dist/**",
     "build/**",
     "coverage/**",
-    "**/drizzle.config.ts"
+    "**/drizzle.config.ts",
+    "**/get-user-claude-token.ts"
   ],
   "ignoreWorkspaces": [],
   "ignoreUnresolved": [

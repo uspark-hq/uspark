@@ -2,7 +2,39 @@
 import { initServices } from "./init-services";
 import { CLAUDE_TOKENS_TBL } from "../db/schema/claude-tokens";
 import { eq } from "drizzle-orm";
-import { decryptClaudeToken } from "./claude-token-crypto";
+import crypto from "crypto";
+
+// Get encryption key from environment
+const getEncryptionKey = (): Buffer => {
+  const key = process.env.CLAUDE_TOKEN_ENCRYPTION_KEY;
+  if (!key) {
+    if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
+      return crypto.scryptSync("development-key", "stable-salt", 32);
+    }
+    throw new Error("CLAUDE_TOKEN_ENCRYPTION_KEY environment variable is required in production");
+  }
+  const keyBuffer = Buffer.from(key, "hex");
+  if (keyBuffer.length !== 32) {
+    throw new Error("CLAUDE_TOKEN_ENCRYPTION_KEY must be 32 bytes (64 hex characters)");
+  }
+  return keyBuffer;
+};
+
+// Internal function to decrypt tokens
+function decryptClaudeToken(encryptedToken: string): string {
+  const key = getEncryptionKey();
+  const combined = Buffer.from(encryptedToken, "base64");
+  const iv = combined.subarray(0, 16);
+  const authTag = combined.subarray(16, 32);
+  const encrypted = combined.subarray(32);
+  const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
+  decipher.setAuthTag(authTag);
+  const decrypted = Buffer.concat([
+    decipher.update(encrypted),
+    decipher.final()
+  ]);
+  return decrypted.toString("utf8");
+}
 
 /**
  * Gets the Claude OAuth token for a user

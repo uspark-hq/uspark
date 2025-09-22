@@ -59,34 +59,6 @@ export function encryptClaudeToken(token: string): string {
   return combined.toString("base64");
 }
 
-/**
- * Decrypts a Claude OAuth token from storage
- * @param encryptedToken - The encrypted token as base64 string
- * @returns The decrypted plain text OAuth token
- */
-export function decryptClaudeToken(encryptedToken: string): string {
-  const key = getEncryptionKey();
-
-  // Decode from base64
-  const combined = Buffer.from(encryptedToken, "base64");
-
-  // Extract components
-  const iv = combined.subarray(0, 16);
-  const authTag = combined.subarray(16, 32);
-  const encrypted = combined.subarray(32);
-
-  // Create decipher
-  const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
-  decipher.setAuthTag(authTag);
-
-  // Decrypt the token
-  const decrypted = Buffer.concat([
-    decipher.update(encrypted),
-    decipher.final()
-  ]);
-
-  return decrypted.toString("utf8");
-}
 
 /**
  * Gets the display prefix of a token (for UI display)
@@ -119,11 +91,3 @@ export function isValidClaudeToken(token: string): boolean {
   return true;
 }
 
-/**
- * Generates a new encryption key for initial setup
- * This should only be used once during initial deployment
- * @returns A 32-byte key as hex string
- */
-export function generateEncryptionKey(): string {
-  return crypto.randomBytes(32).toString("hex");
-}
