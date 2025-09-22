@@ -258,6 +258,18 @@ jobs:
       - name: Setup CLI globally
         run: cd turbo/apps/cli && pnpm link --global
 
+      - name: Install E2E dependencies
+        run: cd e2e && npm install
+
+      - name: Authenticate CLI
+        run: |
+          echo "Authenticating CLI with ${{ needs.deploy-web.outputs.preview-url }}"
+          cd e2e && npm run auth
+        env:
+          API_HOST: ${{ needs.deploy-web.outputs.preview-url }}
+          CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+
       - name: Run CLI E2E Tests
         run: |
           echo "Testing CLI against API_HOST: ${{ needs.deploy-web.outputs.preview-url }}"

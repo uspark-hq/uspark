@@ -11,8 +11,10 @@ dotenv.config({ path: ".env" });
  * 1. 启动 CLI 认证命令
  * 2. 解析设备码
  * 3. 使用 Playwright 自动登录并输入码
+ *
+ * @param apiHost - API 服务器地址，默认使用环境变量 API_HOST 或 localhost:3000
  */
-export async function automateCliAuth() {
+export async function automateCliAuth(apiHost?: string) {
   let cliProcess: ChildProcess | null = null;
   let browser = null;
 
@@ -20,13 +22,18 @@ export async function automateCliAuth() {
     console.log("🚀 启动 CLI 认证流程...");
 
     // 步骤 1: 启动 CLI auth 命令
-    // 通过环境变量强制使用本地环境
-    cliProcess = spawn("uspark", ["auth", "login"], {
+    // 使用提供的 apiHost 或环境变量 API_HOST，默认为 localhost:3000
+    const apiUrl = apiHost || process.env.API_HOST || "http://localhost:3000";
+    console.log(`📡 连接到 API: ${apiUrl}`);
+
+    // 使用 tsx 直接运行源码，避免构建问题
+    const cliPath = process.env.CLI_PATH || "/workspaces/uspark/turbo/apps/cli/src/index.ts";
+    cliProcess = spawn("tsx", [cliPath, "auth", "login"], {
       cwd: process.cwd(),
       stdio: ["pipe", "pipe", "pipe"],
       env: {
         ...process.env,
-        API_HOST: "http://localhost:3000"  // 设置 API_HOST 环境变量
+        API_HOST: apiUrl  // 设置 API_HOST 环境变量
       }
     });
 
@@ -51,7 +58,7 @@ export async function automateCliAuth() {
           cliOutput = output;
           resolve({
             deviceCode: codeMatch[1],
-            authUrl: urlMatch ? urlMatch[1] : "http://localhost:3000/cli-auth"
+            authUrl: urlMatch ? urlMatch[1] : `${apiUrl}/cli-auth`
           });
         }
       });
@@ -80,8 +87,8 @@ export async function automateCliAuth() {
     await clerkSetup();
 
     // 步骤 5: 登录 Clerk
-    // 强制使用本地环境，忽略 CLI 输出的 URL
-    const baseUrl = "http://localhost:3000";
+    // 使用配置的 API URL
+    const baseUrl = apiUrl;
 
     await page.goto(baseUrl);
     await clerk.signIn({
@@ -223,7 +230,9 @@ export async function automateCliAuth() {
     if (fs.existsSync(configPath)) {
       console.log("✅ 认证文件已创建:", configPath);
       const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
-      console.log("✅ 认证令牌已保存");
+      if (config.token) {
+        console.log("✅ 认证令牌已保存");
+      }
     } else {
       console.log("⚠️  警告: 认证文件未找到，可能需要重试");
     }
@@ -244,7 +253,10 @@ export async function automateCliAuth() {
 
 // 如果直接运行此脚本
 if (require.main === module) {
-  automateCliAuth()
+  // 可以通过命令行参数或环境变量指定 API_HOST
+  const apiHost = process.argv[2] || process.env.API_HOST;
+
+  automateCliAuth(apiHost)
     .then(() => {
       console.log("✅ 自动化认证成功完成");
       process.exit(0);
