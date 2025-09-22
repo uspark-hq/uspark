@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import ProjectDetailPage from "../page";
 import * as Y from "yjs";
 import { server, http, HttpResponse } from "../../../../src/test/msw-setup";
+import * as yjsFilesystem from "@uspark/core/yjs-filesystem";
+
 // Mock Next.js navigation
 vi.mock("next/navigation", () => ({
   useParams: vi.fn(),
@@ -55,11 +57,7 @@ describe("Project Detail Page", () => {
     });
 
     // Mock yjs-filesystem functions (already mocked above)
-    const { parseYjsFileSystem } = vi.mocked(
-      require("@uspark/core/yjs-filesystem")
-    );
-
-    parseYjsFileSystem.mockImplementation(() => ({
+    vi.mocked(yjsFilesystem.parseYjsFileSystem).mockImplementation(() => ({
       files: [
         {
           path: "src",
