@@ -5,22 +5,13 @@ import crypto from "crypto";
  * Uses AES-256-GCM encryption for security
  */
 
-// Get encryption key from environment or generate a stable one for development
+// Get encryption key from environment (required)
 export const getEncryptionKey = (): Buffer => {
   const key = process.env.CLAUDE_TOKEN_ENCRYPTION_KEY;
 
   if (!key) {
-    // In development, use a deterministic key based on the environment
-    // In production, this MUST be set as an environment variable
-    if (
-      process.env.NODE_ENV === "development" ||
-      process.env.NODE_ENV === "test"
-    ) {
-      // Use a stable development key (DO NOT use in production!)
-      return crypto.scryptSync("development-key", "stable-salt", 32);
-    }
     throw new Error(
-      "CLAUDE_TOKEN_ENCRYPTION_KEY environment variable is required in production",
+      "CLAUDE_TOKEN_ENCRYPTION_KEY environment variable is required",
     );
   }
 
