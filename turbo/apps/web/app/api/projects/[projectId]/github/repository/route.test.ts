@@ -49,9 +49,10 @@ describe("/api/projects/[projectId]/github/repository", () => {
     initServices();
     const db = globalThis.services.db;
     await db.delete(githubRepos).where(eq(githubRepos.projectId, projectId));
+    // Clean up by installationId to prevent constraint violations
     await db
       .delete(githubInstallations)
-      .where(eq(githubInstallations.userId, userId));
+      .where(eq(githubInstallations.installationId, installationId));
   });
 
   afterEach(async () => {
@@ -59,9 +60,10 @@ describe("/api/projects/[projectId]/github/repository", () => {
     initServices();
     const db = globalThis.services.db;
     await db.delete(githubRepos).where(eq(githubRepos.projectId, projectId));
+    // Clean up by installationId to prevent constraint violations
     await db
       .delete(githubInstallations)
-      .where(eq(githubInstallations.userId, userId));
+      .where(eq(githubInstallations.installationId, installationId));
   });
 
   describe("GET", () => {
