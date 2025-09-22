@@ -8,6 +8,11 @@ dotenv.config({ path: ".env" });
 
 /**
  * 自动化 CLI 认证流程
+ *
+ * 前置条件：
+ * - CLI 必须已全局安装: cd turbo/apps/cli && pnpm link --global
+ *
+ * 步骤：
  * 1. 启动 CLI 认证命令
  * 2. 解析设备码
  * 3. 使用 Playwright 自动登录并输入码
@@ -26,33 +31,16 @@ export async function automateCliAuth(apiHost?: string) {
     const apiUrl = apiHost || process.env.API_HOST || "http://localhost:3000";
     console.log(`📡 连接到 API: ${apiUrl}`);
 
-    // 使用全局安装的 uspark 命令（GitHub Actions 已经通过 pnpm link 安装）
-    // 或者使用 tsx 运行源码（本地开发）
-    const useGlobalCLI = process.env.USE_GLOBAL_CLI === 'true' || process.env.CI === 'true';
-
-    if (useGlobalCLI) {
-      // 在 CI 环境或明确指定时，使用全局安装的 CLI
-      cliProcess = spawn("uspark", ["auth", "login"], {
-        cwd: process.cwd(),
-        stdio: ["pipe", "pipe", "pipe"],
-        env: {
-          ...process.env,
-          API_HOST: apiUrl  // 设置 API_HOST 环境变量
-        }
-      });
-    } else {
-      // 本地开发环境，使用 tsx 运行源码
-      const path = require("path");
-      const cliPath = process.env.CLI_PATH || path.resolve(__dirname, "../turbo/apps/cli/src/index.ts");
-      cliProcess = spawn("tsx", [cliPath, "auth", "login"], {
-        cwd: process.cwd(),
-        stdio: ["pipe", "pipe", "pipe"],
-        env: {
-          ...process.env,
-          API_HOST: apiUrl  // 设置 API_HOST 环境变量
-        }
-      });
-    }
+    // 始终使用全局安装的 uspark 命令
+    // GitHub Actions 和本地开发都应该先通过 pnpm link --global 安装 CLI
+    cliProcess = spawn("uspark", ["auth", "login"], {
+      cwd: process.cwd(),
+      stdio: ["pipe", "pipe", "pipe"],
+      env: {
+        ...process.env,
+        API_HOST: apiUrl  // 设置 API_HOST 环境变量
+      }
+    });
 
     // 步骤 2: 捕获并解析设备码和 URL
     let cliOutput = "";
