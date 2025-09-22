@@ -10,6 +10,7 @@ const inter = Inter({
   variable: "--font-inter",
 });
 
+// Metadata configuration for the application
 export const metadata: Metadata = {
   title: "uSpark - AI Assistant That Changes Everything",
   description:
