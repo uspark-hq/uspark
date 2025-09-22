@@ -5,7 +5,11 @@ import { POST } from "./route";
 import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
-import { SESSIONS_TBL, TURNS_TBL, BLOCKS_TBL } from "../../../../../../../src/db/schema/sessions";
+import {
+  SESSIONS_TBL,
+  TURNS_TBL,
+  BLOCKS_TBL,
+} from "../../../../../../../src/db/schema/sessions";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";
 
@@ -13,7 +17,6 @@ import * as Y from "yjs";
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(() => Promise.resolve({ userId: "user_test123" })),
 }));
-
 
 describe("Mock Execute API", () => {
   const mockProjectId = `proj_test_${Date.now()}_${process.pid}`;
@@ -54,7 +57,9 @@ describe("Mock Execute API", () => {
 
     // Create test project with YJS document
     const ydoc = new Y.Doc();
-    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+      "base64",
+    );
     await db.insert(PROJECTS_TBL).values({
       id: mockProjectId,
       userId: mockUserId,
@@ -96,7 +101,10 @@ describe("Mock Execute API", () => {
     expect(data.is_mock).toBe(true);
 
     // Verify turn was created in database
-    const turns = await db.select().from(TURNS_TBL).where(eq(TURNS_TBL.sessionId, mockSessionId));
+    const turns = await db
+      .select()
+      .from(TURNS_TBL)
+      .where(eq(TURNS_TBL.sessionId, mockSessionId));
     expect(turns.length).toBe(1);
     expect(turns[0].userPrompt).toBe("Hello Claude!");
     // Mock executor immediately changes status to in_progress
@@ -161,7 +169,9 @@ describe("Mock Execute API", () => {
 
     // Create project but not session
     const ydoc = new Y.Doc();
-    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+      "base64",
+    );
     await db.insert(PROJECTS_TBL).values({
       id: mockProjectId,
       userId: mockUserId,
@@ -196,7 +206,9 @@ describe("Mock Execute API", () => {
 
     // Create test project and session
     const ydoc = new Y.Doc();
-    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+      "base64",
+    );
     await db.insert(PROJECTS_TBL).values({
       id: mockProjectId,
       userId: mockUserId,
@@ -238,7 +250,9 @@ describe("Mock Execute API", () => {
 
       // Create test project and session
       const ydoc1 = new Y.Doc();
-      const ydocData1 = Buffer.from(Y.encodeStateAsUpdate(ydoc1)).toString("base64");
+      const ydocData1 = Buffer.from(Y.encodeStateAsUpdate(ydoc1)).toString(
+        "base64",
+      );
       await db.insert(PROJECTS_TBL).values({
         id: mockProjectId,
         userId: mockUserId,
@@ -282,7 +296,9 @@ describe("Mock Execute API", () => {
 
       // Create test project and session
       const ydoc1 = new Y.Doc();
-      const ydocData1 = Buffer.from(Y.encodeStateAsUpdate(ydoc1)).toString("base64");
+      const ydocData1 = Buffer.from(Y.encodeStateAsUpdate(ydoc1)).toString(
+        "base64",
+      );
       await db.insert(PROJECTS_TBL).values({
         id: mockProjectId,
         userId: mockUserId,
@@ -323,7 +339,9 @@ describe("Mock Execute API", () => {
 
       // Create test project and session
       const ydoc = new Y.Doc();
-      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
+        "base64",
+      );
       await db.insert(PROJECTS_TBL).values({
         id: mockProjectId,
         userId: mockUserId,

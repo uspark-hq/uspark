@@ -4,7 +4,10 @@ import { NextRequest } from "next/server";
 import { GET, POST, DELETE } from "./route";
 import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../../../src/lib/init-services";
-import { githubRepos, githubInstallations } from "../../../../../../src/db/schema/github";
+import {
+  githubRepos,
+  githubInstallations,
+} from "../../../../../../src/db/schema/github";
 import { eq } from "drizzle-orm";
 
 // Mock Clerk auth
@@ -36,8 +39,8 @@ vi.mock("../../../../../../src/lib/github/client", () => ({
 
 describe("/api/projects/[projectId]/github/repository", () => {
   const projectId = `test-project-${Date.now()}-${process.pid}`;
-  const userId = "user_123";
-  const installationId = 12345;
+  const userId = `user_${Date.now()}_${process.pid}`;  // Make userId unique too
+  const installationId = 12345;  // Keep fixed to match MSW handlers
 
   beforeEach(async () => {
     vi.clearAllMocks();
@@ -46,7 +49,9 @@ describe("/api/projects/[projectId]/github/repository", () => {
     initServices();
     const db = globalThis.services.db;
     await db.delete(githubRepos).where(eq(githubRepos.projectId, projectId));
-    await db.delete(githubInstallations).where(eq(githubInstallations.userId, userId));
+    await db
+      .delete(githubInstallations)
+      .where(eq(githubInstallations.userId, userId));
   });
 
   afterEach(async () => {
@@ -54,7 +59,9 @@ describe("/api/projects/[projectId]/github/repository", () => {
     initServices();
     const db = globalThis.services.db;
     await db.delete(githubRepos).where(eq(githubRepos.projectId, projectId));
-    await db.delete(githubInstallations).where(eq(githubInstallations.userId, userId));
+    await db
+      .delete(githubInstallations)
+      .where(eq(githubInstallations.userId, userId));
   });
 
   describe("GET", () => {
