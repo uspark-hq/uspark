@@ -63,18 +63,42 @@ describe("Project Detail Page", () => {
           path: "src",
           type: "directory",
           children: [
-            { path: "src/test.ts", type: "file", hash: "hash1", size: 100, mtime: Date.now() },
+            {
+              path: "src/test.ts",
+              type: "file",
+              hash: "hash1",
+              size: 100,
+              mtime: Date.now(),
+            },
             {
               path: "src/components",
               type: "directory",
               children: [
-                { path: "src/components/Button.tsx", type: "file", hash: "hash2", size: 200, mtime: Date.now() },
+                {
+                  path: "src/components/Button.tsx",
+                  type: "file",
+                  hash: "hash2",
+                  size: 200,
+                  mtime: Date.now(),
+                },
               ],
             },
           ],
         },
-        { path: "package.json", type: "file", hash: "hash3", size: 150, mtime: Date.now() },
-        { path: "README.md", type: "file", hash: "hash4", size: 300, mtime: Date.now() },
+        {
+          path: "package.json",
+          type: "file",
+          hash: "hash3",
+          size: 150,
+          mtime: Date.now(),
+        },
+        {
+          path: "README.md",
+          type: "file",
+          hash: "hash4",
+          size: 300,
+          mtime: Date.now(),
+        },
       ],
       totalSize: 750,
       fileCount: 4,
@@ -103,13 +127,16 @@ describe("Project Detail Page", () => {
       // Mock direct blob storage URLs
       Object.entries(contentMap).forEach(([hash, content]) => {
         server.use(
-          http.get(`https://test-store.public.blob.vercel-storage.com/${hash}`, () => {
-            return new HttpResponse(content, {
-              headers: {
-                "Content-Type": "text/plain",
-              },
-            });
-          }),
+          http.get(
+            `https://test-store.public.blob.vercel-storage.com/${hash}`,
+            () => {
+              return new HttpResponse(content, {
+                headers: {
+                  "Content-Type": "text/plain",
+                },
+              });
+            },
+          ),
         );
       });
     };

@@ -59,18 +59,21 @@ export default function ProjectDetailPage() {
   }, [projectId]);
 
   // Find file hash from path
-  const findFileHash = useCallback((path: string, items: FileItem[]): string | undefined => {
-    for (const item of items) {
-      if (item.path === path && item.type === "file") {
-        return item.hash;
+  const findFileHash = useCallback(
+    (path: string, items: FileItem[]): string | undefined => {
+      for (const item of items) {
+        if (item.path === path && item.type === "file") {
+          return item.hash;
+        }
+        if (item.children) {
+          const hash = findFileHash(path, item.children);
+          if (hash) return hash;
+        }
       }
-      if (item.children) {
-        const hash = findFileHash(path, item.children);
-        if (hash) return hash;
-      }
-    }
-    return undefined;
-  }, []);
+      return undefined;
+    },
+    [],
+  );
 
   // Load file content from blob storage
   const loadFileContent = useCallback(
@@ -92,7 +95,6 @@ export default function ProjectDetailPage() {
           setFileContent("");
           return;
         }
-
 
         // Construct public blob URL
         const blobUrl = `https://${storeId}.public.blob.vercel-storage.com/${fileHash}`;
