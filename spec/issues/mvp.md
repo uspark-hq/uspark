@@ -86,26 +86,25 @@ This document defines the mid-term goals and user stories for the MVP release of
 - Queue system for managing Claude tasks
 - Audit logging for all AI operations
 
-### Story 3: Task Generation and AI Control (NEW MVP FOCUS)
+### Story 3: Direct Task Management (SIMPLIFIED)
 
 **As a** technical founder using AI coding tools
-**I want to** generate structured tasks with prompts that control Claude Code
-**So that** I can orchestrate my AI coding workflow efficiently
+**I want to** create and manage task documents directly
+**So that** I can track my AI coding workflow progress
 
 #### Acceptance Criteria
 
-- [ ] Predefined prompt templates for common tasks (e.g., "Analyze codebase", "Generate task breakdown")
-- [ ] One-click prompt insertion into chat interface
-- [ ] Task documents automatically created from AI responses
-- [ ] Generated prompts optimized for Claude Code execution
-- [ ] Progress tracking as tasks are completed
+- [ ] Create task documents directly in web UI
+- [ ] Manual task breakdown and organization
+- [ ] Simple progress tracking via document edits
+- [ ] Task documents sync to GitHub for AI tool access
 
 #### Technical Requirements
 
-- Prompt template system with variable substitution
-- Task document generation from Claude responses
-- Integration between task documents and Claude execution
-- Status tracking for task completion
+- Direct document creation/editing (existing YJS system)
+- No template system needed
+- Focus on core document management functionality
+- Leverage existing sync mechanisms
 
 ## Implementation Priorities
 
@@ -156,13 +155,13 @@ This document defines the mid-term goals and user stories for the MVP release of
 7. [x] Document change detection via YJS polling ✅ (PR #320)
 8. [ ] AWS Bedrock STS token generation for E2B Claude Code tasks ❌
 
-### Phase 5: Task Generation Pipeline (Story 3)
+### Phase 5: Direct Task Management (Story 3 - Simplified)
 
-1. [ ] Prompt template library ("Analyze Architecture", "Break Down Feature", "Review Technical Debt")
-2. [ ] Template variable system (project context injection)
-3. [ ] Task document auto-generation from Claude responses
-4. [ ] Task → Claude Code execution pipeline
-5. [ ] Progress tracking system
+1. [ ] Task document creation UI
+2. [ ] Manual task organization features
+3. [ ] Simple progress indicators
+4. [ ] Task-to-GitHub sync integration
+5. [ ] Basic task tracking dashboard
 
 
 ## Technical Debt Status (Updated 2025-01-12)
@@ -198,10 +197,10 @@ The MVP is considered complete when:
 
 Post-MVP priorities aligned with AI coding management:
 
-1. **Task → Claude Code Pipeline Optimization**
-   - Advanced prompt engineering for different AI tools
+1. **Enhanced Task Management**
    - Task dependency management
-   - Automated task sequencing
+   - Automated progress tracking
+   - Task completion analytics
 
 2. **Project Analysis Features**
    - Codebase architecture analysis
@@ -218,23 +217,27 @@ Post-MVP priorities aligned with AI coding management:
    - Architecture consistency checks
    - Unified technical debt dashboard
 
-## Implementation Status Summary (2025-01-13)
+5. **Advanced Automation (Future)**
+   - Template system for common tasks
+   - Automated task generation from Claude responses
+   - Smart prompt engineering
 
-### Overall Completion: ~80%
+## Implementation Status Summary (2025-09-22)
+
+### Overall Completion: ~85%
 
 #### ✅ Completed Features (Working)
 - **Story 1 (GitHub)**: 100% - All MVP requirements completed ✅
 - **Story 1b (CLI)**: 100% - All CLI commands working, E2B container fully configured ✅
 - **Story 2 (Web UI)**: 85% - UI complete, APIs complete, long polling implemented ✅
-- **Story 3 (Task Generation)**: 0% - New focus, not yet implemented
+- **Story 3 (Task Management)**: 0% - Simplified to direct document management
 
 #### 🟡 Partially Completed
-- **Phase 4 (AI)**: 60% - Session APIs complete, mock execution working, real Claude integration pending
+- **Phase 4 (AI)**: 70% - Session APIs complete, mock execution working, real Claude integration pending
 
-#### ❌ Critical Gaps
+#### ❌ Remaining Gaps
 1. **Real Claude execution in E2B** - Mock executor implemented, real Claude integration pending
 2. **AWS Bedrock STS tokens** - For Claude API authentication in E2B
-3. **Prompt template system** - Story 3 foundation
 
 ### Key Findings After Recent PRs
 
@@ -272,8 +275,8 @@ Post-MVP priorities aligned with AI coding management:
 ### Recommended Next Steps
 1. **Immediate**: Implement real Claude execution (replace mock-executor)
 2. **Week 1**: AWS Bedrock STS token generation for E2B authentication
-3. **Week 2**: Implement prompt template system (Story 3)
-4. **Week 3**: Task document auto-generation pipeline
+3. **Week 2**: Complete integration testing and bug fixes
+4. **Week 3**: Deploy MVP and gather user feedback
 
 ## Dependencies
 
