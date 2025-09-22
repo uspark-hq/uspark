@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { getInstallationToken } from "./auth";
 
-// Mock @octokit/auth-app
+// Mock @octokit/auth-app because it requires a valid RSA private key
+// Test environment only has a placeholder key, not a real RSA key
+// This is acceptable as we're testing our logic, not GitHub's JWT generation
 const mockAuth = vi.fn();
 vi.mock("@octokit/auth-app", () => ({
   createAppAuth: vi.fn(() => mockAuth),
 }));
-
-// Don't mock init-services - use real services with test environment variables
 
 describe("GitHub Auth", () => {
   const installationId = 12345;

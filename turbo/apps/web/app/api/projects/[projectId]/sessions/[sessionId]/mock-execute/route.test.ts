@@ -1,81 +1,74 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { NextRequest } from "next/server";
+import "../../../../../../../src/test/setup";
+import { POST } from "./route";
+import { auth } from "@clerk/nextjs/server";
+import { initServices } from "../../../../../../../src/lib/init-services";
+import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
+import { SESSIONS_TBL, TURNS_TBL, BLOCKS_TBL } from "../../../../../../../src/db/schema/sessions";
+import { eq } from "drizzle-orm";
+import * as Y from "yjs";
 
 // Mock dependencies BEFORE imports
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(() => Promise.resolve({ userId: "user_test123" })),
 }));
 
-vi.mock("../../../../../../../src/lib/init-services", () => ({
-  initServices: vi.fn(),
-}));
-
-import { POST } from "./route";
-import { auth } from "@clerk/nextjs/server";
-
-// Mock database operations
-const mockDb = {
-  select: vi.fn(),
-  insert: vi.fn(),
-  update: vi.fn(),
-  from: vi.fn(),
-  where: vi.fn(),
-  returning: vi.fn(),
-  set: vi.fn(),
-  values: vi.fn(),
-};
-
-// Setup mock chain methods
-mockDb.select.mockReturnValue(mockDb);
-mockDb.from.mockReturnValue(mockDb);
-mockDb.where.mockReturnValue(mockDb);
-mockDb.insert.mockReturnValue(mockDb);
-mockDb.values.mockReturnValue(mockDb);
-mockDb.update.mockReturnValue(mockDb);
-mockDb.set.mockReturnValue(mockDb);
-
-// Mock globalThis.services
-beforeEach(() => {
-  vi.clearAllMocks();
-
-  globalThis.services = {
-    db: mockDb,
-    env: {},
-    pool: null,
-  } as never;
-});
 
 describe("Mock Execute API", () => {
-  const mockProjectId = "proj_test123";
-  const mockSessionId = "sess_test123";
+  const mockProjectId = `proj_test_${Date.now()}_${process.pid}`;
+  const mockSessionId = `sess_test_${Date.now()}_${process.pid}`;
   const mockUserId = "user_test123";
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    vi.clearAllMocks();
     vi.mocked(auth).mockResolvedValue({ userId: mockUserId } as Awaited<
       ReturnType<typeof auth>
     >);
+
+    // Initialize services
+    initServices();
+    const db = globalThis.services.db;
+
+    // Clean up any existing test data
+    await db.delete(BLOCKS_TBL).where(eq(BLOCKS_TBL.turnId, "turn_mock123"));
+    await db.delete(TURNS_TBL).where(eq(TURNS_TBL.sessionId, mockSessionId));
+    await db.delete(SESSIONS_TBL).where(eq(SESSIONS_TBL.id, mockSessionId));
+    await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.id, mockProjectId));
+  });
+
+  afterEach(async () => {
+    // Clean up test data
+    initServices();
+    const db = globalThis.services.db;
+
+    await db.delete(BLOCKS_TBL).where(eq(BLOCKS_TBL.turnId, "turn_mock123"));
+    await db.delete(TURNS_TBL).where(eq(TURNS_TBL.sessionId, mockSessionId));
+    await db.delete(SESSIONS_TBL).where(eq(SESSIONS_TBL.id, mockSessionId));
+    await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.id, mockProjectId));
   });
 
   it("should create a turn and start mock execution", async () => {
-    // Mock project exists
-    mockDb.where.mockResolvedValueOnce([
-      { id: mockProjectId, userId: mockUserId },
-    ]);
+    initServices();
+    const db = globalThis.services.db;
 
-    // Mock session exists
-    mockDb.where.mockResolvedValueOnce([
-      { id: mockSessionId, projectId: mockProjectId },
-    ]);
+    // Create test project with YJS document
+    const ydoc = new Y.Doc();
+    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+    await db.insert(PROJECTS_TBL).values({
+      id: mockProjectId,
+      userId: mockUserId,
+      ydocData,
+    });
 
-    // Mock turn creation
-    const mockTurn = {
-      id: "turn_mock123",
-      sessionId: mockSessionId,
-      userPrompt: "Hello Claude!",
-      status: "pending",
-      createdAt: new Date(),
-    };
-    mockDb.returning.mockResolvedValueOnce([mockTurn]);
+    // Create test session
+    await db.insert(SESSIONS_TBL).values({
+      id: mockSessionId,
+      projectId: mockProjectId,
+      title: "Test Session",
+    });
+
+    // Test data will be created by the actual API
 
     const request = new NextRequest("http://localhost:3000/api/test", {
       method: "POST",
@@ -97,22 +90,17 @@ describe("Mock Execute API", () => {
 
     // Verify response
     expect(response.status).toBe(200);
-    expect(data).toMatchObject({
-      id: mockTurn.id,
-      session_id: mockSessionId,
-      user_message: "Hello Claude!",
-      status: "pending",
-      is_mock: true,
-    });
+    expect(data.session_id).toBe(mockSessionId);
+    expect(data.user_message).toBe("Hello Claude!");
+    expect(data.status).toBe("pending");
+    expect(data.is_mock).toBe(true);
 
-    // Verify database calls
-    expect(mockDb.insert).toHaveBeenCalled();
-    expect(mockDb.values).toHaveBeenCalledWith({
-      id: expect.stringContaining("turn_"),
-      sessionId: mockSessionId,
-      userPrompt: "Hello Claude!",
-      status: "pending",
-    });
+    // Verify turn was created in database
+    const turns = await db.select().from(TURNS_TBL).where(eq(TURNS_TBL.sessionId, mockSessionId));
+    expect(turns.length).toBe(1);
+    expect(turns[0].userPrompt).toBe("Hello Claude!");
+    // Mock executor immediately changes status to in_progress
+    expect(["pending", "in_progress", "completed"]).toContain(turns[0].status);
   });
 
   it("should return 401 if user is not authenticated", async () => {
@@ -143,8 +131,7 @@ describe("Mock Execute API", () => {
   });
 
   it("should return 404 if project does not exist", async () => {
-    // Mock project not found
-    mockDb.where.mockResolvedValueOnce([]);
+    // Don't create project, so it won't exist
 
     const request = new NextRequest("http://localhost:3000/api/test", {
       method: "POST",
@@ -169,13 +156,17 @@ describe("Mock Execute API", () => {
   });
 
   it("should return 404 if session does not exist", async () => {
-    // Mock project exists
-    mockDb.where.mockResolvedValueOnce([
-      { id: mockProjectId, userId: mockUserId },
-    ]);
+    initServices();
+    const db = globalThis.services.db;
 
-    // Mock session not found
-    mockDb.where.mockResolvedValueOnce([]);
+    // Create project but not session
+    const ydoc = new Y.Doc();
+    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+    await db.insert(PROJECTS_TBL).values({
+      id: mockProjectId,
+      userId: mockUserId,
+      ydocData,
+    });
 
     const request = new NextRequest("http://localhost:3000/api/test", {
       method: "POST",
@@ -200,15 +191,23 @@ describe("Mock Execute API", () => {
   });
 
   it("should return 400 if user_message is missing", async () => {
-    // Mock project exists
-    mockDb.where.mockResolvedValueOnce([
-      { id: mockProjectId, userId: mockUserId },
-    ]);
+    initServices();
+    const db = globalThis.services.db;
 
-    // Mock session exists
-    mockDb.where.mockResolvedValueOnce([
-      { id: mockSessionId, projectId: mockProjectId },
-    ]);
+    // Create test project and session
+    const ydoc = new Y.Doc();
+    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+    await db.insert(PROJECTS_TBL).values({
+      id: mockProjectId,
+      userId: mockUserId,
+      ydocData,
+    });
+
+    await db.insert(SESSIONS_TBL).values({
+      id: mockSessionId,
+      projectId: mockProjectId,
+      title: "Test Session",
+    });
 
     const request = new NextRequest("http://localhost:3000/api/test", {
       method: "POST",
@@ -234,23 +233,23 @@ describe("Mock Execute API", () => {
 
   describe("Mock Block Generation", () => {
     it("should generate greeting blocks for hello message", async () => {
-      // Mock project and session exist
-      mockDb.where.mockResolvedValueOnce([
-        { id: mockProjectId, userId: mockUserId },
-      ]);
-      mockDb.where.mockResolvedValueOnce([
-        { id: mockSessionId, projectId: mockProjectId },
-      ]);
+      initServices();
+      const db = globalThis.services.db;
 
-      // Mock turn creation
-      const mockTurn = {
-        id: "turn_hello123",
-        sessionId: mockSessionId,
-        userPrompt: "Hello!",
-        status: "pending",
-        createdAt: new Date(),
-      };
-      mockDb.returning.mockResolvedValueOnce([mockTurn]);
+      // Create test project and session
+      const ydoc1 = new Y.Doc();
+      const ydocData1 = Buffer.from(Y.encodeStateAsUpdate(ydoc1)).toString("base64");
+      await db.insert(PROJECTS_TBL).values({
+        id: mockProjectId,
+        userId: mockUserId,
+        ydocData: ydocData1,
+      });
+
+      await db.insert(SESSIONS_TBL).values({
+        id: mockSessionId,
+        projectId: mockProjectId,
+        title: "Test Session",
+      });
 
       const request = new NextRequest("http://localhost:3000/api/test", {
         method: "POST",
@@ -278,23 +277,23 @@ describe("Mock Execute API", () => {
     });
 
     it("should generate file operation blocks for file-related message", async () => {
-      // Mock project and session exist
-      mockDb.where.mockResolvedValueOnce([
-        { id: mockProjectId, userId: mockUserId },
-      ]);
-      mockDb.where.mockResolvedValueOnce([
-        { id: mockSessionId, projectId: mockProjectId },
-      ]);
+      initServices();
+      const db = globalThis.services.db;
 
-      // Mock turn creation
-      const mockTurn = {
-        id: "turn_file123",
-        sessionId: mockSessionId,
-        userPrompt: "Read the README file",
-        status: "pending",
-        createdAt: new Date(),
-      };
-      mockDb.returning.mockResolvedValueOnce([mockTurn]);
+      // Create test project and session
+      const ydoc1 = new Y.Doc();
+      const ydocData1 = Buffer.from(Y.encodeStateAsUpdate(ydoc1)).toString("base64");
+      await db.insert(PROJECTS_TBL).values({
+        id: mockProjectId,
+        userId: mockUserId,
+        ydocData: ydocData1,
+      });
+
+      await db.insert(SESSIONS_TBL).values({
+        id: mockSessionId,
+        projectId: mockProjectId,
+        title: "Test Session",
+      });
 
       const request = new NextRequest("http://localhost:3000/api/test", {
         method: "POST",
@@ -319,23 +318,23 @@ describe("Mock Execute API", () => {
     });
 
     it("should generate code writing blocks for code-related message", async () => {
-      // Mock project and session exist
-      mockDb.where.mockResolvedValueOnce([
-        { id: mockProjectId, userId: mockUserId },
-      ]);
-      mockDb.where.mockResolvedValueOnce([
-        { id: mockSessionId, projectId: mockProjectId },
-      ]);
+      initServices();
+      const db = globalThis.services.db;
 
-      // Mock turn creation
-      const mockTurn = {
-        id: "turn_code123",
-        sessionId: mockSessionId,
-        userPrompt: "Write some code for me",
-        status: "pending",
-        createdAt: new Date(),
-      };
-      mockDb.returning.mockResolvedValueOnce([mockTurn]);
+      // Create test project and session
+      const ydoc = new Y.Doc();
+      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString("base64");
+      await db.insert(PROJECTS_TBL).values({
+        id: mockProjectId,
+        userId: mockUserId,
+        ydocData,
+      });
+
+      await db.insert(SESSIONS_TBL).values({
+        id: mockSessionId,
+        projectId: mockProjectId,
+        title: "Test Session",
+      });
 
       const request = new NextRequest("http://localhost:3000/api/test", {
         method: "POST",

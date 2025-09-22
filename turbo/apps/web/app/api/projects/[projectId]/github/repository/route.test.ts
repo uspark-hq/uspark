@@ -1,55 +1,87 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "../../../../../../src/test/setup";
 import { NextRequest } from "next/server";
 import { GET, POST, DELETE } from "./route";
 import { auth } from "@clerk/nextjs/server";
-import {
-  createProjectRepository,
-  getProjectRepository,
-  hasInstallationAccess,
-  removeRepositoryLink,
-} from "../../../../../../src/lib/github/repository";
+import { initServices } from "../../../../../../src/lib/init-services";
+import { githubRepos, githubInstallations } from "../../../../../../src/db/schema/github";
+import { eq } from "drizzle-orm";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
 }));
 
-// Mock repository functions
-vi.mock("../../../../../../src/lib/github/repository", () => ({
-  createProjectRepository: vi.fn(),
-  getProjectRepository: vi.fn(),
-  hasInstallationAccess: vi.fn(),
-  removeRepositoryLink: vi.fn(),
+// Mock GitHub client to avoid real API calls
+vi.mock("../../../../../../src/lib/github/client", () => ({
+  createInstallationOctokit: vi.fn().mockResolvedValue({
+    request: vi.fn().mockResolvedValue({
+      data: {
+        id: 987654,
+        name: "uspark-test-project-123",
+        full_name: "testuser/uspark-test-project-123",
+        html_url: "https://github.com/testuser/uspark-test-project-123",
+        clone_url: "https://github.com/testuser/uspark-test-project-123.git",
+      },
+    }),
+  }),
+  getInstallationDetails: vi.fn().mockResolvedValue({
+    id: 12345,
+    account: {
+      login: "testuser",
+      type: "User",
+    },
+  }),
 }));
 
 describe("/api/projects/[projectId]/github/repository", () => {
-  const projectId = "test-project-123";
+  const projectId = `test-project-${Date.now()}-${process.pid}`;
   const userId = "user_123";
   const installationId = 12345;
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
+
+    // Clean up test data
+    initServices();
+    const db = globalThis.services.db;
+    await db.delete(githubRepos).where(eq(githubRepos.projectId, projectId));
+    await db.delete(githubInstallations).where(eq(githubInstallations.userId, userId));
+  });
+
+  afterEach(async () => {
+    // Clean up test data
+    initServices();
+    const db = globalThis.services.db;
+    await db.delete(githubRepos).where(eq(githubRepos.projectId, projectId));
+    await db.delete(githubInstallations).where(eq(githubInstallations.userId, userId));
   });
 
   describe("GET", () => {
     it("should return repository info for existing project", async () => {
-      const mockRepository = {
-        id: "repo-id",
-        projectId,
-        installationId,
-        repoName: "uspark-test-project-123",
-        repoId: 987654,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
       vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
         ReturnType<typeof auth>
       >);
 
-      vi.mocked(getProjectRepository).mockResolvedValue(mockRepository);
-      vi.mocked(hasInstallationAccess).mockResolvedValue(true);
+      // Setup test data
+      initServices();
+      const db = globalThis.services.db;
+
+      // Create test installation
+      await db.insert(githubInstallations).values({
+        userId,
+        installationId,
+        accountName: "testuser",
+        accountType: "User",
+      });
+
+      // Create test repository
+      await db.insert(githubRepos).values({
+        projectId,
+        installationId,
+        repoName: "uspark-test-project-123",
+        repoId: 987654,
+      });
 
       const request = new NextRequest(
         "http://localhost/api/projects/test-project-123/github/repository",
@@ -60,14 +92,9 @@ describe("/api/projects/[projectId]/github/repository", () => {
       const data = await response.json();
 
       expect(response.status).toBe(200);
-      expect(data.repository.id).toBe(mockRepository.id);
-      expect(data.repository.projectId).toBe(mockRepository.projectId);
-      expect(data.repository.repoName).toBe(mockRepository.repoName);
-      expect(getProjectRepository).toHaveBeenCalledWith(projectId);
-      expect(hasInstallationAccess).toHaveBeenCalledWith(
-        userId,
-        installationId,
-      );
+      expect(data.repository.projectId).toBe(projectId);
+      expect(data.repository.repoName).toBe("uspark-test-project-123");
+      expect(data.repository.installationId).toBe(installationId);
     });
 
     it("should return 404 for non-existent repository", async () => {
@@ -75,7 +102,7 @@ describe("/api/projects/[projectId]/github/repository", () => {
         ReturnType<typeof auth>
       >);
 
-      vi.mocked(getProjectRepository).mockResolvedValue(null);
+      // No repository in database for this project
 
       const request = new NextRequest(
         "http://localhost/api/projects/non-existent/github/repository",
@@ -111,20 +138,21 @@ describe("/api/projects/[projectId]/github/repository", () => {
 
   describe("POST", () => {
     it("should create repository successfully", async () => {
-      const mockRepository = {
-        repoId: 987654,
-        repoName: "uspark-test-project-123",
-        fullName: "testuser/uspark-test-project-123",
-        url: "https://github.com/testuser/uspark-test-project-123",
-        cloneUrl: "https://github.com/testuser/uspark-test-project-123.git",
-      };
-
       vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
         ReturnType<typeof auth>
       >);
 
-      vi.mocked(hasInstallationAccess).mockResolvedValue(true);
-      vi.mocked(createProjectRepository).mockResolvedValue(mockRepository);
+      // Setup test data
+      initServices();
+      const db = globalThis.services.db;
+
+      // Create test installation
+      await db.insert(githubInstallations).values({
+        userId,
+        installationId,
+        accountName: "testuser",
+        accountType: "User",
+      });
 
       const request = new NextRequest(
         "http://localhost/api/projects/test-project-123/github/repository",
@@ -140,15 +168,16 @@ describe("/api/projects/[projectId]/github/repository", () => {
       const data = await response.json();
 
       expect(response.status).toBe(201);
-      expect(data).toEqual({ repository: mockRepository });
-      expect(hasInstallationAccess).toHaveBeenCalledWith(
-        userId,
-        installationId,
-      );
-      expect(createProjectRepository).toHaveBeenCalledWith(
-        projectId,
-        installationId,
-      );
+      expect(data.repository.repoId).toBe(987654);
+      expect(data.repository.repoName).toBe("uspark-test-project-123");
+      expect(data.repository.fullName).toBe("testuser/uspark-test-project-123");
+
+      // Verify repository was created in database
+      const createdRepo = await db
+        .select()
+        .from(githubRepos)
+        .where(eq(githubRepos.projectId, projectId));
+      expect(createdRepo.length).toBe(1);
     });
 
     it("should return 400 for missing installation ID", async () => {
@@ -178,10 +207,25 @@ describe("/api/projects/[projectId]/github/repository", () => {
         ReturnType<typeof auth>
       >);
 
-      vi.mocked(hasInstallationAccess).mockResolvedValue(true);
-      vi.mocked(createProjectRepository).mockRejectedValue(
-        new Error("Repository already exists for project test-project-123"),
-      );
+      // Setup test data
+      initServices();
+      const db = globalThis.services.db;
+
+      // Create test installation
+      await db.insert(githubInstallations).values({
+        userId,
+        installationId,
+        accountName: "testuser",
+        accountType: "User",
+      });
+
+      // Create existing repository
+      await db.insert(githubRepos).values({
+        projectId,
+        installationId,
+        repoName: "existing-repo",
+        repoId: 111111,
+      });
 
       const request = new NextRequest(
         "http://localhost/api/projects/test-project-123/github/repository",
@@ -203,23 +247,29 @@ describe("/api/projects/[projectId]/github/repository", () => {
 
   describe("DELETE", () => {
     it("should remove repository link successfully", async () => {
-      const mockRepository = {
-        id: "repo-id",
-        projectId,
-        installationId,
-        repoName: "uspark-test-project-123",
-        repoId: 987654,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
       vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
         ReturnType<typeof auth>
       >);
 
-      vi.mocked(getProjectRepository).mockResolvedValue(mockRepository);
-      vi.mocked(hasInstallationAccess).mockResolvedValue(true);
-      vi.mocked(removeRepositoryLink).mockResolvedValue(1);
+      // Setup test data
+      initServices();
+      const db = globalThis.services.db;
+
+      // Create test installation
+      await db.insert(githubInstallations).values({
+        userId,
+        installationId,
+        accountName: "testuser",
+        accountType: "User",
+      });
+
+      // Create test repository to delete
+      await db.insert(githubRepos).values({
+        projectId,
+        installationId,
+        repoName: "uspark-test-project-123",
+        repoId: 987654,
+      });
 
       const request = new NextRequest(
         "http://localhost/api/projects/test-project-123/github/repository",
@@ -234,27 +284,39 @@ describe("/api/projects/[projectId]/github/repository", () => {
 
       expect(response.status).toBe(200);
       expect(data).toEqual({ message: "repository_link_removed" });
-      expect(removeRepositoryLink).toHaveBeenCalledWith(projectId);
+
+      // Verify repository was deleted from database
+      const deletedRepo = await db
+        .select()
+        .from(githubRepos)
+        .where(eq(githubRepos.projectId, projectId));
+      expect(deletedRepo.length).toBe(0);
     });
 
     it("should return 404 if repository not found during delete", async () => {
-      const mockRepository = {
-        id: "repo-id",
-        projectId,
-        installationId,
-        repoName: "uspark-test-project-123",
-        repoId: 987654,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-
       vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
         ReturnType<typeof auth>
       >);
 
-      vi.mocked(getProjectRepository).mockResolvedValue(mockRepository);
-      vi.mocked(hasInstallationAccess).mockResolvedValue(true);
-      vi.mocked(removeRepositoryLink).mockResolvedValue(0);
+      // Setup test data
+      initServices();
+      const db = globalThis.services.db;
+
+      // Create test installation
+      await db.insert(githubInstallations).values({
+        userId,
+        installationId,
+        accountName: "testuser",
+        accountType: "User",
+      });
+
+      // Create repository for a different project (not the one we're trying to delete)
+      await db.insert(githubRepos).values({
+        projectId: "different-project",
+        installationId,
+        repoName: "different-repo",
+        repoId: 111111,
+      });
 
       const request = new NextRequest(
         "http://localhost/api/projects/test-project-123/github/repository",
@@ -267,6 +329,8 @@ describe("/api/projects/[projectId]/github/repository", () => {
       const response = await DELETE(request, context);
       const data = await response.json();
 
+      // The delete should succeed but not find any repos to delete
+      // Based on the route implementation, if no repository exists it returns 404
       expect(response.status).toBe(404);
       expect(data).toEqual({ error: "repository_not_found" });
     });
