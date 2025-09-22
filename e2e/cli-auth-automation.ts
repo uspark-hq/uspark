@@ -26,16 +26,33 @@ export async function automateCliAuth(apiHost?: string) {
     const apiUrl = apiHost || process.env.API_HOST || "http://localhost:3000";
     console.log(`📡 连接到 API: ${apiUrl}`);
 
-    // 使用 tsx 直接运行源码，避免构建问题
-    const cliPath = process.env.CLI_PATH || "/workspaces/uspark/turbo/apps/cli/src/index.ts";
-    cliProcess = spawn("tsx", [cliPath, "auth", "login"], {
-      cwd: process.cwd(),
-      stdio: ["pipe", "pipe", "pipe"],
-      env: {
-        ...process.env,
-        API_HOST: apiUrl  // 设置 API_HOST 环境变量
-      }
-    });
+    // 使用全局安装的 uspark 命令（GitHub Actions 已经通过 pnpm link 安装）
+    // 或者使用 tsx 运行源码（本地开发）
+    const useGlobalCLI = process.env.USE_GLOBAL_CLI === 'true' || process.env.CI === 'true';
+
+    if (useGlobalCLI) {
+      // 在 CI 环境或明确指定时，使用全局安装的 CLI
+      cliProcess = spawn("uspark", ["auth", "login"], {
+        cwd: process.cwd(),
+        stdio: ["pipe", "pipe", "pipe"],
+        env: {
+          ...process.env,
+          API_HOST: apiUrl  // 设置 API_HOST 环境变量
+        }
+      });
+    } else {
+      // 本地开发环境，使用 tsx 运行源码
+      const path = require("path");
+      const cliPath = process.env.CLI_PATH || path.resolve(__dirname, "../turbo/apps/cli/src/index.ts");
+      cliProcess = spawn("tsx", [cliPath, "auth", "login"], {
+        cwd: process.cwd(),
+        stdio: ["pipe", "pipe", "pipe"],
+        env: {
+          ...process.env,
+          API_HOST: apiUrl  // 设置 API_HOST 环境变量
+        }
+      });
+    }
 
     // 步骤 2: 捕获并解析设备码和 URL
     let cliOutput = "";
