@@ -108,6 +108,32 @@ export default function SettingsPage() {
               Manage shared project links and permissions
             </p>
           </Link>
+
+          <Link
+            href="/settings/claude-token"
+            style={{
+              padding: "20px",
+              border: "1px solid #e1e4e8",
+              borderRadius: "8px",
+              textDecoration: "none",
+              color: "inherit",
+              display: "block",
+              transition: "border-color 0.2s",
+            }}
+          >
+            <h2
+              style={{
+                fontSize: "1.25rem",
+                marginBottom: "8px",
+                color: "var(--foreground)",
+              }}
+            >
+              Claude OAuth Token
+            </h2>
+            <p style={{ color: "#666", margin: 0 }}>
+              Configure your Claude OAuth token for E2B execution
+            </p>
+          </Link>
         </div>
       </div>
     </>
