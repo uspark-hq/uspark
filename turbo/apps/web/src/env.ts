@@ -22,6 +22,7 @@ function initEnv() {
       GH_APP_ID: z.string().min(1),
       GH_APP_PRIVATE_KEY: z.string().min(1),
       GH_WEBHOOK_SECRET: z.string().min(1),
+      CLAUDE_TOKEN_ENCRYPTION_KEY: z.string().length(64).optional(), // 32 bytes as hex = 64 chars
     },
     client: {
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
@@ -44,6 +45,11 @@ function initEnv() {
       GH_WEBHOOK_SECRET:
         process.env.GH_WEBHOOK_SECRET ||
         (isTest ? "test_github_webhook_secret" : undefined),
+      CLAUDE_TOKEN_ENCRYPTION_KEY:
+        process.env.CLAUDE_TOKEN_ENCRYPTION_KEY ||
+        (isTest
+          ? "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          : undefined),
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
         process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
         (isTest ? "pk_test_mock_instance.clerk.accounts.dev$" : undefined),

@@ -10,7 +10,8 @@
         "scripts/*.ts",
         "src/test/setup.ts",
         "src/test/db-setup.ts",
-        "src/test/global-setup.ts"
+        "src/test/global-setup.ts",
+        "src/lib/get-user-claude-token.ts"
       ],
       "project": ["**/*.{ts,tsx}", "scripts/**/*.ts"],
       "next": {
@@ -26,9 +27,7 @@
     },
     "apps/docs": {
       "entry": ["source.config.ts"],
-      "project": ["**/*.{ts,tsx,mdx,js,mjs}"],
-      "ignoreDependencies": ["tailwindcss"],
-      "ignoreBinaries": ["fumadocs-mdx"]
+      "project": ["**/*.{ts,tsx,mdx,js,mjs}"]
     },
     "apps/workspace": {
       "entry": ["src/main.ts", "**/*.{test,btest}.ts?(x)", "vitest.setup.*.ts"],
