@@ -47,7 +47,9 @@ function initEnv() {
         (isTest ? "test_github_webhook_secret" : undefined),
       CLAUDE_TOKEN_ENCRYPTION_KEY:
         process.env.CLAUDE_TOKEN_ENCRYPTION_KEY ||
-        (isTest ? "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef" : undefined),
+        (isTest
+          ? "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          : undefined),
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:
         process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
         (isTest ? "pk_test_mock_instance.clerk.accounts.dev$" : undefined),

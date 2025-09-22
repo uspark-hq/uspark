@@ -12,17 +12,24 @@ const getEncryptionKey = (): Buffer => {
   if (!key) {
     // In development, use a deterministic key based on the environment
     // In production, this MUST be set as an environment variable
-    if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
+    if (
+      process.env.NODE_ENV === "development" ||
+      process.env.NODE_ENV === "test"
+    ) {
       // Use a stable development key (DO NOT use in production!)
       return crypto.scryptSync("development-key", "stable-salt", 32);
     }
-    throw new Error("CLAUDE_TOKEN_ENCRYPTION_KEY environment variable is required in production");
+    throw new Error(
+      "CLAUDE_TOKEN_ENCRYPTION_KEY environment variable is required in production",
+    );
   }
 
   // Ensure the key is 32 bytes (256 bits) for AES-256
   const keyBuffer = Buffer.from(key, "hex");
   if (keyBuffer.length !== 32) {
-    throw new Error("CLAUDE_TOKEN_ENCRYPTION_KEY must be 32 bytes (64 hex characters)");
+    throw new Error(
+      "CLAUDE_TOKEN_ENCRYPTION_KEY must be 32 bytes (64 hex characters)",
+    );
   }
 
   return keyBuffer;
@@ -45,7 +52,7 @@ export function encryptClaudeToken(token: string): string {
   // Encrypt the token
   const encrypted = Buffer.concat([
     cipher.update(token, "utf8"),
-    cipher.final()
+    cipher.final(),
   ]);
 
   // Get the authentication tag
@@ -58,7 +65,6 @@ export function encryptClaudeToken(token: string): string {
   // Return as base64 string for storage
   return combined.toString("base64");
 }
-
 
 /**
  * Gets the display prefix of a token (for UI display)
@@ -90,4 +96,3 @@ export function isValidClaudeToken(token: string): boolean {
 
   return true;
 }
-

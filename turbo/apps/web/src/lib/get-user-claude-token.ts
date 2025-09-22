@@ -8,14 +8,21 @@ import crypto from "crypto";
 const getEncryptionKey = (): Buffer => {
   const key = process.env.CLAUDE_TOKEN_ENCRYPTION_KEY;
   if (!key) {
-    if (process.env.NODE_ENV === "development" || process.env.NODE_ENV === "test") {
+    if (
+      process.env.NODE_ENV === "development" ||
+      process.env.NODE_ENV === "test"
+    ) {
       return crypto.scryptSync("development-key", "stable-salt", 32);
     }
-    throw new Error("CLAUDE_TOKEN_ENCRYPTION_KEY environment variable is required in production");
+    throw new Error(
+      "CLAUDE_TOKEN_ENCRYPTION_KEY environment variable is required in production",
+    );
   }
   const keyBuffer = Buffer.from(key, "hex");
   if (keyBuffer.length !== 32) {
-    throw new Error("CLAUDE_TOKEN_ENCRYPTION_KEY must be 32 bytes (64 hex characters)");
+    throw new Error(
+      "CLAUDE_TOKEN_ENCRYPTION_KEY must be 32 bytes (64 hex characters)",
+    );
   }
   return keyBuffer;
 };
@@ -31,7 +38,7 @@ function decryptClaudeToken(encryptedToken: string): string {
   decipher.setAuthTag(authTag);
   const decrypted = Buffer.concat([
     decipher.update(encrypted),
-    decipher.final()
+    decipher.final(),
   ]);
   return decrypted.toString("utf8");
 }
@@ -43,7 +50,9 @@ function decryptClaudeToken(encryptedToken: string): string {
  * @param userId - The Clerk user ID
  * @returns The decrypted Claude OAuth token or null if not found
  */
-export async function getUserClaudeToken(userId: string): Promise<string | null> {
+export async function getUserClaudeToken(
+  userId: string,
+): Promise<string | null> {
   initServices();
   const db = globalThis.services.db;
 
@@ -69,7 +78,7 @@ export async function getUserClaudeToken(userId: string): Promise<string | null>
       .set({ lastUsedAt: new Date() })
       .where(eq(CLAUDE_TOKENS_TBL.userId, userId))
       .execute()
-      .catch(err => {
+      .catch((err) => {
         console.error("Failed to update token last used timestamp:", err);
       });
 
@@ -81,11 +90,12 @@ export async function getUserClaudeToken(userId: string): Promise<string | null>
     db.update(CLAUDE_TOKENS_TBL)
       .set({
         lastErrorAt: new Date(),
-        lastErrorMessage: error instanceof Error ? error.message : "Decryption failed"
+        lastErrorMessage:
+          error instanceof Error ? error.message : "Decryption failed",
       })
       .where(eq(CLAUDE_TOKENS_TBL.userId, userId))
       .execute()
-      .catch(err => {
+      .catch((err) => {
         console.error("Failed to update token error info:", err);
       });
 

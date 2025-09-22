@@ -6,7 +6,7 @@ import { eq } from "drizzle-orm";
 import {
   encryptClaudeToken,
   getTokenPrefix,
-  isValidClaudeToken
+  isValidClaudeToken,
 } from "../../../src/lib/claude-token-crypto";
 
 /**
@@ -63,15 +63,18 @@ export async function PUT(request: NextRequest) {
   if (!token || typeof token !== "string") {
     return NextResponse.json(
       { error: "invalid_request", error_description: "Token is required" },
-      { status: 400 }
+      { status: 400 },
     );
   }
 
   // Validate token format
   if (!isValidClaudeToken(token)) {
     return NextResponse.json(
-      { error: "invalid_token", error_description: "Invalid Claude OAuth token format" },
-      { status: 400 }
+      {
+        error: "invalid_token",
+        error_description: "Invalid Claude OAuth token format",
+      },
+      { status: 400 },
     );
   }
 
@@ -96,7 +99,7 @@ export async function PUT(request: NextRequest) {
         encryptedToken,
         tokenPrefix,
         updatedAt: new Date(),
-      }
+      },
     })
     .returning({
       userId: CLAUDE_TOKENS_TBL.userId,
@@ -129,7 +132,7 @@ export async function DELETE() {
   if (result.rowCount === 0) {
     return NextResponse.json(
       { error: "not_found", error_description: "No token found" },
-      { status: 404 }
+      { status: 404 },
     );
   }
 
