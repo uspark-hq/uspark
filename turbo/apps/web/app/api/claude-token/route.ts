@@ -13,7 +13,7 @@ import {
  * GET /api/claude-token
  * Get the user's Claude token (if exists)
  */
-export async function GET(request: NextRequest) {
+export async function GET() {
   const { userId } = await auth();
 
   if (!userId) {
@@ -111,7 +111,7 @@ export async function PUT(request: NextRequest) {
  * DELETE /api/claude-token
  * Delete the user's Claude token
  */
-export async function DELETE(request: NextRequest) {
+export async function DELETE() {
   const { userId } = await auth();
 
   if (!userId) {

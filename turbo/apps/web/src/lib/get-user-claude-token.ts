@@ -1,6 +1,6 @@
 import { initServices } from "./init-services";
 import { CLAUDE_TOKENS_TBL } from "../db/schema/claude-tokens";
-import { eq, and } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { decryptClaudeToken } from "./claude-token-crypto";
 
 /**
