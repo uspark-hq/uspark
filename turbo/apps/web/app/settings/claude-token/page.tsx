@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { Navigation } from "../../components/navigation";
 
@@ -23,11 +23,7 @@ export default function ClaudeTokenPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    fetchToken();
-  }, []);
-
-  const fetchToken = async () => {
+  const fetchToken = useCallback(async () => {
     try {
       const response = await fetch("/api/claude-token");
       if (!response.ok) {
@@ -44,7 +40,11 @@ export default function ClaudeTokenPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
+
+  useEffect(() => {
+    fetchToken();
+  }, [fetchToken]);
 
   const handleSaveToken = async (e: React.FormEvent) => {
     e.preventDefault();

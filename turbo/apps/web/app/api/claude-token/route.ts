@@ -47,7 +47,7 @@ export async function GET() {
 /**
  * Validates the token from request body
  */
-function validateTokenInput(body: any): string | NextResponse {
+function validateTokenInput(body: { token?: unknown }): string | NextResponse {
   const { token } = body;
 
   if (!token || typeof token !== "string") {
