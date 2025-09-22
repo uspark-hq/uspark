@@ -145,3 +145,4 @@ if (
 ) {
   program.parse();
 }
+// Trigger CLI E2E tests
