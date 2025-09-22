@@ -8,6 +8,11 @@ dotenv.config({ path: ".env" });
 
 /**
  * 自动化 CLI 认证流程
+ *
+ * 前置条件：
+ * - CLI 必须已全局安装: cd turbo/apps/cli && pnpm link --global
+ *
+ * 步骤：
  * 1. 启动 CLI 认证命令
  * 2. 解析设备码
  * 3. 使用 Playwright 自动登录并输入码
@@ -26,9 +31,9 @@ export async function automateCliAuth(apiHost?: string) {
     const apiUrl = apiHost || process.env.API_HOST || "http://localhost:3000";
     console.log(`📡 连接到 API: ${apiUrl}`);
 
-    // 使用 tsx 直接运行源码，避免构建问题
-    const cliPath = process.env.CLI_PATH || "/workspaces/uspark/turbo/apps/cli/src/index.ts";
-    cliProcess = spawn("tsx", [cliPath, "auth", "login"], {
+    // 始终使用全局安装的 uspark 命令
+    // GitHub Actions 和本地开发都应该先通过 pnpm link --global 安装 CLI
+    cliProcess = spawn("uspark", ["auth", "login"], {
       cwd: process.cwd(),
       stdio: ["pipe", "pipe", "pipe"],
       env: {

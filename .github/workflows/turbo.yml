@@ -261,6 +261,9 @@ jobs:
       - name: Install E2E dependencies
         run: cd e2e && npm install
 
+      - name: Install Playwright browsers
+        run: cd e2e && npx playwright install chromium
+
       - name: Authenticate CLI
         run: |
           echo "Authenticating CLI with ${{ needs.deploy-web.outputs.preview-url }}"
