@@ -1,3 +1,4 @@
+// This file will be used by E2B executor to get user's Claude OAuth token
 import { initServices } from "./init-services";
 import { CLAUDE_TOKENS_TBL } from "../db/schema/claude-tokens";
 import { eq } from "drizzle-orm";
