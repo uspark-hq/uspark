@@ -5,10 +5,21 @@ import { useParams } from "next/navigation";
 import ProjectDetailPage from "../page";
 import * as Y from "yjs";
 import { server, http, HttpResponse } from "../../../../src/test/msw-setup";
+import * as yjsFilesystem from "@uspark/core/yjs-filesystem";
 
 // Mock Next.js navigation
 vi.mock("next/navigation", () => ({
   useParams: vi.fn(),
+}));
+
+// Mock yjs-filesystem functions
+vi.mock("@uspark/core/yjs-filesystem", () => ({
+  parseYjsFileSystem: vi.fn(),
+  formatFileSize: (size: number) => {
+    if (size < 1024) return `${size} B`;
+    if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  },
 }));
 
 describe("Project Detail Page", () => {
@@ -45,8 +56,93 @@ describe("Project Detail Page", () => {
       id: "test-project-123",
     });
 
-    // Set up default mock response for project API
+    // Mock yjs-filesystem functions (already mocked above)
+    vi.mocked(yjsFilesystem.parseYjsFileSystem).mockImplementation(() => ({
+      files: [
+        {
+          path: "src",
+          type: "directory",
+          children: [
+            {
+              path: "src/test.ts",
+              type: "file",
+              hash: "hash1",
+              size: 100,
+              mtime: Date.now(),
+            },
+            {
+              path: "src/components",
+              type: "directory",
+              children: [
+                {
+                  path: "src/components/Button.tsx",
+                  type: "file",
+                  hash: "hash2",
+                  size: 200,
+                  mtime: Date.now(),
+                },
+              ],
+            },
+          ],
+        },
+        {
+          path: "package.json",
+          type: "file",
+          hash: "hash3",
+          size: 150,
+          mtime: Date.now(),
+        },
+        {
+          path: "README.md",
+          type: "file",
+          hash: "hash4",
+          size: 300,
+          mtime: Date.now(),
+        },
+      ],
+      totalSize: 750,
+      fileCount: 4,
+    }));
+
+    // Set up MSW handlers for blob storage and API
     const mockYjsData = createMockYjsDocument();
+
+    // Mock blob storage responses
+    const setupBlobHandlers = () => {
+      const contentMap: Record<string, string> = {
+        hash1: `// src/test.ts\nexport function Component() {\n  return <div>Hello from src/test.ts</div>;\n}`,
+        hash2: `// src/components/Button.tsx\nexport function Component() {\n  return <div>Hello from src/components/Button.tsx</div>;\n}`,
+        hash3: JSON.stringify(
+          {
+            name: "example-project",
+            version: "1.0.0",
+            description: "Content for package.json",
+          },
+          null,
+          2,
+        ),
+        hash4: `# README.md\n\nThis is a markdown file.\n\n## Features\n\n- Feature 1\n- Feature 2\n- Feature 3`,
+      };
+
+      // Mock direct blob storage URLs
+      Object.entries(contentMap).forEach(([hash, content]) => {
+        server.use(
+          http.get(
+            `https://test-store.public.blob.vercel-storage.com/${hash}`,
+            () => {
+              return new HttpResponse(content, {
+                headers: {
+                  "Content-Type": "text/plain",
+                },
+              });
+            },
+          ),
+        );
+      });
+    };
+
+    setupBlobHandlers();
+
     server.use(
       http.get("*/api/projects/:projectId", () => {
         return HttpResponse.arrayBuffer(mockYjsData, {
@@ -55,36 +151,11 @@ describe("Project Detail Page", () => {
           },
         });
       }),
-      // Mock file content API endpoints
-      http.get("*/api/projects/:projectId/files/*", ({ request }) => {
-        const url = new URL(request.url);
-        const filePath = url.pathname.split("/files/")[1];
-
-        if (!filePath) {
-          return HttpResponse.json({ content: "", hash: "mock-hash" });
-        }
-
-        // Return mock content based on file extension
-        let content = "";
-        if (filePath.endsWith(".ts") || filePath.endsWith(".tsx")) {
-          content = `// ${decodeURIComponent(filePath)}\nexport function Component() {\n  return <div>Hello from ${decodeURIComponent(filePath)}</div>;\n}`;
-        } else if (filePath.endsWith(".json")) {
-          content = JSON.stringify(
-            {
-              name: "example-project",
-              version: "1.0.0",
-              description: `Content for ${decodeURIComponent(filePath)}`,
-            },
-            null,
-            2,
-          );
-        } else if (filePath.endsWith(".md")) {
-          content = `# ${decodeURIComponent(filePath)}\n\nThis is a markdown file.\n\n## Features\n\n- Feature 1\n- Feature 2\n- Feature 3`;
-        } else {
-          content = `Content of ${decodeURIComponent(filePath)}\n\nThis is sample file content.`;
-        }
-
-        return HttpResponse.json({ content, hash: "mock-hash" });
+      // Mock blob store endpoint
+      http.get("*/api/blob-store", () => {
+        return HttpResponse.json({
+          storeId: "test-store",
+        });
       }),
     );
   });

@@ -5,6 +5,8 @@ import { useParams } from "next/navigation";
 import { YjsFileExplorer } from "../../components/file-explorer";
 import { GitHubSyncButton } from "../../components/github-sync-button";
 import { ChatInterface } from "../../components/claude-chat/chat-interface";
+import { parseYjsFileSystem } from "@uspark/core/yjs-filesystem";
+import type { FileItem } from "@uspark/core/yjs-filesystem";
 
 export default function ProjectDetailPage() {
   const params = useParams();
@@ -14,30 +16,104 @@ export default function ProjectDetailPage() {
   const [loadingContent, setLoadingContent] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
   const [showShareSuccess, setShowShareSuccess] = useState(false);
+  const [storeId, setStoreId] = useState<string>();
+  const [projectFiles, setProjectFiles] = useState<FileItem[]>([]);
   const shareSuccessTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load real file content from API
+  // Load store ID on mount
+  useEffect(() => {
+    async function loadStoreId() {
+      try {
+        const response = await fetch("/api/blob-store");
+        if (response.ok) {
+          const data = await response.json();
+          setStoreId(data.storeId);
+        }
+      } catch (error) {
+        console.error("Failed to load store ID:", error);
+      }
+    }
+
+    loadStoreId();
+  }, []);
+
+  // Load project files to get hash mapping
+  useEffect(() => {
+    async function loadProjectFiles() {
+      try {
+        const response = await fetch(`/api/projects/${projectId}`);
+        if (response.ok) {
+          const binaryData = await response.arrayBuffer();
+          const yjsData = new Uint8Array(binaryData);
+          const { files } = parseYjsFileSystem(yjsData);
+          setProjectFiles(files);
+        }
+      } catch (error) {
+        console.error("Failed to load project files:", error);
+      }
+    }
+
+    if (projectId) {
+      loadProjectFiles();
+    }
+  }, [projectId]);
+
+  // Find file hash from path
+  const findFileHash = useCallback(
+    (path: string, items: FileItem[]): string | undefined => {
+      for (const item of items) {
+        if (item.path === path && item.type === "file") {
+          return item.hash;
+        }
+        if (item.children) {
+          const hash = findFileHash(path, item.children);
+          if (hash) return hash;
+        }
+      }
+      return undefined;
+    },
+    [],
+  );
+
+  // Load file content from blob storage
   const loadFileContent = useCallback(
     async (filePath: string) => {
+      if (!storeId) {
+        console.error("Store ID not loaded");
+        setFileContent("");
+        return;
+      }
+
       setLoadingContent(true);
 
       try {
-        // Split the path and encode each segment for the catch-all route
-        const pathSegments = filePath
-          .split("/")
-          .map(encodeURIComponent)
-          .join("/");
-        const response = await fetch(
-          `/api/projects/${projectId}/files/${pathSegments}`,
-        );
+        // Find the file hash from the file path
+        const fileHash = findFileHash(filePath, projectFiles);
 
-        if (response.ok) {
-          const data = await response.json();
-          setFileContent(data.content || "");
-        } else {
-          console.error(`Failed to load file content: ${response.statusText}`);
+        if (!fileHash) {
+          console.error(`File hash not found for: ${filePath}`);
           setFileContent("");
+          return;
         }
+
+        // Construct public blob URL
+        const blobUrl = `https://${storeId}.public.blob.vercel-storage.com/${fileHash}`;
+
+        // Download content directly from blob storage (no auth needed for public blobs)
+        const response = await fetch(blobUrl);
+
+        if (!response.ok) {
+          if (response.status === 404) {
+            console.error(`File not found in blob storage: ${fileHash}`);
+          } else {
+            console.error(`Failed to download file: ${response.statusText}`);
+          }
+          setFileContent("");
+          return;
+        }
+
+        const content = await response.text();
+        setFileContent(content || "");
       } catch (error) {
         console.error("Error loading file content:", error);
         setFileContent("");
@@ -45,7 +121,7 @@ export default function ProjectDetailPage() {
         setLoadingContent(false);
       }
     },
-    [projectId],
+    [storeId, projectFiles, findFileHash],
   );
 
   useEffect(() => {
