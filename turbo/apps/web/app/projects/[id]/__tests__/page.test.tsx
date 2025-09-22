@@ -48,16 +48,16 @@ describe("Project Detail Page", () => {
     return new Uint8Array(update).buffer;
   };
 
-  beforeEach(() => {
+  beforeEach(async () => {
     vi.clearAllMocks();
     (useParams as ReturnType<typeof vi.fn>).mockReturnValue({
       id: "test-project-123",
     });
 
     // Mock yjs-filesystem functions
-    const { parseYjsFileSystem } = vi.mocked(await import("@uspark/core/yjs-filesystem"));
+    const mockYjsModule = await import("@uspark/core/yjs-filesystem");
 
-    parseYjsFileSystem.mockImplementation(() => ({
+    vi.mocked(mockYjsModule.parseYjsFileSystem).mockImplementation(() => ({
       files: [
         {
           path: "src",

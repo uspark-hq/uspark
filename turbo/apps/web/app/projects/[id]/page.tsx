@@ -12,7 +12,6 @@ export default function ProjectDetailPage() {
   const params = useParams();
   const projectId = params.id as string;
   const [selectedFile, setSelectedFile] = useState<string>();
-  const [selectedFileHash, setSelectedFileHash] = useState<string>();
   const [fileContent, setFileContent] = useState<string>();
   const [loadingContent, setLoadingContent] = useState(false);
   const [isSharing, setIsSharing] = useState(false);
@@ -94,7 +93,6 @@ export default function ProjectDetailPage() {
           return;
         }
 
-        setSelectedFileHash(fileHash);
 
         // Construct public blob URL
         const blobUrl = `https://${storeId}.public.blob.vercel-storage.com/${fileHash}`;
