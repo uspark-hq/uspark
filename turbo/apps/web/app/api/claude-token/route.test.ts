@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import { GET, PUT, DELETE } from "./route";
 import { NextRequest } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../src/lib/init-services";
 import { CLAUDE_TOKENS_TBL } from "../../../src/db/schema/claude-tokens";
 
 // Mock dependencies
-vi.mock("@clerk/nextjs/server", () => ({
-  auth: vi.fn(),
+vi.mock("../../../src/lib/auth-middleware", () => ({
+  withAuth: vi.fn(),
+  isErrorResponse: vi.fn(),
 }));
 
 vi.mock("../../../src/lib/init-services", () => ({
@@ -42,13 +42,14 @@ describe("/api/claude-token", () => {
 
   describe("GET /api/claude-token", () => {
     it("should return 401 when not authenticated", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null } as any);
+      const { withAuth, isErrorResponse } = await import("../../../src/lib/auth-middleware");
+      const mockErrorResponse = new Response(JSON.stringify({ error: "unauthorized" }), { status: 401 });
+      vi.mocked(withAuth).mockResolvedValue(mockErrorResponse as any);
+      vi.mocked(isErrorResponse).mockReturnValue(true);
 
       const response = await GET();
-      const data = await response.json();
 
-      expect(response.status).toBe(401);
-      expect(data).toEqual({ error: "unauthorized" });
+      expect(response).toBe(mockErrorResponse);
     });
 
     it("should return null when no token exists", async () => {

@@ -6,7 +6,7 @@ import crypto from "crypto";
  */
 
 // Get encryption key from environment or generate a stable one for development
-const getEncryptionKey = (): Buffer => {
+export const getEncryptionKey = (): Buffer => {
   const key = process.env.CLAUDE_TOKEN_ENCRYPTION_KEY;
 
   if (!key) {

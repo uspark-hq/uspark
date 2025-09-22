@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../src/lib/init-services";
 import { CLAUDE_TOKENS_TBL } from "../../../src/db/schema/claude-tokens";
 import { eq } from "drizzle-orm";
@@ -8,17 +7,17 @@ import {
   getTokenPrefix,
   isValidClaudeToken,
 } from "../../../src/lib/claude-token-crypto";
+import { withAuth, isErrorResponse } from "../../../src/lib/auth-middleware";
 
 /**
  * GET /api/claude-token
  * Get the user's Claude token (if exists)
  */
 export async function GET() {
-  const { userId } = await auth();
+  const auth = await withAuth();
+  if (isErrorResponse(auth)) return auth;
 
-  if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
+  const { userId } = auth;
 
   initServices();
   const db = globalThis.services.db;
@@ -46,20 +45,11 @@ export async function GET() {
 }
 
 /**
- * PUT /api/claude-token
- * Set or update the user's Claude token (upsert)
+ * Validates the token from request body
  */
-export async function PUT(request: NextRequest) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
-  const body = await request.json();
+function validateTokenInput(body: any): string | NextResponse {
   const { token } = body;
 
-  // Validate input
   if (!token || typeof token !== "string") {
     return NextResponse.json(
       { error: "invalid_request", error_description: "Token is required" },
@@ -67,7 +57,6 @@ export async function PUT(request: NextRequest) {
     );
   }
 
-  // Validate token format
   if (!isValidClaudeToken(token)) {
     return NextResponse.json(
       {
@@ -78,15 +67,18 @@ export async function PUT(request: NextRequest) {
     );
   }
 
-  initServices();
-  const db = globalThis.services.db;
+  return token;
+}
 
-  // Encrypt the token
+/**
+ * Upserts a token for the given user
+ */
+async function upsertToken(userId: string, token: string) {
+  const db = globalThis.services.db;
   const encryptedToken = encryptClaudeToken(token);
   const tokenPrefix = getTokenPrefix(token);
 
-  // Upsert the token (insert or update)
-  const result = await db
+  return db
     .insert(CLAUDE_TOKENS_TBL)
     .values({
       userId,
@@ -106,6 +98,24 @@ export async function PUT(request: NextRequest) {
       tokenPrefix: CLAUDE_TOKENS_TBL.tokenPrefix,
       updatedAt: CLAUDE_TOKENS_TBL.updatedAt,
     });
+}
+
+/**
+ * PUT /api/claude-token
+ * Set or update the user's Claude token (upsert)
+ */
+export async function PUT(request: NextRequest) {
+  const auth = await withAuth();
+  if (isErrorResponse(auth)) return auth;
+
+  const { userId } = auth;
+  const body = await request.json();
+
+  const tokenOrError = validateTokenInput(body);
+  if (tokenOrError instanceof NextResponse) return tokenOrError;
+
+  initServices();
+  const result = await upsertToken(userId, tokenOrError);
 
   return NextResponse.json({ token: result[0] });
 }
@@ -115,11 +125,10 @@ export async function PUT(request: NextRequest) {
  * Delete the user's Claude token
  */
 export async function DELETE() {
-  const { userId } = await auth();
+  const auth = await withAuth();
+  if (isErrorResponse(auth)) return auth;
 
-  if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
+  const { userId } = auth;
 
   initServices();
   const db = globalThis.services.db;

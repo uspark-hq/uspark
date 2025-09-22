@@ -3,29 +3,7 @@ import { initServices } from "./init-services";
 import { CLAUDE_TOKENS_TBL } from "../db/schema/claude-tokens";
 import { eq } from "drizzle-orm";
 import crypto from "crypto";
-
-// Get encryption key from environment
-const getEncryptionKey = (): Buffer => {
-  const key = process.env.CLAUDE_TOKEN_ENCRYPTION_KEY;
-  if (!key) {
-    if (
-      process.env.NODE_ENV === "development" ||
-      process.env.NODE_ENV === "test"
-    ) {
-      return crypto.scryptSync("development-key", "stable-salt", 32);
-    }
-    throw new Error(
-      "CLAUDE_TOKEN_ENCRYPTION_KEY environment variable is required in production",
-    );
-  }
-  const keyBuffer = Buffer.from(key, "hex");
-  if (keyBuffer.length !== 32) {
-    throw new Error(
-      "CLAUDE_TOKEN_ENCRYPTION_KEY must be 32 bytes (64 hex characters)",
-    );
-  }
-  return keyBuffer;
-};
+import { getEncryptionKey } from "./claude-token-crypto";
 
 // Internal function to decrypt tokens
 function decryptClaudeToken(encryptedToken: string): string {
