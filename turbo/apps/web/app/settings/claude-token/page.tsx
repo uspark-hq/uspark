@@ -63,7 +63,7 @@ export default function ClaudeTokenPage() {
 
       if (!response.ok) {
         throw new Error(
-          data.error_description || data.error || "Failed to save token"
+          data.error_description || data.error || "Failed to save token",
         );
       }
 
@@ -94,7 +94,7 @@ export default function ClaudeTokenPage() {
       if (!response.ok) {
         const data = await response.json();
         throw new Error(
-          data.error_description || data.error || "Failed to delete token"
+          data.error_description || data.error || "Failed to delete token",
         );
       }
 
@@ -188,11 +188,17 @@ export default function ClaudeTokenPage() {
             }}
           >
             <h2
-              style={{ fontSize: "1.25rem", marginBottom: "16px", color: "var(--foreground)" }}
+              style={{
+                fontSize: "1.25rem",
+                marginBottom: "16px",
+                color: "var(--foreground)",
+              }}
             >
               Current Token
             </h2>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+            >
               <div>
                 <strong>Token:</strong>{" "}
                 <code
@@ -236,8 +242,12 @@ export default function ClaudeTokenPage() {
                 cursor: "pointer",
                 fontSize: "14px",
               }}
-              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#c82333")}
-              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#dc3545")}
+              onMouseOver={(e) =>
+                (e.currentTarget.style.backgroundColor = "#c82333")
+              }
+              onMouseOut={(e) =>
+                (e.currentTarget.style.backgroundColor = "#dc3545")
+              }
             >
               Delete Token
             </button>
@@ -266,7 +276,11 @@ export default function ClaudeTokenPage() {
           }}
         >
           <h2
-            style={{ fontSize: "1.25rem", marginBottom: "16px", color: "var(--foreground)" }}
+            style={{
+              fontSize: "1.25rem",
+              marginBottom: "16px",
+              color: "var(--foreground)",
+            }}
           >
             {token ? "Update Token" : "Add Token"}
           </h2>
@@ -294,7 +308,9 @@ export default function ClaudeTokenPage() {
               required
               minLength={30}
             />
-            <small style={{ color: "#666", marginTop: "4px", display: "block" }}>
+            <small
+              style={{ color: "#666", marginTop: "4px", display: "block" }}
+            >
               Generate this token by running{" "}
               <code
                 style={{

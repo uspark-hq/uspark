@@ -63,8 +63,7 @@
     "dist/**",
     "build/**",
     "coverage/**",
-    "**/drizzle.config.ts",
-    "**/get-user-claude-token.ts"
+    "**/drizzle.config.ts"
   ],
   "ignoreWorkspaces": [],
   "ignoreUnresolved": [
