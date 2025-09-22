@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.28.0](https://github.com/uspark-hq/uspark/compare/web-v0.27.0...web-v0.28.0) (2025-09-22)
+
+
+### Features
+
+* implement claude oauth token storage for e2b execution ([#347](https://github.com/uspark-hq/uspark/issues/347)) ([a40a280](https://github.com/uspark-hq/uspark/commit/a40a280bbd1dc081d2fe42b1aa4e6475e32b8e8d))
+
+
+### Bug Fixes
+
+* cli e2e authentication path issue in github actions ([#351](https://github.com/uspark-hq/uspark/issues/351)) ([906a8ec](https://github.com/uspark-hq/uspark/commit/906a8ecb0a2b97c6d31a27cdb155c2e7aa85b63d))
+
 ## [0.27.0](https://github.com/uspark-hq/uspark/compare/web-v0.26.2...web-v0.27.0) (2025-09-20)
 
 

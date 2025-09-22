@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.1](https://github.com/uspark-hq/uspark/compare/cli-v0.10.0...cli-v0.10.1) (2025-09-22)
+
+
+### Bug Fixes
+
+* cli e2e authentication path issue in github actions ([#351](https://github.com/uspark-hq/uspark/issues/351)) ([906a8ec](https://github.com/uspark-hq/uspark/commit/906a8ecb0a2b97c6d31a27cdb155c2e7aa85b63d))
+
 ## [0.10.0](https://github.com/uspark-hq/uspark/compare/cli-v0.9.4...cli-v0.10.0) (2025-09-20)
 
 
