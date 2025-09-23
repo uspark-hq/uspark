@@ -73,12 +73,12 @@ export class E2BExecutor {
     }
 
     const sandbox = await Sandbox.create(this.TEMPLATE_ID, {
-      timeout: this.SANDBOX_TIMEOUT,
+      timeoutMs: this.SANDBOX_TIMEOUT * 1000,
       metadata: {
         sessionId,
         projectId,
         userId,
-      } as SandboxMetadata,
+      } as Record<string, string>,
       envs: {
         PROJECT_ID: projectId,
         USPARK_TOKEN: process.env.USPARK_TOKEN || "",
@@ -155,11 +155,11 @@ export class E2BExecutor {
           const lines = buffer.split("\n");
 
           // Keep potentially incomplete last line
-          buffer = lines[lines.length - 1];
+          buffer = lines[lines.length - 1] || "";
 
           // Process complete lines
           for (let i = 0; i < lines.length - 1; i++) {
-            const line = lines[i].trim();
+            const line = lines[i]?.trim();
             if (line) {
               try {
                 const block = JSON.parse(line);
@@ -207,8 +207,8 @@ export class E2BExecutor {
         error: result.stderr,
         exitCode: result.exitCode,
         blocks: blocks,
-        totalCost: resultBlock?.total_cost_usd,
-        usage: resultBlock?.usage,
+        totalCost: resultBlock?.total_cost_usd as number | undefined,
+        usage: resultBlock?.usage as Record<string, unknown> | undefined,
       };
     } catch (error) {
       console.error("Claude execution error:", error);

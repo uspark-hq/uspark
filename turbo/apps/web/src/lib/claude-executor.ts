@@ -55,13 +55,16 @@ export class ClaudeExecutor {
           // Save different types of blocks
           if (block.type === "assistant") {
             // Assistant response block
-            const content = block.message?.content?.[0];
+            const message = block.message as {
+              content?: Array<Record<string, unknown>>;
+            };
+            const content = message?.content?.[0];
             if (content?.type === "text") {
               await this.saveBlock(
                 turnId,
                 {
                   type: "content",
-                  text: content.text,
+                  text: content.text as string,
                 },
                 sequenceNumber++,
               );
@@ -70,9 +73,9 @@ export class ClaudeExecutor {
                 turnId,
                 {
                   type: "tool_use",
-                  tool_name: content.name,
-                  parameters: content.input,
-                  tool_use_id: content.id,
+                  tool_name: content.name as string,
+                  parameters: content.input as Record<string, unknown>,
+                  tool_use_id: content.id as string,
                 },
                 sequenceNumber++,
               );
@@ -83,7 +86,7 @@ export class ClaudeExecutor {
               turnId,
               {
                 type: "tool_result",
-                tool_use_id: block.tool_use_id,
+                tool_use_id: block.tool_use_id as string,
                 result: block.content,
                 error: block.is_error ? block.content : null,
               },
@@ -96,11 +99,6 @@ export class ClaudeExecutor {
               .set({
                 status: "completed",
                 completedAt: new Date(),
-                metadata: {
-                  totalCost: block.total_cost_usd,
-                  usage: block.usage,
-                  duration: block.duration_ms,
-                },
               })
               .where(eq(TURNS_TBL.id, turnId));
           }
@@ -168,7 +166,7 @@ export class ClaudeExecutor {
       };
     } else {
       // Unknown block type, store as-is
-      blockType = blockData.type || "unknown";
+      blockType = (blockData.type as string) || "unknown";
       blockContent = blockData;
     }
 
