@@ -9,6 +9,7 @@ const getApiUrl = () => process.env.API_HOST || "https://www.uspark.ai";
 
 const program = new Command();
 
+// CLI configuration and version
 program
   .name("uspark")
   .description("uSpark CLI - A modern build tool")

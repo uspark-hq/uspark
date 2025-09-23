@@ -18,34 +18,26 @@ export async function GET() {
   initServices();
   const db = globalThis.services.db;
 
-  try {
-    // Find the user's GitHub installation
-    const installations = await db
-      .select()
-      .from(githubInstallations)
-      .where(eq(githubInstallations.userId, userId))
-      .limit(1);
+  // Find the user's GitHub installation
+  const installations = await db
+    .select()
+    .from(githubInstallations)
+    .where(eq(githubInstallations.userId, userId))
+    .limit(1);
 
-    if (installations.length === 0) {
-      return NextResponse.json({ installation: null });
-    }
-
-    const installation = installations[0]!;
-
-    return NextResponse.json({
-      installation: {
-        installationId: installation.installationId,
-        accountName: installation.accountName,
-        accountType: "user", // Default to user, can be enhanced later
-        createdAt: installation.createdAt,
-        repositorySelection: "selected", // Default value, can be enhanced later
-      },
-    });
-  } catch (error) {
-    console.error("Error fetching installation status:", error);
-    return NextResponse.json(
-      { error: "Failed to fetch installation status" },
-      { status: 500 },
-    );
+  if (installations.length === 0) {
+    return NextResponse.json({ installation: null });
   }
+
+  const installation = installations[0]!;
+
+  return NextResponse.json({
+    installation: {
+      installationId: installation.installationId,
+      accountName: installation.accountName,
+      accountType: "user", // Default to user, can be enhanced later
+      createdAt: installation.createdAt,
+      repositorySelection: "selected", // Default value, can be enhanced later
+    },
+  });
 }

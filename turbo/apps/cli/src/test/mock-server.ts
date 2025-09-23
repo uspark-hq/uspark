@@ -166,7 +166,18 @@ global.fetch = async (url: string | URL | Request, init?: RequestInit) => {
     const match = urlStr.match(/projects\/([^/]+)\/([^/]+)$/);
     if (match && match[2]) {
       const hash = match[2];
-      const content = mockServer.getBlobContent(hash);
+      let content = mockServer.getBlobContent(hash);
+
+      // Also check global blob storage (used by tests)
+      if (
+        content === undefined &&
+        (global as unknown as { __blobStorage?: Map<string, string> })
+          .__blobStorage
+      ) {
+        content = (
+          global as unknown as { __blobStorage: Map<string, string> }
+        ).__blobStorage.get(hash);
+      }
 
       if (content !== undefined) {
         return new Response(content, {

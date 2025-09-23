@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.28.1](https://github.com/uspark-hq/uspark/compare/web-v0.28.0...web-v0.28.1) (2025-09-22)
+
+
+### Bug Fixes
+
+* require CLAUDE_TOKEN_ENCRYPTION_KEY env var and update workflows ([#354](https://github.com/uspark-hq/uspark/issues/354)) ([d63bc90](https://github.com/uspark-hq/uspark/commit/d63bc90707bcd0241bde9aa26ca3a04a6e00a8b9))
+
 ## [0.28.0](https://github.com/uspark-hq/uspark/compare/web-v0.27.0...web-v0.28.0) (2025-09-22)
 
 

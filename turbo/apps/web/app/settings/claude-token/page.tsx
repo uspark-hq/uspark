@@ -293,7 +293,7 @@ export default function ClaudeTokenPage() {
             </label>
             <input
               id="token"
-              type="password"
+              type="text"
               value={newToken}
               onChange={(e) => setNewToken(e.target.value)}
               placeholder="Enter your Claude OAuth token"
@@ -307,6 +307,8 @@ export default function ClaudeTokenPage() {
               }}
               required
               minLength={30}
+              autoComplete="off"
+              spellCheck={false}
             />
             <small
               style={{ color: "#666", marginTop: "4px", display: "block" }}

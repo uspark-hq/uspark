@@ -106,9 +106,9 @@ describe("Mock Execute API", () => {
       .from(TURNS_TBL)
       .where(eq(TURNS_TBL.sessionId, mockSessionId));
     expect(turns.length).toBe(1);
-    expect(turns[0].userPrompt).toBe("Hello Claude!");
+    expect(turns[0]!.userPrompt).toBe("Hello Claude!");
     // Mock executor immediately changes status to in_progress
-    expect(["pending", "in_progress", "completed"]).toContain(turns[0].status);
+    expect(["pending", "in_progress", "completed"]).toContain(turns[0]!.status);
   });
 
   it("should return 401 if user is not authenticated", async () => {
