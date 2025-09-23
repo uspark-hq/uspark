@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.29.0](https://github.com/uspark-hq/uspark/compare/web-v0.28.1...web-v0.29.0) (2025-09-23)
+
+
+### Features
+
+* implement e2b claude execution with oauth tokens ([#357](https://github.com/uspark-hq/uspark/issues/357)) ([806c693](https://github.com/uspark-hq/uspark/commit/806c6934d62a3f9c73885d937a5fcce13eda5f8f))
+
+
+### Bug Fixes
+
+* correct test environment variable priority in web app ([#360](https://github.com/uspark-hq/uspark/issues/360)) ([5bcdaaa](https://github.com/uspark-hq/uspark/commit/5bcdaaa7cb1dfa63a2a04444bdacf38f939358fb))
+
 ## [0.28.1](https://github.com/uspark-hq/uspark/compare/web-v0.28.0...web-v0.28.1) (2025-09-22)
 
 ### Bug Fixes

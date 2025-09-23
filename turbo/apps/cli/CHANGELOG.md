@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.2](https://github.com/uspark-hq/uspark/compare/cli-v0.10.1...cli-v0.10.2) (2025-09-23)
+
+
+### Bug Fixes
+
+* resolve cli push bug that only uploaded one blob for multiple files ([#358](https://github.com/uspark-hq/uspark/issues/358)) ([e51d046](https://github.com/uspark-hq/uspark/commit/e51d04603b9278e1451d0316eb0f06ac045fc1f9))
+
 ## [0.10.1](https://github.com/uspark-hq/uspark/compare/cli-v0.10.0...cli-v0.10.1) (2025-09-22)
 
 
