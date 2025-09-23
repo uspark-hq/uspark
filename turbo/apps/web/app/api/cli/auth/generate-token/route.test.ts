@@ -7,6 +7,8 @@ import {
   GenerateTokenErrorSchema,
 } from "@uspark/core";
 import { createTestCLIToken } from "../../../../../src/test/db-test-utils";
+import { CLI_TOKENS_TBL } from "../../../../../src/db/schema/cli-tokens";
+import { eq } from "drizzle-orm";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({

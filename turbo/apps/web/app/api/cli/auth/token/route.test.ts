@@ -13,6 +13,7 @@ import {
   updateDeviceCodeStatus,
   setDeviceCodeExpired,
 } from "../../../../../src/test/db-test-utils";
+import { initServices } from "../../../../../src/lib/init-services";
 
 describe("/api/cli/auth/token", () => {
   async function createDeviceCode(): Promise<string> {
