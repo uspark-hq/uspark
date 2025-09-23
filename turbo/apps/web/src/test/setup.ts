@@ -77,12 +77,22 @@ vi.mock("e2b", () => ({
             if (command.includes("claude") && options?.onStdout) {
               // Simulate streaming Claude output blocks
               const blocks = [
-                JSON.stringify({ type: "assistant", message: { content: [{ type: "text", text: "Mock response" }] } }),
-                JSON.stringify({ type: "result", total_cost_usd: 0.001, usage: { input_tokens: 10, output_tokens: 20 }, duration_ms: 100 })
+                JSON.stringify({
+                  type: "assistant",
+                  message: {
+                    content: [{ type: "text", text: "Mock response" }],
+                  },
+                }),
+                JSON.stringify({
+                  type: "result",
+                  total_cost_usd: 0.001,
+                  usage: { input_tokens: 10, output_tokens: 20 },
+                  duration_ms: 100,
+                }),
               ];
 
               // Call onStdout for each block to simulate streaming
-              blocks.forEach(block => {
+              blocks.forEach((block) => {
                 options.onStdout(block + "\n");
               });
             }
@@ -113,12 +123,22 @@ vi.mock("e2b", () => ({
             if (command.includes("claude") && options?.onStdout) {
               // Simulate streaming Claude output blocks
               const blocks = [
-                JSON.stringify({ type: "assistant", message: { content: [{ type: "text", text: "Mock response" }] } }),
-                JSON.stringify({ type: "result", total_cost_usd: 0.001, usage: { input_tokens: 10, output_tokens: 20 }, duration_ms: 100 })
+                JSON.stringify({
+                  type: "assistant",
+                  message: {
+                    content: [{ type: "text", text: "Mock response" }],
+                  },
+                }),
+                JSON.stringify({
+                  type: "result",
+                  total_cost_usd: 0.001,
+                  usage: { input_tokens: 10, output_tokens: 20 },
+                  duration_ms: 100,
+                }),
               ];
 
               // Call onStdout for each block to simulate streaming
-              blocks.forEach(block => {
+              blocks.forEach((block) => {
                 options.onStdout(block + "\n");
               });
             }
