@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.1](https://github.com/uspark-hq/uspark/compare/web-v0.29.0...web-v0.29.1) (2025-09-23)
+
+
+### Bug Fixes
+
+* use consistent sha256 content hash in web interface ([#363](https://github.com/uspark-hq/uspark/issues/363)) ([e5ab12a](https://github.com/uspark-hq/uspark/commit/e5ab12a1cdd00c4feb9fa253e55bb04105241ec4))
+
 ## [0.29.0](https://github.com/uspark-hq/uspark/compare/web-v0.28.1...web-v0.29.0) (2025-09-23)
 
 
