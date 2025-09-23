@@ -49,8 +49,8 @@ describe("POST /api/github/disconnect", () => {
   it("successfully disconnects GitHub installation and deletes repos", async () => {
     // Insert test installation
     const installationId = `install-${testUserId}-1`;
-    const ghInstallationId =
-      1000000000 + Math.floor(Math.random() * 1000000000);
+    // Keep within PostgreSQL integer limit (max 2,147,483,647)
+    const ghInstallationId = 1000000000 + Math.floor(Math.random() * 100000000);
     await globalThis.services.db.insert(githubInstallations).values({
       id: installationId,
       userId: testUserId,
@@ -103,10 +103,11 @@ describe("POST /api/github/disconnect", () => {
 
   it("only disconnects the current user's installation", async () => {
     const otherUserId = `other-user-${Date.now()}`;
+    // Keep within PostgreSQL integer limit (max 2,147,483,647)
     const otherGhInstallationId =
-      2000000000 + Math.floor(Math.random() * 1000000000);
+      1200000000 + Math.floor(Math.random() * 100000000);
     const testGhInstallationId =
-      3000000000 + Math.floor(Math.random() * 1000000000);
+      1400000000 + Math.floor(Math.random() * 100000000);
 
     // Insert installation for another user
     await globalThis.services.db.insert(githubInstallations).values({
@@ -155,8 +156,8 @@ describe("POST /api/github/disconnect", () => {
 
   it("handles case when installation has no repos", async () => {
     // Insert test installation without any repos
-    const ghInstallationId =
-      4000000000 + Math.floor(Math.random() * 1000000000);
+    // Keep within PostgreSQL integer limit (max 2,147,483,647)
+    const ghInstallationId = 1600000000 + Math.floor(Math.random() * 100000000);
     await globalThis.services.db.insert(githubInstallations).values({
       id: `install-${testUserId}-3`,
       userId: testUserId,

@@ -28,8 +28,8 @@ describe("/api/github/setup", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    // Generate highly unique installation ID for each test
-    // Using large random range (1 billion to 2 billion) to avoid conflicts
+    // Generate unique installation ID for each test
+    // Keep within PostgreSQL integer limit (max 2,147,483,647)
     const uniqueId = 1000000000 + Math.floor(Math.random() * 1000000000);
     installationId = uniqueId.toString();
 
