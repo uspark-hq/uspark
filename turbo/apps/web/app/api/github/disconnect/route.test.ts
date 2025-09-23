@@ -1,7 +1,6 @@
 import { POST } from "./route";
 import { auth } from "@clerk/nextjs/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { initServices } from "../../../../src/lib/init-services";
 import {
   githubInstallations,
   githubRepos,
@@ -17,16 +16,9 @@ const mockAuth = vi.mocked(auth);
 
 describe("POST /api/github/disconnect", () => {
   const testUserId = `test-user-gh-disconnect-${Date.now()}-${process.pid}`;
-  const baseInstallationId = Math.floor(Date.now() / 1000); // Use timestamp as base for unique IDs
 
   beforeEach(async () => {
-    // Initialize real database connection
-    initServices();
-
-    // Clean up any existing test data for this test user
-    await globalThis.services.db
-      .delete(githubInstallations)
-      .where(eq(githubInstallations.userId, testUserId));
+    // Each test gets a fresh database, so no cleanup needed
 
     // Default to authenticated user
     mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<
@@ -57,7 +49,8 @@ describe("POST /api/github/disconnect", () => {
   it("successfully disconnects GitHub installation and deletes repos", async () => {
     // Insert test installation
     const installationId = `install-${testUserId}-1`;
-    const ghInstallationId = baseInstallationId + 1;
+    // Fixed unique ID for this test
+    const ghInstallationId = 100001;
     await globalThis.services.db.insert(githubInstallations).values({
       id: installationId,
       userId: testUserId,
@@ -110,8 +103,9 @@ describe("POST /api/github/disconnect", () => {
 
   it("only disconnects the current user's installation", async () => {
     const otherUserId = `other-user-${Date.now()}`;
-    const otherGhInstallationId = baseInstallationId + 100;
-    const testGhInstallationId = baseInstallationId + 200;
+    // Fixed unique IDs for this test
+    const otherGhInstallationId = 100002;
+    const testGhInstallationId = 100003;
 
     // Insert installation for another user
     await globalThis.services.db.insert(githubInstallations).values({
@@ -160,7 +154,8 @@ describe("POST /api/github/disconnect", () => {
 
   it("handles case when installation has no repos", async () => {
     // Insert test installation without any repos
-    const ghInstallationId = baseInstallationId + 300;
+    // Fixed unique ID for this test
+    const ghInstallationId = 100004;
     await globalThis.services.db.insert(githubInstallations).values({
       id: `install-${testUserId}-3`,
       userId: testUserId,

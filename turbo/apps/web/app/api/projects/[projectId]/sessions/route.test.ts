@@ -3,10 +3,10 @@ import "../../../../../src/test/setup";
 import { GET, POST } from "./route";
 import { POST as createProject } from "../../route";
 import { apiCall } from "../../../../../src/test/api-helpers";
-import { initServices } from "../../../../../src/lib/init-services";
-import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
-import { eq } from "drizzle-orm";
-import * as Y from "yjs";
+import {
+  createTestProjectForUser,
+  cleanupTestProjects,
+} from "../../../../../src/test/db-test-utils";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -72,19 +72,10 @@ describe("/api/projects/:projectId/sessions", () => {
     });
 
     it("should return 404 when project belongs to another user", async () => {
-      // Create project for another user using direct DB (needed for different user)
-      initServices();
+      // Create project for another user using utility function
       const otherProjectId = `other-${Date.now()}`;
-      const ydoc = new Y.Doc();
-      const state = Y.encodeStateAsUpdate(ydoc);
-      const base64Data = Buffer.from(state).toString("base64");
-
-      // Direct DB insert needed here because we need to test with a different userId
-      await globalThis.services.db.insert(PROJECTS_TBL).values({
+      await createTestProjectForUser("other-user", {
         id: otherProjectId,
-        userId: "other-user",
-        ydocData: base64Data,
-        version: 0,
       });
 
       const response = await apiCall(
@@ -97,10 +88,8 @@ describe("/api/projects/:projectId/sessions", () => {
       expect(response.status).toBe(404);
       expect(response.data).toHaveProperty("error", "project_not_found");
 
-      // Clean up
-      await globalThis.services.db
-        .delete(PROJECTS_TBL)
-        .where(eq(PROJECTS_TBL.id, otherProjectId));
+      // Clean up using utility function
+      await cleanupTestProjects([otherProjectId]);
     });
 
     it("should create session with title", async () => {
