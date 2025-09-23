@@ -52,17 +52,12 @@ const mockAuth = vi.mocked(auth);
 describe("/api/projects/[projectId]/github/sync", () => {
   // Use unique IDs for each test run to avoid conflicts
   const testUserId = `test-user-github-sync-${Date.now()}-${process.pid}`;
-  let testInstallationId: number;
-  let testCounter = 0;
+  // Use fixed ID for all tests in this file since they clean up after themselves
+  const testInstallationId = 300001;
   const createdProjectIds: string[] = [];
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    testCounter++;
-    // Generate unique installation ID for each test using counter + timestamp
-    // Keep within PostgreSQL integer limit (max 2,147,483,647)
-    const timestamp = Date.now() % 1000000; // Last 6 digits of timestamp
-    testInstallationId = 1500000000 + testCounter * 10000000 + timestamp;
 
     // Set up environment for blob storage
     process.env.BLOB_READ_WRITE_TOKEN = "vercel_blob_rw_test_store_id_secret";

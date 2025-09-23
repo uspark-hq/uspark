@@ -16,11 +16,9 @@ const mockAuth = vi.mocked(auth);
 
 describe("POST /api/github/disconnect", () => {
   const testUserId = `test-user-gh-disconnect-${Date.now()}-${process.pid}`;
-  let testCounter = 0;
 
   beforeEach(async () => {
     // Each test gets a fresh database, so no cleanup needed
-    testCounter++; // Increment for each test to ensure uniqueness
 
     // Default to authenticated user
     mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<
@@ -51,10 +49,8 @@ describe("POST /api/github/disconnect", () => {
   it("successfully disconnects GitHub installation and deletes repos", async () => {
     // Insert test installation
     const installationId = `install-${testUserId}-1`;
-    // Keep within PostgreSQL integer limit (max 2,147,483,647)
-    // Use testCounter to ensure uniqueness across tests in this file
-    const ghInstallationId =
-      1000000000 + testCounter * 1000000 + Math.floor(Math.random() * 100000);
+    // Fixed unique ID for this test
+    const ghInstallationId = 100001;
     await globalThis.services.db.insert(githubInstallations).values({
       id: installationId,
       userId: testUserId,
@@ -107,12 +103,9 @@ describe("POST /api/github/disconnect", () => {
 
   it("only disconnects the current user's installation", async () => {
     const otherUserId = `other-user-${Date.now()}`;
-    // Keep within PostgreSQL integer limit (max 2,147,483,647)
-    // Use testCounter to ensure uniqueness across tests in this file
-    const otherGhInstallationId =
-      1200000000 + testCounter * 1000000 + Math.floor(Math.random() * 100000);
-    const testGhInstallationId =
-      1400000000 + testCounter * 1000000 + Math.floor(Math.random() * 100000);
+    // Fixed unique IDs for this test
+    const otherGhInstallationId = 100002;
+    const testGhInstallationId = 100003;
 
     // Insert installation for another user
     await globalThis.services.db.insert(githubInstallations).values({
@@ -161,10 +154,8 @@ describe("POST /api/github/disconnect", () => {
 
   it("handles case when installation has no repos", async () => {
     // Insert test installation without any repos
-    // Keep within PostgreSQL integer limit (max 2,147,483,647)
-    // Use testCounter to ensure uniqueness across tests in this file
-    const ghInstallationId =
-      1600000000 + testCounter * 1000000 + Math.floor(Math.random() * 100000);
+    // Fixed unique ID for this test
+    const ghInstallationId = 100004;
     await globalThis.services.db.insert(githubInstallations).values({
       id: `install-${testUserId}-3`,
       userId: testUserId,

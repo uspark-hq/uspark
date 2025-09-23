@@ -44,16 +44,11 @@ vi.mock("../../../../../../src/lib/github/client", () => ({
 describe("/api/projects/[projectId]/github/repository", () => {
   const projectId = `test-project-${Date.now()}-${process.pid}`;
   const userId = `user_${Date.now()}_${process.pid}`; // Make userId unique too
-  let testInstallationId: number;
-  let testCounter = 0;
+  // Use fixed ID for all tests in this file since they clean up after themselves
+  const testInstallationId = 200001;
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    testCounter++;
-    // Generate unique installation ID for each test using counter + timestamp
-    // Keep within PostgreSQL integer limit (max 2,147,483,647)
-    const timestamp = Date.now() % 1000000; // Last 6 digits of timestamp
-    testInstallationId = 1000000000 + testCounter * 10000000 + timestamp;
   });
 
   afterEach(async () => {

@@ -24,17 +24,11 @@ const mockGetInstallationDetails = vi.mocked(getInstallationDetails);
 
 describe("/api/github/setup", () => {
   const userId = `test-user-github-setup-${Date.now()}-${process.pid}`;
-  let installationId: string;
-  let testCounter = 0;
+  // Use fixed ID for all tests in this file since they clean up after themselves
+  const installationId = "400001";
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    testCounter++;
-    // Generate unique installation ID for each test using counter + timestamp
-    // Keep within PostgreSQL integer limit (max 2,147,483,647)
-    const timestamp = Date.now() % 1000000; // Last 6 digits of timestamp
-    const uniqueId = 1800000000 + testCounter * 10000000 + timestamp;
-    installationId = uniqueId.toString();
 
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
