@@ -1,4 +1,5 @@
 import * as Y from "yjs";
+import { createHash } from "crypto";
 import { initServices } from "./init-services";
 import { PROJECTS_TBL } from "../db/schema/projects";
 import { eq } from "drizzle-orm";
@@ -48,19 +49,18 @@ export async function writeFileToYjs(
   const filesMap = ydoc.getMap<FileNode>("files");
   const blobsMap = ydoc.getMap<BlobInfo>("blobs");
 
-  // Upload content to blob storage
+  // Calculate content hash (consistent with CLI)
   const contentBuffer = Buffer.from(content, "utf-8");
-  const blob = await put(
-    `projects/${projectId}/${Date.now()}-${filePath.replace(/\//g, "-")}`,
-    contentBuffer,
-    {
-      access: "public",
-    },
-  );
+  const hash = createHash("sha256").update(contentBuffer).digest("hex");
+
+  // Upload content to blob storage using hash-based path
+  await put(`projects/${projectId}/${hash}`, contentBuffer, {
+    access: "public",
+  });
 
   // Create file metadata
   const fileNode: FileNode = {
-    hash: blob.url.split("/").pop() || Date.now().toString(),
+    hash,
     mtime: Date.now(),
   };
 
@@ -71,7 +71,7 @@ export async function writeFileToYjs(
 
   // Update YJS document
   filesMap.set(filePath, fileNode);
-  blobsMap.set(fileNode.hash, blobInfo);
+  blobsMap.set(hash, blobInfo);
 
   // Encode updated document
   const updatedState = Y.encodeStateAsUpdate(ydoc);
