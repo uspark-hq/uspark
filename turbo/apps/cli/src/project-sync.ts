@@ -27,6 +27,44 @@ export class ProjectSync {
     return createHash("sha256").update(content, "utf8").digest("hex");
   }
 
+  private async fetchWithAuth(
+    url: string,
+    token: string,
+    options: RequestInit = {},
+  ): Promise<Response> {
+    // First attempt with redirect handling disabled
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...options.headers,
+        Authorization: `Bearer ${token}`,
+      },
+      redirect: "manual",
+    });
+
+    // If it's a redirect, follow it manually with auth header
+    if (
+      response.status === 301 ||
+      response.status === 302 ||
+      response.status === 307 ||
+      response.status === 308
+    ) {
+      const location = response.headers.get("location");
+      if (location) {
+        // Follow the redirect with the auth header preserved
+        return fetch(location, {
+          ...options,
+          headers: {
+            ...options.headers,
+            Authorization: `Bearer ${token}`,
+          },
+        });
+      }
+    }
+
+    return response;
+  }
+
   async syncFromRemote(projectId: string, options: SyncOptions): Promise<void> {
     const apiUrl = options.apiUrl;
     const token = options.token;
@@ -36,11 +74,10 @@ export class ProjectSync {
       options.verbose,
     );
 
-    const response = await fetch(`${apiUrl}/api/projects/${projectId}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await this.fetchWithAuth(
+      `${apiUrl}/api/projects/${projectId}`,
+      token,
+    );
 
     if (!response.ok) {
       console.error(
@@ -80,14 +117,17 @@ export class ProjectSync {
       return; // No changes to sync
     }
 
-    const response = await fetch(`${apiUrl}/api/projects/${projectId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/octet-stream",
-        Authorization: `Bearer ${token}`,
+    const response = await this.fetchWithAuth(
+      `${apiUrl}/api/projects/${projectId}`,
+      token,
+      {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/octet-stream",
+        },
+        body: Buffer.from(update),
       },
-      body: Buffer.from(update),
-    });
+    );
 
     if (!response.ok) {
       throw new Error(`Failed to sync to remote: ${response.statusText}`);
@@ -98,11 +138,10 @@ export class ProjectSync {
   }
 
   private async getStoreId(apiUrl: string, token: string): Promise<string> {
-    const response = await fetch(`${apiUrl}/api/blob-store`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+    const response = await this.fetchWithAuth(
+      `${apiUrl}/api/blob-store`,
+      token,
+    );
 
     if (!response.ok) {
       throw new Error(`Failed to get store ID: ${response.statusText}`);
@@ -194,13 +233,9 @@ export class ProjectSync {
     // 4. Upload blob if not exists
     if (!this.fs.getBlobInfo(localHash)) {
       // Get client token for this specific file hash
-      const tokenResponse = await fetch(
+      const tokenResponse = await this.fetchWithAuth(
         `${apiUrl}/api/projects/${projectId}/blob-token?hash=${localHash}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        token,
       );
 
       if (!tokenResponse.ok) {
@@ -323,13 +358,9 @@ export class ProjectSync {
       }
 
       // Get client token for this specific file hash
-      const tokenResponse = await fetch(
+      const tokenResponse = await this.fetchWithAuth(
         `${apiUrl}/api/projects/${projectId}/blob-token?hash=${hash}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
+        token,
       );
 
       if (!tokenResponse.ok) {
