@@ -1,6 +1,6 @@
 {
   "name": "@uspark/cli",
-  "version": "0.10.2",
+  "version": "0.10.3",
   "private": true,
   "description": "CLI application",
   "type": "module",

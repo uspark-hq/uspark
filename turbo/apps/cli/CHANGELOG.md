@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.3](https://github.com/uspark-hq/uspark/compare/cli-v0.10.2...cli-v0.10.3) (2025-09-23)
+
+
+### Bug Fixes
+
+* handle http redirects in cli fetch operations ([#368](https://github.com/uspark-hq/uspark/issues/368)) ([3a0cd1e](https://github.com/uspark-hq/uspark/commit/3a0cd1e4daced120d3ba053211cbe9bc2b139a85))
+
 ## [0.10.2](https://github.com/uspark-hq/uspark/compare/cli-v0.10.1...cli-v0.10.2) (2025-09-23)
 
 
