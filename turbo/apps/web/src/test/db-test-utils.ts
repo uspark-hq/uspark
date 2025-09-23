@@ -24,7 +24,7 @@ import { randomUUID } from "crypto";
  */
 export async function createTestProjectForUser(
   userId: string,
-  options: { id?: string; ydocData?: string; version?: number } = {}
+  options: { id?: string; ydocData?: string; version?: number } = {},
 ) {
   initServices();
 
@@ -53,7 +53,7 @@ export async function createTestProjectForUser(
 export async function createTestGitHubInstallation(
   userId: string,
   installationId: number,
-  accountName: string
+  accountName: string,
 ) {
   initServices();
 
@@ -77,7 +77,7 @@ export async function linkGitHubRepository(
   projectId: string,
   installationId: number,
   repoName: string,
-  repoId: number
+  repoId: number,
 ) {
   initServices();
 
@@ -106,7 +106,7 @@ export async function createTestShareLink(
     id?: string;
     token?: string;
     filePath?: string | null;
-  } = {}
+  } = {},
 ) {
   initServices();
 
@@ -124,8 +124,6 @@ export async function createTestShareLink(
   return shareLink;
 }
 
-
-
 /**
  * Creates a CLI token for testing.
  * Use this ONLY for testing token-specific functionality.
@@ -138,7 +136,7 @@ export async function createTestCLIToken(
     token?: string;
     name?: string;
     expiresAt?: Date;
-  } = {}
+  } = {},
 ) {
   initServices();
 
@@ -156,7 +154,6 @@ export async function createTestCLIToken(
   return cliToken;
 }
 
-
 /**
  * Cleans up test data by project IDs.
  * Use this in afterEach hooks to clean up test data.
@@ -168,27 +165,27 @@ export async function cleanupTestProjects(projectIds: string[]) {
   const db = globalThis.services.db;
 
   // Clean up in reverse order of foreign key dependencies
-  await db.delete(githubRepos).where(
-    inArray(githubRepos.projectId, projectIds)
-  );
-  await db.delete(SHARE_LINKS_TBL).where(
-    inArray(SHARE_LINKS_TBL.projectId, projectIds)
-  );
-  await db.delete(PROJECTS_TBL).where(
-    inArray(PROJECTS_TBL.id, projectIds)
-  );
+  await db
+    .delete(githubRepos)
+    .where(inArray(githubRepos.projectId, projectIds));
+  await db
+    .delete(SHARE_LINKS_TBL)
+    .where(inArray(SHARE_LINKS_TBL.projectId, projectIds));
+  await db.delete(PROJECTS_TBL).where(inArray(PROJECTS_TBL.id, projectIds));
 }
 
 /**
  * Cleans up test GitHub installations.
  */
-export async function cleanupTestGitHubInstallations(installationIds: number[]) {
+export async function cleanupTestGitHubInstallations(
+  installationIds: number[],
+) {
   if (installationIds.length === 0) return;
 
   initServices();
-  await globalThis.services.db.delete(githubInstallations).where(
-    inArray(githubInstallations.installationId, installationIds)
-  );
+  await globalThis.services.db
+    .delete(githubInstallations)
+    .where(inArray(githubInstallations.installationId, installationIds));
 }
 
 /**
@@ -198,7 +195,7 @@ export async function cleanupTestGitHubInstallations(installationIds: number[]) 
 export async function updateDeviceCodeStatus(
   code: string,
   status: "pending" | "authenticated" | "expired" | "denied",
-  userId?: string
+  userId?: string,
 ) {
   initServices();
   await globalThis.services.db
@@ -225,4 +222,3 @@ export async function setDeviceCodeExpired(code: string) {
     })
     .where(eq(DEVICE_CODES_TBL.code, code));
 }
-

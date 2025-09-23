@@ -207,7 +207,7 @@ describe("GitHub Sync", () => {
         projectId,
         12345,
         "test-repo",
-        67890
+        67890,
       );
 
       const status = await getSyncStatus(projectId);

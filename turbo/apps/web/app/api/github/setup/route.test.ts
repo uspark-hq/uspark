@@ -139,7 +139,7 @@ describe("/api/github/setup", () => {
       await createTestGitHubInstallation(
         "different-user",
         parseInt(installationId),
-        "old-account-name"
+        "old-account-name",
       );
 
       const url = `http://localhost:3000/api/github/setup?setup_action=install&installation_id=${installationId}`;
