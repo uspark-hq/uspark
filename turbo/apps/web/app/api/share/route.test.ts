@@ -6,6 +6,8 @@ import { apiCall } from "../../../src/test/api-helpers";
 import { createTestProjectForUser } from "../../../src/test/db-test-utils";
 import { initServices } from "../../../src/lib/init-services";
 import * as Y from "yjs";
+import { PROJECTS_TBL } from "../../../src/db/schema/projects";
+import { eq } from "drizzle-orm";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({

@@ -14,6 +14,8 @@ import {
   setDeviceCodeExpired,
 } from "../../../../../src/test/db-test-utils";
 import { initServices } from "../../../../../src/lib/init-services";
+import { DEVICE_CODES_TBL } from "../../../../../src/db/schema/device-codes";
+import { eq } from "drizzle-orm";
 
 describe("/api/cli/auth/token", () => {
   async function createDeviceCode(): Promise<string> {

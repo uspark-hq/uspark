@@ -3,6 +3,7 @@ import "../../../../../src/test/setup";
 import { GET } from "./route";
 import { POST as createProject } from "../../route";
 import { createTestProjectForUser } from "../../../../../src/test/db-test-utils";
+import { initServices } from "../../../../../src/lib/init-services";
 import { NextRequest } from "next/server";
 
 // Mock Clerk auth
