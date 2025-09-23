@@ -105,16 +105,9 @@ export class E2BExecutor {
   ): Promise<void> {
     console.log(`Initializing sandbox for project ${projectId}`);
 
-    // Check if this is a test project
-    if (projectId.startsWith("proj_test_")) {
-      console.log("Test environment detected, skipping project pull");
-      await sandbox.commands.run("mkdir -p /workspace");
-      return;
-    }
-
-    // Pull project files using uspark CLI
+    // Pull all project files using uspark CLI
     const result = await sandbox.commands.run(
-      `uspark pull --project-id ${projectId}`,
+      `uspark pull --all --project-id ${projectId}`,
     );
 
     if (result.exitCode !== 0) {
