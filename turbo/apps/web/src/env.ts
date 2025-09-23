@@ -11,7 +11,7 @@ function initEnv() {
       DATABASE_URL: z.string().min(1),
       CLERK_SECRET_KEY: z.string().min(1),
       BLOB_READ_WRITE_TOKEN: z.string().min(1),
-      E2B_API_KEY: z.string().min(1).optional(),
+      E2B_API_KEY: z.string().min(1),
       APP_URL: z
         .string()
         .default(

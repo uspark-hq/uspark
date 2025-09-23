@@ -99,7 +99,7 @@ export class ClaudeExecutor {
       env: {
         PROJECT_ID: this.projectId,
         USPARK_TOKEN: process.env.USPARK_TOKEN!,
-        CLAUDE_API_KEY: await this.getClaudeApiKey()
+        CLAUDE_CODE_OAUTH_TOKEN: await this.getClaudeApiKey()  // 使用OAuth token
       }
     });
 
@@ -185,15 +185,33 @@ export class ClaudeExecutor {
   }
 
   private async getClaudeApiKey(): Promise<string> {
-    // 优先级：环境变量 > AWS Bedrock > 用户密钥
+    // 优先级：环境变量 > 用户OAuth token
     if (process.env.CLAUDE_API_KEY) {
       return process.env.CLAUDE_API_KEY;
     }
 
-    // TODO: 实现AWS Bedrock STS token生成
-    // TODO: 实现用户密钥获取
+    // 获取用户存储的OAuth token
+    const userToken = await this.getUserClaudeToken();
+    if (userToken) {
+      return userToken;
+    }
 
     throw new Error('No Claude API key configured');
+  }
+
+  private async getUserClaudeToken(): Promise<string | null> {
+    // 从数据库获取用户的加密OAuth token
+    const [token] = await globalThis.services.db
+      .select()
+      .from(CLAUDE_TOKENS_TBL)
+      .where(eq(CLAUDE_TOKENS_TBL.userId, this.userId))
+      .limit(1);
+
+    if (token && token.encryptedToken) {
+      return decryptClaudeToken(token.encryptedToken);
+    }
+
+    return null;
   }
 
   async cleanup() {
@@ -350,30 +368,38 @@ export function parseEventToBlock(event: ClaudeEvent): Block {
 创建 `turbo/apps/web/src/lib/api-keys.ts`：
 
 ```typescript
+import { decryptClaudeToken } from './claude-token-crypto';
+import { CLAUDE_TOKENS_TBL } from '../db/schema/claude-tokens';
+
 export async function getClaudeApiKey(userId: string): Promise<string> {
-  // 选项1：使用共享密钥
+  // 选项1：环境变量（开发环境）
   if (process.env.CLAUDE_API_KEY) {
     return process.env.CLAUDE_API_KEY;
   }
 
-  // 选项2：AWS Bedrock STS Token
-  if (process.env.AWS_ACCESS_KEY_ID) {
-    return await generateBedrockToken(userId);
+  // 选项2：用户存储的OAuth token（生产环境）
+  const userToken = await getUserClaudeToken(userId);
+  if (userToken) {
+    return userToken;
   }
 
-  // 选项3：用户自带密钥（未来功能）
-  // const user = await db.users.findById(userId);
-  // if (user?.claudeApiKey) {
-  //   return decrypt(user.claudeApiKey);
-  // }
-
-  throw new Error('No Claude API key configured');
+  throw new Error('No Claude API key available');
 }
 
-async function generateBedrockToken(userId: string): Promise<string> {
-  // TODO: 实现AWS Bedrock STS token生成
-  // 参考：https://docs.aws.amazon.com/bedrock/latest/userguide/api-setup.html
-  throw new Error('Bedrock integration not yet implemented');
+async function getUserClaudeToken(userId: string): Promise<string | null> {
+  // 从数据库获取用户的加密Claude OAuth token
+  const [token] = await globalThis.services.db
+    .select()
+    .from(CLAUDE_TOKENS_TBL)
+    .where(eq(CLAUDE_TOKENS_TBL.userId, userId))
+    .limit(1);
+
+  if (token && token.encryptedToken) {
+    // 解密并返回OAuth token
+    return decryptClaudeToken(token.encryptedToken);
+  }
+
+  return null;
 }
 ```
 
@@ -451,13 +477,10 @@ async function testClaudeExecution() {
 # .env.local
 E2B_API_TOKEN=your-e2b-token
 USPARK_TOKEN=your-uspark-cli-token
-CLAUDE_API_KEY=sk-ant-...  # 或使用AWS Bedrock配置
+CLAUDE_TOKEN_ENCRYPTION_KEY=your-32-byte-hex-key  # 用于加密存储的OAuth tokens
 
-# 可选：AWS Bedrock配置
-AWS_ACCESS_KEY_ID=...
-AWS_SECRET_ACCESS_KEY=...
-AWS_REGION=us-east-1
-BEDROCK_MODEL_ID=anthropic.claude-3-opus-20240229-v1:0
+# 可选：开发环境直接配置
+CLAUDE_API_KEY=sk-ant-...  # 仅用于开发/测试
 ```
 
 ## 实现优先级

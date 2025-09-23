@@ -153,7 +153,7 @@ This document defines the mid-term goals and user stories for the MVP release of
 5. [x] Chat interface component ✅ (UI and backend integrated)
 6. [x] Polling system for status updates ✅ (PR #320)
 7. [x] Document change detection via YJS polling ✅ (PR #320)
-8. [ ] AWS Bedrock STS token generation for E2B Claude Code tasks ❌
+8. [x] Claude OAuth token storage for E2B execution ✅ (PR #347)
 
 ### Phase 5: Direct Task Management (Story 3 - Simplified)
 
@@ -235,9 +235,8 @@ Post-MVP priorities aligned with AI coding management:
 #### 🟡 Partially Completed
 - **Phase 4 (AI)**: 70% - Session APIs complete, mock execution working, real Claude integration pending
 
-#### ❌ Remaining Gaps
-1. **Real Claude execution in E2B** - Mock executor implemented, real Claude integration pending
-2. **AWS Bedrock STS tokens** - For Claude API authentication in E2B
+#### ❌ Remaining Gap
+1. **Real Claude execution in E2B** - Mock executor implemented, needs integration with stored Claude OAuth tokens
 
 ### Key Findings After Recent PRs
 
@@ -273,8 +272,8 @@ Post-MVP priorities aligned with AI coding management:
 - [x] Container initialization scripts ✅ (PR #314)
 
 ### Recommended Next Steps
-1. **Immediate**: Implement real Claude execution (replace mock-executor)
-2. **Week 1**: AWS Bedrock STS token generation for E2B authentication
+1. **Immediate**: Implement real Claude execution using stored OAuth tokens
+2. **Week 1**: Complete E2B integration with Claude OAuth tokens
 3. **Week 2**: Complete integration testing and bug fixes
 4. **Week 3**: Deploy MVP and gather user feedback
 
