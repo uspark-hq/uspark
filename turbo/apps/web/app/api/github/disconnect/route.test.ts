@@ -16,12 +16,9 @@ const mockAuth = vi.mocked(auth);
 
 describe("POST /api/github/disconnect", () => {
   const testUserId = `test-user-gh-disconnect-${Date.now()}-${process.pid}`;
-  const baseInstallationId = Math.floor(Date.now() / 1000) + process.pid; // Use timestamp + pid as base for unique IDs
-  let testCounter = 0;
 
   beforeEach(async () => {
     // Each test gets a fresh database, so no cleanup needed
-    testCounter++; // Increment counter for each test
 
     // Default to authenticated user
     mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<
@@ -52,7 +49,8 @@ describe("POST /api/github/disconnect", () => {
   it("successfully disconnects GitHub installation and deletes repos", async () => {
     // Insert test installation
     const installationId = `install-${testUserId}-1`;
-    const ghInstallationId = baseInstallationId + testCounter * 1000 + 1;
+    const ghInstallationId =
+      1000000000 + Math.floor(Math.random() * 1000000000);
     await globalThis.services.db.insert(githubInstallations).values({
       id: installationId,
       userId: testUserId,
@@ -105,8 +103,10 @@ describe("POST /api/github/disconnect", () => {
 
   it("only disconnects the current user's installation", async () => {
     const otherUserId = `other-user-${Date.now()}`;
-    const otherGhInstallationId = baseInstallationId + testCounter * 1000 + 100;
-    const testGhInstallationId = baseInstallationId + testCounter * 1000 + 200;
+    const otherGhInstallationId =
+      2000000000 + Math.floor(Math.random() * 1000000000);
+    const testGhInstallationId =
+      3000000000 + Math.floor(Math.random() * 1000000000);
 
     // Insert installation for another user
     await globalThis.services.db.insert(githubInstallations).values({
@@ -155,7 +155,8 @@ describe("POST /api/github/disconnect", () => {
 
   it("handles case when installation has no repos", async () => {
     // Insert test installation without any repos
-    const ghInstallationId = baseInstallationId + testCounter * 1000 + 300;
+    const ghInstallationId =
+      4000000000 + Math.floor(Math.random() * 1000000000);
     await globalThis.services.db.insert(githubInstallations).values({
       id: `install-${testUserId}-3`,
       userId: testUserId,

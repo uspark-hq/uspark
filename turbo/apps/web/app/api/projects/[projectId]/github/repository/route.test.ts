@@ -44,14 +44,13 @@ vi.mock("../../../../../../src/lib/github/client", () => ({
 describe("/api/projects/[projectId]/github/repository", () => {
   const projectId = `test-project-${Date.now()}-${process.pid}`;
   const userId = `user_${Date.now()}_${process.pid}`; // Make userId unique too
-  // Generate unique installation ID for each test run to avoid conflicts
-  const baseInstallationId = Math.floor(Date.now() / 1000) + process.pid;
   let testInstallationId: number;
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    // Generate unique installation ID for each test
-    testInstallationId = baseInstallationId + Math.floor(Math.random() * 10000);
+    // Generate highly unique installation ID for each test
+    // Using large random range (1 billion to 2 billion) to avoid conflicts
+    testInstallationId = 1000000000 + Math.floor(Math.random() * 1000000000);
   });
 
   afterEach(async () => {
