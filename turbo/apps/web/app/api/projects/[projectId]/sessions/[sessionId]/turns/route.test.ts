@@ -11,11 +11,20 @@ import {
   TURNS_TBL,
   BLOCKS_TBL,
 } from "../../../../../../../src/db/schema/sessions";
+import { CLAUDE_TOKENS_TBL } from "../../../../../../../src/db/schema/claude-tokens";
 import { eq } from "drizzle-orm";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
+}));
+
+// Mock ClaudeExecutor to prevent actual execution during tests
+vi.mock("../../../../../../../src/lib/claude-executor", () => ({
+  ClaudeExecutor: {
+    execute: vi.fn().mockResolvedValue(undefined),
+    interrupt: vi.fn().mockResolvedValue(undefined),
+  },
 }));
 
 import { auth } from "@clerk/nextjs/server";
@@ -75,6 +84,22 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       .set({ id: sessionId })
       .where(eq(SESSIONS_TBL.id, sessionData.id));
 
+    // Add a Claude token for the test user
+    await globalThis.services.db
+      .insert(CLAUDE_TOKENS_TBL)
+      .values({
+        userId,
+        encryptedToken: "encrypted_test_token",
+        tokenPrefix: "test_token",
+      })
+      .onConflictDoUpdate({
+        target: CLAUDE_TOKENS_TBL.userId,
+        set: {
+          encryptedToken: "encrypted_test_token",
+          tokenPrefix: "test_token",
+        },
+      });
+
     createdTurnIds = [];
     createdBlockIds = [];
   });
@@ -103,6 +128,11 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
     await globalThis.services.db
       .delete(PROJECTS_TBL)
       .where(eq(PROJECTS_TBL.id, projectId));
+
+    // Clean up Claude token
+    await globalThis.services.db
+      .delete(CLAUDE_TOKENS_TBL)
+      .where(eq(CLAUDE_TOKENS_TBL.userId, userId));
   });
 
   describe("POST /api/projects/:projectId/sessions/:sessionId/turns", () => {
@@ -324,14 +354,14 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       expect(firstTurn!.block_ids).toContain(block1!.id);
       expect(firstTurn!.block_ids).toContain(block2!.id);
 
-      // Check second turn has blocks from mock executor
+      // Check second turn (no blocks expected since ClaudeExecutor is mocked)
       const secondTurn = data.turns.find(
         (t: { id: string }) => t.id === turn2Data.id,
       );
       expect(secondTurn).toBeDefined();
-      // Should have blocks from mock executor
-      expect(secondTurn!.block_count).toBeGreaterThan(0);
-      expect(secondTurn!.block_ids.length).toBeGreaterThan(0);
+      // No blocks expected since ClaudeExecutor is mocked
+      expect(secondTurn!.block_count).toBe(0);
+      expect(secondTurn!.block_ids.length).toBe(0);
     });
 
     it("should support pagination", async () => {

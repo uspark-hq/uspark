@@ -66,35 +66,77 @@ vi.mock("../lib/claude-token-crypto", () => ({
 // Mock E2B SDK for testing
 vi.mock("e2b", () => ({
   Sandbox: {
-    create: vi.fn().mockResolvedValue({
-      sandboxId: "mock-sandbox",
-      commands: {
-        run: vi.fn().mockResolvedValue({
-          exitCode: 0,
-          stdout: "",
-          stderr: "",
-        }),
-      },
-      files: {
-        write: vi.fn(),
-      },
-      setTimeout: vi.fn(),
-      kill: vi.fn(),
+    create: vi.fn().mockImplementation(() => {
+      // Mock sandbox with Claude streaming output
+      const mockSandbox = {
+        sandboxId: "mock-sandbox",
+        commands: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          run: vi.fn().mockImplementation((command: string, options?: any) => {
+            // If this is a Claude command with streaming, call onStdout callbacks
+            if (command.includes("claude") && options?.onStdout) {
+              // Simulate streaming Claude output blocks
+              const blocks = [
+                JSON.stringify({ type: "assistant", message: { content: [{ type: "text", text: "Mock response" }] } }),
+                JSON.stringify({ type: "result", total_cost_usd: 0.001, usage: { input_tokens: 10, output_tokens: 20 }, duration_ms: 100 })
+              ];
+
+              // Call onStdout for each block to simulate streaming
+              blocks.forEach(block => {
+                options.onStdout(block + "\n");
+              });
+            }
+
+            return Promise.resolve({
+              exitCode: 0,
+              stdout: "",
+              stderr: "",
+            });
+          }),
+        },
+        files: {
+          write: vi.fn(),
+        },
+        setTimeout: vi.fn(),
+        kill: vi.fn(),
+      };
+      return Promise.resolve(mockSandbox);
     }),
-    connect: vi.fn().mockResolvedValue({
-      sandboxId: "mock-sandbox",
-      commands: {
-        run: vi.fn().mockResolvedValue({
-          exitCode: 0,
-          stdout: "",
-          stderr: "",
-        }),
-      },
-      files: {
-        write: vi.fn(),
-      },
-      setTimeout: vi.fn(),
-      kill: vi.fn(),
+    connect: vi.fn().mockImplementation(() => {
+      // Same mock for connect
+      const mockSandbox = {
+        sandboxId: "mock-sandbox",
+        commands: {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          run: vi.fn().mockImplementation((command: string, options?: any) => {
+            // If this is a Claude command with streaming, call onStdout callbacks
+            if (command.includes("claude") && options?.onStdout) {
+              // Simulate streaming Claude output blocks
+              const blocks = [
+                JSON.stringify({ type: "assistant", message: { content: [{ type: "text", text: "Mock response" }] } }),
+                JSON.stringify({ type: "result", total_cost_usd: 0.001, usage: { input_tokens: 10, output_tokens: 20 }, duration_ms: 100 })
+              ];
+
+              // Call onStdout for each block to simulate streaming
+              blocks.forEach(block => {
+                options.onStdout(block + "\n");
+              });
+            }
+
+            return Promise.resolve({
+              exitCode: 0,
+              stdout: "",
+              stderr: "",
+            });
+          }),
+        },
+        files: {
+          write: vi.fn(),
+        },
+        setTimeout: vi.fn(),
+        kill: vi.fn(),
+      };
+      return Promise.resolve(mockSandbox);
     }),
     list: vi.fn().mockResolvedValue({
       nextItems: vi.fn().mockResolvedValue([]),
