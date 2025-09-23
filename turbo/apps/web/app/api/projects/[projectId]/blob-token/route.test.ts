@@ -5,6 +5,7 @@ import { POST as createProject } from "../../route";
 import { createTestProjectForUser } from "../../../../../src/test/db-test-utils";
 import { initServices } from "../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
+import { like } from "drizzle-orm";
 import { NextRequest } from "next/server";
 
 // Mock Clerk auth

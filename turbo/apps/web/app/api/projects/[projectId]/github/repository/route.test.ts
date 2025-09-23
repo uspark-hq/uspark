@@ -8,6 +8,8 @@ import {
   cleanupTestGitHubInstallations,
 } from "../../../../../../src/test/db-test-utils";
 import { initServices } from "../../../../../../src/lib/init-services";
+import { githubInstallations } from "../../../../../../src/db/schema/github";
+import { eq } from "drizzle-orm";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({
