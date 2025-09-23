@@ -11,10 +11,20 @@ import { GET as getTurn } from "./[sessionId]/turns/[turnId]/route";
 import { POST as interruptSession } from "./[sessionId]/interrupt/route";
 import { GET as getUpdates } from "./[sessionId]/updates/route";
 import { POST as createProject } from "../../route";
+import { initServices } from "../../../../../src/lib/init-services";
+import { CLAUDE_TOKENS_TBL } from "../../../../../src/db/schema/claude-tokens";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
+}));
+
+// Mock ClaudeExecutor to prevent actual execution during tests
+vi.mock("../../../../../src/lib/claude-executor", () => ({
+  ClaudeExecutor: {
+    execute: vi.fn().mockResolvedValue(undefined),
+    interrupt: vi.fn().mockResolvedValue(undefined),
+  },
 }));
 
 import { auth } from "@clerk/nextjs/server";
@@ -34,6 +44,23 @@ describe("Claude Session Management API Integration", () => {
     vi.clearAllMocks();
     // Mock successful authentication
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+
+    // Initialize services and add Claude token for test user
+    initServices();
+    await globalThis.services.db
+      .insert(CLAUDE_TOKENS_TBL)
+      .values({
+        userId,
+        encryptedToken: "encrypted_test_token",
+        tokenPrefix: "test_token",
+      })
+      .onConflictDoUpdate({
+        target: CLAUDE_TOKENS_TBL.userId,
+        set: {
+          encryptedToken: "encrypted_test_token",
+          tokenPrefix: "test_token",
+        },
+      });
 
     // Create a project using the API
     const projectResponse = await apiCall(
@@ -132,9 +159,9 @@ describe("Claude Session Management API Integration", () => {
       expect(getResponse.status).toBe(200);
       expect(getResponse.data.id).toBe(turnId);
       expect(getResponse.data.user_prompt).toBe("Test prompt");
-      // Mock executor creates blocks automatically
+      // No blocks expected since ClaudeExecutor is mocked
       expect(Array.isArray(getResponse.data.blocks)).toBe(true);
-      expect(getResponse.data.blocks.length).toBeGreaterThan(0);
+      expect(getResponse.data.blocks.length).toBe(0);
     });
 
     it("should support pagination for turns", async () => {

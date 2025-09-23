@@ -70,6 +70,36 @@ export function getTokenPrefix(token: string): string {
 }
 
 /**
+ * Decrypts a Claude OAuth token from secure storage
+ * @param encryptedToken - The encrypted token as base64 string
+ * @returns The decrypted plain text token
+ */
+export function decryptClaudeToken(encryptedToken: string): string {
+  const key = getEncryptionKey();
+
+  // Decode from base64
+  const combined = Buffer.from(encryptedToken, "base64");
+
+  // Extract components
+  // Format: iv(16 bytes) + authTag(16 bytes) + encrypted data
+  const iv = combined.subarray(0, 16);
+  const authTag = combined.subarray(16, 32);
+  const encrypted = combined.subarray(32);
+
+  // Create decipher
+  const decipher = crypto.createDecipheriv("aes-256-gcm", key, iv);
+  decipher.setAuthTag(authTag);
+
+  // Decrypt the token
+  const decrypted = Buffer.concat([
+    decipher.update(encrypted),
+    decipher.final(),
+  ]);
+
+  return decrypted.toString("utf8");
+}
+
+/**
  * Validates a Claude OAuth token format
  * @param token - The OAuth token to validate
  * @returns True if the token appears to be valid
