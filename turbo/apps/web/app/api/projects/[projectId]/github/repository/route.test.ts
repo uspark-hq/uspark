@@ -45,12 +45,15 @@ describe("/api/projects/[projectId]/github/repository", () => {
   const projectId = `test-project-${Date.now()}-${process.pid}`;
   const userId = `user_${Date.now()}_${process.pid}`; // Make userId unique too
   let testInstallationId: number;
+  let testCounter = 0;
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    // Generate unique installation ID for each test
+    testCounter++;
+    // Generate unique installation ID for each test using counter + timestamp
     // Keep within PostgreSQL integer limit (max 2,147,483,647)
-    testInstallationId = 1000000000 + Math.floor(Math.random() * 1000000000);
+    const timestamp = Date.now() % 1000000; // Last 6 digits of timestamp
+    testInstallationId = 1000000000 + testCounter * 10000000 + timestamp;
   });
 
   afterEach(async () => {
