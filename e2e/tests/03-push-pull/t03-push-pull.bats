@@ -13,7 +13,7 @@ setup() {
     export PROJECT_ID="test-project-$(date +%s)"
 
     # Ensure we have authentication
-    if ! $CLI_COMMAND auth status | grep -q "Authenticated"; then
+    if ! cli_with_host auth status | grep -q "Authenticated"; then
         skip "CLI not authenticated - run auth setup first"
     fi
 }
