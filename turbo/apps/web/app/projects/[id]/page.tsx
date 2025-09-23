@@ -89,7 +89,7 @@ export default function ProjectDetailPage() {
       }
 
       // Construct public blob URL
-      const blobUrl = `https://${storeId}.public.blob.vercel-storage.com/${fileHash}`;
+      const blobUrl = `https://${storeId}.public.blob.vercel-storage.com/projects/${projectId}/${fileHash}`;
 
       // Download content directly from blob storage (no auth needed for public blobs)
       const response = await fetch(blobUrl);
@@ -109,7 +109,7 @@ export default function ProjectDetailPage() {
       setFileContent(content || "");
       setLoadingContent(false);
     },
-    [storeId, projectFiles, findFileHash],
+    [storeId, projectFiles, findFileHash, projectId],
   );
 
   useEffect(() => {
