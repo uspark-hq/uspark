@@ -7,6 +7,7 @@ import {
   cleanupTestProjects,
   cleanupTestGitHubInstallations,
 } from "../../../../../../src/test/db-test-utils";
+import { initServices } from "../../../../../../src/lib/init-services";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({
