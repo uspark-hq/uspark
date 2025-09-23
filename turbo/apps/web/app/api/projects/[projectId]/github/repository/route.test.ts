@@ -8,7 +8,7 @@ import {
   cleanupTestGitHubInstallations,
 } from "../../../../../../src/test/db-test-utils";
 import { initServices } from "../../../../../../src/lib/init-services";
-import { githubInstallations } from "../../../../../../src/db/schema/github";
+import { githubInstallations, githubRepos } from "../../../../../../src/db/schema/github";
 import { eq } from "drizzle-orm";
 
 // Mock Clerk auth
