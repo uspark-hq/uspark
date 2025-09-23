@@ -147,27 +147,26 @@ describe("Push Multiple Different Blobs", () => {
     expect(put).toHaveBeenCalledTimes(0);
   });
 
-  it("should track blob uploads in console output", async () => {
+  it("should upload the correct number of blobs without duplicate uploads", async () => {
     // Create multiple files
     await writeFile("a.txt", "alpha");
     await writeFile("b.txt", "beta");
     await writeFile("c.txt", "gamma");
-
-    // Mock console.log to capture output
-    const logSpy = vi.fn();
-    console.log = logSpy;
 
     await pushCommand(undefined, {
       projectId: testProjectId,
       all: true,
     });
 
-    // Should log blob upload for each unique content
-    const blobUploadLogs = logSpy.mock.calls.filter((call) =>
-      call[0]?.includes("Blob uploaded successfully"),
-    );
+    // Should upload 3 blobs for 3 unique contents
+    expect(put).toHaveBeenCalledTimes(3);
 
-    // Should have 3 blob upload logs
-    expect(blobUploadLogs).toHaveLength(3);
+    const calls = vi.mocked(put).mock.calls;
+    const uploadedContents = new Set(calls.map((call) => call[1]));
+
+    // Should have all three unique contents
+    expect(uploadedContents.has("alpha")).toBe(true);
+    expect(uploadedContents.has("beta")).toBe(true);
+    expect(uploadedContents.has("gamma")).toBe(true);
   });
 });
