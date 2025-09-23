@@ -12,9 +12,10 @@ setup() {
     # Create a test project ID
     export PROJECT_ID="test-project-$(date +%s)"
 
-    # Ensure we have authentication
-    if ! cli_with_host auth status | grep -q "Authenticated"; then
-        skip "CLI not authenticated - run auth setup first"
+    # Check authentication status and skip if not authenticated
+    # Note: Previous tests may have logged out, so we check but don't fail
+    if ! cli_with_host auth status 2>/dev/null | grep -q "Authenticated"; then
+        skip "CLI not authenticated - this may be due to previous tests logging out"
     fi
 }
 
