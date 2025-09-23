@@ -5,7 +5,6 @@ import { NextRequest } from "next/server";
 import { createTestCLIToken } from "../../../../src/test/db-test-utils";
 import { CLI_TOKENS_TBL } from "../../../../src/db/schema/cli-tokens";
 import { eq, and, gt } from "drizzle-orm";
-import { initServices } from "../../../../src/lib/init-services";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({

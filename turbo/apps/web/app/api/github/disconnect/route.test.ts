@@ -1,10 +1,6 @@
 import { POST } from "./route";
 import { auth } from "@clerk/nextjs/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import {
-  createTestGitHubInstallation,
-  linkGitHubRepository,
-} from "../../../../src/test/db-test-utils";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({

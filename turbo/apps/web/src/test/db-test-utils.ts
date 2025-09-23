@@ -226,14 +226,3 @@ export async function setDeviceCodeExpired(code: string) {
     .where(eq(DEVICE_CODES_TBL.code, code));
 }
 
-/**
- * Cleans up test CLI tokens.
- */
-export async function cleanupTestCLITokens(tokenIds: string[]) {
-  if (tokenIds.length === 0) return;
-
-  initServices();
-  await globalThis.services.db.delete(CLI_TOKENS_TBL).where(
-    inArray(CLI_TOKENS_TBL.id, tokenIds)
-  );
-}

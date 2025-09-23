@@ -74,7 +74,7 @@ describe("/api/projects/:projectId/sessions", () => {
     it("should return 404 when project belongs to another user", async () => {
       // Create project for another user using utility function
       const otherProjectId = `other-${Date.now()}`;
-      const otherProject = await createTestProjectForUser("other-user", {
+      await createTestProjectForUser("other-user", {
         id: otherProjectId,
       });
 
