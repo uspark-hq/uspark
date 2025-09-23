@@ -212,10 +212,11 @@ describe("GitHub Sync", () => {
 
       const status = await getSyncStatus(projectId);
 
+      expect(repo).toBeDefined();
       expect(status.linked).toBe(true);
       expect(status.repoId).toBe(67890);
       expect(status.repoName).toBe("test-repo");
-      expect(status.lastSynced).toEqual(repo.updatedAt);
+      expect(status.lastSynced).toEqual(repo!.updatedAt);
     });
 
     it("should return unlinked status when repository does not exist", async () => {

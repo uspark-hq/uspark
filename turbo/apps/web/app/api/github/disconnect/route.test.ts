@@ -16,10 +16,12 @@ const mockAuth = vi.mocked(auth);
 
 describe("POST /api/github/disconnect", () => {
   const testUserId = `test-user-gh-disconnect-${Date.now()}-${process.pid}`;
-  const baseInstallationId = Math.floor(Date.now() / 1000); // Use timestamp as base for unique IDs
+  const baseInstallationId = Math.floor(Date.now() / 1000) + process.pid; // Use timestamp + pid as base for unique IDs
+  let testCounter = 0;
 
   beforeEach(async () => {
     // Each test gets a fresh database, so no cleanup needed
+    testCounter++; // Increment counter for each test
 
     // Default to authenticated user
     mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<
@@ -50,7 +52,7 @@ describe("POST /api/github/disconnect", () => {
   it("successfully disconnects GitHub installation and deletes repos", async () => {
     // Insert test installation
     const installationId = `install-${testUserId}-1`;
-    const ghInstallationId = baseInstallationId + 1;
+    const ghInstallationId = baseInstallationId + testCounter * 1000 + 1;
     await globalThis.services.db.insert(githubInstallations).values({
       id: installationId,
       userId: testUserId,
@@ -103,8 +105,8 @@ describe("POST /api/github/disconnect", () => {
 
   it("only disconnects the current user's installation", async () => {
     const otherUserId = `other-user-${Date.now()}`;
-    const otherGhInstallationId = baseInstallationId + 100;
-    const testGhInstallationId = baseInstallationId + 200;
+    const otherGhInstallationId = baseInstallationId + testCounter * 1000 + 100;
+    const testGhInstallationId = baseInstallationId + testCounter * 1000 + 200;
 
     // Insert installation for another user
     await globalThis.services.db.insert(githubInstallations).values({
@@ -153,7 +155,7 @@ describe("POST /api/github/disconnect", () => {
 
   it("handles case when installation has no repos", async () => {
     // Insert test installation without any repos
-    const ghInstallationId = baseInstallationId + 300;
+    const ghInstallationId = baseInstallationId + testCounter * 1000 + 300;
     await globalThis.services.db.insert(githubInstallations).values({
       id: `install-${testUserId}-3`,
       userId: testUserId,

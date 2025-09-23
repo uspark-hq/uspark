@@ -52,10 +52,14 @@ const mockAuth = vi.mocked(auth);
 describe("/api/projects/[projectId]/github/sync", () => {
   // Use unique IDs for each test run to avoid conflicts
   const testUserId = `test-user-github-sync-${Date.now()}-${process.pid}`;
+  const baseInstallationId = Math.floor(Date.now() / 1000) + process.pid;
+  let testInstallationId: number;
   const createdProjectIds: string[] = [];
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    // Generate unique installation ID for each test
+    testInstallationId = baseInstallationId + Math.floor(Math.random() * 10000);
 
     // Set up environment for blob storage
     process.env.BLOB_READ_WRITE_TOKEN = "vercel_blob_rw_test_store_id_secret";
@@ -136,7 +140,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
       await db.insert(githubRepos).values({
         projectId,
-        installationId: 12345,
+        installationId: testInstallationId,
         repoName: "test-repo",
         repoId: 67890,
       });
@@ -256,7 +260,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
         .insert(githubRepos)
         .values({
           projectId,
-          installationId: 12345,
+          installationId: testInstallationId,
           repoName: "test-repo",
           repoId: 67890,
         })

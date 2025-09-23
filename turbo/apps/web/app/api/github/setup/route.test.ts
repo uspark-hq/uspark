@@ -24,10 +24,15 @@ const mockGetInstallationDetails = vi.mocked(getInstallationDetails);
 
 describe("/api/github/setup", () => {
   const userId = `test-user-github-setup-${Date.now()}-${process.pid}`;
-  const installationId = "12345";
+  const baseInstallationId = Math.floor(Date.now() / 1000) + process.pid;
+  let installationId: string;
 
   beforeEach(async () => {
     vi.clearAllMocks();
+    // Generate unique installation ID for each test
+    const uniqueId = baseInstallationId + Math.floor(Math.random() * 10000);
+    installationId = uniqueId.toString();
+
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
 

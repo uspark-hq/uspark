@@ -44,17 +44,22 @@ vi.mock("../../../../../../src/lib/github/client", () => ({
 describe("/api/projects/[projectId]/github/repository", () => {
   const projectId = `test-project-${Date.now()}-${process.pid}`;
   const userId = `user_${Date.now()}_${process.pid}`; // Make userId unique too
-  const installationId = 12345; // Keep fixed to match MSW handlers
+  // Generate unique installation ID for each test run to avoid conflicts
+  const baseInstallationId = Math.floor(Date.now() / 1000) + process.pid;
+  let testInstallationId: number;
 
   beforeEach(async () => {
     vi.clearAllMocks();
-    // Each test gets a fresh database, so no cleanup needed
+    // Generate unique installation ID for each test
+    testInstallationId = baseInstallationId + Math.floor(Math.random() * 10000);
   });
 
   afterEach(async () => {
     // Clean up test data using utility functions
     await cleanupTestProjects([projectId]);
-    await cleanupTestGitHubInstallations([installationId]);
+    if (testInstallationId) {
+      await cleanupTestGitHubInstallations([testInstallationId]);
+    }
   });
 
   describe("GET", () => {
@@ -70,15 +75,14 @@ describe("/api/projects/[projectId]/github/repository", () => {
       // Create test installation
       await db.insert(githubInstallations).values({
         userId,
-        installationId,
+        installationId: testInstallationId,
         accountName: "testuser",
-        accountType: "User",
       });
 
       // Create test repository
       await db.insert(githubRepos).values({
         projectId,
-        installationId,
+        installationId: testInstallationId,
         repoName: "uspark-test-project-123",
         repoId: 987654,
       });
@@ -94,7 +98,7 @@ describe("/api/projects/[projectId]/github/repository", () => {
       expect(response.status).toBe(200);
       expect(data.repository.projectId).toBe(projectId);
       expect(data.repository.repoName).toBe("uspark-test-project-123");
-      expect(data.repository.installationId).toBe(installationId);
+      expect(data.repository.installationId).toBe(testInstallationId);
     });
 
     it("should return 404 for non-existent repository", async () => {
@@ -149,16 +153,15 @@ describe("/api/projects/[projectId]/github/repository", () => {
       // Create test installation
       await db.insert(githubInstallations).values({
         userId,
-        installationId,
+        installationId: testInstallationId,
         accountName: "testuser",
-        accountType: "User",
       });
 
       const request = new NextRequest(
         "http://localhost/api/projects/test-project-123/github/repository",
         {
           method: "POST",
-          body: JSON.stringify({ installationId }),
+          body: JSON.stringify({ installationId: testInstallationId }),
           headers: { "Content-Type": "application/json" },
         },
       );
@@ -214,15 +217,14 @@ describe("/api/projects/[projectId]/github/repository", () => {
       // Create test installation
       await db.insert(githubInstallations).values({
         userId,
-        installationId,
+        installationId: testInstallationId,
         accountName: "testuser",
-        accountType: "User",
       });
 
       // Create existing repository
       await db.insert(githubRepos).values({
         projectId,
-        installationId,
+        installationId: testInstallationId,
         repoName: "existing-repo",
         repoId: 111111,
       });
@@ -231,7 +233,7 @@ describe("/api/projects/[projectId]/github/repository", () => {
         "http://localhost/api/projects/test-project-123/github/repository",
         {
           method: "POST",
-          body: JSON.stringify({ installationId }),
+          body: JSON.stringify({ installationId: testInstallationId }),
           headers: { "Content-Type": "application/json" },
         },
       );
@@ -258,15 +260,14 @@ describe("/api/projects/[projectId]/github/repository", () => {
       // Create test installation
       await db.insert(githubInstallations).values({
         userId,
-        installationId,
+        installationId: testInstallationId,
         accountName: "testuser",
-        accountType: "User",
       });
 
       // Create test repository to delete
       await db.insert(githubRepos).values({
         projectId,
-        installationId,
+        installationId: testInstallationId,
         repoName: "uspark-test-project-123",
         repoId: 987654,
       });
@@ -305,15 +306,14 @@ describe("/api/projects/[projectId]/github/repository", () => {
       // Create test installation
       await db.insert(githubInstallations).values({
         userId,
-        installationId,
+        installationId: testInstallationId,
         accountName: "testuser",
-        accountType: "User",
       });
 
       // Create repository for a different project (not the one we're trying to delete)
       await db.insert(githubRepos).values({
         projectId: "different-project",
-        installationId,
+        installationId: testInstallationId,
         repoName: "different-repo",
         repoId: 111111,
       });

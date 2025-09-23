@@ -39,6 +39,7 @@ describe("Push Multiple Different Blobs", () => {
         pathname,
         contentType: "text/plain",
         downloadUrl: `https://test.blob.storage/${pathname}`,
+        contentDisposition: `attachment; filename="${pathname}"`,
       };
     });
 
