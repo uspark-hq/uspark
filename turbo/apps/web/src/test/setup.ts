@@ -51,3 +51,51 @@ vi.mock("next/headers", () => ({
     set: vi.fn(),
   })),
 }));
+
+// Mock Claude token crypto for testing
+vi.mock("../lib/claude-token-crypto", () => ({
+  encryptClaudeToken: vi.fn((token: string) => `encrypted_${token}`),
+  decryptClaudeToken: vi.fn((encrypted: string) => encrypted.replace("encrypted_", "")),
+  getTokenPrefix: vi.fn((token: string) => token.substring(0, 10) + "..."),
+  isValidClaudeToken: vi.fn(() => true),
+  getEncryptionKey: vi.fn(() => Buffer.from("test-encryption-key")),
+}));
+
+// Mock E2B SDK for testing
+vi.mock("e2b", () => ({
+  Sandbox: {
+    create: vi.fn().mockResolvedValue({
+      sandboxId: "mock-sandbox",
+      commands: {
+        run: vi.fn().mockResolvedValue({
+          exitCode: 0,
+          stdout: "",
+          stderr: "",
+        }),
+      },
+      files: {
+        write: vi.fn(),
+      },
+      setTimeout: vi.fn(),
+      kill: vi.fn(),
+    }),
+    connect: vi.fn().mockResolvedValue({
+      sandboxId: "mock-sandbox",
+      commands: {
+        run: vi.fn().mockResolvedValue({
+          exitCode: 0,
+          stdout: "",
+          stderr: "",
+        }),
+      },
+      files: {
+        write: vi.fn(),
+      },
+      setTimeout: vi.fn(),
+      kill: vi.fn(),
+    }),
+    list: vi.fn().mockResolvedValue({
+      nextItems: vi.fn().mockResolvedValue([]),
+    }),
+  },
+}));

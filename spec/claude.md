@@ -142,33 +142,66 @@ const result = await sandbox.commands.run(
 );
 ```
 
-### 3. Processing JSON Stream Output
-```typescript
-const lines = output.split('\n').filter(line => line.trim());
-for (const line of lines) {
-  const json = JSON.parse(line);
+### 3. Real-time Streaming with Callbacks
+E2B SDK supports real-time output streaming via callbacks in the `run` method:
 
-  switch(json.type) {
-    case 'system':
-      // Initialization info
-      break;
-    case 'assistant':
-      // Claude's response
-      if (json.message?.content?.[0]?.type === 'text') {
-        console.log(json.message.content[0].text);
-      }
-      break;
-    case 'tool_use':
-      // Tool invocation
-      console.log(`Using tool: ${json.name}`);
-      break;
-    case 'result':
-      // Final result
-      console.log(`Cost: $${json.total_cost_usd}`);
-      break;
+```typescript
+// Real-time streaming - get output as it arrives
+const result = await sandbox.commands.run(
+  'cat prompt.txt | claude --print --verbose --output-format stream-json',
+  {
+    onStdout: async (data: string) => {
+      // Process streaming data in real-time
+      console.log('Received:', data);
+    },
+    onStderr: (data: string) => {
+      console.error('Error:', data);
+    }
   }
-}
+);
 ```
+
+**Note**: The callbacks receive data as strings, and for JSON stream output, you may receive partial lines that need buffering.
+
+### 4. Processing JSON Stream Output
+For real-time processing of Claude's JSON stream:
+
+```typescript
+let buffer = '';
+const blocks = [];
+
+const result = await sandbox.commands.run(command, {
+  onStdout: async (data: string) => {
+    buffer += data;
+    const lines = buffer.split('\n');
+
+    // Keep potentially incomplete last line
+    buffer = lines[lines.length - 1];
+
+    // Process complete lines
+    for (let i = 0; i < lines.length - 1; i++) {
+      const line = lines[i].trim();
+      if (line) {
+        try {
+          const block = JSON.parse(line);
+          blocks.push(block);
+
+          // Process block in real-time
+          await processBlock(block);
+        } catch (e) {
+          console.error('Parse error:', line);
+        }
+      }
+    }
+  }
+});
+```
+
+This approach ensures:
+- Each JSON block is processed as soon as it arrives
+- Partial lines are properly buffered
+- Real-time updates can be sent to clients
+- Database operations happen immediately
 
 ## Common Issues
 
@@ -184,49 +217,157 @@ A: When using `--output-format stream-json`, you must also add the `--verbose` f
 ### Q: How to know if Claude is working?
 A: Use `--output-format stream-json` to see execution progress in realtime.
 
-## Integration Example
+## Production Integration
 
-### Complete E2B Claude Executor
+### E2B Sandbox Management with Session Reuse
 ```typescript
-export class ClaudeExecutor {
-  static async execute(
-    sandbox: Sandbox,
-    prompt: string
-  ): Promise<ExecutionResult> {
-    // Create temporary file
-    const promptFile = `/tmp/prompt_${Date.now()}.txt`;
-    await sandbox.files.write(promptFile, prompt);
+export class E2BExecutor {
+  private static readonly SANDBOX_TIMEOUT = 1800; // 30 minutes
+  private static readonly TEMPLATE_ID = "w6qe4mwx23icyuytq64y"; // uSpark Claude template
 
-    // Execute using pipe method
-    const command = `cat "${promptFile}" | claude --print --verbose --output-format stream-json`;
-    const result = await sandbox.commands.run(command);
+  /**
+   * Get or create a sandbox for a session (reuses existing sandboxes)
+   */
+  static async getSandboxForSession(
+    sessionId: string,
+    projectId: string,
+    userId: string
+  ): Promise<Sandbox> {
+    // Try to find existing sandbox
+    const paginator = await Sandbox.list();
+    const sandboxes = await paginator.nextItems();
+    const existingSandbox = sandboxes.find(
+      (s: any) => s.metadata?.sessionId === sessionId
+    );
 
-    // Clean up temporary file
-    await sandbox.commands.run(`rm -f "${promptFile}"`);
-
-    // Parse JSON stream
-    const blocks = [];
-    if (result.stdout) {
-      const lines = result.stdout.split('\n');
-      for (const line of lines) {
-        if (line.trim()) {
-          try {
-            blocks.push(JSON.parse(line));
-          } catch (e) {
-            console.error('Failed to parse JSON:', line);
-          }
-        }
+    if (existingSandbox) {
+      try {
+        // Reconnect to existing sandbox
+        const sandbox = await Sandbox.connect(existingSandbox.sandboxId);
+        await sandbox.setTimeout(this.SANDBOX_TIMEOUT * 1000);
+        return sandbox;
+      } catch (error) {
+        console.log("Failed to reconnect, will create new sandbox");
       }
     }
 
-    return {
-      success: result.exitCode === 0,
-      output: result.stdout,
-      blocks: blocks,
-      error: result.stderr
-    };
+    // Create new sandbox with Claude OAuth token
+    const claudeToken = await this.getUserClaudeToken(userId);
+    if (!claudeToken) {
+      throw new Error("User has not configured Claude OAuth token");
+    }
+
+    const sandbox = await Sandbox.create(this.TEMPLATE_ID, {
+      timeout: this.SANDBOX_TIMEOUT,
+      metadata: { sessionId, projectId, userId },
+      envs: {
+        CLAUDE_CODE_OAUTH_TOKEN: claudeToken,
+        PROJECT_ID: projectId,
+      },
+    });
+
+    return sandbox;
   }
 }
+```
+
+### Real-time Claude Execution with Streaming
+```typescript
+static async executeClaude(
+  sandbox: Sandbox,
+  prompt: string,
+  projectId: string,
+  onBlock?: (block: any) => Promise<void>
+): Promise<ExecutionResult> {
+  // Create a temporary file for the prompt
+  const promptFile = `/tmp/prompt_${Date.now()}.txt`;
+  await sandbox.files.write(promptFile, prompt);
+
+  const blocks: any[] = [];
+  let buffer = '';
+
+  // Use pipe method with real-time streaming
+  const command = `cat "${promptFile}" | claude --print --verbose --output-format stream-json`;
+
+  const result = await (sandbox.commands as any).run(command, {
+    onStdout: async (data: string) => {
+      // Buffer and process complete JSON lines
+      buffer += data;
+      const lines = buffer.split('\n');
+      buffer = lines[lines.length - 1];
+
+      // Process complete lines
+      for (let i = 0; i < lines.length - 1; i++) {
+        const line = lines[i].trim();
+        if (line) {
+          try {
+            const block = JSON.parse(line);
+            blocks.push(block);
+
+            // Real-time callback
+            if (onBlock) {
+              await onBlock(block);
+            }
+          } catch (e) {
+            console.error('Failed to parse JSON line:', line);
+          }
+        }
+      }
+    },
+    onStderr: (data: string) => {
+      console.error('Claude stderr:', data);
+    }
+  });
+
+  // Clean up
+  await sandbox.commands.run(`rm -f "${promptFile}"`);
+
+  return {
+    success: result.exitCode === 0,
+    blocks: blocks,
+    totalCost: blocks.find(b => b.type === 'result')?.total_cost_usd,
+    usage: blocks.find(b => b.type === 'result')?.usage,
+  };
+}
+```
+
+### Processing Blocks in Real-time
+```typescript
+// In ClaudeExecutor.execute()
+const result = await E2BExecutor.executeClaude(
+  sandbox,
+  userPrompt,
+  projectId,
+  async (block) => {
+    // Save blocks to database as they arrive
+    if (block.type === 'assistant') {
+      const content = block.message?.content?.[0];
+      if (content?.type === 'text') {
+        await this.saveBlock(turnId, {
+          type: 'content',
+          text: content.text
+        }, sequenceNumber++);
+      }
+    } else if (block.type === 'tool_result') {
+      await this.saveBlock(turnId, {
+        type: 'tool_result',
+        tool_use_id: block.tool_use_id,
+        result: block.content,
+      }, sequenceNumber++);
+    } else if (block.type === 'result') {
+      // Update turn with final statistics
+      await db.update(TURNS_TBL).set({
+        status: "completed",
+        completedAt: new Date(),
+        metadata: {
+          totalCost: block.total_cost_usd,
+          usage: block.usage,
+          duration: block.duration_ms
+        }
+      }).where(eq(TURNS_TBL.id, turnId));
+    }
+  }
+);
 ```
 
 ## Performance Considerations
@@ -234,25 +375,37 @@ export class ClaudeExecutor {
 1. **First Execution is Slower**: Claude CLI may need initialization on first run, set longer timeouts
 2. **Pipes are More Reliable**: Pipe input is more stable than direct arguments
 3. **Stream Output**: Using `stream-json` allows earlier response processing
+4. **Sandbox Reuse**: Sandboxes persist for 30 minutes and can be reconnected for better performance
+5. **Real-time Processing**: Blocks are processed and saved as they arrive, not batched
 
-## Debugging Tips
+## Key Implementation Notes
 
-1. **Check Environment Variables**
-```bash
-env | grep CLAUDE
+### E2B SDK Paginator API
+The `Sandbox.list()` method returns a paginator, not an array:
+```typescript
+const paginator = await Sandbox.list();
+const sandboxes = await paginator.nextItems(); // Get first page
 ```
 
-2. **Use Debug Mode**
-```bash
-echo "test" | claude --debug --print
+### Metadata for Session Tracking
+Sandboxes store metadata to enable session-based reuse:
+```typescript
+metadata: {
+  sessionId: string,
+  projectId: string,
+  userId: string
+}
 ```
 
-3. **Test Simple Commands**
-```bash
-echo "test" | timeout 10 claude --print
-```
+### Required Environment Variables
+- `E2B_API_KEY`: E2B API authentication
+- `CLAUDE_CODE_OAUTH_TOKEN`: User's Claude OAuth token (stored encrypted in database)
+- `NODE_ENV`: Set to "development" for testing without encryption key
 
-4. **Check Claude Version**
-```bash
-claude --version
-```
+## Verified Working Configuration
+
+- **E2B Template**: `w6qe4mwx23icyuytq64y` (uSpark Claude template)
+- **Claude CLI**: v1.0.117 (pre-installed in template)
+- **Command Format**: `cat prompt.txt | claude --print --verbose --output-format stream-json`
+- **Real-time Streaming**: Uses E2B's `onStdout` callback for immediate block processing
+- **Database Updates**: Blocks saved immediately as they arrive, not after completion

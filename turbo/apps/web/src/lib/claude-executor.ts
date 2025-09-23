@@ -45,37 +45,67 @@ export class ClaudeExecutor {
         userId
       );
 
-      // Execute Claude command
+      // Track sequence number for blocks
+      let sequenceNumber = 0;
+
+      // Execute Claude with real-time streaming
       const result = await E2BExecutor.executeClaude(
         sandbox,
         userPrompt,
-        projectId
+        projectId,
+        async (block) => {
+          // Process each block as it arrives in real-time
+          console.log(`[REAL-TIME] Block type: ${block.type}`);
+
+          // Save different types of blocks
+          if (block.type === 'assistant') {
+            // Assistant response block
+            const content = block.message?.content?.[0];
+            if (content?.type === 'text') {
+              await this.saveBlock(turnId, {
+                type: 'content',
+                text: content.text
+              }, sequenceNumber++);
+            } else if (content?.type === 'tool_use') {
+              await this.saveBlock(turnId, {
+                type: 'tool_use',
+                tool_name: content.name,
+                parameters: content.input,
+                tool_use_id: content.id
+              }, sequenceNumber++);
+            }
+          } else if (block.type === 'tool_result') {
+            // Tool execution result
+            await this.saveBlock(turnId, {
+              type: 'tool_result',
+              tool_use_id: block.tool_use_id,
+              result: block.content,
+              error: block.is_error ? block.content : null
+            }, sequenceNumber++);
+          } else if (block.type === 'result') {
+            // Final result with statistics
+            await db
+              .update(TURNS_TBL)
+              .set({
+                status: "completed",
+                completedAt: new Date(),
+                metadata: {
+                  totalCost: block.total_cost_usd,
+                  usage: block.usage,
+                  duration: block.duration_ms
+                }
+              })
+              .where(eq(TURNS_TBL.id, turnId));
+          }
+        }
       );
 
       if (!result.success) {
         throw new Error(result.error || "Claude execution failed");
       }
 
-      // Parse output into blocks
-      const blocks = E2BExecutor.parseClaudeOutput(result.output || "");
-
-      // Save blocks to database
-      let sequenceNumber = 0;
-      for (const block of blocks) {
-        await this.saveBlock(turnId, block, sequenceNumber++);
-      }
-
-      // Mark turn as completed
-      await db
-        .update(TURNS_TBL)
-        .set({
-          status: "completed",
-          completedAt: new Date(),
-        })
-        .where(eq(TURNS_TBL.id, turnId));
-
       console.log(
-        `Turn ${turnId} completed successfully with ${blocks.length} blocks`
+        `Turn ${turnId} completed successfully with ${sequenceNumber} blocks`
       );
     } catch (error) {
       console.error(`Turn ${turnId} execution failed:`, error);
