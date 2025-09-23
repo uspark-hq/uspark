@@ -2,9 +2,9 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import "../../../../src/test/setup";
 import { POST } from "./generate-token/route";
 import { NextRequest } from "next/server";
+import { createTestCLIToken } from "../../../../src/test/db-test-utils";
 import { CLI_TOKENS_TBL } from "../../../../src/db/schema/cli-tokens";
 import { eq, and, gt } from "drizzle-orm";
-import { initServices } from "../../../../src/lib/init-services";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({
@@ -16,9 +16,7 @@ import { auth } from "@clerk/nextjs/server";
 describe("Token List Integration", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
-    // Clean up any existing tokens before each test
-    initServices();
-    await globalThis.services.db.delete(CLI_TOKENS_TBL);
+    // Each test gets a fresh database, so no cleanup needed
   });
 
   it("should retrieve tokens after generating them", async () => {
@@ -105,22 +103,18 @@ describe("Token List Integration", () => {
     const pastDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); // Yesterday
     const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000); // 30 days from now
 
-    // Insert expired token directly
-    await globalThis.services.db.insert(CLI_TOKENS_TBL).values({
+    // Create expired token using utility function
+    await createTestCLIToken(userId, {
       token: "usp_live_expired",
-      userId,
       name: "Expired Token",
       expiresAt: pastDate,
-      createdAt: pastDate,
     });
 
-    // Insert active token directly
-    await globalThis.services.db.insert(CLI_TOKENS_TBL).values({
+    // Create active token using utility function
+    await createTestCLIToken(userId, {
       token: "usp_live_active",
-      userId,
       name: "Active Token",
       expiresAt: futureDate,
-      createdAt: now,
     });
 
     // Query active tokens

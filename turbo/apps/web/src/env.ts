@@ -11,7 +11,7 @@ function initEnv() {
       DATABASE_URL: z.string().min(1),
       CLERK_SECRET_KEY: z.string().min(1),
       BLOB_READ_WRITE_TOKEN: z.string().min(1),
-      E2B_API_KEY: z.string().min(1).optional(),
+      E2B_API_KEY: z.string().min(1),
       APP_URL: z
         .string()
         .default(
@@ -35,7 +35,9 @@ function initEnv() {
       BLOB_READ_WRITE_TOKEN: isTest
         ? "vercel_blob_rw_test-store_secret-key"
         : process.env.BLOB_READ_WRITE_TOKEN,
-      E2B_API_KEY: process.env.E2B_API_KEY,
+      E2B_API_KEY: isTest
+        ? "test_e2b_api_key_placeholder"
+        : process.env.E2B_API_KEY,
       APP_URL: process.env.APP_URL,
       GH_APP_ID: isTest ? "test_github_app_id" : process.env.GH_APP_ID,
       GH_APP_PRIVATE_KEY: isTest

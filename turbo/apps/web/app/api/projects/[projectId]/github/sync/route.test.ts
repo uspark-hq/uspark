@@ -52,6 +52,8 @@ const mockAuth = vi.mocked(auth);
 describe("/api/projects/[projectId]/github/sync", () => {
   // Use unique IDs for each test run to avoid conflicts
   const testUserId = `test-user-github-sync-${Date.now()}-${process.pid}`;
+  // Use fixed ID for all tests in this file since they clean up after themselves
+  const testInstallationId = 300001;
   const createdProjectIds: string[] = [];
 
   beforeEach(async () => {
@@ -136,7 +138,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
       await db.insert(githubRepos).values({
         projectId,
-        installationId: 12345,
+        installationId: testInstallationId,
         repoName: "test-repo",
         repoId: 67890,
       });
@@ -256,7 +258,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
         .insert(githubRepos)
         .values({
           projectId,
-          installationId: 12345,
+          installationId: testInstallationId,
           repoName: "test-repo",
           repoId: 67890,
         })

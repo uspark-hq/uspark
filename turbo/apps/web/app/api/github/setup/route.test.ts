@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import "../../../../src/test/setup";
 import { NextRequest } from "next/server";
 import { GET } from "./route";
+import { createTestGitHubInstallation } from "../../../../src/test/db-test-utils";
 import { initServices } from "../../../../src/lib/init-services";
 import { githubInstallations } from "../../../../src/db/schema/github";
 import { eq } from "drizzle-orm";
@@ -23,10 +24,12 @@ const mockGetInstallationDetails = vi.mocked(getInstallationDetails);
 
 describe("/api/github/setup", () => {
   const userId = `test-user-github-setup-${Date.now()}-${process.pid}`;
-  const installationId = "12345";
+  // Use fixed ID for all tests in this file since they clean up after themselves
+  const installationId = "400001";
 
   beforeEach(async () => {
     vi.clearAllMocks();
+
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
 
@@ -134,12 +137,12 @@ describe("/api/github/setup", () => {
     });
 
     it("should update existing installation on conflict", async () => {
-      // First, insert an installation
-      await globalThis.services.db.insert(githubInstallations).values({
-        userId: "different-user",
-        installationId: parseInt(installationId),
-        accountName: "old-account-name",
-      });
+      // First, create an installation using utility function
+      await createTestGitHubInstallation(
+        "different-user",
+        parseInt(installationId),
+        "old-account-name",
+      );
 
       const url = `http://localhost:3000/api/github/setup?setup_action=install&installation_id=${installationId}`;
       const mockRequest = new NextRequest(url);

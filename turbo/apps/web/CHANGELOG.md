@@ -1,194 +1,179 @@
 # Changelog
 
-## [0.28.1](https://github.com/uspark-hq/uspark/compare/web-v0.28.0...web-v0.28.1) (2025-09-22)
+## [0.29.0](https://github.com/uspark-hq/uspark/compare/web-v0.28.1...web-v0.29.0) (2025-09-23)
+
+
+### Features
+
+* implement e2b claude execution with oauth tokens ([#357](https://github.com/uspark-hq/uspark/issues/357)) ([806c693](https://github.com/uspark-hq/uspark/commit/806c6934d62a3f9c73885d937a5fcce13eda5f8f))
 
 
 ### Bug Fixes
 
-* require CLAUDE_TOKEN_ENCRYPTION_KEY env var and update workflows ([#354](https://github.com/uspark-hq/uspark/issues/354)) ([d63bc90](https://github.com/uspark-hq/uspark/commit/d63bc90707bcd0241bde9aa26ca3a04a6e00a8b9))
+* correct test environment variable priority in web app ([#360](https://github.com/uspark-hq/uspark/issues/360)) ([5bcdaaa](https://github.com/uspark-hq/uspark/commit/5bcdaaa7cb1dfa63a2a04444bdacf38f939358fb))
+
+## [0.28.1](https://github.com/uspark-hq/uspark/compare/web-v0.28.0...web-v0.28.1) (2025-09-22)
+
+### Bug Fixes
+
+- require CLAUDE_TOKEN_ENCRYPTION_KEY env var and update workflows ([#354](https://github.com/uspark-hq/uspark/issues/354)) ([d63bc90](https://github.com/uspark-hq/uspark/commit/d63bc90707bcd0241bde9aa26ca3a04a6e00a8b9))
 
 ## [0.28.0](https://github.com/uspark-hq/uspark/compare/web-v0.27.0...web-v0.28.0) (2025-09-22)
 
-
 ### Features
 
-* implement claude oauth token storage for e2b execution ([#347](https://github.com/uspark-hq/uspark/issues/347)) ([a40a280](https://github.com/uspark-hq/uspark/commit/a40a280bbd1dc081d2fe42b1aa4e6475e32b8e8d))
-
+- implement claude oauth token storage for e2b execution ([#347](https://github.com/uspark-hq/uspark/issues/347)) ([a40a280](https://github.com/uspark-hq/uspark/commit/a40a280bbd1dc081d2fe42b1aa4e6475e32b8e8d))
 
 ### Bug Fixes
 
-* cli e2e authentication path issue in github actions ([#351](https://github.com/uspark-hq/uspark/issues/351)) ([906a8ec](https://github.com/uspark-hq/uspark/commit/906a8ecb0a2b97c6d31a27cdb155c2e7aa85b63d))
+- cli e2e authentication path issue in github actions ([#351](https://github.com/uspark-hq/uspark/issues/351)) ([906a8ec](https://github.com/uspark-hq/uspark/commit/906a8ecb0a2b97c6d31a27cdb155c2e7aa85b63d))
 
 ## [0.27.0](https://github.com/uspark-hq/uspark/compare/web-v0.26.2...web-v0.27.0) (2025-09-20)
 
-
 ### Features
 
-* implement vercel blob client token upload for CLI ([#343](https://github.com/uspark-hq/uspark/issues/343)) ([0c89919](https://github.com/uspark-hq/uspark/commit/0c89919e38add1c7610575991eb5b2e4e49407c9))
+- implement vercel blob client token upload for CLI ([#343](https://github.com/uspark-hq/uspark/issues/343)) ([0c89919](https://github.com/uspark-hq/uspark/commit/0c89919e38add1c7610575991eb5b2e4e49407c9))
 
 ## [0.26.2](https://github.com/uspark-hq/uspark/compare/web-v0.26.1...web-v0.26.2) (2025-09-20)
 
-
 ### Bug Fixes
 
-* remove console.error + throw anti-pattern ([#337](https://github.com/uspark-hq/uspark/issues/337)) ([ea3687c](https://github.com/uspark-hq/uspark/commit/ea3687cad315b0f0aef85e40818bd83d29dd5647))
-* replace fetch mock with MSW in route.test.ts ([#339](https://github.com/uspark-hq/uspark/issues/339)) ([8543548](https://github.com/uspark-hq/uspark/commit/85435484643d5fa9920818d90aaa3a325d643442))
+- remove console.error + throw anti-pattern ([#337](https://github.com/uspark-hq/uspark/issues/337)) ([ea3687c](https://github.com/uspark-hq/uspark/commit/ea3687cad315b0f0aef85e40818bd83d29dd5647))
+- replace fetch mock with MSW in route.test.ts ([#339](https://github.com/uspark-hq/uspark/issues/339)) ([8543548](https://github.com/uspark-hq/uspark/commit/85435484643d5fa9920818d90aaa3a325d643442))
 
 ## [0.26.1](https://github.com/uspark-hq/uspark/compare/web-v0.26.0...web-v0.26.1) (2025-09-20)
 
-
 ### Bug Fixes
 
-* replace mock file content with real content from YJS and blob storage ([#333](https://github.com/uspark-hq/uspark/issues/333)) ([ac288bd](https://github.com/uspark-hq/uspark/commit/ac288bd7a743c1457b23558e65833fad0def15b9))
+- replace mock file content with real content from YJS and blob storage ([#333](https://github.com/uspark-hq/uspark/issues/333)) ([ac288bd](https://github.com/uspark-hq/uspark/commit/ac288bd7a743c1457b23558e65833fad0def15b9))
 
 ## [0.26.0](https://github.com/uspark-hq/uspark/compare/web-v0.25.0...web-v0.26.0) (2025-09-20)
 
-
 ### Features
 
-* update landing page to align with MVP specification and product positioning ([#328](https://github.com/uspark-hq/uspark/issues/328)) ([958e734](https://github.com/uspark-hq/uspark/commit/958e734186fd526c29304bc7fe0d7cca11cfb913))
-
+- update landing page to align with MVP specification and product positioning ([#328](https://github.com/uspark-hq/uspark/issues/328)) ([958e734](https://github.com/uspark-hq/uspark/commit/958e734186fd526c29304bc7fe0d7cca11cfb913))
 
 ### Bug Fixes
 
-* add cli token authentication support to blob-token and project apis ([#329](https://github.com/uspark-hq/uspark/issues/329)) ([ca7e4d3](https://github.com/uspark-hq/uspark/commit/ca7e4d30a3c5473c17dfad20f8109a3d58d2e444))
+- add cli token authentication support to blob-token and project apis ([#329](https://github.com/uspark-hq/uspark/issues/329)) ([ca7e4d3](https://github.com/uspark-hq/uspark/commit/ca7e4d30a3c5473c17dfad20f8109a3d58d2e444))
 
 ## [0.25.0](https://github.com/uspark-hq/uspark/compare/web-v0.24.0...web-v0.25.0) (2025-09-20)
 
-
 ### Features
 
-* add frontend chat interface with interruption and error handling ([#312](https://github.com/uspark-hq/uspark/issues/312)) ([fac8e49](https://github.com/uspark-hq/uspark/commit/fac8e4939ba553f270ee1bfde33b8830b3de98f6))
-* implement simplified long polling for real-time session updates ([#320](https://github.com/uspark-hq/uspark/issues/320)) ([2f01238](https://github.com/uspark-hq/uspark/commit/2f0123867318a69fd926d8ff69cbcc98e1423d3c))
-* integrate yjs filesystem with mock-execute and enable real-time file synchronization ([#315](https://github.com/uspark-hq/uspark/issues/315)) ([08e45bf](https://github.com/uspark-hq/uspark/commit/08e45bf67d727267397fb222819c1bd4e292da4a))
-
+- add frontend chat interface with interruption and error handling ([#312](https://github.com/uspark-hq/uspark/issues/312)) ([fac8e49](https://github.com/uspark-hq/uspark/commit/fac8e4939ba553f270ee1bfde33b8830b3de98f6))
+- implement simplified long polling for real-time session updates ([#320](https://github.com/uspark-hq/uspark/issues/320)) ([2f01238](https://github.com/uspark-hq/uspark/commit/2f0123867318a69fd926d8ff69cbcc98e1423d3c))
+- integrate yjs filesystem with mock-execute and enable real-time file synchronization ([#315](https://github.com/uspark-hq/uspark/issues/315)) ([08e45bf](https://github.com/uspark-hq/uspark/commit/08e45bf67d727267397fb222819c1bd4e292da4a))
 
 ### Bug Fixes
 
-* apply prettier formatting to test files ([#327](https://github.com/uspark-hq/uspark/issues/327)) ([4e5b592](https://github.com/uspark-hq/uspark/commit/4e5b592203723568567de0223ac42439ac73c2e1))
-* cli authentication and ydoc sync issues ([#321](https://github.com/uspark-hq/uspark/issues/321)) ([e474fe1](https://github.com/uspark-hq/uspark/commit/e474fe14eee09265d222b8685cda82e3a83582c6))
-* format ([#324](https://github.com/uspark-hq/uspark/issues/324)) ([b2f2d6f](https://github.com/uspark-hq/uspark/commit/b2f2d6fbb5838493b8812359bacb04c32bbbc97f))
-* resolve test memory leaks and failures by removing fetch mocks ([#326](https://github.com/uspark-hq/uspark/issues/326)) ([ede6fb8](https://github.com/uspark-hq/uspark/commit/ede6fb8837f113bfb1c167f009b57a18ba2c82b9))
-* resolve timeout cleanup issue causing test failures ([#318](https://github.com/uspark-hq/uspark/issues/318)) ([5f8225e](https://github.com/uspark-hq/uspark/commit/5f8225e2a62626aed532e9b240bb7625dae141b7))
-* use correct GitHub API endpoint for installation details ([#313](https://github.com/uspark-hq/uspark/issues/313)) ([f5e787a](https://github.com/uspark-hq/uspark/commit/f5e787a39394dcb28da5161196f5287662638bfb))
+- apply prettier formatting to test files ([#327](https://github.com/uspark-hq/uspark/issues/327)) ([4e5b592](https://github.com/uspark-hq/uspark/commit/4e5b592203723568567de0223ac42439ac73c2e1))
+- cli authentication and ydoc sync issues ([#321](https://github.com/uspark-hq/uspark/issues/321)) ([e474fe1](https://github.com/uspark-hq/uspark/commit/e474fe14eee09265d222b8685cda82e3a83582c6))
+- format ([#324](https://github.com/uspark-hq/uspark/issues/324)) ([b2f2d6f](https://github.com/uspark-hq/uspark/commit/b2f2d6fbb5838493b8812359bacb04c32bbbc97f))
+- resolve test memory leaks and failures by removing fetch mocks ([#326](https://github.com/uspark-hq/uspark/issues/326)) ([ede6fb8](https://github.com/uspark-hq/uspark/commit/ede6fb8837f113bfb1c167f009b57a18ba2c82b9))
+- resolve timeout cleanup issue causing test failures ([#318](https://github.com/uspark-hq/uspark/issues/318)) ([5f8225e](https://github.com/uspark-hq/uspark/commit/5f8225e2a62626aed532e9b240bb7625dae141b7))
+- use correct GitHub API endpoint for installation details ([#313](https://github.com/uspark-hq/uspark/issues/313)) ([f5e787a](https://github.com/uspark-hq/uspark/commit/f5e787a39394dcb28da5161196f5287662638bfb))
 
 ## [0.24.0](https://github.com/uspark-hq/uspark/compare/web-v0.23.0...web-v0.24.0) (2025-09-18)
 
-
 ### Features
 
-* add mock claude executor for testing execution flow ([#309](https://github.com/uspark-hq/uspark/issues/309)) ([515860a](https://github.com/uspark-hq/uspark/commit/515860a95f11a1434293b418f1bcbc23d0822347))
-
+- add mock claude executor for testing execution flow ([#309](https://github.com/uspark-hq/uspark/issues/309)) ([515860a](https://github.com/uspark-hq/uspark/commit/515860a95f11a1434293b418f1bcbc23d0822347))
 
 ### Bug Fixes
 
-* add detailed error logging for github repository creation ([#311](https://github.com/uspark-hq/uspark/issues/311)) ([efac93d](https://github.com/uspark-hq/uspark/commit/efac93de4afa86d52764c0dd1f2c314dc562a252))
+- add detailed error logging for github repository creation ([#311](https://github.com/uspark-hq/uspark/issues/311)) ([efac93d](https://github.com/uspark-hq/uspark/commit/efac93de4afa86d52764c0dd1f2c314dc562a252))
 
 ## [0.23.0](https://github.com/uspark-hq/uspark/compare/web-v0.22.4...web-v0.23.0) (2025-09-18)
 
-
 ### Features
 
-* implement session API endpoints for claude execution ([#305](https://github.com/uspark-hq/uspark/issues/305)) ([a6d02af](https://github.com/uspark-hq/uspark/commit/a6d02af8e4e4d1316aa7402e20f3beea3d6c92e3))
+- implement session API endpoints for claude execution ([#305](https://github.com/uspark-hq/uspark/issues/305)) ([a6d02af](https://github.com/uspark-hq/uspark/commit/a6d02af8e4e4d1316aa7402e20f3beea3d6c92e3))
 
 ## [0.22.4](https://github.com/uspark-hq/uspark/compare/web-v0.22.3...web-v0.22.4) (2025-09-15)
 
-
 ### Bug Fixes
 
-* resolve test failures from environment setup and React imports ([#297](https://github.com/uspark-hq/uspark/issues/297)) ([1c3bb7a](https://github.com/uspark-hq/uspark/commit/1c3bb7adee1da8bf29e88aa4fedab9969b3f5639))
-* use correct GitHub API endpoint for repository creation based on account type ([#291](https://github.com/uspark-hq/uspark/issues/291)) ([3744acc](https://github.com/uspark-hq/uspark/commit/3744accac93285361d795a9188814dd1dc9c8e7f))
+- resolve test failures from environment setup and React imports ([#297](https://github.com/uspark-hq/uspark/issues/297)) ([1c3bb7a](https://github.com/uspark-hq/uspark/commit/1c3bb7adee1da8bf29e88aa4fedab9969b3f5639))
+- use correct GitHub API endpoint for repository creation based on account type ([#291](https://github.com/uspark-hq/uspark/issues/291)) ([3744acc](https://github.com/uspark-hq/uspark/commit/3744accac93285361d795a9188814dd1dc9c8e7f))
 
 ## [0.22.3](https://github.com/uspark-hq/uspark/compare/web-v0.22.2...web-v0.22.3) (2025-09-14)
 
-
 ### Bug Fixes
 
-* resolve flaky test in /api/claude/turns route ([#289](https://github.com/uspark-hq/uspark/issues/289)) ([90fb5f9](https://github.com/uspark-hq/uspark/commit/90fb5f93652ce181613a0bd8bb5a60d4303f8359))
+- resolve flaky test in /api/claude/turns route ([#289](https://github.com/uspark-hq/uspark/issues/289)) ([90fb5f9](https://github.com/uspark-hq/uspark/commit/90fb5f93652ce181613a0bd8bb5a60d4303f8359))
 
 ## [0.22.2](https://github.com/uspark-hq/uspark/compare/web-v0.22.1...web-v0.22.2) (2025-09-14)
 
-
 ### Bug Fixes
 
-* decode base64 encoded github app private key ([#287](https://github.com/uspark-hq/uspark/issues/287)) ([b8e7259](https://github.com/uspark-hq/uspark/commit/b8e7259ab5d759135ff9f9bdb2e641d87ef34b30))
+- decode base64 encoded github app private key ([#287](https://github.com/uspark-hq/uspark/issues/287)) ([b8e7259](https://github.com/uspark-hq/uspark/commit/b8e7259ab5d759135ff9f9bdb2e641d87ef34b30))
 
 ## [0.22.1](https://github.com/uspark-hq/uspark/compare/web-v0.22.0...web-v0.22.1) (2025-09-14)
 
-
 ### Bug Fixes
 
-* enable auth protection in middleware to redirect unauthorized users to login ([#285](https://github.com/uspark-hq/uspark/issues/285)) ([6130fc3](https://github.com/uspark-hq/uspark/commit/6130fc3a508357a19b0dc86e12d2f4f0e356e73a))
-* resolve github integration management link and repository linking issues ([#284](https://github.com/uspark-hq/uspark/issues/284)) ([16a8908](https://github.com/uspark-hq/uspark/commit/16a8908eeaff7edd03589168338c04d1677f78d9))
-
+- enable auth protection in middleware to redirect unauthorized users to login ([#285](https://github.com/uspark-hq/uspark/issues/285)) ([6130fc3](https://github.com/uspark-hq/uspark/commit/6130fc3a508357a19b0dc86e12d2f4f0e356e73a))
+- resolve github integration management link and repository linking issues ([#284](https://github.com/uspark-hq/uspark/issues/284)) ([16a8908](https://github.com/uspark-hq/uspark/commit/16a8908eeaff7edd03589168338c04d1677f78d9))
 
 ### Dependencies
 
-* The following workspace dependencies were updated
-  * dependencies
-    * @uspark/core bumped to 0.12.1
+- The following workspace dependencies were updated
+  - dependencies
+    - @uspark/core bumped to 0.12.1
 
 ## [0.22.0](https://github.com/uspark-hq/uspark/compare/web-v0.21.0...web-v0.22.0) (2025-09-13)
 
-
 ### Features
 
-* implement claude sessions and turns api endpoints ([#279](https://github.com/uspark-hq/uspark/issues/279)) ([6d692cd](https://github.com/uspark-hq/uspark/commit/6d692cd248846364f7e3fb0e32afa18a649b2154))
+- implement claude sessions and turns api endpoints ([#279](https://github.com/uspark-hq/uspark/issues/279)) ([6d692cd](https://github.com/uspark-hq/uspark/commit/6d692cd248846364f7e3fb0e32afa18a649b2154))
 
 ## [0.21.0](https://github.com/uspark-hq/uspark/compare/web-v0.20.0...web-v0.21.0) (2025-09-13)
 
-
 ### Features
 
-* add local development proxy with caddy and update domain urls ([#269](https://github.com/uspark-hq/uspark/issues/269)) ([fc304d9](https://github.com/uspark-hq/uspark/commit/fc304d9b0c9481ff174279d464596ee7fb36b0f4))
-* implement github settings ui component (task 7) ([#267](https://github.com/uspark-hq/uspark/issues/267)) ([a0f27c9](https://github.com/uspark-hq/uspark/commit/a0f27c9ecc4033ed08209ca568027263b4208737))
-
+- add local development proxy with caddy and update domain urls ([#269](https://github.com/uspark-hq/uspark/issues/269)) ([fc304d9](https://github.com/uspark-hq/uspark/commit/fc304d9b0c9481ff174279d464596ee7fb36b0f4))
+- implement github settings ui component (task 7) ([#267](https://github.com/uspark-hq/uspark/issues/267)) ([a0f27c9](https://github.com/uspark-hq/uspark/commit/a0f27c9ecc4033ed08209ca568027263b4208737))
 
 ### Bug Fixes
 
-* remove broad try-catch block from github sync function ([#271](https://github.com/uspark-hq/uspark/issues/271)) ([ae37307](https://github.com/uspark-hq/uspark/commit/ae3730749031c4c52bf9a645bd6cb61cfb74758c))
-* resolve timer cleanup issue in github sync button ([#270](https://github.com/uspark-hq/uspark/issues/270)) ([dfa9311](https://github.com/uspark-hq/uspark/commit/dfa9311ef23899950151ef7a20140de19ec79fa3))
-
+- remove broad try-catch block from github sync function ([#271](https://github.com/uspark-hq/uspark/issues/271)) ([ae37307](https://github.com/uspark-hq/uspark/commit/ae3730749031c4c52bf9a645bd6cb61cfb74758c))
+- resolve timer cleanup issue in github sync button ([#270](https://github.com/uspark-hq/uspark/issues/270)) ([dfa9311](https://github.com/uspark-hq/uspark/commit/dfa9311ef23899950151ef7a20140de19ec79fa3))
 
 ### Dependencies
 
-* The following workspace dependencies were updated
-  * dependencies
-    * @uspark/core bumped to 0.12.0
+- The following workspace dependencies were updated
+  - dependencies
+    - @uspark/core bumped to 0.12.0
 
 ## [0.20.0](https://github.com/uspark-hq/uspark/compare/web-v0.19.0...web-v0.20.0) (2025-09-12)
 
-
 ### Features
 
-* implement web to github content sync mechanism (task 6) ([#255](https://github.com/uspark-hq/uspark/issues/255)) ([5744c7c](https://github.com/uspark-hq/uspark/commit/5744c7c039128baf9047669e2711aa2757544ff4))
-
+- implement web to github content sync mechanism (task 6) ([#255](https://github.com/uspark-hq/uspark/issues/255)) ([5744c7c](https://github.com/uspark-hq/uspark/commit/5744c7c039128baf9047669e2711aa2757544ff4))
 
 ### Bug Fixes
 
-* remove typescript any type violations in projects page ([#257](https://github.com/uspark-hq/uspark/issues/257)) ([deefd95](https://github.com/uspark-hq/uspark/commit/deefd957ccd62f56d02b049a949e40a35f40bfb3))
+- remove typescript any type violations in projects page ([#257](https://github.com/uspark-hq/uspark/issues/257)) ([deefd95](https://github.com/uspark-hq/uspark/commit/deefd957ccd62f56d02b049a949e40a35f40bfb3))
 
 ## [0.19.0](https://github.com/uspark-hq/uspark/compare/web-v0.18.0...web-v0.19.0) (2025-09-12)
 
-
 ### Features
 
-* add authentication and fetch signals for workspace app ([#248](https://github.com/uspark-hq/uspark/issues/248)) ([f3bca17](https://github.com/uspark-hq/uspark/commit/f3bca17b8ad8b8c8d086974c44741f16fa3ad724))
-* implement github app installation token management (task 4) ([#250](https://github.com/uspark-hq/uspark/issues/250)) ([2f89326](https://github.com/uspark-hq/uspark/commit/2f89326cab93719621705cf5bae0f63756b5ea2e))
-* implement github repository creation and management (task 5) ([#252](https://github.com/uspark-hq/uspark/issues/252)) ([3640aa8](https://github.com/uspark-hq/uspark/commit/3640aa8dcd9229e3d61fdcbd123203d79e50a186))
-
+- add authentication and fetch signals for workspace app ([#248](https://github.com/uspark-hq/uspark/issues/248)) ([f3bca17](https://github.com/uspark-hq/uspark/commit/f3bca17b8ad8b8c8d086974c44741f16fa3ad724))
+- implement github app installation token management (task 4) ([#250](https://github.com/uspark-hq/uspark/issues/250)) ([2f89326](https://github.com/uspark-hq/uspark/commit/2f89326cab93719621705cf5bae0f63756b5ea2e))
+- implement github repository creation and management (task 5) ([#252](https://github.com/uspark-hq/uspark/issues/252)) ([3640aa8](https://github.com/uspark-hq/uspark/commit/3640aa8dcd9229e3d61fdcbd123203d79e50a186))
 
 ### Bug Fixes
 
-* implement unique user IDs for database test isolation ([#261](https://github.com/uspark-hq/uspark/issues/261)) ([4089c6b](https://github.com/uspark-hq/uspark/commit/4089c6b4558c235f5d989d28ff3e3a844a0020c3))
-* replace hardcoded url with env.app_url in device auth ([#259](https://github.com/uspark-hq/uspark/issues/259)) ([ba94a73](https://github.com/uspark-hq/uspark/commit/ba94a73d6909505c4ef1e929fdba51f47ded6b9e))
-
+- implement unique user IDs for database test isolation ([#261](https://github.com/uspark-hq/uspark/issues/261)) ([4089c6b](https://github.com/uspark-hq/uspark/commit/4089c6b4558c235f5d989d28ff3e3a844a0020c3))
+- replace hardcoded url with env.app_url in device auth ([#259](https://github.com/uspark-hq/uspark/issues/259)) ([ba94a73](https://github.com/uspark-hq/uspark/commit/ba94a73d6909505c4ef1e929fdba51f47ded6b9e))
 
 ### Dependencies
 
-* The following workspace dependencies were updated
-  * dependencies
-    * @uspark/core bumped to 0.11.0
+- The following workspace dependencies were updated
+  - dependencies
+    - @uspark/core bumped to 0.11.0
 
 ## [0.18.0](https://github.com/uspark-hq/uspark/compare/web-v0.17.1...web-v0.18.0) (2025-09-12)
 
