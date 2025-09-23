@@ -23,14 +23,10 @@ export default function ProjectDetailPage() {
   // Load store ID on mount
   useEffect(() => {
     async function loadStoreId() {
-      try {
-        const response = await fetch("/api/blob-store");
-        if (response.ok) {
-          const data = await response.json();
-          setStoreId(data.storeId);
-        }
-      } catch (error) {
-        console.error("Failed to load store ID:", error);
+      const response = await fetch("/api/blob-store");
+      if (response.ok) {
+        const data = await response.json();
+        setStoreId(data.storeId);
       }
     }
 
@@ -40,16 +36,12 @@ export default function ProjectDetailPage() {
   // Load project files to get hash mapping
   useEffect(() => {
     async function loadProjectFiles() {
-      try {
-        const response = await fetch(`/api/projects/${projectId}`);
-        if (response.ok) {
-          const binaryData = await response.arrayBuffer();
-          const yjsData = new Uint8Array(binaryData);
-          const { files } = parseYjsFileSystem(yjsData);
-          setProjectFiles(files);
-        }
-      } catch (error) {
-        console.error("Failed to load project files:", error);
+      const response = await fetch(`/api/projects/${projectId}`);
+      if (response.ok) {
+        const binaryData = await response.arrayBuffer();
+        const yjsData = new Uint8Array(binaryData);
+        const { files } = parseYjsFileSystem(yjsData);
+        setProjectFiles(files);
       }
     }
 
@@ -86,40 +78,36 @@ export default function ProjectDetailPage() {
 
       setLoadingContent(true);
 
-      try {
-        // Find the file hash from the file path
-        const fileHash = findFileHash(filePath, projectFiles);
+      // Find the file hash from the file path
+      const fileHash = findFileHash(filePath, projectFiles);
 
-        if (!fileHash) {
-          console.error(`File hash not found for: ${filePath}`);
-          setFileContent("");
-          return;
-        }
-
-        // Construct public blob URL
-        const blobUrl = `https://${storeId}.public.blob.vercel-storage.com/${fileHash}`;
-
-        // Download content directly from blob storage (no auth needed for public blobs)
-        const response = await fetch(blobUrl);
-
-        if (!response.ok) {
-          if (response.status === 404) {
-            console.error(`File not found in blob storage: ${fileHash}`);
-          } else {
-            console.error(`Failed to download file: ${response.statusText}`);
-          }
-          setFileContent("");
-          return;
-        }
-
-        const content = await response.text();
-        setFileContent(content || "");
-      } catch (error) {
-        console.error("Error loading file content:", error);
+      if (!fileHash) {
+        console.error(`File hash not found for: ${filePath}`);
         setFileContent("");
-      } finally {
         setLoadingContent(false);
+        return;
       }
+
+      // Construct public blob URL
+      const blobUrl = `https://${storeId}.public.blob.vercel-storage.com/${fileHash}`;
+
+      // Download content directly from blob storage (no auth needed for public blobs)
+      const response = await fetch(blobUrl);
+
+      if (!response.ok) {
+        if (response.status === 404) {
+          console.error(`File not found in blob storage: ${fileHash}`);
+        } else {
+          console.error(`Failed to download file: ${response.statusText}`);
+        }
+        setFileContent("");
+        setLoadingContent(false);
+        return;
+      }
+
+      const content = await response.text();
+      setFileContent(content || "");
+      setLoadingContent(false);
     },
     [storeId, projectFiles, findFileHash],
   );

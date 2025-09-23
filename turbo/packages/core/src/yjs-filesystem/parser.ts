@@ -28,7 +28,7 @@ export function parseYjsFileSystem(ydocData: Uint8Array): YjsFileSystem {
     size?: number;
   }> = [];
 
-  filesMap.forEach((metadata, path) => {
+  filesMap.forEach((metadata: YjsFileNode, path: string) => {
     // Get size from blobs map if available
     const blobInfo = blobsMap.get(metadata.hash);
     fileEntries.push({

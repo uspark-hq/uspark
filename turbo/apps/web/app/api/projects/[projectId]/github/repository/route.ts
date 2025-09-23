@@ -23,30 +23,25 @@ export async function GET(
 
   const { projectId } = await context.params;
 
-  try {
-    const repository = await getProjectRepository(projectId);
+  const repository = await getProjectRepository(projectId);
 
-    if (!repository) {
-      return NextResponse.json(
-        { error: "repository_not_found" },
-        { status: 404 },
-      );
-    }
-
-    // Verify user has access to this installation
-    const hasAccess = await hasInstallationAccess(
-      userId,
-      repository.installationId,
+  if (!repository) {
+    return NextResponse.json(
+      { error: "repository_not_found" },
+      { status: 404 },
     );
-    if (!hasAccess) {
-      return NextResponse.json({ error: "forbidden" }, { status: 403 });
-    }
-
-    return NextResponse.json({ repository });
-  } catch (error) {
-    console.error("Error getting repository:", error);
-    return NextResponse.json({ error: "internal_error" }, { status: 500 });
   }
+
+  // Verify user has access to this installation
+  const hasAccess = await hasInstallationAccess(
+    userId,
+    repository.installationId,
+  );
+  if (!hasAccess) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
+  return NextResponse.json({ repository });
 }
 
 /**
@@ -67,30 +62,27 @@ export async function POST(
 
   const { projectId } = await context.params;
 
+  const body = await request.json();
+  const { installationId } = body;
+
+  if (!installationId || typeof installationId !== "number") {
+    return NextResponse.json(
+      { error: "installation_id_required" },
+      { status: 400 },
+    );
+  }
+
+  // Verify user has access to this installation
+  const hasAccess = await hasInstallationAccess(userId, installationId);
+  if (!hasAccess) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
+  // Create repository
   try {
-    const body = await request.json();
-    const { installationId } = body;
-
-    if (!installationId || typeof installationId !== "number") {
-      return NextResponse.json(
-        { error: "installation_id_required" },
-        { status: 400 },
-      );
-    }
-
-    // Verify user has access to this installation
-    const hasAccess = await hasInstallationAccess(userId, installationId);
-    if (!hasAccess) {
-      return NextResponse.json({ error: "forbidden" }, { status: 403 });
-    }
-
-    // Create repository
     const repository = await createProjectRepository(projectId, installationId);
-
     return NextResponse.json({ repository }, { status: 201 });
   } catch (error) {
-    console.error("Error creating repository:", error);
-
     if (error instanceof Error) {
       // Handle specific GitHub API errors
       if (error.message.includes("already exists")) {
@@ -109,7 +101,7 @@ export async function POST(
       }
     }
 
-    return NextResponse.json({ error: "internal_error" }, { status: 500 });
+    throw error;
   }
 }
 
@@ -129,38 +121,33 @@ export async function DELETE(
 
   const { projectId } = await context.params;
 
-  try {
-    const repository = await getProjectRepository(projectId);
+  const repository = await getProjectRepository(projectId);
 
-    if (!repository) {
-      return NextResponse.json(
-        { error: "repository_not_found" },
-        { status: 404 },
-      );
-    }
-
-    // Verify user has access to this installation
-    const hasAccess = await hasInstallationAccess(
-      userId,
-      repository.installationId,
+  if (!repository) {
+    return NextResponse.json(
+      { error: "repository_not_found" },
+      { status: 404 },
     );
-    if (!hasAccess) {
-      return NextResponse.json({ error: "forbidden" }, { status: 403 });
-    }
-
-    // Remove repository link from database
-    const deletedCount = await removeRepositoryLink(projectId);
-
-    if (deletedCount === 0) {
-      return NextResponse.json(
-        { error: "repository_not_found" },
-        { status: 404 },
-      );
-    }
-
-    return NextResponse.json({ message: "repository_link_removed" });
-  } catch (error) {
-    console.error("Error removing repository link:", error);
-    return NextResponse.json({ error: "internal_error" }, { status: 500 });
   }
+
+  // Verify user has access to this installation
+  const hasAccess = await hasInstallationAccess(
+    userId,
+    repository.installationId,
+  );
+  if (!hasAccess) {
+    return NextResponse.json({ error: "forbidden" }, { status: 403 });
+  }
+
+  // Remove repository link from database
+  const deletedCount = await removeRepositoryLink(projectId);
+
+  if (deletedCount === 0) {
+    return NextResponse.json(
+      { error: "repository_not_found" },
+      { status: 404 },
+    );
+  }
+
+  return NextResponse.json({ message: "repository_link_removed" });
 }
