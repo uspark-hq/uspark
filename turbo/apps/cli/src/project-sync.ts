@@ -219,15 +219,10 @@ export class ProjectSync {
       // Upload blob using exact path that matches the token
       const blobPath = `projects/${projectId}/${localHash}`;
 
-      console.log(`Uploading blob with path: ${blobPath}`);
-      console.log(`Token: ${blobToken.substring(0, 50)}...`);
-
-      const blob = await put(blobPath, content, {
+      await put(blobPath, content, {
         access: "public",
         token: blobToken,
       });
-
-      console.log(`Blob uploaded successfully: ${blob.url}`);
 
       // Store locally as well
       this.fs.setBlob(localHash, content);
@@ -299,51 +294,64 @@ export class ProjectSync {
     }
 
     // 5. Upload new/changed blobs to Vercel Blob Storage
+    // Collect all unique hashes that need uploading
     const blobsToUpload = new Set<string>();
     for (const path of [...toAdd, ...toUpdate]) {
       const hash = localFiles.get(path)!;
-      if (!this.fs.getBlobInfo(hash)) {
-        blobsToUpload.add(hash);
+      blobsToUpload.add(hash);
+    }
+
+    // Get existing remote hashes to avoid re-uploading
+    const existingRemoteHashes = new Set<string>();
+    for (const [, remoteHash] of remoteFiles) {
+      existingRemoteHashes.add(remoteHash);
+    }
+
+    // Only upload blobs that don't already exist in remote
+    const blobsToActuallyUpload = new Set<string>();
+    for (const hash of blobsToUpload) {
+      if (!existingRemoteHashes.has(hash)) {
+        blobsToActuallyUpload.add(hash);
       }
     }
 
     // Upload each blob with its own token
-    for (const hash of blobsToUpload) {
+    for (const hash of blobsToActuallyUpload) {
       const content = contentMap.get(hash);
-      if (content) {
-        // Get client token for this specific file hash
-        const tokenResponse = await fetch(
-          `${apiUrl}/api/projects/${projectId}/blob-token?hash=${hash}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (!tokenResponse.ok) {
-          throw new Error(
-            `Failed to get blob token for ${hash}: ${tokenResponse.statusText}`,
-          );
-        }
-
-        const { token: blobToken } = (await tokenResponse.json()) as {
-          token: string;
-          expiresAt: string;
-          uploadUrl: string;
-          downloadUrlPrefix: string;
-        };
-
-        // Upload blob using exact path that matches the token
-        const blobPath = `projects/${projectId}/${hash}`;
-
-        const blob = await put(blobPath, content, {
-          access: "public",
-          token: blobToken,
-        });
-
-        console.log(`Blob uploaded successfully: ${blob.url}`);
+      if (content === undefined) {
+        throw new Error(`Content not found for hash ${hash}`);
       }
+
+      // Get client token for this specific file hash
+      const tokenResponse = await fetch(
+        `${apiUrl}/api/projects/${projectId}/blob-token?hash=${hash}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!tokenResponse.ok) {
+        throw new Error(
+          `Failed to get blob token for ${hash}: ${tokenResponse.statusText}`,
+        );
+      }
+
+      const { token: blobToken } = (await tokenResponse.json()) as {
+        token: string;
+        expiresAt: string;
+        uploadUrl: string;
+        downloadUrlPrefix: string;
+      };
+
+      // Upload blob using exact path that matches the token
+      const blobPath = `projects/${projectId}/${hash}`;
+
+      await put(blobPath, content, {
+        access: "public",
+        token: blobToken,
+      });
     }
 
     // 6. Apply changes to FileSystem
