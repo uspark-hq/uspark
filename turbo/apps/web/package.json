@@ -46,7 +46,6 @@
     "@types/react-dom": "^19.1.9",
     "@uspark/eslint-config": "workspace:*",
     "@uspark/typescript-config": "workspace:*",
-    "dotenv": "^17.2.2",
     "drizzle-kit": "^0.31.4",
     "eslint": "^9.34.0",
     "jsdom": "^26.0.0",

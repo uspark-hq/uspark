@@ -35,13 +35,13 @@ export class E2BExecutor {
   static async getSandboxForSession(
     sessionId: string,
     projectId: string,
-    userId: string
+    userId: string,
   ): Promise<Sandbox> {
     // 1. Try to find existing sandbox
     const paginator = await Sandbox.list();
     const sandboxes = await (paginator as any).nextItems(); // Get first page of sandboxes
     const existingSandbox = sandboxes.find(
-      (s: any) => (s.metadata as SandboxMetadata)?.sessionId === sessionId
+      (s: any) => (s.metadata as SandboxMetadata)?.sessionId === sessionId,
     );
 
     if (existingSandbox) {
@@ -49,7 +49,7 @@ export class E2BExecutor {
         // 2. Reconnect to existing sandbox
         const sandbox = await Sandbox.connect(existingSandbox.sandboxId);
         console.log(
-          `Reconnected to sandbox ${existingSandbox.sandboxId} for session ${sessionId}`
+          `Reconnected to sandbox ${existingSandbox.sandboxId} for session ${sessionId}`,
         );
 
         // Extend timeout on reconnection
@@ -84,7 +84,9 @@ export class E2BExecutor {
       },
     });
 
-    console.log(`Created new sandbox ${sandbox.sandboxId} for session ${sessionId}`);
+    console.log(
+      `Created new sandbox ${sandbox.sandboxId} for session ${sessionId}`,
+    );
 
     // Initialize sandbox (pull project files)
     await this.initializeSandbox(sandbox, projectId);
@@ -97,7 +99,7 @@ export class E2BExecutor {
    */
   private static async initializeSandbox(
     sandbox: Sandbox,
-    projectId: string
+    projectId: string,
   ): Promise<void> {
     console.log(`Initializing sandbox for project ${projectId}`);
 
@@ -109,7 +111,9 @@ export class E2BExecutor {
     }
 
     // Pull project files using uspark CLI
-    const result = await sandbox.commands.run(`uspark pull --project-id ${projectId}`);
+    const result = await sandbox.commands.run(
+      `uspark pull --project-id ${projectId}`,
+    );
 
     if (result.exitCode !== 0) {
       console.error("Failed to initialize sandbox:", result.stderr);
@@ -126,7 +130,7 @@ export class E2BExecutor {
     sandbox: Sandbox,
     prompt: string,
     projectId: string,
-    onBlock?: (block: any) => Promise<void>
+    onBlock?: (block: any) => Promise<void>,
   ): Promise<ExecutionResult> {
     try {
       console.log(`Executing Claude with prompt length: ${prompt.length}`);
@@ -136,7 +140,7 @@ export class E2BExecutor {
       await sandbox.files.write(promptFile, prompt);
 
       const blocks: any[] = [];
-      let buffer = '';
+      let buffer = "";
 
       // Use pipe method with real-time streaming
       const command = `cat "${promptFile}" | claude --print --verbose --output-format stream-json`;
@@ -145,7 +149,7 @@ export class E2BExecutor {
         onStdout: async (data: string) => {
           // Buffer and process complete JSON lines
           buffer += data;
-          const lines = buffer.split('\n');
+          const lines = buffer.split("\n");
 
           // Keep potentially incomplete last line
           buffer = lines[lines.length - 1];
@@ -165,14 +169,14 @@ export class E2BExecutor {
 
                 console.log(`[BLOCK] Type: ${block.type}`);
               } catch (e) {
-                console.error('Failed to parse JSON line:', line);
+                console.error("Failed to parse JSON line:", line);
               }
             }
           }
         },
         onStderr: (data: string) => {
-          console.error('Claude stderr:', data);
-        }
+          console.error("Claude stderr:", data);
+        },
       });
 
       // Process any remaining buffer
@@ -192,8 +196,8 @@ export class E2BExecutor {
       await sandbox.commands.run(`rm -f "${promptFile}"`);
 
       // Extract result from blocks
-      const resultBlock = blocks.find(b => b.type === 'result');
-      const assistantBlocks = blocks.filter(b => b.type === 'assistant');
+      const resultBlock = blocks.find((b) => b.type === "result");
+      const assistantBlocks = blocks.filter((b) => b.type === "assistant");
 
       return {
         success: result.exitCode === 0,
@@ -217,7 +221,9 @@ export class E2BExecutor {
   /**
    * Get user's Claude OAuth token from database
    */
-  private static async getUserClaudeToken(userId: string): Promise<string | null> {
+  private static async getUserClaudeToken(
+    userId: string,
+  ): Promise<string | null> {
     initServices();
 
     const [tokenRecord] = await globalThis.services.db

@@ -119,7 +119,7 @@ export async function POST(
     sessionId,
     projectId,
     user_message,
-    userId
+    userId,
   ).catch((err) => {
     console.error("Failed to execute Claude:", err);
   });

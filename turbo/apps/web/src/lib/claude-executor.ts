@@ -9,11 +9,6 @@ import { E2BExecutor } from "./e2b-executor";
  * Replaces the mock executor with actual Claude API calls
  */
 
-interface ClaudeBlock {
-  type: "thinking" | "content" | "tool_use" | "tool_result";
-  content: any;
-}
-
 export class ClaudeExecutor {
   /**
    * Execute Claude for a turn
@@ -23,7 +18,7 @@ export class ClaudeExecutor {
     sessionId: string,
     projectId: string,
     userPrompt: string,
-    userId: string
+    userId: string,
   ): Promise<void> {
     initServices();
     const db = globalThis.services.db;
@@ -42,7 +37,7 @@ export class ClaudeExecutor {
       const sandbox = await E2BExecutor.getSandboxForSession(
         sessionId,
         projectId,
-        userId
+        userId,
       );
 
       // Track sequence number for blocks
@@ -58,31 +53,43 @@ export class ClaudeExecutor {
           console.log(`[REAL-TIME] Block type: ${block.type}`);
 
           // Save different types of blocks
-          if (block.type === 'assistant') {
+          if (block.type === "assistant") {
             // Assistant response block
             const content = block.message?.content?.[0];
-            if (content?.type === 'text') {
-              await this.saveBlock(turnId, {
-                type: 'content',
-                text: content.text
-              }, sequenceNumber++);
-            } else if (content?.type === 'tool_use') {
-              await this.saveBlock(turnId, {
-                type: 'tool_use',
-                tool_name: content.name,
-                parameters: content.input,
-                tool_use_id: content.id
-              }, sequenceNumber++);
+            if (content?.type === "text") {
+              await this.saveBlock(
+                turnId,
+                {
+                  type: "content",
+                  text: content.text,
+                },
+                sequenceNumber++,
+              );
+            } else if (content?.type === "tool_use") {
+              await this.saveBlock(
+                turnId,
+                {
+                  type: "tool_use",
+                  tool_name: content.name,
+                  parameters: content.input,
+                  tool_use_id: content.id,
+                },
+                sequenceNumber++,
+              );
             }
-          } else if (block.type === 'tool_result') {
+          } else if (block.type === "tool_result") {
             // Tool execution result
-            await this.saveBlock(turnId, {
-              type: 'tool_result',
-              tool_use_id: block.tool_use_id,
-              result: block.content,
-              error: block.is_error ? block.content : null
-            }, sequenceNumber++);
-          } else if (block.type === 'result') {
+            await this.saveBlock(
+              turnId,
+              {
+                type: "tool_result",
+                tool_use_id: block.tool_use_id,
+                result: block.content,
+                error: block.is_error ? block.content : null,
+              },
+              sequenceNumber++,
+            );
+          } else if (block.type === "result") {
             // Final result with statistics
             await db
               .update(TURNS_TBL)
@@ -92,12 +99,12 @@ export class ClaudeExecutor {
                 metadata: {
                   totalCost: block.total_cost_usd,
                   usage: block.usage,
-                  duration: block.duration_ms
-                }
+                  duration: block.duration_ms,
+                },
               })
               .where(eq(TURNS_TBL.id, turnId));
           }
-        }
+        },
       );
 
       if (!result.success) {
@@ -105,7 +112,7 @@ export class ClaudeExecutor {
       }
 
       console.log(
-        `Turn ${turnId} completed successfully with ${sequenceNumber} blocks`
+        `Turn ${turnId} completed successfully with ${sequenceNumber} blocks`,
       );
     } catch (error) {
       console.error(`Turn ${turnId} execution failed:`, error);
@@ -115,7 +122,8 @@ export class ClaudeExecutor {
         .update(TURNS_TBL)
         .set({
           status: "failed",
-          errorMessage: error instanceof Error ? error.message : "Unknown error",
+          errorMessage:
+            error instanceof Error ? error.message : "Unknown error",
           completedAt: new Date(),
         })
         .where(eq(TURNS_TBL.id, turnId));
@@ -129,14 +137,14 @@ export class ClaudeExecutor {
    */
   private static async saveBlock(
     turnId: string,
-    blockData: any,
-    sequenceNumber: number
+    blockData: Record<string, unknown>,
+    sequenceNumber: number,
   ): Promise<void> {
     const db = globalThis.services.db;
 
     // Determine block type from Claude output
     let blockType: string;
-    let blockContent: any;
+    let blockContent: Record<string, unknown>
 
     if (blockData.type === "thinking") {
       blockType = "thinking";
