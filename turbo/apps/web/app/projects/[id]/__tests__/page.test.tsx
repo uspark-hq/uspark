@@ -124,11 +124,11 @@ describe("Project Detail Page", () => {
         hash4: `# README.md\n\nThis is a markdown file.\n\n## Features\n\n- Feature 1\n- Feature 2\n- Feature 3`,
       };
 
-      // Mock direct blob storage URLs
+      // Mock direct blob storage URLs with correct project path (wildcard for any project ID)
       Object.entries(contentMap).forEach(([hash, content]) => {
         server.use(
           http.get(
-            `https://test-store.public.blob.vercel-storage.com/${hash}`,
+            `https://test-store.public.blob.vercel-storage.com/projects/:projectId/${hash}`,
             () => {
               return new HttpResponse(content, {
                 headers: {
