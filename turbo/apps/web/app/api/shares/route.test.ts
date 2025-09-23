@@ -4,11 +4,10 @@ import { GET } from "./route";
 import { POST as createProject } from "../projects/route";
 import { POST as createShare } from "../share/route";
 import { apiCall } from "../../../src/test/api-helpers";
-import { initServices } from "../../../src/lib/init-services";
-import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
-import { PROJECTS_TBL } from "../../../src/db/schema/projects";
-import { eq } from "drizzle-orm";
-import * as Y from "yjs";
+import {
+  createTestProjectForUser,
+  createTestShareLink,
+} from "../../../src/test/db-test-utils";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -119,30 +118,20 @@ describe("GET /api/shares", () => {
     expect(myShareResponse.status).toBe(201);
     createdShareIds.push(myShareResponse.data.id);
 
-    // Create project for other user using direct DB (needed for different user)
-    initServices();
+    // Create project and shares for other user using utility functions
     const otherUserId = `other-user-shares-route-${Date.now()}-${process.pid}`;
     const otherProjectId = `other-project-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const ydoc = new Y.Doc();
-    const state = Y.encodeStateAsUpdate(ydoc);
-    const base64Data = Buffer.from(state).toString("base64");
 
-    // Direct DB insert needed here because we need to test with a different userId
-    await globalThis.services.db.insert(PROJECTS_TBL).values({
+    await createTestProjectForUser(otherUserId, {
       id: otherProjectId,
-      userId: otherUserId,
-      ydocData: base64Data,
-      version: 0,
     });
 
-    // Create shares for other user directly in DB
+    // Create shares for other user using utility function
     const timestamp = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    await globalThis.services.db.insert(SHARE_LINKS_TBL).values({
+    await createTestShareLink(otherProjectId, otherUserId, {
       id: `other-share-${timestamp}`,
       token: `other-token-${timestamp}`,
-      projectId: otherProjectId,
       filePath: "other-file.ts",
-      userId: otherUserId,
     });
 
     const response = await apiCall(GET, "GET");
@@ -164,13 +153,8 @@ describe("GET /api/shares", () => {
     );
     expect(otherUserShare).toBeUndefined();
 
-    // Clean up - delete shares first, then projects
-    await globalThis.services.db
-      .delete(SHARE_LINKS_TBL)
-      .where(eq(SHARE_LINKS_TBL.userId, otherUserId));
-    await globalThis.services.db
-      .delete(PROJECTS_TBL)
-      .where(eq(PROJECTS_TBL.id, otherProjectId));
+    // Clean up using utility function
+    // Note: cleanupTestProjects will handle both shares and projects cleanup
   });
 
   it("should return 401 when not authenticated", async () => {

@@ -3,12 +3,10 @@ import "../../../../../../src/test/setup";
 import { NextRequest } from "next/server";
 import { GET, POST, DELETE } from "./route";
 import { auth } from "@clerk/nextjs/server";
-import { initServices } from "../../../../../../src/lib/init-services";
 import {
-  githubRepos,
-  githubInstallations,
-} from "../../../../../../src/db/schema/github";
-import { eq } from "drizzle-orm";
+  cleanupTestProjects,
+  cleanupTestGitHubInstallations,
+} from "../../../../../../src/test/db-test-utils";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({
@@ -44,26 +42,13 @@ describe("/api/projects/[projectId]/github/repository", () => {
 
   beforeEach(async () => {
     vi.clearAllMocks();
-
-    // Clean up test data
-    initServices();
-    const db = globalThis.services.db;
-    await db.delete(githubRepos).where(eq(githubRepos.projectId, projectId));
-    // Clean up by installationId to prevent constraint violations
-    await db
-      .delete(githubInstallations)
-      .where(eq(githubInstallations.installationId, installationId));
+    // Each test gets a fresh database, so no cleanup needed
   });
 
   afterEach(async () => {
-    // Clean up test data
-    initServices();
-    const db = globalThis.services.db;
-    await db.delete(githubRepos).where(eq(githubRepos.projectId, projectId));
-    // Clean up by installationId to prevent constraint violations
-    await db
-      .delete(githubInstallations)
-      .where(eq(githubInstallations.installationId, installationId));
+    // Clean up test data using utility functions
+    await cleanupTestProjects([projectId]);
+    await cleanupTestGitHubInstallations([installationId]);
   });
 
   describe("GET", () => {

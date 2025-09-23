@@ -1,12 +1,10 @@
 import { POST } from "./route";
 import { auth } from "@clerk/nextjs/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { initServices } from "../../../../src/lib/init-services";
 import {
-  githubInstallations,
-  githubRepos,
-} from "../../../../src/db/schema/github";
-import { eq } from "drizzle-orm";
+  createTestGitHubInstallation,
+  linkGitHubRepository,
+} from "../../../../src/test/db-test-utils";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({
@@ -20,13 +18,7 @@ describe("POST /api/github/disconnect", () => {
   const baseInstallationId = Math.floor(Date.now() / 1000); // Use timestamp as base for unique IDs
 
   beforeEach(async () => {
-    // Initialize real database connection
-    initServices();
-
-    // Clean up any existing test data for this test user
-    await globalThis.services.db
-      .delete(githubInstallations)
-      .where(eq(githubInstallations.userId, testUserId));
+    // Each test gets a fresh database, so no cleanup needed
 
     // Default to authenticated user
     mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<

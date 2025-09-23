@@ -2,9 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import "../../../../src/test/setup";
 import { NextRequest } from "next/server";
 import { GET } from "./route";
-import { initServices } from "../../../../src/lib/init-services";
-import { githubInstallations } from "../../../../src/db/schema/github";
-import { eq } from "drizzle-orm";
+import { createTestGitHubInstallation } from "../../../../src/test/db-test-utils";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -134,12 +132,12 @@ describe("/api/github/setup", () => {
     });
 
     it("should update existing installation on conflict", async () => {
-      // First, insert an installation
-      await globalThis.services.db.insert(githubInstallations).values({
-        userId: "different-user",
-        installationId: parseInt(installationId),
-        accountName: "old-account-name",
-      });
+      // First, create an installation using utility function
+      await createTestGitHubInstallation(
+        "different-user",
+        parseInt(installationId),
+        "old-account-name"
+      );
 
       const url = `http://localhost:3000/api/github/setup?setup_action=install&installation_id=${installationId}`;
       const mockRequest = new NextRequest(url);

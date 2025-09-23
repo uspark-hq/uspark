@@ -2,10 +2,10 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import "../../../src/test/setup";
 import { GET, POST } from "./route";
 import { apiCall } from "../../../src/test/api-helpers";
-import { initServices } from "../../../src/lib/init-services";
-import { PROJECTS_TBL } from "../../../src/db/schema/projects";
-import { eq } from "drizzle-orm";
-import * as Y from "yjs";
+import {
+  createTestProjectForUser,
+  cleanupTestProjects,
+} from "../../../src/test/db-test-utils";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -93,21 +93,12 @@ describe("/api/projects", () => {
     });
 
     it("should only return projects for the correct user", async () => {
-      // Create project for different user - need to use direct DB here
-      // as API would create project for current authenticated user
-      initServices();
+      // Create project for different user using utility function
       const otherUserId = "other-user";
       const otherProjectId = `other-project-${Date.now()}`;
 
-      const ydoc = new Y.Doc();
-      const state = Y.encodeStateAsUpdate(ydoc);
-      const base64Data = Buffer.from(state).toString("base64");
-
-      await globalThis.services.db.insert(PROJECTS_TBL).values({
+      await createTestProjectForUser(otherUserId, {
         id: otherProjectId,
-        userId: otherUserId,
-        ydocData: base64Data,
-        version: 0,
       });
 
       const response = await apiCall(GET, "GET");
@@ -132,10 +123,8 @@ describe("/api/projects", () => {
         ).toBe(true);
       });
 
-      // Clean up
-      await globalThis.services.db
-        .delete(PROJECTS_TBL)
-        .where(eq(PROJECTS_TBL.id, otherProjectId));
+      // Clean up using utility function
+      await cleanupTestProjects([otherProjectId]);
     });
   });
 

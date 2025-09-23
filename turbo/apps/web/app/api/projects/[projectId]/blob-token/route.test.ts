@@ -2,10 +2,8 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "../../../../../src/test/setup";
 import { GET } from "./route";
 import { POST as createProject } from "../../route";
-import { initServices } from "../../../../../src/lib/init-services";
-import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
+import { createTestProjectForUser } from "../../../../../src/test/db-test-utils";
 import { NextRequest } from "next/server";
-import { like } from "drizzle-orm";
 
 // Mock Clerk auth
 let mockUserId: string | null = "test-user";
@@ -93,11 +91,9 @@ describe("GET /api/projects/[projectId]/blob-token", () => {
   it("should return 404 for project owned by different user", async () => {
     const projectId = `other-user-project-${timestamp}`;
 
-    // Create project owned by different user - need direct DB here
-    // as API would create project for current authenticated user
-    await globalThis.services.db.insert(PROJECTS_TBL).values({
+    // Create project owned by different user using utility function
+    await createTestProjectForUser("other-user", {
       id: projectId,
-      userId: "other-user",
       ydocData: Buffer.from("test").toString("base64"),
       version: 0,
     });

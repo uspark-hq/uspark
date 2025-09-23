@@ -6,6 +6,10 @@ import {
   GenerateTokenResponseSchema,
   GenerateTokenErrorSchema,
 } from "@uspark/core";
+import {
+  cleanupTestCLITokens,
+  createTestCLIToken,
+} from "../../../../../src/test/db-test-utils";
 import { CLI_TOKENS_TBL } from "../../../../../src/db/schema/cli-tokens";
 import { eq } from "drizzle-orm";
 import { initServices } from "../../../../../src/lib/init-services";
@@ -20,9 +24,7 @@ import { auth } from "@clerk/nextjs/server";
 describe("/api/cli/auth/generate-token", () => {
   beforeEach(async () => {
     vi.clearAllMocks();
-    // Clean up any existing tokens before each test
-    initServices();
-    await globalThis.services.db.delete(CLI_TOKENS_TBL);
+    // Note: Each test gets a fresh database, so no cleanup needed
   });
 
   it("should generate a new CLI token for authenticated user", async () => {
@@ -146,17 +148,14 @@ describe("/api/cli/auth/generate-token", () => {
       ReturnType<typeof auth>
     >);
 
-    // Create 10 tokens (the max limit)
-    const now = new Date();
-    const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    // Create 10 tokens (the max limit) using utility function
+    const futureDate = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
     for (let i = 0; i < 10; i++) {
-      await globalThis.services.db.insert(CLI_TOKENS_TBL).values({
+      await createTestCLIToken("user_123", {
         token: `usp_live_existing_${i}`,
-        userId: "user_123",
         name: `Existing Token ${i}`,
         expiresAt: futureDate,
-        createdAt: now,
       });
     }
 
@@ -189,7 +188,8 @@ describe("/api/cli/auth/generate-token", () => {
   });
 
   it("should not count expired tokens towards the limit", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as Awaited<
+    const testUserId = "user_expired_test"; // Use different user ID
+    vi.mocked(auth).mockResolvedValue({ userId: testUserId } as Awaited<
       ReturnType<typeof auth>
     >);
 
@@ -197,25 +197,21 @@ describe("/api/cli/auth/generate-token", () => {
     const pastDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); // Yesterday
     const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-    // Create 5 expired tokens
+    // Create 5 expired tokens using utility function
     for (let i = 0; i < 5; i++) {
-      await globalThis.services.db.insert(CLI_TOKENS_TBL).values({
+      await createTestCLIToken(testUserId, {
         token: `usp_live_expired_${i}`,
-        userId: "user_123",
         name: `Expired Token ${i}`,
         expiresAt: pastDate,
-        createdAt: pastDate,
       });
     }
 
-    // Create 9 active tokens
+    // Create 9 active tokens using utility function
     for (let i = 0; i < 9; i++) {
-      await globalThis.services.db.insert(CLI_TOKENS_TBL).values({
+      await createTestCLIToken(testUserId, {
         token: `usp_live_active_${i}`,
-        userId: "user_123",
         name: `Active Token ${i}`,
         expiresAt: futureDate,
-        createdAt: now,
       });
     }
 
@@ -309,14 +305,12 @@ describe("/api/cli/auth/generate-token", () => {
     const now = new Date();
     const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
 
-    // Create 10 tokens for user_123
+    // Create 10 tokens for user_123 using utility function
     for (let i = 0; i < 10; i++) {
-      await globalThis.services.db.insert(CLI_TOKENS_TBL).values({
+      await createTestCLIToken("user_123", {
         token: `usp_live_user123_${i}`,
-        userId: "user_123",
         name: `User123 Token ${i}`,
         expiresAt: futureDate,
-        createdAt: now,
       });
     }
 

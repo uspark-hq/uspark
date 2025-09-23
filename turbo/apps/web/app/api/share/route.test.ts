@@ -3,10 +3,7 @@ import "../../../src/test/setup";
 import { POST } from "./route";
 import { POST as createProject } from "../projects/route";
 import { apiCall } from "../../../src/test/api-helpers";
-import { initServices } from "../../../src/lib/init-services";
-import { PROJECTS_TBL } from "../../../src/db/schema/projects";
-import { eq } from "drizzle-orm";
-import * as Y from "yjs";
+import { createTestProjectForUser } from "../../../src/test/db-test-utils";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -162,10 +159,9 @@ describe("/api/share", () => {
       const state = Y.encodeStateAsUpdate(ydoc);
       const base64Data = Buffer.from(state).toString("base64");
 
-      // Direct DB insert needed here because we need to test with a different userId
-      await globalThis.services.db.insert(PROJECTS_TBL).values({
+      // Create project for different user using utility function
+      await createTestProjectForUser(otherUserId, {
         id: otherProjectId,
-        userId: otherUserId,
         ydocData: base64Data,
         version: 0,
       });

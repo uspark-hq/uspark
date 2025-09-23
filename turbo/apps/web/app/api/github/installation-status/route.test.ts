@@ -1,9 +1,7 @@
 import { GET } from "./route";
 import { auth } from "@clerk/nextjs/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { initServices } from "../../../../src/lib/init-services";
-import { githubInstallations } from "../../../../src/db/schema/github";
-import { eq } from "drizzle-orm";
+import { createTestGitHubInstallation } from "../../../../src/test/db-test-utils";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({

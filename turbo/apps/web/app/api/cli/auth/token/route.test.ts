@@ -9,10 +9,10 @@ import {
   TokenExchangeErrorSchema,
   DeviceAuthResponseSchema,
 } from "@uspark/core";
-
-import { DEVICE_CODES_TBL } from "../../../../../src/db/schema/device-codes";
-import { eq } from "drizzle-orm";
-import { initServices } from "../../../../../src/lib/init-services";
+import {
+  updateDeviceCodeStatus,
+  setDeviceCodeExpired,
+} from "../../../../../src/test/db-test-utils";
 
 describe("/api/cli/auth/token", () => {
   async function createDeviceCode(): Promise<string> {
@@ -23,32 +23,7 @@ describe("/api/cli/auth/token", () => {
     return validationResult.data!.device_code;
   }
 
-  async function updateDeviceCodeStatus(
-    code: string,
-    status: "pending" | "authenticated" | "expired" | "denied",
-    userId?: string,
-  ) {
-    initServices();
-    await globalThis.services.db
-      .update(DEVICE_CODES_TBL)
-      .set({
-        status,
-        userId,
-        updatedAt: new Date(),
-      })
-      .where(eq(DEVICE_CODES_TBL.code, code));
-  }
-
-  async function setDeviceCodeExpired(code: string) {
-    initServices();
-    await globalThis.services.db
-      .update(DEVICE_CODES_TBL)
-      .set({
-        expiresAt: new Date(Date.now() - 1000), // 1 second ago
-        updatedAt: new Date(),
-      })
-      .where(eq(DEVICE_CODES_TBL.code, code));
-  }
+  // Device code manipulation functions are now imported from test utilities
 
   it("should return pending status for valid device code not yet authenticated", async () => {
     const deviceCode = await createDeviceCode();
