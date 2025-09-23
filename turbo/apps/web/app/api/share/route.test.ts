@@ -4,6 +4,7 @@ import { POST } from "./route";
 import { POST as createProject } from "../projects/route";
 import { apiCall } from "../../../src/test/api-helpers";
 import { createTestProjectForUser } from "../../../src/test/db-test-utils";
+import { initServices } from "../../../src/lib/init-services";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({

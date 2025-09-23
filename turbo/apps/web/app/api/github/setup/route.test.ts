@@ -3,6 +3,9 @@ import "../../../../src/test/setup";
 import { NextRequest } from "next/server";
 import { GET } from "./route";
 import { createTestGitHubInstallation } from "../../../../src/test/db-test-utils";
+import { initServices } from "../../../../src/lib/init-services";
+import { githubInstallations } from "../../../../src/db/schema/github";
+import { eq } from "drizzle-orm";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({

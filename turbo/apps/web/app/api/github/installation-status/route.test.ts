@@ -1,6 +1,7 @@
 import { GET } from "./route";
 import { auth } from "@clerk/nextjs/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { initServices } from "../../../../src/lib/init-services";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({
