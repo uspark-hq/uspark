@@ -20,9 +20,9 @@ interface ExecutionResult {
   output?: string;
   error?: string;
   exitCode?: number;
-  blocks?: any[];
+  blocks?: Array<Record<string, unknown>>;
   totalCost?: number;
-  usage?: any;
+  usage?: Record<string, unknown>;
 }
 
 export class E2BExecutor {
@@ -39,8 +39,10 @@ export class E2BExecutor {
   ): Promise<Sandbox> {
     // 1. Try to find existing sandbox
     const paginator = await Sandbox.list();
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const sandboxes = await (paginator as any).nextItems(); // Get first page of sandboxes
     const existingSandbox = sandboxes.find(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (s: any) => (s.metadata as SandboxMetadata)?.sessionId === sessionId,
     );
 
@@ -130,7 +132,7 @@ export class E2BExecutor {
     sandbox: Sandbox,
     prompt: string,
     projectId: string,
-    onBlock?: (block: any) => Promise<void>,
+    onBlock?: (block: Record<string, unknown>) => Promise<void>,
   ): Promise<ExecutionResult> {
     try {
       console.log(`Executing Claude with prompt length: ${prompt.length}`);
@@ -139,12 +141,13 @@ export class E2BExecutor {
       const promptFile = `/tmp/prompt_${Date.now()}.txt`;
       await sandbox.files.write(promptFile, prompt);
 
-      const blocks: any[] = [];
+      const blocks: Array<Record<string, unknown>> = [];
       let buffer = "";
 
       // Use pipe method with real-time streaming
       const command = `cat "${promptFile}" | claude --print --verbose --output-format stream-json`;
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = await (sandbox.commands as any).run(command, {
         onStdout: async (data: string) => {
           // Buffer and process complete JSON lines
@@ -168,7 +171,7 @@ export class E2BExecutor {
                 }
 
                 console.log(`[BLOCK] Type: ${block.type}`);
-              } catch (e) {
+              } catch {
                 console.error("Failed to parse JSON line:", line);
               }
             }
@@ -187,7 +190,7 @@ export class E2BExecutor {
           if (onBlock) {
             await onBlock(block);
           }
-        } catch (e) {
+        } catch {
           // Ignore incomplete final buffer
         }
       }
@@ -197,7 +200,6 @@ export class E2BExecutor {
 
       // Extract result from blocks
       const resultBlock = blocks.find((b) => b.type === "result");
-      const assistantBlocks = blocks.filter((b) => b.type === "assistant");
 
       return {
         success: result.exitCode === 0,
@@ -243,8 +245,8 @@ export class E2BExecutor {
   /**
    * Parse Claude's JSON output stream into blocks
    */
-  static parseClaudeOutput(output: string): any[] {
-    const blocks: any[] = [];
+  static parseClaudeOutput(output: string): Array<Record<string, unknown>> {
+    const blocks: Array<Record<string, unknown>> = [];
     const lines = output.split("\n");
 
     for (const line of lines) {
@@ -253,7 +255,7 @@ export class E2BExecutor {
       try {
         const parsed = JSON.parse(line);
         blocks.push(parsed);
-      } catch (e) {
+      } catch {
         // Skip non-JSON lines (might be uspark CLI output)
         console.log("Non-JSON output:", line);
       }
