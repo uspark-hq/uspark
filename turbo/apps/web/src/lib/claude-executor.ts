@@ -144,7 +144,7 @@ export class ClaudeExecutor {
 
     // Determine block type from Claude output
     let blockType: string;
-    let blockContent: Record<string, unknown>
+    let blockContent: Record<string, unknown>;
 
     if (blockData.type === "thinking") {
       blockType = "thinking";

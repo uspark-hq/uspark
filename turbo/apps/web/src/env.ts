@@ -35,7 +35,9 @@ function initEnv() {
       BLOB_READ_WRITE_TOKEN:
         process.env.BLOB_READ_WRITE_TOKEN ||
         (isTest ? "vercel_blob_rw_test-store_secret-key" : undefined),
-      E2B_API_KEY: process.env.E2B_API_KEY,
+      E2B_API_KEY:
+        process.env.E2B_API_KEY ||
+        (isTest ? "test_e2b_api_key_placeholder" : undefined),
       APP_URL: process.env.APP_URL,
       GH_APP_ID:
         process.env.GH_APP_ID || (isTest ? "test_github_app_id" : undefined),
