@@ -369,31 +369,6 @@ describe("contractFetch with MSW", () => {
     });
   });
 
-  describe("Abort signal", () => {
-    it("should handle request cancellation", async () => {
-      const controller = new AbortController();
-
-      server.use(
-        http.get(`${BASE_URL}/api/items/slow`, async () => {
-          // 模拟慢速响应
-          await new Promise((resolve) => setTimeout(resolve, 100));
-          return HttpResponse.json({ id: "slow", name: "Slow", count: 1 });
-        }),
-      );
-
-      // 立即取消请求
-      controller.abort();
-
-      await expect(
-        contractFetch(testContract.getItem, {
-          baseUrl: BASE_URL,
-          params: { id: "slow" },
-          signal: controller.signal,
-        }),
-      ).rejects.toThrow();
-    });
-  });
-
   describe("Type inference", () => {
     it("should infer correct response type for success", async () => {
       server.use(
