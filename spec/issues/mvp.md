@@ -86,25 +86,6 @@ This document defines the mid-term goals and user stories for the MVP release of
 - Queue system for managing Claude tasks
 - Audit logging for all AI operations
 
-### Story 3: Direct Task Management (SIMPLIFIED)
-
-**As a** technical founder using AI coding tools
-**I want to** create and manage task documents directly
-**So that** I can track my AI coding workflow progress
-
-#### Acceptance Criteria
-
-- [ ] Create task documents directly in web UI
-- [ ] Manual task breakdown and organization
-- [ ] Simple progress tracking via document edits
-- [ ] Task documents sync to GitHub for AI tool access
-
-#### Technical Requirements
-
-- Direct document creation/editing (existing YJS system)
-- No template system needed
-- Focus on core document management functionality
-- Leverage existing sync mechanisms
 
 ## Implementation Priorities
 
@@ -155,13 +136,6 @@ This document defines the mid-term goals and user stories for the MVP release of
 7. [x] Document change detection via YJS polling ✅ (PR #320)
 8. [x] Claude OAuth token storage for E2B execution ✅ (PR #347)
 
-### Phase 5: Direct Task Management (Story 3 - Simplified)
-
-1. [ ] Task document creation UI
-2. [ ] Manual task organization features
-3. [ ] Simple progress indicators
-4. [ ] Task-to-GitHub sync integration
-5. [ ] Basic task tracking dashboard
 
 
 ## Technical Debt Status (Updated 2025-01-12)
@@ -186,7 +160,7 @@ Areas where we accept temporary shortcuts for MVP:
 
 The MVP is considered complete when:
 
-1. All three user stories are fully implemented
+1. All user stories (Story 1, Story 1b, Story 2) are fully implemented
 2. Core functionality passes QA testing
 3. Documentation covers basic usage
 4. System handles 10 concurrent users
@@ -197,7 +171,8 @@ The MVP is considered complete when:
 
 Post-MVP priorities aligned with AI coding management:
 
-1. **Enhanced Task Management**
+1. **Task Management System**
+   - Task document creation UI
    - Task dependency management
    - Automated progress tracking
    - Task completion analytics
@@ -222,15 +197,14 @@ Post-MVP priorities aligned with AI coding management:
    - Automated task generation from Claude responses
    - Smart prompt engineering
 
-## Implementation Status Summary (2025-09-22)
+## Implementation Status Summary (2025-09-24)
 
-### Overall Completion: ~85%
+### Overall Completion: ~90%
 
 #### ✅ Completed Features (Working)
 - **Story 1 (GitHub)**: 100% - All MVP requirements completed ✅
 - **Story 1b (CLI)**: 100% - All CLI commands working, E2B container fully configured ✅
 - **Story 2 (Web UI)**: 85% - UI complete, APIs complete, long polling implemented ✅
-- **Story 3 (Task Management)**: 0% - Simplified to direct document management
 
 #### 🟡 Partially Completed
 - **Phase 4 (AI)**: 70% - Session APIs complete, mock execution working, real Claude integration pending
