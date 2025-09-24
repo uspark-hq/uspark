@@ -40,9 +40,7 @@ export class E2BExecutor {
     initServices();
 
     // Generate secure token same as regular CLI tokens
-    const randomBytes = await import("crypto").then((m) =>
-      m.randomBytes(32),
-    );
+    const randomBytes = await import("crypto").then((m) => m.randomBytes(32));
     const token = `usp_live_${randomBytes.toString("base64url")}`;
 
     // Store token in database with 2 hour expiration (longer than sandbox timeout)
