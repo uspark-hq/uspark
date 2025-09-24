@@ -17,7 +17,8 @@
     "GH_APP_ID",
     "GH_APP_PRIVATE_KEY",
     "GH_WEBHOOK_SECRET",
-    "CLAUDE_TOKEN_ENCRYPTION_KEY"
+    "CLAUDE_TOKEN_ENCRYPTION_KEY",
+    "VERCEL_ENV"
   ],
   "tasks": {
     "build": {
