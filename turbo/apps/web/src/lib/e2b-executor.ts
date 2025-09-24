@@ -105,6 +105,14 @@ export class E2BExecutor {
   ): Promise<void> {
     console.log(`Initializing sandbox for project ${projectId}`);
 
+    // Skip initialization in non-production environments
+    const isProduction = process.env.NODE_ENV === "production";
+
+    if (!isProduction) {
+      console.log("Skipping uspark CLI initialization in development");
+      return;
+    }
+
     // Pull all project files using uspark CLI
     const result = await sandbox.commands.run(
       `uspark pull --all --project-id ${projectId}`,
