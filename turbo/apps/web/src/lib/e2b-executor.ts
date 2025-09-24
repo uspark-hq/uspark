@@ -138,11 +138,15 @@ export class E2BExecutor {
   ): Promise<void> {
     console.log(`Initializing sandbox for project ${projectId}`);
 
-    // Skip initialization in non-production environments
-    const isProduction = process.env.NODE_ENV === "production";
+    // Skip initialization in non-production and preview environments
+    const vercelEnv = process.env.VERCEL_ENV;
+    const isProductionDeployment = vercelEnv === "production";
+    const isDevelopment = process.env.NODE_ENV === "development";
 
-    if (!isProduction) {
-      console.log("Skipping uspark CLI initialization in development");
+    if (!isProductionDeployment || isDevelopment) {
+      console.log(
+        `Skipping uspark CLI initialization (VERCEL_ENV: ${vercelEnv}, NODE_ENV: ${process.env.NODE_ENV})`,
+      );
       return;
     }
 
