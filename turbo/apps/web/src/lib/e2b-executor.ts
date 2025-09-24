@@ -1,6 +1,7 @@
 import { Sandbox } from "e2b";
 import { initServices } from "./init-services";
 import { CLAUDE_TOKENS_TBL } from "../db/schema/claude-tokens";
+import { CLI_TOKENS_TBL } from "../db/schema/cli-tokens";
 import { eq } from "drizzle-orm";
 import { decryptClaudeToken } from "./claude-token-crypto";
 
@@ -28,6 +29,36 @@ interface ExecutionResult {
 export class E2BExecutor {
   private static readonly SANDBOX_TIMEOUT = 1800; // 30 minutes
   private static readonly TEMPLATE_ID = "w6qe4mwx23icyuytq64y"; // uSpark Claude template
+
+  /**
+   * Generate a temporary CLI token for E2B sandbox
+   */
+  private static async generateSandboxToken(
+    userId: string,
+    sessionId: string,
+  ): Promise<string> {
+    initServices();
+
+    // Generate secure token same as regular CLI tokens
+    const randomBytes = await import("crypto").then((m) =>
+      m.randomBytes(32),
+    );
+    const token = `usp_live_${randomBytes.toString("base64url")}`;
+
+    // Store token in database with 2 hour expiration (longer than sandbox timeout)
+    const now = new Date();
+    const expiresAt = new Date(now.getTime() + 2 * 60 * 60 * 1000); // 2 hours
+
+    await globalThis.services.db.insert(CLI_TOKENS_TBL).values({
+      token,
+      userId,
+      name: `E2B Sandbox - ${sessionId.substring(0, 8)}`,
+      expiresAt,
+      createdAt: now,
+    });
+
+    return token;
+  }
 
   /**
    * Get or create a sandbox for a session
@@ -72,6 +103,10 @@ export class E2BExecutor {
       throw new Error("User has not configured Claude OAuth token");
     }
 
+    // Generate temporary CLI access token for this sandbox
+    const sandboxToken = await this.generateSandboxToken(userId, sessionId);
+    console.log(`Generated sandbox CLI token for session ${sessionId}`);
+
     const sandbox = await Sandbox.create(this.TEMPLATE_ID, {
       timeoutMs: this.SANDBOX_TIMEOUT * 1000,
       metadata: {
@@ -81,7 +116,7 @@ export class E2BExecutor {
       } as Record<string, string>,
       envs: {
         PROJECT_ID: projectId,
-        USPARK_TOKEN: process.env.USPARK_TOKEN || "",
+        USPARK_TOKEN: sandboxToken, // Use sandbox-specific CLI token
         CLAUDE_CODE_OAUTH_TOKEN: claudeToken,
       },
     });

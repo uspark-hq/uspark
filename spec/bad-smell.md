@@ -88,3 +88,31 @@ This document defines code quality issues and anti-patterns to identify during c
   await POST("/api/projects", { json: { name } });
   ```
 
+## 13. Avoid Fallback Patterns - Fail Fast
+- **No fallback/recovery logic** - errors should fail immediately and visibly
+- Fallback patterns increase complexity and hide configuration problems
+- When critical dependencies are missing, throw errors instead of falling back
+- Examples of bad fallback patterns:
+  ```typescript
+  // ❌ Bad: Fallback to another secret
+  const jwtSecret = process.env.JWT_SECRET ||
+                    process.env.SOME_OTHER_SECRET ||
+                    "default-secret";
+
+  // ❌ Bad: Silent fallback behavior
+  if (!config) {
+    config = getDefaultConfig(); // Hides misconfiguration
+  }
+
+  // ✅ Good: Fail fast with clear error
+  const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    throw new Error("JWT_SECRET not configured");
+  }
+  ```
+- Rationale:
+  - Fallbacks make debugging harder - you don't know which path was taken
+  - Configuration errors should be caught during deployment, not hidden
+  - Explicit failures are easier to fix than subtle wrong behavior
+  - Less code paths = simpler code = easier to maintain
+
