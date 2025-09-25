@@ -1,4 +1,4 @@
-import { Sandbox } from "e2b";
+import { Sandbox, SandboxPaginator, SandboxInfo } from "e2b";
 import { initServices } from "./init-services";
 import { CLAUDE_TOKENS_TBL } from "../db/schema/claude-tokens";
 import { CLI_TOKENS_TBL } from "../db/schema/cli-tokens";
@@ -10,11 +10,6 @@ import { decryptClaudeToken } from "./claude-token-crypto";
  * Manages sandbox lifecycle and Claude execution
  */
 
-interface SandboxMetadata {
-  sessionId: string;
-  projectId: string;
-  userId: string;
-}
 
 interface ExecutionResult {
   success: boolean;
@@ -67,12 +62,10 @@ export class E2BExecutor {
     userId: string,
   ): Promise<Sandbox> {
     // 1. Try to find existing sandbox
-    const paginator = await Sandbox.list();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const sandboxes = await (paginator as any).nextItems(); // Get first page of sandboxes
+    const paginator: SandboxPaginator = await Sandbox.list();
+    const sandboxes: SandboxInfo[] = await paginator.nextItems(); // Get first page of sandboxes
     const existingSandbox = sandboxes.find(
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (s: any) => (s.metadata as SandboxMetadata)?.sessionId === sessionId,
+      (s: SandboxInfo) => s.metadata?.sessionId === sessionId,
     );
 
     if (existingSandbox) {
@@ -185,8 +178,7 @@ export class E2BExecutor {
       // Use pipe method with real-time streaming
       const command = `cat "${promptFile}" | claude --print --verbose --output-format stream-json`;
 
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = await (sandbox.commands as any).run(command, {
+      const result = await sandbox.commands.run(command, {
         onStdout: async (data: string) => {
           // Buffer and process complete JSON lines
           buffer += data;

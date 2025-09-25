@@ -63,6 +63,12 @@ vi.mock("../lib/claude-token-crypto", () => ({
   getEncryptionKey: vi.fn(() => Buffer.from("test-encryption-key")),
 }));
 
+
+interface CommandOptions {
+  onStdout?: (data: string) => void;
+  onStderr?: (data: string) => void;
+  timeout?: number;
+}
 // Mock E2B SDK for testing
 vi.mock("e2b", () => ({
   Sandbox: {
@@ -71,8 +77,7 @@ vi.mock("e2b", () => ({
       const mockSandbox = {
         sandboxId: "mock-sandbox",
         commands: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          run: vi.fn().mockImplementation((command: string, options?: any) => {
+          run: vi.fn().mockImplementation((command: string, options?: CommandOptions) => {
             // If this is a Claude command with streaming, call onStdout callbacks
             if (command.includes("claude") && options?.onStdout) {
               // Simulate streaming Claude output blocks
@@ -117,8 +122,7 @@ vi.mock("e2b", () => ({
       const mockSandbox = {
         sandboxId: "mock-sandbox",
         commands: {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          run: vi.fn().mockImplementation((command: string, options?: any) => {
+          run: vi.fn().mockImplementation((command: string, options?: CommandOptions) => {
             // If this is a Claude command with streaming, call onStdout callbacks
             if (command.includes("claude") && options?.onStdout) {
               // Simulate streaming Claude output blocks
