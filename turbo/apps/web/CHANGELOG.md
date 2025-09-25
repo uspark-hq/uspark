@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.30.0](https://github.com/uspark-hq/uspark/compare/web-v0.29.2...web-v0.30.0) (2025-09-25)
+
+
+### Features
+
+* reuse existing sessions instead of creating new ones every time ([#377](https://github.com/uspark-hq/uspark/issues/377)) ([ec8a810](https://github.com/uspark-hq/uspark/commit/ec8a81032f1c2cfba9bc0ecae9d8b15badbb25ae))
+
+
+### Bug Fixes
+
+* remove artificial delays from test files ([#375](https://github.com/uspark-hq/uspark/issues/375)) ([388a8f1](https://github.com/uspark-hq/uspark/commit/388a8f16447653aee5e275f99066ac5e7ac0b947))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.12.2
+
 ## [0.29.2](https://github.com/uspark-hq/uspark/compare/web-v0.29.1...web-v0.29.2) (2025-09-24)
 
 
