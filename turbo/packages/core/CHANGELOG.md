@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.2](https://github.com/uspark-hq/uspark/compare/core-v0.12.1...core-v0.12.2) (2025-09-25)
+
+
+### Bug Fixes
+
+* remove artificial delays from test files ([#375](https://github.com/uspark-hq/uspark/issues/375)) ([388a8f1](https://github.com/uspark-hq/uspark/commit/388a8f16447653aee5e275f99066ac5e7ac0b947))
+
 ## [0.12.1](https://github.com/uspark-hq/uspark/compare/core-v0.12.0...core-v0.12.1) (2025-09-14)
 
 
