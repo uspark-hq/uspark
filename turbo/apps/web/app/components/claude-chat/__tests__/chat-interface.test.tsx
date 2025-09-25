@@ -46,59 +46,55 @@ describe("ChatInterface", () => {
   });
 
   it("displays turns when they exist", async () => {
-    // Mock useSessionPolling to return some turns
-    const mockUseSessionPolling = vi.mocked(
-      await import("../use-session-polling"),
-    ).useSessionPolling;
+    // First, we need to update MSW handler to return an existing session
+    // We'll use dynamic imports to modify the mock
+    const { useSessionPolling } = await import("../use-session-polling");
 
-    mockUseSessionPolling.mockReturnValueOnce({
-      turns: [
-        {
-          id: "turn-1",
-          userPrompt: "Hello Claude",
-          status: "completed",
-          blocks: [
+    // Mock useSessionPolling to return turns after session is selected
+    vi.mocked(useSessionPolling).mockImplementation((projectId, sessionId) => {
+      if (sessionId) {
+        return {
+          turns: [
             {
-              id: "block-1",
-              type: "content",
-              content: { text: "Hello! How can I help you?" },
-              sequenceNumber: 0,
-            },
-          ],
-          startedAt: new Date().toISOString(),
-          completedAt: new Date().toISOString(),
-          errorMessage: null,
-        },
-      ],
-      isPolling: false,
-      refetch: vi.fn(),
-      hasActiveTurns: false,
-    });
-
-    // Mock the fetch to return an existing session
-    global.fetch = vi.fn().mockImplementation((url) => {
-      if (url.includes("/sessions") && !url.includes("/turns")) {
-        return Promise.resolve({
-          ok: true,
-          json: () =>
-            Promise.resolve({
-              sessions: [
+              id: "turn-1",
+              userPrompt: "Hello Claude",
+              status: "completed",
+              blocks: [
                 {
-                  id: "session-123",
-                  title: "Test Session",
-                  createdAt: new Date().toISOString(),
-                  updatedAt: new Date().toISOString(),
+                  id: "block-1",
+                  type: "content",
+                  content: { text: "Hello! How can I help you?" },
+                  sequenceNumber: 0,
                 },
               ],
-            }),
-        });
+              startedAt: new Date().toISOString(),
+              completedAt: new Date().toISOString(),
+              errorMessage: null,
+            },
+          ],
+          isPolling: false,
+          refetch: vi.fn(),
+          hasActiveTurns: false,
+        };
       }
-      return Promise.resolve({ ok: false });
+      return {
+        turns: [],
+        isPolling: false,
+        refetch: vi.fn(),
+        hasActiveTurns: false,
+      };
     });
 
     render(<ChatInterface projectId="project-1" />);
 
-    // Should display Claude's response once session loads
+    // Create a new session first
+    const sessionSelector = await screen.findByText(/no session selected/i);
+    fireEvent.click(sessionSelector);
+
+    const newSessionButton = await screen.findByText(/new session/i);
+    fireEvent.click(newSessionButton);
+
+    // Wait for session to be created and turns to appear
     await waitFor(() => {
       expect(
         screen.getByText("Hello! How can I help you?"),
@@ -108,9 +104,6 @@ describe("ChatInterface", () => {
     // Should display the turn structure (user and Claude sections)
     expect(screen.getByText("You")).toBeInTheDocument();
     expect(screen.getByText("Claude")).toBeInTheDocument();
-
-    // Restore fetch mock
-    vi.restoreAllMocks();
   });
 
   it("handles message input and form submission", async () => {
