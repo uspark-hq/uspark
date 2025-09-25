@@ -98,7 +98,7 @@ vi.mock("e2b", () => ({
 
               // Call onStdout for each block to simulate streaming
               blocks.forEach((block) => {
-                options.onStdout(block + "\n");
+                options.onStdout?.(block + "\n");
               });
             }
 
@@ -143,7 +143,7 @@ vi.mock("e2b", () => ({
 
               // Call onStdout for each block to simulate streaming
               blocks.forEach((block) => {
-                options.onStdout(block + "\n");
+                options.onStdout?.(block + "\n");
               });
             }
 
