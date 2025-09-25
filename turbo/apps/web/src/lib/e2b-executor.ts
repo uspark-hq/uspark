@@ -10,7 +10,6 @@ import { decryptClaudeToken } from "./claude-token-crypto";
  * Manages sandbox lifecycle and Claude execution
  */
 
-
 interface ExecutionResult {
   success: boolean;
   output?: string;

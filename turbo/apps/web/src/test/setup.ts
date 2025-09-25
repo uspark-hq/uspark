@@ -63,7 +63,6 @@ vi.mock("../lib/claude-token-crypto", () => ({
   getEncryptionKey: vi.fn(() => Buffer.from("test-encryption-key")),
 }));
 
-
 interface CommandOptions {
   onStdout?: (data: string) => void;
   onStderr?: (data: string) => void;
@@ -77,37 +76,39 @@ vi.mock("e2b", () => ({
       const mockSandbox = {
         sandboxId: "mock-sandbox",
         commands: {
-          run: vi.fn().mockImplementation((command: string, options?: CommandOptions) => {
-            // If this is a Claude command with streaming, call onStdout callbacks
-            if (command.includes("claude") && options?.onStdout) {
-              // Simulate streaming Claude output blocks
-              const blocks = [
-                JSON.stringify({
-                  type: "assistant",
-                  message: {
-                    content: [{ type: "text", text: "Mock response" }],
-                  },
-                }),
-                JSON.stringify({
-                  type: "result",
-                  total_cost_usd: 0.001,
-                  usage: { input_tokens: 10, output_tokens: 20 },
-                  duration_ms: 100,
-                }),
-              ];
+          run: vi
+            .fn()
+            .mockImplementation((command: string, options?: CommandOptions) => {
+              // If this is a Claude command with streaming, call onStdout callbacks
+              if (command.includes("claude") && options?.onStdout) {
+                // Simulate streaming Claude output blocks
+                const blocks = [
+                  JSON.stringify({
+                    type: "assistant",
+                    message: {
+                      content: [{ type: "text", text: "Mock response" }],
+                    },
+                  }),
+                  JSON.stringify({
+                    type: "result",
+                    total_cost_usd: 0.001,
+                    usage: { input_tokens: 10, output_tokens: 20 },
+                    duration_ms: 100,
+                  }),
+                ];
 
-              // Call onStdout for each block to simulate streaming
-              blocks.forEach((block) => {
-                options.onStdout?.(block + "\n");
+                // Call onStdout for each block to simulate streaming
+                blocks.forEach((block) => {
+                  options.onStdout?.(block + "\n");
+                });
+              }
+
+              return Promise.resolve({
+                exitCode: 0,
+                stdout: "",
+                stderr: "",
               });
-            }
-
-            return Promise.resolve({
-              exitCode: 0,
-              stdout: "",
-              stderr: "",
-            });
-          }),
+            }),
         },
         files: {
           write: vi.fn(),
@@ -122,37 +123,39 @@ vi.mock("e2b", () => ({
       const mockSandbox = {
         sandboxId: "mock-sandbox",
         commands: {
-          run: vi.fn().mockImplementation((command: string, options?: CommandOptions) => {
-            // If this is a Claude command with streaming, call onStdout callbacks
-            if (command.includes("claude") && options?.onStdout) {
-              // Simulate streaming Claude output blocks
-              const blocks = [
-                JSON.stringify({
-                  type: "assistant",
-                  message: {
-                    content: [{ type: "text", text: "Mock response" }],
-                  },
-                }),
-                JSON.stringify({
-                  type: "result",
-                  total_cost_usd: 0.001,
-                  usage: { input_tokens: 10, output_tokens: 20 },
-                  duration_ms: 100,
-                }),
-              ];
+          run: vi
+            .fn()
+            .mockImplementation((command: string, options?: CommandOptions) => {
+              // If this is a Claude command with streaming, call onStdout callbacks
+              if (command.includes("claude") && options?.onStdout) {
+                // Simulate streaming Claude output blocks
+                const blocks = [
+                  JSON.stringify({
+                    type: "assistant",
+                    message: {
+                      content: [{ type: "text", text: "Mock response" }],
+                    },
+                  }),
+                  JSON.stringify({
+                    type: "result",
+                    total_cost_usd: 0.001,
+                    usage: { input_tokens: 10, output_tokens: 20 },
+                    duration_ms: 100,
+                  }),
+                ];
 
-              // Call onStdout for each block to simulate streaming
-              blocks.forEach((block) => {
-                options.onStdout?.(block + "\n");
+                // Call onStdout for each block to simulate streaming
+                blocks.forEach((block) => {
+                  options.onStdout?.(block + "\n");
+                });
+              }
+
+              return Promise.resolve({
+                exitCode: 0,
+                stdout: "",
+                stderr: "",
               });
-            }
-
-            return Promise.resolve({
-              exitCode: 0,
-              stdout: "",
-              stderr: "",
-            });
-          }),
+            }),
         },
         files: {
           write: vi.fn(),
