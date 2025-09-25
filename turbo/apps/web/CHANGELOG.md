@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.2](https://github.com/uspark-hq/uspark/compare/web-v0.31.1...web-v0.31.2) (2025-09-25)
+
+
+### Bug Fixes
+
+* resolve infinite polling abort requests in session polling ([#384](https://github.com/uspark-hq/uspark/issues/384)) ([419f9bf](https://github.com/uspark-hq/uspark/commit/419f9bfcd4ffc74d992658b42e9977aa2e510f86))
+
 ## [0.31.1](https://github.com/uspark-hq/uspark/compare/web-v0.31.0...web-v0.31.1) (2025-09-25)
 
 
