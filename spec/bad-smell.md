@@ -116,3 +116,41 @@ This document defines code quality issues and anti-patterns to identify during c
   - Explicit failures are easier to fix than subtle wrong behavior
   - Less code paths = simpler code = easier to maintain
 
+## 14. Prohibition of Lint/Type Suppressions
+- **ZERO tolerance for suppression comments** - fix the issue, don't hide it
+- **Prohibited comments:**
+  - `// eslint-disable` or `/* eslint-disable */` - Never disable ESLint rules
+  - `// oxlint-disable` or `/* oxlint-disable */` - Never disable OxLint rules
+  - `// @ts-ignore` - Never ignore TypeScript errors
+  - `// @ts-nocheck` - Never skip TypeScript checking for entire files
+  - `// @ts-expect-error` - Don't expect errors, fix them
+  - `// prettier-ignore` - Follow formatting rules consistently
+- **Why suppressions are harmful:**
+  - They accumulate technical debt silently
+  - Hide real problems that could cause runtime failures
+  - Make code reviews less effective
+  - Create inconsistent code quality across the codebase
+- **Always fix the root cause:**
+  ```typescript
+  // ❌ Bad: Suppressing the warning
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const data: any = fetchData();
+
+  // ✅ Good: Fix with proper typing
+  const data: unknown = fetchData();
+  if (isValidData(data)) {
+    // Use data with proper type narrowing
+  }
+
+  // ❌ Bad: Ignoring TypeScript error
+  // @ts-ignore
+  window.myGlobalVar = value;
+
+  // ✅ Good: Properly extend global types
+  declare global {
+    interface Window {
+      myGlobalVar: typeof value;
+    }
+  }
+  ```
+
