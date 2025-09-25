@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.2](https://github.com/uspark-hq/uspark/compare/web-v0.29.1...web-v0.29.2) (2025-09-24)
+
+
+### Bug Fixes
+
+* use standard CLI tokens for E2B sandbox authentication ([#373](https://github.com/uspark-hq/uspark/issues/373)) ([c4b8bbd](https://github.com/uspark-hq/uspark/commit/c4b8bbd5fb92fb7d9abd090fa7a7adc8e35017ef))
+
 ## [0.29.1](https://github.com/uspark-hq/uspark/compare/web-v0.29.0...web-v0.29.1) (2025-09-23)
 
 
