@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.0](https://github.com/uspark-hq/uspark/compare/web-v0.30.0...web-v0.31.0) (2025-09-25)
+
+
+### Features
+
+* add session selector for chat interface ([#379](https://github.com/uspark-hq/uspark/issues/379)) ([f7a0fc1](https://github.com/uspark-hq/uspark/commit/f7a0fc1cc2b5d6b31cc5c677458530869105b5e0))
+
 ## [0.30.0](https://github.com/uspark-hq/uspark/compare/web-v0.29.2...web-v0.30.0) (2025-09-25)
 
 
