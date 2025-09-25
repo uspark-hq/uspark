@@ -49,7 +49,17 @@ export function SessionSelector({
   const currentSession = sessions.find((s) => s.id === currentSessionId);
 
   const formatDate = (dateString: string) => {
+    if (!dateString) {
+      return "Unknown time";
+    }
+
     const date = new Date(dateString);
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return "Unknown time";
+    }
+
     const now = new Date();
     const diffMs = now.getTime() - date.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));

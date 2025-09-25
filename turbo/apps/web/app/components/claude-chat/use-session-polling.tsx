@@ -182,7 +182,8 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
         abortControllerRef.current = null;
       }
     };
-  }, [projectId, sessionId, buildStateString]); // buildStateString is stable due to empty deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [projectId, sessionId]); // Remove buildStateString from deps to avoid infinite loops
 
   const hasActiveTurns = () => {
     return turns.some(
