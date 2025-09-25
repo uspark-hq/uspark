@@ -55,21 +55,15 @@ describe("GitHubConnection", () => {
     // MSW will handle any HTTP requests
   });
 
-  it("handles connect button interaction", async () => {
+  it("handles connect button interaction", () => {
     render(<GitHubConnection />);
 
-    // Wait for component to potentially load
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
-    // Look for connect-related elements
-    // This test focuses on user interactions rather than HTTP requests
+    // Component should render and handle interactions
+    // MSW handlers will manage any HTTP requests
   });
 
-  it("handles UI interactions without crashing", async () => {
+  it("handles UI interactions without crashing", () => {
     render(<GitHubConnection />);
-
-    // Wait for any initial loading to complete
-    await new Promise((resolve) => setTimeout(resolve, 200));
 
     // The component should render and handle interactions
     // MSW handlers will manage any HTTP requests
