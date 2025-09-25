@@ -101,9 +101,9 @@ Returns: {
 
 #### 2. Claude Execution APIs
 **Acceptance Criteria**:
-- [ ] POST /api/claude/execute - Start Claude task
-- [ ] GET /api/claude/status/:taskId - Get task status
-- [ ] Polling endpoints for status updates
+- [x] POST /api/claude/execute - Start Claude task (✅ 通过 Session/Turn API 实现)
+- [x] GET /api/claude/status/:taskId - Get task status (✅ 通过 Turn status 实现)
+- [x] Polling endpoints for status updates (✅ 通过 /updates endpoint 实现)
 
 ### Frontend Pages
 
@@ -117,16 +117,16 @@ Returns: {
 **Acceptance Criteria**:
 - [x] File explorer component (✅ PR #107)
 - [x] Document viewer with syntax highlighting (✅ PR #106)
-- [ ] Chat input component (待实现)
-- [ ] Polling-based update display (待实现)
+- [x] Chat input component (✅ 已实现)
+- [x] Polling-based update display (✅ 已实现)
 
-#### 5. Polling Integration ❌ NOT COMPLETED
+#### 5. Polling Integration ✅ COMPLETED
 **Acceptance Criteria**:
-- [ ] Polling client setup (useSessionPolling hook) - 需要重新实现
-- [ ] File change updates via YJS polling - 需要实现
-- [ ] Execution status updates via API polling - 需要实现
+- [x] Polling client setup (useSessionPolling hook) - ✅ 已实现 (PR #320)
+- [x] File change updates via YJS polling - ✅ 已实现
+- [x] Execution status updates via API polling - ✅ 已实现
 
-**Note**: Frontend polling hooks and components need complete re-implementation. Previous implementations in closed PRs (#174, #179) were not satisfactory.
+**Note**: Polling system successfully implemented with long polling mechanism.
 
 ## Database Schema
 
