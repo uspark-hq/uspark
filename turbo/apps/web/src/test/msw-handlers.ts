@@ -222,6 +222,14 @@ const projectsHandlers = [
   }),
 
   // Session endpoints for chat interface
+  // GET /api/projects/:projectId/sessions - List sessions
+  http.get("*/api/projects/:projectId/sessions", () => {
+    return HttpResponse.json({
+      sessions: [], // Return empty sessions list for tests
+      total: 0,
+    });
+  }),
+
   // POST /api/projects/:projectId/sessions - Create session
   http.post("*/api/projects/:projectId/sessions", async ({ request }) => {
     const body = (await request.json()) as { title?: string };
