@@ -167,5 +167,4 @@ describe("GET /api/shares", () => {
     expect(response.status).toBe(401);
     expect(response.data).toEqual({ error: "unauthorized" });
   });
-
 });
