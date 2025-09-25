@@ -37,10 +37,12 @@ describe("ChatInterface", () => {
   it("displays empty state when no turns exist", async () => {
     render(<ChatInterface projectId="project-1" />);
 
-    // Should show the placeholder text
-    expect(
-      screen.getByText(/start a conversation with claude/i),
-    ).toBeInTheDocument();
+    // Should show the placeholder text for no session selected initially
+    await waitFor(() => {
+      expect(
+        screen.getByText(/select or create a session/i),
+      ).toBeInTheDocument();
+    });
   });
 
   it("displays turns when they exist", async () => {
@@ -49,7 +51,7 @@ describe("ChatInterface", () => {
       await import("../use-session-polling"),
     ).useSessionPolling;
 
-    mockUseSessionPolling.mockReturnValue({
+    mockUseSessionPolling.mockReturnValueOnce({
       turns: [
         {
           id: "turn-1",
@@ -73,14 +75,42 @@ describe("ChatInterface", () => {
       hasActiveTurns: false,
     });
 
+    // Mock the fetch to return an existing session
+    global.fetch = vi.fn().mockImplementation((url) => {
+      if (url.includes("/sessions") && !url.includes("/turns")) {
+        return Promise.resolve({
+          ok: true,
+          json: () =>
+            Promise.resolve({
+              sessions: [
+                {
+                  id: "session-123",
+                  title: "Test Session",
+                  createdAt: new Date().toISOString(),
+                  updatedAt: new Date().toISOString(),
+                },
+              ],
+            }),
+        });
+      }
+      return Promise.resolve({ ok: false });
+    });
+
     render(<ChatInterface projectId="project-1" />);
 
-    // Should display Claude's response (user message may be empty in the UI)
-    expect(screen.getByText("Hello! How can I help you?")).toBeInTheDocument();
+    // Should display Claude's response once session loads
+    await waitFor(() => {
+      expect(
+        screen.getByText("Hello! How can I help you?"),
+      ).toBeInTheDocument();
+    });
 
     // Should display the turn structure (user and Claude sections)
     expect(screen.getByText("You")).toBeInTheDocument();
     expect(screen.getByText("Claude")).toBeInTheDocument();
+
+    // Restore fetch mock
+    vi.restoreAllMocks();
   });
 
   it("handles message input and form submission", async () => {
@@ -89,19 +119,28 @@ describe("ChatInterface", () => {
     const textarea = screen.getByPlaceholderText(/ask claude/i);
     const sendButton = screen.getByRole("button", { name: /send/i });
 
-    // Wait for session to be initialized (button should become available)
+    // Initially disabled (no session)
+    expect(sendButton).toBeDisabled();
+    expect(textarea).toBeDisabled();
+
+    // Click the New Session button in the dropdown
+    const sessionSelector = await screen.findByText(/no session selected/i);
+    fireEvent.click(sessionSelector);
+
+    const newSessionButton = await screen.findByText(/new session/i);
+    fireEvent.click(newSessionButton);
+
+    // Wait for session to be created
     await waitFor(() => {
-      expect(sendButton).toBeDisabled(); // Initially disabled due to empty input
+      expect(textarea).not.toBeDisabled();
     });
 
     // Type a message
     fireEvent.change(textarea, { target: { value: "Test message" } });
     expect(textarea).toHaveValue("Test message");
 
-    // Wait for session initialization to complete, then check button state
-    await waitFor(() => {
-      expect(sendButton).not.toBeDisabled();
-    });
+    // Button should be enabled with message
+    expect(sendButton).not.toBeDisabled();
 
     // Clear the input
     fireEvent.change(textarea, { target: { value: "" } });
@@ -114,6 +153,13 @@ describe("ChatInterface", () => {
     render(<ChatInterface projectId="project-1" />);
 
     const textarea = screen.getByPlaceholderText(/ask claude/i);
+
+    // Create a session first
+    const sessionSelector = await screen.findByText(/no session selected/i);
+    fireEvent.click(sessionSelector);
+
+    const newSessionButton = await screen.findByText(/new session/i);
+    fireEvent.click(newSessionButton);
 
     // Wait for session to be initialized
     await waitFor(() => {

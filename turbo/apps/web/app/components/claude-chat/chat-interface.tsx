@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useSessionPolling } from "./use-session-polling";
 import { BlockDisplay } from "./block-display";
+import { SessionSelector } from "./session-selector";
 
 interface ChatInterfaceProps {
   projectId: string;
@@ -39,35 +40,53 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
           }
         }
 
-        // No existing sessions, create a new one
-        console.log("No existing sessions, creating new one");
-        const now = new Date();
-        const timestamp = now.toLocaleString("en-US", {
-          month: "short",
-          day: "numeric",
-          hour: "2-digit",
-          minute: "2-digit",
-        });
-        const response = await fetch(`/api/projects/${projectId}/sessions`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: `Claude Session - ${timestamp}` }),
-        });
-
-        if (response.ok) {
-          const session = await response.json();
-          setSessionId(session.id);
-          console.log("Created new session:", session.id);
-        } else {
-          setError("Failed to initialize session. Please refresh the page.");
-        }
+        // No existing sessions, don't create one automatically
+        console.log("No existing sessions found");
       } catch {
         setError("Failed to connect to server. Please check your connection.");
       }
     };
 
-    initializeSession();
-  }, [projectId]);
+    // Only initialize on first mount
+    if (!sessionId) {
+      initializeSession();
+    }
+  }, [projectId, sessionId]);
+
+  // Handle session change from selector
+  const handleSessionChange = (newSessionId: string) => {
+    setSessionId(newSessionId);
+    setMessage(""); // Clear input when switching sessions
+    setError(null);
+  };
+
+  // Handle creating a new session
+  const handleNewSession = async () => {
+    try {
+      const now = new Date();
+      const timestamp = now.toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+      const response = await fetch(`/api/projects/${projectId}/sessions`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: `Claude Session - ${timestamp}` }),
+      });
+
+      if (response.ok) {
+        const session = await response.json();
+        setSessionId(session.id);
+        console.log("Created new session:", session.id);
+      } else {
+        setError("Failed to create new session. Please try again.");
+      }
+    } catch {
+      setError("Failed to create new session. Please check your connection.");
+    }
+  };
 
   // Scroll to bottom when new messages arrive
   useEffect(() => {
@@ -127,6 +146,37 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
         height: "100%",
       }}
     >
+      {/* Session Selector Header */}
+      <div
+        style={{
+          padding: "12px 16px",
+          borderBottom: "1px solid rgba(156, 163, 175, 0.1)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+        }}
+      >
+        <SessionSelector
+          projectId={projectId}
+          currentSessionId={sessionId}
+          onSessionChange={handleSessionChange}
+          onNewSession={handleNewSession}
+        />
+        {sessionId && (
+          <div
+            style={{
+              fontSize: "12px",
+              color: "rgba(156, 163, 175, 0.6)",
+              padding: "4px 8px",
+              backgroundColor: "rgba(156, 163, 175, 0.05)",
+              borderRadius: "4px",
+            }}
+          >
+            {turns.length} {turns.length === 1 ? "message" : "messages"}
+          </div>
+        )}
+      </div>
+
       {/* Messages Area */}
       <div
         style={{
@@ -138,7 +188,28 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
           gap: "16px",
         }}
       >
-        {turns.length === 0 ? (
+        {!sessionId ? (
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "center",
+              height: "100%",
+              color: "rgba(156, 163, 175, 0.6)",
+              textAlign: "center",
+            }}
+          >
+            <div style={{ fontSize: "48px", marginBottom: "16px" }}>💬</div>
+            <h3 style={{ marginBottom: "8px", color: "var(--foreground)" }}>
+              Select or create a session
+            </h3>
+            <p style={{ maxWidth: "400px", fontSize: "14px" }}>
+              Choose an existing session from the dropdown above or create a new
+              one to start chatting with Claude.
+            </p>
+          </div>
+        ) : turns.length === 0 ? (
           <div
             style={{
               display: "flex",
