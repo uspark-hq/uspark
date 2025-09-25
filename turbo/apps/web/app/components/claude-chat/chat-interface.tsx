@@ -22,16 +22,42 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
   useEffect(() => {
     const initializeSession = async () => {
       try {
-        // Get existing sessions or create new one
+        // First, try to get existing sessions
+        const listResponse = await fetch(`/api/projects/${projectId}/sessions`);
+
+        if (listResponse.ok) {
+          const data = await listResponse.json();
+          const sessions = data.sessions || [];
+
+          // If there are existing sessions, use the most recent one
+          if (sessions.length > 0) {
+            // Sessions are typically returned sorted by createdAt desc, so first is most recent
+            const mostRecentSession = sessions[0];
+            setSessionId(mostRecentSession.id);
+            console.log("Using existing session:", mostRecentSession.id);
+            return;
+          }
+        }
+
+        // No existing sessions, create a new one
+        console.log("No existing sessions, creating new one");
+        const now = new Date();
+        const timestamp = now.toLocaleString("en-US", {
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
         const response = await fetch(`/api/projects/${projectId}/sessions`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ title: "Claude Code Session" }),
+          body: JSON.stringify({ title: `Claude Session - ${timestamp}` }),
         });
 
         if (response.ok) {
           const session = await response.json();
           setSessionId(session.id);
+          console.log("Created new session:", session.id);
         } else {
           setError("Failed to initialize session. Please refresh the page.");
         }
