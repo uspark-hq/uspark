@@ -266,17 +266,6 @@ const projectsHandlers = [
     },
   ),
 
-  // POST /api/projects/:projectId/sessions/:sessionId/mock-execute - Mock execute
-  http.post(
-    "*/api/projects/:projectId/sessions/:sessionId/mock-execute",
-    () => {
-      return HttpResponse.json({
-        turn_id: `turn-${Date.now()}`,
-        status: "success",
-      });
-    },
-  ),
-
   // GET /api/projects/:projectId/sessions/:sessionId/updates - Long polling updates
   http.get(
     "*/api/projects/:projectId/sessions/:sessionId/updates",
