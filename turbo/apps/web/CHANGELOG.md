@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.31.1](https://github.com/uspark-hq/uspark/compare/web-v0.31.0...web-v0.31.1) (2025-09-25)
+
+
+### Bug Fixes
+
+* eliminate all TypeScript any types in production code ([#381](https://github.com/uspark-hq/uspark/issues/381)) ([b1521d9](https://github.com/uspark-hq/uspark/commit/b1521d963dc94d1f7756d1fd9ab01ec907ee93a0))
+
 ## [0.31.0](https://github.com/uspark-hq/uspark/compare/web-v0.30.0...web-v0.31.0) (2025-09-25)
 
 
