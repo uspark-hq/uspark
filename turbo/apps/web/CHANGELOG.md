@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.31.3](https://github.com/uspark-hq/uspark/compare/web-v0.31.2...web-v0.31.3) (2025-09-26)
+
+
+### Bug Fixes
+
+* remove eslint suppression from use-session-polling hook ([#387](https://github.com/uspark-hq/uspark/issues/387)) ([0848407](https://github.com/uspark-hq/uspark/commit/0848407615e7c23e49964e751c3475f990baa335))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.13.0
+
 ## [0.31.2](https://github.com/uspark-hq/uspark/compare/web-v0.31.1...web-v0.31.2) (2025-09-25)
 
 
