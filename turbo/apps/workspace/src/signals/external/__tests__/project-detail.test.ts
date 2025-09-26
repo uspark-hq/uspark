@@ -388,14 +388,11 @@ describe('project-detail signals', () => {
       }
 
       server.use(
-        http.post(
-          '*/api/projects/:projectId/github/sync',
-          ({ params }) => {
-            expect(params.projectId).toBe('project-123')
-            // Empty body for POST request (contract defines it as empty object)
-            return HttpResponse.json(mockResponse)
-          },
-        ),
+        http.post('*/api/projects/:projectId/github/sync', ({ params }) => {
+          expect(params.projectId).toBe('project-123')
+          // Empty body for POST request (contract defines it as empty object)
+          return HttpResponse.json(mockResponse)
+        }),
       )
 
       const result = await store.set(
