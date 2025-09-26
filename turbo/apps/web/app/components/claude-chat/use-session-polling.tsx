@@ -29,9 +29,7 @@ interface SessionUpdate {
 
 // Helper function to build state string from turns
 function buildStateString(turns: Turn[]): string {
-  return turns
-    .map((turn) => `${turn.id}:${turn.blocks.length}`)
-    .join(",");
+  return turns.map((turn) => `${turn.id}:${turn.blocks.length}`).join(",");
 }
 
 export function useSessionPolling(projectId: string, sessionId: string | null) {
