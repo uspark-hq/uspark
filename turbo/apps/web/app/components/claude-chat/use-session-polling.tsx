@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 
 interface Block {
   id: string;
@@ -27,6 +27,11 @@ interface SessionUpdate {
   turns: Turn[];
 }
 
+// Helper function to build state string from turns
+function buildStateString(turns: Turn[]): string {
+  return turns.map((turn) => `${turn.id}:${turn.blocks.length}`).join(",");
+}
+
 export function useSessionPolling(projectId: string, sessionId: string | null) {
   const [turns, setTurns] = useState<Turn[]>([]);
   const [isPolling, setIsPolling] = useState(false);
@@ -38,13 +43,6 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
   useEffect(() => {
     turnsRef.current = turns;
   }, [turns]);
-
-  // Build state string from the current turns in ref
-  const buildStateString = useCallback(() => {
-    return turnsRef.current
-      .map((turn) => `${turn.id}:${turn.blocks.length}`)
-      .join(",");
-  }, []);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -66,7 +64,7 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
           }
 
           // Build current state string: turn1:blockCount1,turn2:blockCount2
-          const stateString = buildStateString();
+          const stateString = buildStateString(turnsRef.current);
 
           // Long poll for updates with state comparison
           const response = await fetch(
@@ -182,8 +180,7 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
         abortControllerRef.current = null;
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projectId, sessionId]); // Remove buildStateString from deps to avoid infinite loops
+  }, [projectId, sessionId]);
 
   const hasActiveTurns = () => {
     return turns.some(
@@ -196,7 +193,7 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
 
     try {
       // Build current state for comparison
-      const stateString = buildStateString();
+      const stateString = buildStateString(turnsRef.current);
 
       const response = await fetch(
         `/api/projects/${projectId}/sessions/${sessionId}/updates?state=${encodeURIComponent(stateString)}&timeout=0`,
