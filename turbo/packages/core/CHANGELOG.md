@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.13.0](https://github.com/uspark-hq/uspark/compare/core-v0.12.2...core-v0.13.0) (2025-09-26)
+
+
+### Features
+
+* add workspace project detail signals with contract definitions ([#389](https://github.com/uspark-hq/uspark/issues/389)) ([6a0e240](https://github.com/uspark-hq/uspark/commit/6a0e2402fe51a9e7f51814774e880502d60eedc7))
+
 ## [0.12.2](https://github.com/uspark-hq/uspark/compare/core-v0.12.1...core-v0.12.2) (2025-09-25)
 
 
