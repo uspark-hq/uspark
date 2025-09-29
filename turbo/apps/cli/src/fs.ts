@@ -1,5 +1,5 @@
 import * as Y from "yjs";
-import { createHash } from "crypto";
+import { sha256 } from "js-sha256";
 import type { FileNode, BlobInfo } from "@uspark/core";
 
 export class FileSystem {
@@ -125,7 +125,7 @@ export class FileSystem {
   }
 
   private async computeHash(bytes: Uint8Array): Promise<string> {
-    // Always use Node.js crypto for consistency
-    return createHash("sha256").update(bytes).digest("hex");
+    // Use js-sha256 for consistency and browser compatibility
+    return sha256(bytes);
   }
 }

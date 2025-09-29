@@ -1,6 +1,6 @@
 import { Doc, encodeStateAsUpdate, applyUpdate } from "yjs";
 import type { FileNode, BlobInfo } from "@uspark/core";
-import { createHash } from "crypto";
+import { sha256 } from "js-sha256";
 
 class MockYjsServer {
   private projects = new Map<string, Doc>();
@@ -91,8 +91,8 @@ class MockYjsServer {
   }
 
   private computeHash(content: string): string {
-    // Use real SHA256 hash to match the FileSystem implementation
-    return createHash("sha256").update(Buffer.from(content)).digest("hex");
+    // Use js-sha256 to match the FileSystem implementation
+    return sha256(content);
   }
 }
 
