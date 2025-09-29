@@ -36,6 +36,7 @@ describe('fetch$ signal integration tests', () => {
   let traceFetch: ReturnType<typeof vi.fn>
 
   beforeEach(() => {
+    vi.clearAllMocks() // Clear all mocks to prevent state leakage
     // Mock 全局 fetch 方法
     traceFetch = vi.fn().mockResolvedValue(new Response(null, { status: 200 }))
     vi.stubGlobal('fetch', traceFetch)

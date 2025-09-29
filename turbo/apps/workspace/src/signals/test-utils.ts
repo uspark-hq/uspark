@@ -2,10 +2,6 @@ import { vi } from 'vitest'
 
 type Listener = () => void
 
-// Track the current MockClerk instance for test access
-// eslint-disable-next-line custom/no-package-variable
-let currentMockClerk: MockClerk | null = null
-
 interface ClerkSession {
   getToken: () => Promise<string | null>
 }
@@ -17,14 +13,14 @@ interface ClerkUser {
 
 export class MockClerk {
   private readonly listeners: Listener[] = []
+  private static instance: MockClerk | null = null
 
   user: ClerkUser | null = null
   session: ClerkSession | null = null
 
   constructor(public publishableKey: string) {
     // Store reference to current instance
-    // eslint-disable-next-line @typescript-eslint/no-this-alias
-    currentMockClerk = this
+    MockClerk.instance = this
   }
 
   load() {
@@ -63,6 +59,17 @@ export class MockClerk {
       listener()
     }
   }
+
+  static getInstance(): MockClerk | null {
+    return MockClerk.instance
+  }
+
+  static resetInstance() {
+    if (MockClerk.instance) {
+      MockClerk.instance.user = null
+      MockClerk.instance.session = null
+    }
+  }
 }
 
 export function setupMock() {
@@ -72,12 +79,9 @@ export function setupMock() {
 }
 
 export function getMockClerk(): MockClerk | null {
-  return currentMockClerk
+  return MockClerk.getInstance()
 }
 
 export function resetMockAuth() {
-  if (currentMockClerk) {
-    currentMockClerk.user = null
-    currentMockClerk.session = null
-  }
+  MockClerk.resetInstance()
 }
