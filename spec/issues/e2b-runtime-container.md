@@ -209,18 +209,20 @@ async function syncFile(projectId: string, filePath: string) {
 
 ### Phase 1: Core Container Integration
 
-#### 1. E2B Container Setup 🟡 PARTIALLY COMPLETED
+#### 1. E2B Container Setup ✅ COMPLETED
 
 **Acceptance Criteria**:
 
-- [x] Create E2B container template with required dependencies ✅ (Basic Dockerfile)
-- [ ] Implement container initialization script (待开始)
-- [ ] Configure authentication and environment variables (待开始)
-- [ ] Test basic container startup and teardown (待开始)
+- [x] Create E2B container template with required dependencies ✅ (PR #314)
+- [x] Implement container initialization script ✅ (PR #314)
+- [x] Configure authentication and environment variables ✅ (PR #314)
+- [x] Test basic container startup and teardown ✅
 
-**Partial Implementation**:
-- Basic Dockerfile exists at `e2b/e2b.Dockerfile` with Node.js 22 and Claude Code CLI
-- Still needs: uspark CLI installation, init scripts, environment configuration
+**Implementation Status**:
+- Complete Dockerfile with Node.js 22, Claude Code CLI, and uspark CLI
+- Container initialization script (`init.sh`) implemented
+- Environment variables properly configured (USPARK_TOKEN, PROJECT_ID, CLAUDE_CODE_OAUTH_TOKEN)
+- E2B template ID: `w6qe4mwx23icyuytq64y`
 
 #### 2. uspark watch-claude Implementation ✅ COMPLETED
 
@@ -233,15 +235,17 @@ async function syncFile(projectId: string, filePath: string) {
 
 ### Phase 2: Claude Code CLI Integration
 
-#### 3. Claude Code Runtime Integration ❌ NOT COMPLETED
+#### 3. Claude Code Runtime Integration ⏳ PENDING VERIFICATION
 
 **Acceptance Criteria**:
 
-- [ ] Configure Claude CLI with --dangerously-skip-permissions flag
-- [ ] Implement --output-json format parsing
-- [ ] Integrate with watch-claude via pipe
-- [ ] Handle Claude Code exit and cleanup
-- [ ] Test end-to-end workflow with sample prompts
+- [x] Configure Claude CLI with proper flags ✅ (Implemented in E2BExecutor)
+- [x] Implement JSON stream format parsing ✅ (ClaudeExecutor class)
+- [x] Integrate with watch-claude via pipe ✅ (PR #100)
+- [x] Handle Claude Code exit and cleanup ✅
+- [ ] Test end-to-end workflow with sample prompts ⏳ (Awaiting Web UI refactor)
+
+**Note**: Implementation complete but requires Web UI refactoring for full verification
 
 #### 4. Status Monitoring Architecture ✅ COMPLETED
 
