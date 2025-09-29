@@ -1,4 +1,5 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { handleCors } from "./middleware.cors";
 
 const isPublicRoute = createRouteMatcher([
   "/",
@@ -12,6 +13,11 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
+  // Handle CORS for API routes
+  if (request.nextUrl.pathname.startsWith("/api/")) {
+    return handleCors(request);
+  }
+
   // Check if this might be a CLI token request
   const authHeader = request.headers.get("Authorization");
   const hasCliToken = authHeader && authHeader.includes("usp_live_");

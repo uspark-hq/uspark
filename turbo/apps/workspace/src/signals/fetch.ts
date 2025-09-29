@@ -1,4 +1,5 @@
 import { computed } from 'ccstate'
+import { clerk$ } from './auth'
 import { origin } from './location'
 
 const apiBase$ = computed(() => {
@@ -29,13 +30,27 @@ function mergeHeadersWithAutoIds(
 
 export const fetch$ = computed((get) => {
   return async (url: string | URL | Request, options?: RequestInit) => {
-    const apiBase = get(apiBase$)
+    const clerk = await get(clerk$)
+    const token = await clerk.session?.getToken()
+
+    const apiBase = get(apiBase$).replace('app.', 'www.')
 
     let finalUrl: string | URL | Request = url
     let finalInit: RequestInit | undefined = undefined
 
+    // Prepare auth headers if token is available
+    const authHeaders: Record<string, string> = token
+      ? { Authorization: `Bearer ${token}` }
+      : {}
+
     if (url instanceof Request) {
       const combinedHeaders = new Headers(url.headers)
+
+      // Add auth header to Request headers
+      if (token) {
+        combinedHeaders.set('Authorization', `Bearer ${token}`)
+      }
+
       if (options?.headers) {
         const optHeaders = new Headers(options.headers)
         for (const [key, value] of optHeaders.entries()) {
@@ -47,15 +62,11 @@ export const fetch$ = computed((get) => {
 
       finalInit = {
         credentials: 'include',
-        ...(Object.keys(autoHeaders).length > 0
-          ? {
-              headers: mergeHeadersWithAutoIds(
-                {},
-                options?.headers,
-                autoHeaders,
-              ),
-            }
-          : {}),
+        headers: mergeHeadersWithAutoIds(
+          authHeaders,
+          options?.headers,
+          autoHeaders,
+        ),
         ...options,
       }
     } else {
@@ -67,7 +78,11 @@ export const fetch$ = computed((get) => {
         credentials: 'include',
         method: 'GET',
         ...restOptions,
-        headers: mergeHeadersWithAutoIds({}, options?.headers, autoHeaders),
+        headers: mergeHeadersWithAutoIds(
+          authHeaders,
+          options?.headers,
+          autoHeaders,
+        ),
       }
     }
 
@@ -82,6 +97,12 @@ export const fetch$ = computed((get) => {
 
       if (url.url.startsWith(HOST_URL)) {
         const combinedHeaders = new Headers(url.headers)
+
+        // Add auth header to the combined headers
+        if (token) {
+          combinedHeaders.set('Authorization', `Bearer ${token}`)
+        }
+
         if (finalInit.headers) {
           const newHeaders = new Headers(finalInit.headers)
           for (const [key, value] of newHeaders.entries()) {

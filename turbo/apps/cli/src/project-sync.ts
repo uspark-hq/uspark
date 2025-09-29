@@ -2,7 +2,7 @@ import { FileSystem } from "./fs";
 import { writeFile, readFile, mkdir } from "fs/promises";
 import { put } from "@vercel/blob";
 import { dirname, join } from "path";
-import { createHash } from "crypto";
+import { sha256 } from "js-sha256";
 
 interface SyncOptions {
   token: string;
@@ -24,7 +24,7 @@ export class ProjectSync {
   }
 
   private async computeFileHash(content: string): Promise<string> {
-    return createHash("sha256").update(content, "utf8").digest("hex");
+    return sha256(content);
   }
 
   private async fetchWithAuth(

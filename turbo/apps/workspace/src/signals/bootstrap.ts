@@ -18,8 +18,13 @@ const setupAuthPageWrapper = (
   fn: Command<Promise<void> | void, [AbortSignal]>,
 ) => {
   return command(async ({ get, set }, signal: AbortSignal) => {
-    await get(clerk$)
+    const clerk = await get(clerk$)
     signal.throwIfAborted()
+
+    if (!clerk.user) {
+      clerk.openSignIn()
+      return
+    }
 
     await set(setupPageWrapper(fn), signal)
   })

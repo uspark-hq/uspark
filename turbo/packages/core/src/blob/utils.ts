@@ -1,57 +1,8 @@
-import { createHash } from "crypto";
+// Isomorphic utilities that work in both Node.js and browser environments
+import { sha256 } from "js-sha256";
 
-export function generateContentHash(content: Buffer): string {
-  return createHash("sha256").update(content).digest("hex");
-}
-
-export function detectContentType(content: Buffer): string {
-  // Simple MIME type detection based on file headers
-  if (content.length === 0) return "application/octet-stream";
-
-  const header = content.subarray(0, 16);
-
-  // Image formats
-  if (header[0] === 0xff && header[1] === 0xd8 && header[2] === 0xff) {
-    return "image/jpeg";
-  }
-  if (
-    header[0] === 0x89 &&
-    header[1] === 0x50 &&
-    header[2] === 0x4e &&
-    header[3] === 0x47
-  ) {
-    return "image/png";
-  }
-  if (header[0] === 0x47 && header[1] === 0x49 && header[2] === 0x46) {
-    return "image/gif";
-  }
-
-  // Text formats
-  if (isTextContent(content)) {
-    return "text/plain";
-  }
-
-  // Default
-  return "application/octet-stream";
-}
-
-function isTextContent(content: Buffer): boolean {
-  // Simple heuristic: check if most bytes are printable ASCII
-  const sample = content.subarray(0, Math.min(1024, content.length));
-  let printableCount = 0;
-
-  for (const byte of sample) {
-    if (
-      (byte >= 32 && byte <= 126) ||
-      byte === 9 ||
-      byte === 10 ||
-      byte === 13
-    ) {
-      printableCount++;
-    }
-  }
-
-  return printableCount / sample.length > 0.95;
+export function generateContentHash(content: Buffer | string): string {
+  return sha256(content);
 }
 
 export function formatFileSize(bytes: number): string {
@@ -62,4 +13,55 @@ export function formatFileSize(bytes: number): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
 
   return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${units[i]}`;
+}
+
+export function detectContentType(buffer: Buffer): string {
+  // Handle empty content
+  if (buffer.length === 0) {
+    return "application/octet-stream";
+  }
+
+  // Check for common image formats
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return "image/jpeg";
+  }
+
+  if (
+    buffer[0] === 0x89 &&
+    buffer[1] === 0x50 &&
+    buffer[2] === 0x4e &&
+    buffer[3] === 0x47
+  ) {
+    return "image/png";
+  }
+
+  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) {
+    return "image/gif";
+  }
+
+  // Check for text content (simple heuristic)
+  const sample = buffer.slice(0, Math.min(buffer.length, 512));
+  let isText = true;
+
+  for (let i = 0; i < sample.length; i++) {
+    const byte = sample[i];
+    // Allow printable ASCII, tabs, newlines, and carriage returns
+    if (
+      byte !== undefined &&
+      byte !== 0x09 && // tab
+      byte !== 0x0a && // newline
+      byte !== 0x0d && // carriage return
+      (byte < 0x20 || byte > 0x7e) // printable ASCII range
+    ) {
+      isText = false;
+      break;
+    }
+  }
+
+  if (isText) {
+    return "text/plain";
+  }
+
+  // Default to binary
+  return "application/octet-stream";
 }
