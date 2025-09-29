@@ -30,11 +30,7 @@ export function detectContentType(buffer: Buffer): string {
     return "image/png";
   }
 
-  if (
-    buffer[0] === 0x47 &&
-    buffer[1] === 0x49 &&
-    buffer[2] === 0x46
-  ) {
+  if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46) {
     return "image/gif";
   }
 

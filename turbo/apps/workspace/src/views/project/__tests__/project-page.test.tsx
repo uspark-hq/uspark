@@ -1,8 +1,8 @@
 import { screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setupPage, testContext } from '../../../signals/__tests__/context'
-import { getMockClerk, setupMock } from '../../../signals/test-utils'
 import { clerk$ } from '../../../signals/auth'
+import { getMockClerk, setupMock } from '../../../signals/test-utils'
 
 // Setup Clerk mock
 setupMock()
@@ -20,22 +20,22 @@ describe('projectPage', () => {
       if (newMockClerk) {
         newMockClerk.setUser({
           id: 'test-user-123',
-          emailAddresses: [{
-            emailAddress: 'test@example.com'
-          }],
-          fullName: 'Test User'
+          emailAddresses: [
+            {
+              emailAddress: 'test@example.com',
+            },
+          ],
+          fullName: 'Test User',
         })
         newMockClerk.setSession({
-          getToken: () => Promise.resolve('test-token').catch(() => null)
+          getToken: () => Promise.resolve('test-token').catch(() => null),
         })
       }
     }
 
     // For now, mock fetch to fail since we can't easily create valid YJS data in tests
     // This will cause the project page to show an error, which we'll test for
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(
-      new Error('Test error')
-    ))
+    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Test error')))
 
     await setupPage('/projects/1a2b3c4d', context)
   })

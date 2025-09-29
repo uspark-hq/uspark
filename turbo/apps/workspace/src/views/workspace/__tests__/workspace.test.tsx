@@ -1,8 +1,8 @@
 import { screen } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { setupPage, testContext } from '../../../signals/__tests__/context'
-import { getMockClerk, setupMock } from '../../../signals/test-utils'
 import { clerk$ } from '../../../signals/auth'
+import { getMockClerk, setupMock } from '../../../signals/test-utils'
 
 // Setup Clerk mock
 setupMock()
@@ -20,13 +20,15 @@ describe('homePage', () => {
       if (newMockClerk) {
         newMockClerk.setUser({
           id: 'test-user-123',
-          emailAddresses: [{
-            emailAddress: 'test@example.com'
-          }],
-          fullName: 'Test User'
+          emailAddresses: [
+            {
+              emailAddress: 'test@example.com',
+            },
+          ],
+          fullName: 'Test User',
         })
         newMockClerk.setSession({
-          getToken: () => Promise.resolve('test-token').catch(() => null)
+          getToken: () => Promise.resolve('test-token').catch(() => null),
         })
       }
     }
