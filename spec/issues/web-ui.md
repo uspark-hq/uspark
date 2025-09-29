@@ -120,13 +120,15 @@ Returns: {
 - [x] Chat input component (✅ 已实现)
 - [x] Polling-based update display (✅ 已实现)
 
-#### 5. Polling Integration ✅ COMPLETED
+#### 5. Polling Integration 🔄 NEEDS REFACTORING
 **Acceptance Criteria**:
-- [x] Polling client setup (useSessionPolling hook) - ✅ 已实现 (PR #320)
-- [x] File change updates via YJS polling - ✅ 已实现
-- [x] Execution status updates via API polling - ✅ 已实现
+- [x] Polling client setup (useSessionPolling hook) - ✅ Implemented (PR #320)
+- [x] File change updates via YJS polling - ✅ Working
+- [x] Execution status updates via API polling - ✅ Working
 
-**Note**: Polling system successfully implemented with long polling mechanism.
+**Current Issue**: Complex polling logic in React hooks is difficult to maintain with useState/useEffect
+**Solution**: Migrating to workspace project with ccstate for better state management
+**Status**: Refactoring in progress to separate state logic from UI components
 
 ## Database Schema
 

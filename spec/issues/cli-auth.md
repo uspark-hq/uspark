@@ -59,14 +59,15 @@ app/
 - [x] Generates long-lived CLI token
 - [x] Returns token and expiration date
 
-#### 2. Token Management Page
+#### 2. Token Management Page ✅ COMPLETED
 
 **Task**: Basic page to generate CLI tokens
+**Status**: Completed - Tokens can be generated from settings page
 **Acceptance Criteria**:
 
-- [ ] Generate new tokens
-- [ ] Display token once after generation
-- [ ] Copy token button
+- [x] Generate new tokens ✅
+- [x] Display token once after generation ✅
+- [x] Copy token button ✅
 
 #### 3. CLI Environment Variable Support ✅
 
