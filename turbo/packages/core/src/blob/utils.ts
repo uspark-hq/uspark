@@ -47,6 +47,7 @@ export function detectContentType(buffer: Buffer): string {
     const byte = sample[i];
     // Allow printable ASCII, tabs, newlines, and carriage returns
     if (
+      byte !== undefined &&
       byte !== 0x09 && // tab
       byte !== 0x0a && // newline
       byte !== 0x0d && // carriage return
