@@ -16,8 +16,8 @@ export {
   getDirectoryPath,
 } from "./utils";
 
-// Re-export formatFileSize from format-utils (client-safe) to maintain API consistency
-export { formatFileSize } from "../blob/format-utils";
+// Re-export utilities from utils (now isomorphic with js-sha256)
+export { formatFileSize, generateContentHash } from "../blob/utils";
 
 export type {
   YjsFileNode,

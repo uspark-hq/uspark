@@ -8,22 +8,38 @@ interface ClerkSession {
 
 interface ClerkUser {
   id: string
+  emailAddresses?: {
+    emailAddress: string
+  }[]
+  fullName?: string | null
+  username?: string | null
+  imageUrl?: string | null
   [key: string]: unknown
 }
 
 export class MockClerk {
   private readonly listeners: Listener[] = []
-  private static instance: MockClerk | null = null
+  private static readonly instances = new Map<string, MockClerk>()
 
   user: ClerkUser | null = null
   session: ClerkSession | null = null
 
   constructor(public publishableKey: string) {
+    // Reuse existing instance if it exists for this key
+    const existing = MockClerk.instances.get(publishableKey)
+    if (existing) {
+      return existing
+    }
     // Store reference to current instance
-    MockClerk.instance = this
+    MockClerk.instances.set(publishableKey, this)
   }
 
   load() {
+    return Promise.resolve()
+  }
+
+  openSignIn() {
+    // Mock implementation - does nothing in tests
     return Promise.resolve()
   }
 
@@ -61,13 +77,16 @@ export class MockClerk {
   }
 
   static getInstance(): MockClerk | null {
-    return MockClerk.instance
+    // Return the first instance (for test key)
+    return MockClerk.instances.get('test_key') ?? null
   }
 
   static resetInstance() {
-    if (MockClerk.instance) {
-      MockClerk.instance.user = null
-      MockClerk.instance.session = null
+    // Reset all instances
+    for (const instance of MockClerk.instances.values()) {
+      instance.user = null
+      instance.session = null
+      instance.listeners.length = 0
     }
   }
 }
