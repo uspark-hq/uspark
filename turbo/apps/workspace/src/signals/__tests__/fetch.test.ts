@@ -7,12 +7,18 @@ import {
   it,
   vi,
 } from 'vitest'
+import { clerk$ } from '../auth'
 import { fetch$ } from '../fetch'
 import { setOrigin } from '../location'
+import { getMockClerk, resetMockAuth, setupMock } from '../test-utils'
 import { testContext } from './context'
+
+// Setup Clerk mock
+setupMock()
 
 const context = testContext()
 const TEST_API_BASE = 'http://localhost:3005'
+
 beforeAll(() => {
   setOrigin(TEST_API_BASE)
 })
@@ -37,6 +43,7 @@ describe('fetch$ signal integration tests', () => {
 
   afterEach(() => {
     vi.restoreAllMocks()
+    resetMockAuth()
   })
 
   describe('headers 处理', () => {
@@ -54,6 +61,118 @@ describe('fetch$ signal integration tests', () => {
       const headers = getLastRequestHeaders(traceFetch)
       expect(headers['Content-Type']).toBe('application/json')
       expect(headers['X-Custom']).toBe('custom-value')
+    })
+
+    it('应该在有 session token 时添加 Authorization header', async () => {
+      // Setup mock session with token
+      const mockToken = 'test-jwt-token'
+      const getTokenSpy = vi.fn().mockResolvedValue(mockToken)
+
+      // Get the clerk$ signal to initialize MockClerk
+      await context.store.get(clerk$)
+
+      // Now get and configure the mock instance
+      const mockClerk = getMockClerk()
+      expect(mockClerk).toBeTruthy()
+
+      if (mockClerk) {
+        mockClerk.setUser({ id: 'user-123' })
+        mockClerk.setSession({
+          getToken: getTokenSpy,
+        })
+      }
+
+      const fch = context.store.get(fetch$)
+      await fch('/test')
+
+      expect(traceFetch).toHaveBeenCalledWith(
+        expect.stringContaining('/test'),
+        expect.any(Object),
+      )
+      expect(getTokenSpy).toHaveBeenCalledWith()
+
+      const headers = getLastRequestHeaders(traceFetch)
+      expect(headers.Authorization).toBe(`Bearer ${mockToken}`)
+    })
+
+    it('应该在没有 session 时不添加 Authorization header', async () => {
+      // Get the clerk$ signal to initialize MockClerk
+      await context.store.get(clerk$)
+
+      // MockClerk starts with null session by default
+      const mockClerk = getMockClerk()
+      expect(mockClerk).toBeTruthy()
+      expect(mockClerk?.session).toBeNull()
+
+      const fch = context.store.get(fetch$)
+      await fch('/test')
+
+      const headers = getLastRequestHeaders(traceFetch)
+      expect(headers.Authorization).toBeUndefined()
+    })
+
+    it('应该同时处理 Authorization header 和用户传入的 headers', async () => {
+      // Setup mock session with token
+      const mockToken = 'test-jwt-token'
+      const getTokenSpy = vi.fn().mockResolvedValue(mockToken)
+
+      // Get the clerk$ signal to initialize MockClerk
+      await context.store.get(clerk$)
+
+      // Configure the mock instance
+      const mockClerk = getMockClerk()
+      if (mockClerk) {
+        mockClerk.setUser({ id: 'user-123' })
+        mockClerk.setSession({
+          getToken: getTokenSpy,
+        })
+      }
+
+      const fch = context.store.get(fetch$)
+      const inputHeaders = {
+        'Content-Type': 'application/json',
+        'X-Custom': 'custom-value',
+      }
+
+      await fch('/test', {
+        headers: inputHeaders,
+      })
+
+      const headers = getLastRequestHeaders(traceFetch)
+      expect(headers.Authorization).toBe(`Bearer ${mockToken}`)
+      expect(headers['Content-Type']).toBe('application/json')
+      expect(headers['X-Custom']).toBe('custom-value')
+    })
+
+    it('用户传入的 Authorization header 应该覆盖自动添加的', async () => {
+      // Setup mock session with token
+      const mockToken = 'test-jwt-token'
+      const getTokenSpy = vi.fn().mockResolvedValue(mockToken)
+
+      // Get the clerk$ signal to initialize MockClerk
+      await context.store.get(clerk$)
+
+      // Configure the mock instance
+      const mockClerk = getMockClerk()
+      if (mockClerk) {
+        mockClerk.setUser({ id: 'user-123' })
+        mockClerk.setSession({
+          getToken: getTokenSpy,
+        })
+      }
+
+      const fch = context.store.get(fetch$)
+      const customToken = 'custom-override-token'
+
+      await fch('/test', {
+        headers: {
+          Authorization: `Bearer ${customToken}`,
+        },
+      })
+
+      const headers = getLastRequestHeaders(traceFetch)
+      // User-provided header should override the automatic one
+      expect(headers.Authorization).toBe(`Bearer ${customToken}`)
     })
   })
 
@@ -147,6 +266,60 @@ describe('fetch$ signal integration tests', () => {
       const [processedRequest] = traceFetch.mock.calls[0] as [Request]
 
       expect(processedRequest.url).toBe(`${TEST_API_BASE}/api/users`)
+    })
+
+    it('应该为 Request 对象添加 Authorization header', async () => {
+      // Setup mock session with token
+      const mockToken = 'test-jwt-token'
+      const getTokenSpy = vi.fn().mockResolvedValue(mockToken)
+
+      // Get the clerk$ signal to initialize MockClerk
+      await context.store.get(clerk$)
+
+      // Configure the mock instance
+      const mockClerk = getMockClerk()
+      if (mockClerk) {
+        mockClerk.setUser({ id: 'user-123' })
+        mockClerk.setSession({
+          getToken: getTokenSpy,
+        })
+      }
+
+      const fch = context.store.get(fetch$)
+      const request = new Request('http://localhost:3000/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+
+      await fch(request)
+
+      const [processedRequest] = traceFetch.mock.calls[0] as [Request]
+      const headers = Object.fromEntries(processedRequest.headers.entries())
+
+      expect(processedRequest.url).toBe(`${TEST_API_BASE}/api/users`)
+      expect(headers.Authorization).toBe(`Bearer ${mockToken}`)
+      expect(headers['Content-Type']).toBe('application/json')
+    })
+  })
+
+  describe('api base replacement', () => {
+    it('应该将 app. 替换为 www.', async () => {
+      // Set origin with app subdomain
+      setOrigin('https://app.example.com')
+
+      const fch = context.store.get(fetch$)
+      await fch('/api/test')
+
+      // Should replace app. with www.
+      expect(traceFetch).toHaveBeenCalledWith(
+        'https://www.example.com/api/test',
+        expect.any(Object),
+      )
+
+      // Reset origin
+      setOrigin(TEST_API_BASE)
     })
   })
 })

@@ -4,9 +4,9 @@ import { pathParams$ } from '../route'
 
 export const projectFiles$ = computed((get) => {
   const pathParams = get(pathParams$)
-  if (!pathParams?.project_id) {
+  if (!pathParams?.projectId) {
     return undefined
   }
 
-  return get(projectFiles(pathParams.project_id as string))
+  return get(projectFiles(pathParams.projectId as string))
 })

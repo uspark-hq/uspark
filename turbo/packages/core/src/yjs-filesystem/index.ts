@@ -16,8 +16,8 @@ export {
   getDirectoryPath,
 } from "./utils";
 
-// Re-export formatFileSize from blob utils to maintain API consistency
-export { formatFileSize } from "../blob/utils";
+// Re-export formatFileSize from format-utils (client-safe) to maintain API consistency
+export { formatFileSize } from "../blob/format-utils";
 
 export type {
   YjsFileNode,

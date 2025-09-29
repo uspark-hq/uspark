@@ -1,3 +1,4 @@
+// Server-side only utilities that require Node.js crypto module
 import { createHash } from "crypto";
 
 export function generateContentHash(content: Buffer): string {
@@ -52,14 +53,4 @@ function isTextContent(content: Buffer): boolean {
   }
 
   return printableCount / sample.length > 0.95;
-}
-
-export function formatFileSize(bytes: number): string {
-  if (bytes === 0) return "0 B";
-
-  const units = ["B", "KB", "MB", "GB", "TB"];
-  const k = 1024;
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-
-  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${units[i]}`;
 }
