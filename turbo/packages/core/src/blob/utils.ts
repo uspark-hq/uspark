@@ -16,6 +16,11 @@ export function formatFileSize(bytes: number): string {
 }
 
 export function detectContentType(buffer: Buffer): string {
+  // Handle empty content
+  if (buffer.length === 0) {
+    return "application/octet-stream";
+  }
+
   // Check for common image formats
   if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
     return "image/jpeg";
