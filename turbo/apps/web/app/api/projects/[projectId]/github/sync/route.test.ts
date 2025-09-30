@@ -254,15 +254,12 @@ describe("/api/projects/[projectId]/github/sync", () => {
       const db = globalThis.services.db;
 
       // Insert test repository link
-      const insertResult = await db
-        .insert(githubRepos)
-        .values({
-          projectId,
-          installationId: testInstallationId,
-          repoName: "test-repo",
-          repoId: 67890,
-        })
-        .returning();
+      await db.insert(githubRepos).values({
+        projectId,
+        installationId: testInstallationId,
+        repoName: "test-repo",
+        repoId: 67890,
+      });
 
       const request = new NextRequest(
         `http://localhost/api/projects/${projectId}/github/sync`,
