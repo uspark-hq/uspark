@@ -157,7 +157,7 @@ export async function GET(
   const totalCount = countResult[0]?.value ?? 0;
 
   // Get sessions with pagination
-  let query = globalThis.services.db
+  const baseQuery = globalThis.services.db
     .select({
       id: SESSIONS_TBL.id,
       title: SESSIONS_TBL.title,
@@ -168,14 +168,13 @@ export async function GET(
     .where(eq(SESSIONS_TBL.projectId, projectId))
     .orderBy(desc(SESSIONS_TBL.createdAt));
 
-  if (limit !== undefined) {
-    query = query.limit(limit);
-  }
-  if (offset !== undefined) {
-    query = query.offset(offset);
-  }
-
-  const sessions = await query;
+  const sessions = await (limit !== undefined && offset !== undefined
+    ? baseQuery.limit(limit).offset(offset)
+    : limit !== undefined
+      ? baseQuery.limit(limit)
+      : offset !== undefined
+        ? baseQuery.offset(offset)
+        : baseQuery);
 
   // Note: Contract uses camelCase, but we keep snake_case for backward compatibility
   const response = {
