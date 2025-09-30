@@ -17,7 +17,8 @@
   "mounts": [
     "source=config,target=/home/vscode/.config",
     "source=cache,target=/home/vscode/.cache",
-    "source=vercel,target=/home/vscode/.local/share/com.vercel.cli"
+    "source=vercel,target=/home/vscode/.local/share/com.vercel.cli",
+    "source=mkcert,target=/home/vscode/.local/share/mkcert"
   ],
   "postCreateCommand": "bash .devcontainer/setup.sh",
   "customizations": {
