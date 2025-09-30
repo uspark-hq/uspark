@@ -254,15 +254,12 @@ describe("/api/projects/[projectId]/github/sync", () => {
       const db = globalThis.services.db;
 
       // Insert test repository link
-      const insertResult = await db
-        .insert(githubRepos)
-        .values({
-          projectId,
-          installationId: testInstallationId,
-          repoName: "test-repo",
-          repoId: 67890,
-        })
-        .returning();
+      await db.insert(githubRepos).values({
+        projectId,
+        installationId: testInstallationId,
+        repoName: "test-repo",
+        repoId: 67890,
+      });
 
       const request = new NextRequest(
         `http://localhost/api/projects/${projectId}/github/sync`,
@@ -278,9 +275,9 @@ describe("/api/projects/[projectId]/github/sync", () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.linked).toBe(true);
-      expect(data.repoId).toBe(67890);
-      expect(data.repoName).toBe("test-repo");
-      expect(data.lastSynced).toBe(insertResult[0]!.updatedAt.toISOString());
+      expect(data.hasExternalChanges).toBe(false);
+      expect(data.lastSyncCommitSha).toBeNull();
+      expect(data.message).toBe("Repository linked but never synced");
     });
 
     it("should return unlinked status when repository not linked", async () => {
@@ -302,6 +299,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
       expect(response.status).toBe(200);
       const data = await response.json();
       expect(data.linked).toBe(false);
+      expect(data.hasExternalChanges).toBe(false);
       expect(data.message).toBe("No GitHub repository linked");
     });
 

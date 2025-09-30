@@ -420,9 +420,9 @@ const githubHandlers = [
       node_id: "MDM6UmVmcmVmcmVzaA==",
       url: "https://api.github.com/repos/test-owner/test-repo/git/refs/heads/main",
       object: {
-        sha: "current-sha-123",
+        sha: "new-commit-sha-202", // Return latest commit SHA to match sync result
         type: "commit",
-        url: "https://api.github.com/repos/test-owner/test-repo/git/commits/current-sha-123",
+        url: "https://api.github.com/repos/test-owner/test-repo/git/commits/new-commit-sha-202",
       },
     });
   }),

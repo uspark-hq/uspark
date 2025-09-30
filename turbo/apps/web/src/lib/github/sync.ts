@@ -2,6 +2,7 @@ import { createInstallationOctokit } from "./client";
 import { getProjectRepository } from "./repository";
 import { initServices } from "../init-services";
 import { PROJECTS_TBL } from "../../db/schema/projects";
+import { githubRepos } from "../../db/schema/github";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";
 
@@ -278,11 +279,93 @@ export async function syncProjectToGitHub(
     projectId,
   );
 
+  // Update sync state in database
+  await db
+    .update(githubRepos)
+    .set({
+      lastSyncCommitSha: commitSha,
+      lastSyncAt: new Date(),
+    })
+    .where(eq(githubRepos.projectId, projectId));
+
   return {
     success: true,
     commitSha,
     filesCount: files.length,
     message: `Successfully synced ${files.length} files to GitHub`,
+  };
+}
+
+/**
+ * Checks if GitHub repository has external changes
+ *
+ * @param projectId - The project ID
+ * @returns Status with external change detection
+ */
+export async function checkGitHubStatus(projectId: string) {
+  const repoInfo = await getProjectRepository(projectId);
+
+  if (!repoInfo) {
+    return {
+      linked: false,
+      hasExternalChanges: false,
+      message: "No GitHub repository linked",
+    };
+  }
+
+  // If never synced, no external changes to detect
+  if (!repoInfo.lastSyncCommitSha) {
+    return {
+      linked: true,
+      hasExternalChanges: false,
+      lastSyncCommitSha: null,
+      lastSyncAt: repoInfo.lastSyncAt,
+      message: "Repository linked but never synced",
+    };
+  }
+
+  // Get current HEAD from GitHub
+  const octokit = await createInstallationOctokit(repoInfo.installationId);
+
+  // Parse owner from fullName (format: owner/repo)
+  const owner = repoInfo.fullName
+    ? repoInfo.fullName.split("/")[0]
+    : repoInfo.accountName;
+
+  if (!owner) {
+    return {
+      linked: true,
+      hasExternalChanges: false,
+      lastSyncCommitSha: repoInfo.lastSyncCommitSha,
+      lastSyncAt: repoInfo.lastSyncAt,
+      message: "Unable to determine repository owner",
+    };
+  }
+
+  // Fetch current HEAD from GitHub - fail fast if unable to check
+  const { data: ref } = await octokit.request(
+    "GET /repos/{owner}/{repo}/git/ref/{ref}",
+    {
+      owner,
+      repo: repoInfo.repoName,
+      ref: "heads/main",
+    },
+  );
+
+  const currentCommitSha = ref.object.sha;
+
+  // Compare with last sync
+  const hasExternalChanges = currentCommitSha !== repoInfo.lastSyncCommitSha;
+
+  return {
+    linked: true,
+    hasExternalChanges,
+    lastSyncCommitSha: repoInfo.lastSyncCommitSha,
+    currentCommitSha,
+    lastSyncAt: repoInfo.lastSyncAt,
+    message: hasExternalChanges
+      ? "GitHub repository has been modified outside uSpark. Next push will overwrite these changes."
+      : "Repository is up to date with last sync",
   };
 }
 
