@@ -1,20 +1,33 @@
 import { NextResponse } from "next/server";
+import type { z } from "zod";
+import { projectDetailContract } from "@uspark/core";
 import { getUserId } from "../../../src/lib/auth/get-user-id";
 import { env } from "../../../src/env";
+
+// Extract types from contract
+type BlobStoreResponse = z.infer<
+  (typeof projectDetailContract.getBlobStore.responses)[200]
+>;
+type UnauthorizedResponse = z.infer<
+  (typeof projectDetailContract.getBlobStore.responses)[401]
+>;
 
 /**
  * GET /api/blob-store
  * Returns the Vercel Blob store ID for constructing public URLs
  * Requires authentication (Clerk session or CLI token)
+ *
+ * Contract: projectDetailContract.getBlobStore
  */
 export async function GET() {
   const userId = await getUserId();
 
   if (!userId) {
-    return NextResponse.json(
-      { error: "unauthorized", error_description: "Authentication required" },
-      { status: 401 },
-    );
+    const response: UnauthorizedResponse = {
+      error: "unauthorized",
+      error_description: "Authentication required",
+    };
+    return NextResponse.json(response, { status: 401 });
   }
 
   const readWriteToken = env().BLOB_READ_WRITE_TOKEN;
@@ -42,5 +55,6 @@ export async function GET() {
 
   const storeId = parts[3];
 
-  return NextResponse.json({ storeId });
+  const response: BlobStoreResponse = { storeId };
+  return NextResponse.json(response);
 }

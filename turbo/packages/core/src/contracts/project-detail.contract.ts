@@ -48,11 +48,14 @@ const BlobStoreResponseSchema = z.object({
 });
 
 const ShareResponseSchema = z.object({
+  id: z.string(),
   url: z.string(),
+  token: z.string(),
 });
 
 const SessionsResponseSchema = z.object({
   sessions: z.array(SessionSchema),
+  total: z.number(),
 });
 
 const ProjectSessionUpdateResponseSchema = z.object({
@@ -132,6 +135,10 @@ export const projectDetailContract = c.router({
     pathParams: z.object({
       projectId: z.string(),
     }),
+    query: z.object({
+      limit: z.string().optional(),
+      offset: z.string().optional(),
+    }),
     responses: {
       200: SessionsResponseSchema,
       401: z.object({
@@ -144,7 +151,8 @@ export const projectDetailContract = c.router({
       }),
     },
     summary: "List project sessions",
-    description: "Returns all chat sessions for a project",
+    description:
+      "Returns all chat sessions for a project with pagination support",
   },
 
   createSession: {
@@ -154,10 +162,10 @@ export const projectDetailContract = c.router({
       projectId: z.string(),
     }),
     body: z.object({
-      title: z.string(),
+      title: z.string().optional(),
     }),
     responses: {
-      201: SessionSchema,
+      200: SessionSchema,
       400: z.object({
         error: z.string(),
       }),
