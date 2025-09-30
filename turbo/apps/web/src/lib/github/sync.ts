@@ -297,6 +297,90 @@ export async function syncProjectToGitHub(
 }
 
 /**
+ * Checks if GitHub repository has external changes
+ *
+ * @param projectId - The project ID
+ * @returns Status with external change detection
+ */
+export async function checkGitHubStatus(projectId: string) {
+  const repoInfo = await getProjectRepository(projectId);
+
+  if (!repoInfo) {
+    return {
+      linked: false,
+      hasExternalChanges: false,
+      message: "No GitHub repository linked",
+    };
+  }
+
+  // If never synced, no external changes to detect
+  if (!repoInfo.lastSyncCommitSha) {
+    return {
+      linked: true,
+      hasExternalChanges: false,
+      lastSyncCommitSha: null,
+      lastSyncAt: repoInfo.lastSyncAt,
+      message: "Repository linked but never synced",
+    };
+  }
+
+  // Get current HEAD from GitHub
+  const octokit = await createInstallationOctokit(repoInfo.installationId);
+
+  // Parse owner from fullName (format: owner/repo)
+  const owner = repoInfo.fullName
+    ? repoInfo.fullName.split("/")[0]
+    : repoInfo.accountName;
+
+  if (!owner) {
+    return {
+      linked: true,
+      hasExternalChanges: false,
+      lastSyncCommitSha: repoInfo.lastSyncCommitSha,
+      lastSyncAt: repoInfo.lastSyncAt,
+      message: "Unable to determine repository owner",
+    };
+  }
+
+  try {
+    const { data: ref } = await octokit.request(
+      "GET /repos/{owner}/{repo}/git/ref/{ref}",
+      {
+        owner,
+        repo: repoInfo.repoName,
+        ref: "heads/main",
+      },
+    );
+
+    const currentCommitSha = ref.object.sha;
+
+    // Compare with last sync
+    const hasExternalChanges = currentCommitSha !== repoInfo.lastSyncCommitSha;
+
+    return {
+      linked: true,
+      hasExternalChanges,
+      lastSyncCommitSha: repoInfo.lastSyncCommitSha,
+      currentCommitSha,
+      lastSyncAt: repoInfo.lastSyncAt,
+      message: hasExternalChanges
+        ? "GitHub repository has been modified outside uSpark. Next push will overwrite these changes."
+        : "Repository is up to date with last sync",
+    };
+  } catch (error) {
+    // If we can't fetch from GitHub, return unknown status
+    return {
+      linked: true,
+      hasExternalChanges: false,
+      lastSyncCommitSha: repoInfo.lastSyncCommitSha,
+      lastSyncAt: repoInfo.lastSyncAt,
+      message: "Unable to check GitHub status",
+      error: error instanceof Error ? error.message : "Unknown error",
+    };
+  }
+}
+
+/**
  * Gets the sync status for a project
  *
  * @param projectId - The project ID

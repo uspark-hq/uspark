@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import {
   syncProjectToGitHub,
-  getSyncStatus,
+  checkGitHubStatus,
 } from "../../../../../../src/lib/github/sync";
 
 /**
@@ -56,7 +56,7 @@ export async function POST(
 
 /**
  * GET /api/projects/:projectId/github/sync
- * Gets sync status for a project
+ * Checks GitHub sync status and detects external changes
  */
 export async function GET(
   _request: NextRequest,
@@ -70,8 +70,8 @@ export async function GET(
 
   const { projectId } = await context.params;
 
-  // Get sync status
-  const status = await getSyncStatus(projectId);
+  // Check GitHub status with external change detection
+  const status = await checkGitHubStatus(projectId);
 
   return NextResponse.json(status);
 }
