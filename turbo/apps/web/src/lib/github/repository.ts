@@ -26,6 +26,8 @@ type RepositoryInfo = {
   accountName?: string | null;
   accountType?: string;
   fullName?: string;
+  lastSyncCommitSha?: string | null;
+  lastSyncAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 };
@@ -198,6 +200,8 @@ export async function getProjectRepository(
       installationId: githubRepos.installationId,
       repoName: githubRepos.repoName,
       repoId: githubRepos.repoId,
+      lastSyncCommitSha: githubRepos.lastSyncCommitSha,
+      lastSyncAt: githubRepos.lastSyncAt,
       createdAt: githubRepos.createdAt,
       updatedAt: githubRepos.updatedAt,
       accountName: githubInstallations.accountName,

@@ -29,6 +29,8 @@ export const githubRepos = pgTable("github_repos", {
   installationId: integer("installation_id").notNull(), // Which installation owns this repo
   repoName: text("repo_name").notNull(), // Repository name (e.g., "uspark-123")
   repoId: integer("repo_id").notNull(), // GitHub repository ID
+  lastSyncCommitSha: text("last_sync_commit_sha"), // Last synced commit SHA (for tracking)
+  lastSyncAt: timestamp("last_sync_at"), // Last sync timestamp
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

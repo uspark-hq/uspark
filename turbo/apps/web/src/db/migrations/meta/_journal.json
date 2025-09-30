@@ -64,6 +64,13 @@
       "when": 1758509400000,
       "tag": "0008_claude_tokens",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1759234936556,
+      "tag": "0009_many_blob",
+      "breakpoints": true
     }
   ]
 }
