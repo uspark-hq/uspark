@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.32.0](https://github.com/uspark-hq/uspark/compare/web-v0.31.3...web-v0.32.0) (2025-09-30)
+
+
+### Features
+
+* integrate project files signal into project page view ([#390](https://github.com/uspark-hq/uspark/issues/390)) ([45f873a](https://github.com/uspark-hq/uspark/commit/45f873a5ae4bd0eb3b168107224ca7db3e0d133b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.14.0
+
 ## [0.31.3](https://github.com/uspark-hq/uspark/compare/web-v0.31.2...web-v0.31.3) (2025-09-26)
 
 

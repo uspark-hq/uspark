@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.11.0](https://github.com/uspark-hq/uspark/compare/cli-v0.10.5...cli-v0.11.0) (2025-09-30)
+
+
+### Features
+
+* integrate project files signal into project page view ([#390](https://github.com/uspark-hq/uspark/issues/390)) ([45f873a](https://github.com/uspark-hq/uspark/commit/45f873a5ae4bd0eb3b168107224ca7db3e0d133b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.14.0
+
 ## [0.10.5](https://github.com/uspark-hq/uspark/compare/cli-v0.10.4...cli-v0.10.5) (2025-09-26)
 
 
