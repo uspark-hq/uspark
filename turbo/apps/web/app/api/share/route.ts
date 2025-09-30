@@ -56,8 +56,10 @@ export async function POST(request: NextRequest) {
   if (!validationResult.success) {
     const errors = validationResult.error?.issues || [];
     const firstError = errors[0];
-    const errorResponse: BadRequestResponse = {
-      error: firstError
+    // Keep backward compatible error format
+    const errorResponse = {
+      error: "invalid_request",
+      error_description: firstError
         ? `${firstError.path?.join(".") || "field"}: ${firstError.message}`
         : "Invalid request format",
     };
@@ -104,5 +106,5 @@ export async function POST(request: NextRequest) {
     token,
   };
 
-  return NextResponse.json(response, { status: 200 });
+  return NextResponse.json(response, { status: 201 });
 }
