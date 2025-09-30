@@ -82,6 +82,19 @@ RUN curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | d
     && apt-get install -y gh \
     && rm -rf /var/lib/apt/lists/*
 
+# Install mkcert for local SSL certificates
+RUN apt-get update && apt-get install -y \
+    libnss3-tools \
+    && ARCH=$(dpkg --print-architecture) \
+    && if [ "$ARCH" = "arm64" ]; then \
+        curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/arm64"; \
+    else \
+        curl -JLO "https://dl.filippo.io/mkcert/latest?for=linux/amd64"; \
+    fi \
+    && chmod +x mkcert-v*-linux-* \
+    && mv mkcert-v*-linux-* /usr/local/bin/mkcert \
+    && rm -rf /var/lib/apt/lists/*
+
 # Create vscode user with standard UID/GID for devcontainer compatibility
 # Following Microsoft's devcontainer pattern for better feature compatibility
 RUN groupadd --gid 1000 vscode \
