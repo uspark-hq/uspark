@@ -150,10 +150,11 @@ export async function GET(
     : undefined;
 
   // Get total count
-  const [{ value: totalCount }] = await globalThis.services.db
+  const countResult = await globalThis.services.db
     .select({ value: count() })
     .from(SESSIONS_TBL)
     .where(eq(SESSIONS_TBL.projectId, projectId));
+  const totalCount = countResult[0]?.value ?? 0;
 
   // Get sessions with pagination
   let query = globalThis.services.db
