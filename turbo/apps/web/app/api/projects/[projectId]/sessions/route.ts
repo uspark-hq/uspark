@@ -9,9 +9,6 @@ import { eq, and, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 // Extract types from contracts
-type CreateSessionRequest = z.infer<
-  typeof projectDetailContract.createSession.body
->;
 type CreateSessionResponse = z.infer<
   typeof projectDetailContract.createSession.responses[201]
 >;

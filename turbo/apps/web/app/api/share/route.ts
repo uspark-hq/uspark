@@ -11,7 +11,6 @@ import { PROJECTS_TBL } from "../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
 
 // Extract types from contract
-type ShareRequest = z.infer<typeof projectDetailContract.shareFile.body>;
 type ShareResponse = z.infer<
   typeof projectDetailContract.shareFile.responses[200]
 >;
