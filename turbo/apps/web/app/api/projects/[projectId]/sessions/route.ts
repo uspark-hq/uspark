@@ -1,21 +1,38 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import type { z } from "zod";
+import { projectDetailContract } from "@uspark/core";
 import { initServices } from "../../../../../src/lib/init-services";
 import { SESSIONS_TBL } from "../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { eq, and, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
-import {
-  CreateSessionRequestSchema,
-  type CreateSessionResponse,
-  ListSessionsQuerySchema,
-  type ListSessionsResponse,
-  type SessionErrorResponse,
-} from "@uspark/core";
+
+// Extract types from contracts
+type CreateSessionRequest = z.infer<
+  typeof projectDetailContract.createSession.body
+>;
+type CreateSessionResponse = z.infer<
+  typeof projectDetailContract.createSession.responses[201]
+>;
+type ListSessionsResponse = z.infer<
+  typeof projectDetailContract.listSessions.responses[200]
+>;
+type UnauthorizedResponse = z.infer<
+  typeof projectDetailContract.listSessions.responses[401]
+>;
+type NotFoundResponse = z.infer<
+  typeof projectDetailContract.listSessions.responses[404]
+>;
+type BadRequestResponse = z.infer<
+  typeof projectDetailContract.createSession.responses[400]
+>;
 
 /**
  * POST /api/projects/:projectId/sessions
  * Creates a new session for the project
+ *
+ * Contract: projectDetailContract.createSession
  */
 export async function POST(
   request: NextRequest,
@@ -24,7 +41,10 @@ export async function POST(
   const { userId } = await auth();
 
   if (!userId) {
-    const error: SessionErrorResponse = { error: "unauthorized" };
+    const error: UnauthorizedResponse = {
+      error: "unauthorized",
+      error_description: "Authentication required",
+    };
     return NextResponse.json(error, { status: 401 });
   }
 
@@ -40,21 +60,20 @@ export async function POST(
     );
 
   if (!project) {
-    const error: SessionErrorResponse = {
+    const error: NotFoundResponse = {
       error: "project_not_found",
       error_description: "Project not found",
     };
     return NextResponse.json(error, { status: 404 });
   }
 
-  // Parse and validate request body
+  // Parse and validate request body using contract schema
   const body = await request.json();
-  const parseResult = CreateSessionRequestSchema.safeParse(body);
+  const parseResult = projectDetailContract.createSession.body.safeParse(body);
 
   if (!parseResult.success) {
-    const error: SessionErrorResponse = {
-      error: "invalid_request",
-      error_description: parseResult.error.issues[0]?.message,
+    const error: BadRequestResponse = {
+      error: parseResult.error.issues[0]?.message || "Invalid request",
     };
     return NextResponse.json(error, { status: 400 });
   }
@@ -74,27 +93,25 @@ export async function POST(
 
   const newSession = result[0];
   if (!newSession) {
-    const error: SessionErrorResponse = {
-      error: "failed_to_create_session",
-      error_description: "Failed to create session",
-    };
-    return NextResponse.json(error, { status: 500 });
+    // Internal server error - not in contract
+    throw new Error("Failed to create session");
   }
 
   const response: CreateSessionResponse = {
     id: newSession.id,
-    project_id: newSession.projectId,
     title: newSession.title,
-    created_at: newSession.createdAt.toISOString(),
-    updated_at: newSession.updatedAt.toISOString(),
+    createdAt: newSession.createdAt.toISOString(),
+    updatedAt: newSession.updatedAt.toISOString(),
   };
 
-  return NextResponse.json(response);
+  return NextResponse.json(response, { status: 201 });
 }
 
 /**
  * GET /api/projects/:projectId/sessions
  * Lists all sessions for the project
+ *
+ * Contract: projectDetailContract.listSessions
  */
 export async function GET(
   request: NextRequest,
@@ -103,7 +120,10 @@ export async function GET(
   const { userId } = await auth();
 
   if (!userId) {
-    const error: SessionErrorResponse = { error: "unauthorized" };
+    const error: UnauthorizedResponse = {
+      error: "unauthorized",
+      error_description: "Authentication required",
+    };
     return NextResponse.json(error, { status: 401 });
   }
 
@@ -119,56 +139,32 @@ export async function GET(
     );
 
   if (!project) {
-    const error: SessionErrorResponse = {
+    const error: NotFoundResponse = {
       error: "project_not_found",
       error_description: "Project not found",
     };
     return NextResponse.json(error, { status: 404 });
   }
 
-  // Parse and validate query parameters
-  const url = new URL(request.url);
-  const queryParams = {
-    limit: url.searchParams.get("limit") || "20",
-    offset: url.searchParams.get("offset") || "0",
-  };
-
-  const parseResult = ListSessionsQuerySchema.safeParse(queryParams);
-  // Use defaults if parsing fails
-  const { limit, offset } = parseResult.success
-    ? parseResult.data
-    : { limit: 20, offset: 0 };
-
-  // Get sessions
+  // Get sessions (contract doesn't support pagination in current version)
   const sessions = await globalThis.services.db
     .select({
       id: SESSIONS_TBL.id,
       title: SESSIONS_TBL.title,
-      created_at: SESSIONS_TBL.createdAt,
-      updated_at: SESSIONS_TBL.updatedAt,
+      createdAt: SESSIONS_TBL.createdAt,
+      updatedAt: SESSIONS_TBL.updatedAt,
     })
     .from(SESSIONS_TBL)
     .where(eq(SESSIONS_TBL.projectId, projectId))
-    .orderBy(desc(SESSIONS_TBL.createdAt))
-    .limit(limit)
-    .offset(offset);
-
-  // Get total count
-  const countResult = await globalThis.services.db
-    .select({ count: globalThis.services.db.$count(SESSIONS_TBL) })
-    .from(SESSIONS_TBL)
-    .where(eq(SESSIONS_TBL.projectId, projectId));
-
-  const total = countResult[0]?.count ?? 0;
+    .orderBy(desc(SESSIONS_TBL.createdAt));
 
   const response: ListSessionsResponse = {
     sessions: sessions.map((s) => ({
       id: s.id,
       title: s.title,
-      created_at: s.created_at.toISOString(),
-      updated_at: s.updated_at.toISOString(),
+      createdAt: s.createdAt.toISOString(),
+      updatedAt: s.updatedAt.toISOString(),
     })),
-    total,
   };
 
   return NextResponse.json(response);
