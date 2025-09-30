@@ -94,11 +94,12 @@ export async function POST(
     throw new Error("Failed to create session");
   }
 
-  const response: CreateSessionResponse = {
+  // Note: Contract uses camelCase, but we keep snake_case for backward compatibility
+  const response = {
     id: newSession.id,
     title: newSession.title,
-    createdAt: newSession.createdAt.toISOString(),
-    updatedAt: newSession.updatedAt.toISOString(),
+    created_at: newSession.createdAt.toISOString(),
+    updated_at: newSession.updatedAt.toISOString(),
   };
 
   return NextResponse.json(response, { status: 201 });
@@ -155,12 +156,13 @@ export async function GET(
     .where(eq(SESSIONS_TBL.projectId, projectId))
     .orderBy(desc(SESSIONS_TBL.createdAt));
 
-  const response: ListSessionsResponse = {
+  // Note: Contract uses camelCase, but we keep snake_case for backward compatibility
+  const response = {
     sessions: sessions.map((s) => ({
       id: s.id,
       title: s.title,
-      createdAt: s.createdAt.toISOString(),
-      updatedAt: s.updatedAt.toISOString(),
+      created_at: s.createdAt.toISOString(),
+      updated_at: s.updatedAt.toISOString(),
     })),
   };
 
