@@ -2,16 +2,25 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import crypto from "crypto";
 import { nanoid } from "nanoid";
-import {
-  CreateShareRequestSchema,
-  type CreateShareResponse,
-  type CreateShareError,
-} from "@uspark/core";
+import type { z } from "zod";
+import { projectDetailContract } from "@uspark/core";
 import { initServices } from "../../../src/lib/init-services";
 import { env } from "../../../src/env";
 import { SHARE_LINKS_TBL } from "../../../src/db/schema/share-links";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
+
+// Extract types from contract
+type ShareRequest = z.infer<typeof projectDetailContract.shareFile.body>;
+type ShareResponse = z.infer<
+  typeof projectDetailContract.shareFile.responses[200]
+>;
+type BadRequestResponse = z.infer<
+  typeof projectDetailContract.shareFile.responses[400]
+>;
+type UnauthorizedResponse = z.infer<
+  typeof projectDetailContract.shareFile.responses[401]
+>;
 
 /**
  * Generate a cryptographically secure share token
@@ -24,13 +33,16 @@ function generateShareToken(): string {
 /**
  * POST /api/share
  * Create a new share link for a project or file
+ *
+ * Contract: projectDetailContract.shareFile
  */
 export async function POST(request: NextRequest) {
   const { userId } = await auth();
 
   if (!userId) {
-    const errorResponse: CreateShareError = {
+    const errorResponse: UnauthorizedResponse = {
       error: "unauthorized",
+      error_description: "Authentication required",
     };
     return NextResponse.json(errorResponse, { status: 401 });
   }
@@ -39,15 +51,14 @@ export async function POST(request: NextRequest) {
 
   const body = await request.json();
 
-  // Validate request body using schema from core
-  const validationResult = CreateShareRequestSchema.safeParse(body);
+  // Validate request body using contract schema
+  const validationResult = projectDetailContract.shareFile.body.safeParse(body);
 
   if (!validationResult.success) {
     const errors = validationResult.error?.issues || [];
     const firstError = errors[0];
-    const errorResponse: CreateShareError = {
-      error: "invalid_request",
-      error_description: firstError
+    const errorResponse: BadRequestResponse = {
+      error: firstError
         ? `${firstError.path?.join(".") || "field"}: ${firstError.message}`
         : "Invalid request format",
     };
@@ -65,7 +76,7 @@ export async function POST(request: NextRequest) {
     );
 
   if (!project) {
-    const errorResponse: CreateShareError = {
+    const errorResponse: BadRequestResponse = {
       error: "project_not_found",
     };
     return NextResponse.json(errorResponse, { status: 404 });
@@ -88,11 +99,11 @@ export async function POST(request: NextRequest) {
   const baseUrl = request.headers.get("origin") || env().APP_URL;
   const url = `${baseUrl}/share/${token}`;
 
-  const response: CreateShareResponse = {
+  const response: ShareResponse = {
     id,
     url,
     token,
   };
 
-  return NextResponse.json(response, { status: 201 });
+  return NextResponse.json(response, { status: 200 });
 }

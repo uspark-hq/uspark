@@ -48,7 +48,9 @@ const BlobStoreResponseSchema = z.object({
 });
 
 const ShareResponseSchema = z.object({
+  id: z.string(),
   url: z.string(),
+  token: z.string(),
 });
 
 const SessionsResponseSchema = z.object({
