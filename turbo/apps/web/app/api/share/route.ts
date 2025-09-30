@@ -12,13 +12,13 @@ import { eq, and } from "drizzle-orm";
 
 // Extract types from contract
 type ShareResponse = z.infer<
-  typeof projectDetailContract.shareFile.responses[200]
+  (typeof projectDetailContract.shareFile.responses)[200]
 >;
 type BadRequestResponse = z.infer<
-  typeof projectDetailContract.shareFile.responses[400]
+  (typeof projectDetailContract.shareFile.responses)[400]
 >;
 type UnauthorizedResponse = z.infer<
-  typeof projectDetailContract.shareFile.responses[401]
+  (typeof projectDetailContract.shareFile.responses)[401]
 >;
 
 /**

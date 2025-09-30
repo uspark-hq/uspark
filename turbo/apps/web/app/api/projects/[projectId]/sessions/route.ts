@@ -9,20 +9,14 @@ import { eq, and, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 // Extract types from contracts
-type CreateSessionResponse = z.infer<
-  typeof projectDetailContract.createSession.responses[201]
->;
-type ListSessionsResponse = z.infer<
-  typeof projectDetailContract.listSessions.responses[200]
->;
 type UnauthorizedResponse = z.infer<
-  typeof projectDetailContract.listSessions.responses[401]
+  (typeof projectDetailContract.listSessions.responses)[401]
 >;
 type NotFoundResponse = z.infer<
-  typeof projectDetailContract.listSessions.responses[404]
+  (typeof projectDetailContract.listSessions.responses)[404]
 >;
 type BadRequestResponse = z.infer<
-  typeof projectDetailContract.createSession.responses[400]
+  (typeof projectDetailContract.createSession.responses)[400]
 >;
 
 /**

@@ -6,10 +6,10 @@ import { env } from "../../../src/env";
 
 // Extract types from contract
 type BlobStoreResponse = z.infer<
-  typeof projectDetailContract.getBlobStore.responses[200]
+  (typeof projectDetailContract.getBlobStore.responses)[200]
 >;
 type UnauthorizedResponse = z.infer<
-  typeof projectDetailContract.getBlobStore.responses[401]
+  (typeof projectDetailContract.getBlobStore.responses)[401]
 >;
 
 /**
