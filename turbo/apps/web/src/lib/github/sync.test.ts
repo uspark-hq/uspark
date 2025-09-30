@@ -1,5 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { syncProjectToGitHub, getSyncStatus, checkGitHubStatus } from "./sync";
+import { getProjectRepository } from "./repository";
+import { initServices } from "../init-services";
+import { githubRepos } from "../../db/schema/github";
+import { eq } from "drizzle-orm";
 import * as Y from "yjs";
 import {
   createTestProjectForUser,
@@ -33,6 +37,8 @@ vi.mock("./client", async () => {
 
 describe("GitHub Sync", () => {
   beforeEach(async () => {
+    vi.clearAllMocks();
+
     // Set up environment variables for blob storage
     process.env.BLOB_READ_WRITE_TOKEN = "vercel_blob_rw_test_store_id_secret";
 
@@ -79,7 +85,6 @@ describe("GitHub Sync", () => {
       expect(result.message).toContain("Successfully synced 2 files");
 
       // Verify commit SHA was saved to database
-      const { getProjectRepository } = await import("./repository");
       const repoInfo = await getProjectRepository(projectId);
       expect(repoInfo).not.toBeNull();
       expect(repoInfo!.lastSyncCommitSha).toBe("new-commit-sha-202");
@@ -368,10 +373,6 @@ describe("GitHub Sync", () => {
       );
 
       // Manually set an old commit SHA to simulate external change
-      const { initServices } = await import("../init-services");
-      const { githubRepos } = await import("../../db/schema/github");
-      const { eq } = await import("drizzle-orm");
-
       initServices();
       const db = globalThis.services.db;
       await db

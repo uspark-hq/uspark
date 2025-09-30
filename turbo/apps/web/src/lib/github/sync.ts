@@ -2,6 +2,7 @@ import { createInstallationOctokit } from "./client";
 import { getProjectRepository } from "./repository";
 import { initServices } from "../init-services";
 import { PROJECTS_TBL } from "../../db/schema/projects";
+import { githubRepos } from "../../db/schema/github";
 import { eq } from "drizzle-orm";
 import * as Y from "yjs";
 
@@ -279,7 +280,6 @@ export async function syncProjectToGitHub(
   );
 
   // Update sync state in database
-  const { githubRepos } = await import("../../db/schema/github");
   await db
     .update(githubRepos)
     .set({
@@ -342,42 +342,31 @@ export async function checkGitHubStatus(projectId: string) {
     };
   }
 
-  try {
-    const { data: ref } = await octokit.request(
-      "GET /repos/{owner}/{repo}/git/ref/{ref}",
-      {
-        owner,
-        repo: repoInfo.repoName,
-        ref: "heads/main",
-      },
-    );
+  // Fetch current HEAD from GitHub - fail fast if unable to check
+  const { data: ref } = await octokit.request(
+    "GET /repos/{owner}/{repo}/git/ref/{ref}",
+    {
+      owner,
+      repo: repoInfo.repoName,
+      ref: "heads/main",
+    },
+  );
 
-    const currentCommitSha = ref.object.sha;
+  const currentCommitSha = ref.object.sha;
 
-    // Compare with last sync
-    const hasExternalChanges = currentCommitSha !== repoInfo.lastSyncCommitSha;
+  // Compare with last sync
+  const hasExternalChanges = currentCommitSha !== repoInfo.lastSyncCommitSha;
 
-    return {
-      linked: true,
-      hasExternalChanges,
-      lastSyncCommitSha: repoInfo.lastSyncCommitSha,
-      currentCommitSha,
-      lastSyncAt: repoInfo.lastSyncAt,
-      message: hasExternalChanges
-        ? "GitHub repository has been modified outside uSpark. Next push will overwrite these changes."
-        : "Repository is up to date with last sync",
-    };
-  } catch (error) {
-    // If we can't fetch from GitHub, return unknown status
-    return {
-      linked: true,
-      hasExternalChanges: false,
-      lastSyncCommitSha: repoInfo.lastSyncCommitSha,
-      lastSyncAt: repoInfo.lastSyncAt,
-      message: "Unable to check GitHub status",
-      error: error instanceof Error ? error.message : "Unknown error",
-    };
-  }
+  return {
+    linked: true,
+    hasExternalChanges,
+    lastSyncCommitSha: repoInfo.lastSyncCommitSha,
+    currentCommitSha,
+    lastSyncAt: repoInfo.lastSyncAt,
+    message: hasExternalChanges
+      ? "GitHub repository has been modified outside uSpark. Next push will overwrite these changes."
+      : "Repository is up to date with last sync",
+  };
 }
 
 /**
