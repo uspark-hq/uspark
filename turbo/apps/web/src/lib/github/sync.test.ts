@@ -77,6 +77,13 @@ describe("GitHub Sync", () => {
       expect(result.commitSha).toBe("new-commit-sha-202");
       expect(result.filesCount).toBe(2);
       expect(result.message).toContain("Successfully synced 2 files");
+
+      // Verify commit SHA was saved to database
+      const { getProjectRepository } = await import("./repository");
+      const repoInfo = await getProjectRepository(projectId);
+      expect(repoInfo).not.toBeNull();
+      expect(repoInfo!.lastSyncCommitSha).toBe("new-commit-sha-202");
+      expect(repoInfo!.lastSyncAt).toBeInstanceOf(Date);
     });
 
     it("should return error when project not found", async () => {

@@ -278,6 +278,16 @@ export async function syncProjectToGitHub(
     projectId,
   );
 
+  // Update sync state in database
+  const { githubRepos } = await import("../../db/schema/github");
+  await db
+    .update(githubRepos)
+    .set({
+      lastSyncCommitSha: commitSha,
+      lastSyncAt: new Date(),
+    })
+    .where(eq(githubRepos.projectId, projectId));
+
   return {
     success: true,
     commitSha,
