@@ -5,7 +5,7 @@ import { projectDetailContract } from "@uspark/core";
 import { initServices } from "../../../../../src/lib/init-services";
 import { SESSIONS_TBL } from "../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
-import { eq, and, desc } from "drizzle-orm";
+import { eq, and, desc, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
 
 // Extract types from contracts
@@ -89,19 +89,21 @@ export async function POST(
   }
 
   // Note: Contract uses camelCase, but we keep snake_case for backward compatibility
+  // Also include project_id for backward compatibility (not in contract)
   const response = {
     id: newSession.id,
+    project_id: projectId,
     title: newSession.title,
     created_at: newSession.createdAt.toISOString(),
     updated_at: newSession.updatedAt.toISOString(),
   };
 
-  return NextResponse.json(response, { status: 201 });
+  return NextResponse.json(response, { status: 200 });
 }
 
 /**
  * GET /api/projects/:projectId/sessions
- * Lists all sessions for the project
+ * Lists all sessions for the project with pagination support
  *
  * Contract: projectDetailContract.listSessions
  */
@@ -138,8 +140,23 @@ export async function GET(
     return NextResponse.json(error, { status: 404 });
   }
 
-  // Get sessions (contract doesn't support pagination in current version)
-  const sessions = await globalThis.services.db
+  // Parse pagination parameters
+  const { searchParams } = new URL(request.url);
+  const limit = searchParams.get("limit")
+    ? parseInt(searchParams.get("limit")!, 10)
+    : undefined;
+  const offset = searchParams.get("offset")
+    ? parseInt(searchParams.get("offset")!, 10)
+    : undefined;
+
+  // Get total count
+  const [{ value: totalCount }] = await globalThis.services.db
+    .select({ value: count() })
+    .from(SESSIONS_TBL)
+    .where(eq(SESSIONS_TBL.projectId, projectId));
+
+  // Get sessions with pagination
+  let query = globalThis.services.db
     .select({
       id: SESSIONS_TBL.id,
       title: SESSIONS_TBL.title,
@@ -150,6 +167,15 @@ export async function GET(
     .where(eq(SESSIONS_TBL.projectId, projectId))
     .orderBy(desc(SESSIONS_TBL.createdAt));
 
+  if (limit !== undefined) {
+    query = query.limit(limit);
+  }
+  if (offset !== undefined) {
+    query = query.offset(offset);
+  }
+
+  const sessions = await query;
+
   // Note: Contract uses camelCase, but we keep snake_case for backward compatibility
   const response = {
     sessions: sessions.map((s) => ({
@@ -158,6 +184,7 @@ export async function GET(
       created_at: s.createdAt.toISOString(),
       updated_at: s.updatedAt.toISOString(),
     })),
+    total: Number(totalCount),
   };
 
   return NextResponse.json(response);
