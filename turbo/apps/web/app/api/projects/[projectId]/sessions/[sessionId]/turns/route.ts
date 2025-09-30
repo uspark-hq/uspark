@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import type { z } from "zod";
 import { initServices } from "../../../../../../../src/lib/init-services";
 import {
   SESSIONS_TBL,
@@ -9,18 +10,25 @@ import {
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
 import { randomUUID } from "crypto";
-import {
-  CreateTurnRequestSchema,
-  type CreateTurnResponse,
-  ListTurnsQuerySchema,
-  type ListTurnsResponse,
-  type TurnErrorResponse,
-} from "@uspark/core";
+import { turnsContract } from "@uspark/core";
 import { ClaudeExecutor } from "../../../../../../../src/lib/claude-executor";
+
+// Extract types from contract
+type CreateTurnResponse = z.infer<
+  (typeof turnsContract.createTurn.responses)[200]
+>;
+type TurnErrorResponse = z.infer<
+  (typeof turnsContract.createTurn.responses)[401]
+>;
+type ListTurnsResponse = z.infer<
+  (typeof turnsContract.listTurns.responses)[200]
+>;
 
 /**
  * POST /api/projects/:projectId/sessions/:sessionId/turns
  * Creates a new turn (conversation round) in the session
+ *
+ * Contract: turnsContract.createTurn
  */
 export async function POST(
   request: NextRequest,
@@ -71,9 +79,9 @@ export async function POST(
     return NextResponse.json(error, { status: 404 });
   }
 
-  // Parse and validate request body
+  // Parse and validate request body using contract schema
   const body = await request.json();
-  const parseResult = CreateTurnRequestSchema.safeParse(body);
+  const parseResult = turnsContract.createTurn.body.safeParse(body);
 
   if (!parseResult.success) {
     // Check if the specific error is about missing user_message
@@ -143,6 +151,8 @@ export async function POST(
 /**
  * GET /api/projects/:projectId/sessions/:sessionId/turns
  * Lists all turns in the session
+ *
+ * Contract: turnsContract.listTurns
  */
 export async function GET(
   request: NextRequest,
@@ -193,14 +203,14 @@ export async function GET(
     return NextResponse.json(error, { status: 404 });
   }
 
-  // Parse and validate query parameters
+  // Parse and validate query parameters using contract schema
   const url = new URL(request.url);
   const queryParams = {
     limit: url.searchParams.get("limit") || "20",
     offset: url.searchParams.get("offset") || "0",
   };
 
-  const parseResult = ListTurnsQuerySchema.safeParse(queryParams);
+  const parseResult = turnsContract.listTurns.query.safeParse(queryParams);
   if (!parseResult.success) {
     const error: TurnErrorResponse = {
       error: "invalid_query",
