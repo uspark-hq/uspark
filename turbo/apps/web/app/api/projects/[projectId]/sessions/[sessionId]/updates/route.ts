@@ -151,30 +151,20 @@ export async function GET(
         },
         turns: turnsWithBlocks.map((t) => ({
           id: t.id,
-          sessionId: t.sessionId,
           userPrompt: t.userPrompt,
           status: t.status as
             | "pending"
             | "in_progress"
             | "completed"
-            | "failed"
-            | "interrupted",
+            | "failed",
           startedAt: t.startedAt ? t.startedAt.toISOString() : null,
           completedAt: t.completedAt ? t.completedAt.toISOString() : null,
           errorMessage: t.errorMessage || null,
           blocks: t.blocks.map((b) => ({
             id: b.id,
-            turnId: b.turnId,
-            type: b.type as
-              | "text"
-              | "code"
-              | "tool_use"
-              | "tool_result"
-              | "error",
-            content: b.content,
-            metadata: b.metadata as Record<string, unknown> | undefined,
+            type: b.type,
+            content: b.content as Record<string, unknown>,
             sequenceNumber: b.sequenceNumber,
-            createdAt: b.createdAt.toISOString(),
           })),
         })),
       };
