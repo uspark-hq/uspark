@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.35.1](https://github.com/uspark-hq/uspark/compare/web-v0.35.0...web-v0.35.1) (2025-10-01)
+
+
+### Bug Fixes
+
+* improve sandbox initialization error logging ([#420](https://github.com/uspark-hq/uspark/issues/420)) ([2c57430](https://github.com/uspark-hq/uspark/commit/2c574309f6c27288564f97d5900c8be587e222ce))
+
 ## [0.35.0](https://github.com/uspark-hq/uspark/compare/web-v0.34.0...web-v0.35.0) (2025-10-01)
 
 
