@@ -142,7 +142,7 @@ async function createGitHubCommit(
       );
 
       return {
-        path: file.path,
+        path: `spec/${file.path}`,
         mode: "100644" as const,
         type: "blob" as const,
         sha: blob.sha,
@@ -150,14 +150,14 @@ async function createGitHubCommit(
     }),
   );
 
-  // Create a new tree (complete replacement, not based on existing tree)
+  // Create a new tree based on existing tree (preserves files outside /spec)
   const { data: newTree } = await octokit.request(
     "POST /repos/{owner}/{repo}/git/trees",
     {
       owner,
       repo,
+      base_tree: currentCommitSha,
       tree: blobs,
-      // Intentionally not using base_tree to create a complete mirror
     },
   );
 
@@ -167,7 +167,7 @@ async function createGitHubCommit(
     {
       owner,
       repo,
-      message: `[Mirror Sync] Complete mirror from uSpark at ${new Date().toISOString()}`,
+      message: `chore: sync specs from uSpark\n\nSynced ${files.length} files to /spec directory`,
       tree: newTree.sha,
       parents: [currentCommitSha],
     },

@@ -4,18 +4,33 @@
 
 This document describes the technical implementation of GitHub synchronization feature for MVP Story 1. It enables uSpark to sync project documents to user's existing GitHub repositories.
 
+## Implementation Status
+
+**Current State**: ⚠️ Partially Complete - Does Not Match MVP Requirements
+
+The GitHub sync feature has been implemented with **incorrect approach**. Current implementation creates dedicated repositories instead of syncing to user's existing repository `/specs` directory as required by MVP.
+
+**What's Implemented**:
+- ✅ Database: `github_repos` table with `last_sync_commit_sha` and `last_sync_at` columns
+- ✅ Functions: `syncProjectToGitHub()`, `checkGitHubStatus()` in `src/lib/github/sync.ts`
+- ✅ API: `/api/projects/[projectId]/github/sync` (POST for sync, GET for status)
+- ✅ UI: `GitHubSyncButton` component in `app/components/github-sync-button.tsx`
+- ✅ Tests: Comprehensive unit and integration tests with MSW mocking
+
+**Critical Gap**:
+- ❌ **Current Implementation**: Creates dedicated `uspark-{projectId}` repo with full mirror
+- ✅ **MVP Requirement**: Sync to user's existing repo `/spec` directory
+- **Impact**: Does not match MVP Story 1 requirements
+
 ## Relation to MVP
 
-This feature implements **Story 1: GitHub One-Way Synchronization (For Human Users)** with the following enhancement:
+This feature implements **Story 1: GitHub One-Way Synchronization (For Human Users)**.
 
-**MVP Current Implementation**:
-- ✅ Creates dedicated repository (`uspark-{project.id}`)
+**MVP Requirements**:
 - ✅ One-way sync: uSpark → GitHub
-
-**MVP Enhancement** (This Spec):
-- 🔄 Sync to **user's existing code repository** instead of creating new repo
-- 🔄 Target path: `/specs` directory in existing repo
-- 🔄 Store commit SHA for sync state tracking
+- ❌ Sync to **user's existing code repository** (currently creates new repo)
+- ❌ Target path: `/spec` directory in existing repo (currently mirrors entire project)
+- ✅ Store commit SHA for sync state tracking
 
 This aligns with the **Solo Developer** user story where specs should live alongside the actual codebase.
 
@@ -24,7 +39,7 @@ This aligns with the **Solo Developer** user story where specs should live along
 ### MVP Scope (Current)
 - **Single Direction**: uSpark → GitHub (push only)
 - **Target Repository**: User's existing code repository
-- **Target Path**: `/specs` directory in the repository
+- **Target Path**: `/spec` directory in the repository
 - **Conflict Strategy**: Overwrite (no conflict detection)
 - **Commit Tracking**: Store last sync commit SHA
 
@@ -56,7 +71,7 @@ User's existing repository:
 ├── src/                    # User's code (untouched)
 ├── package.json            # User's config (untouched)
 ├── README.md               # User's docs (untouched)
-└── specs/                  # uSpark managed directory
+└── spec/                   # uSpark managed directory
     ├── tasks/
     │   ├── feature-auth.md
     │   └── feature-api.md
@@ -115,7 +130,7 @@ async function pushToGitHub(projectId: string) {
     });
 
     tree.push({
-      path: `specs/${file.path}`,
+      path: `spec/${file.path}`,
       mode: '100644',
       type: 'blob',
       sha: blob.data.sha
@@ -289,7 +304,7 @@ describe('GitHub Sync Integration', () => {
     expect(result.commitSha).toMatch(/^[0-9a-f]{40}$/);
 
     // Verify on GitHub
-    const files = await getGitHubFiles(owner, repo, 'specs/');
+    const files = await getGitHubFiles(owner, repo, 'spec/');
     expect(files).toHaveLength(3);
   });
 
@@ -308,25 +323,69 @@ describe('GitHub Sync Integration', () => {
 
 ## MVP Implementation Tasks
 
-### Phase 1: Core Implementation
-- [ ] Update database schema to add `project_github_sync` table
-- [ ] Implement `pushToGitHub()` function with Git Trees API
-- [ ] Store `last_sync_commit_sha` after successful push
-- [ ] Implement `checkGitHubStatus()` for external change detection
-- [ ] Update GitHub settings UI to allow selecting existing repository
-- [ ] Add sync button with status indicator in project page
+### Phase 1: Core Implementation ⚠️ Partially Complete
+- [x] Update database schema to add `project_github_sync` table
+  - Implemented as `github_repos` table with columns: `last_sync_commit_sha`, `last_sync_at`
+  - Migration: `turbo/apps/web/src/db/migrations/0009_many_blob.sql`
+- [x] Store `last_sync_commit_sha` after successful push
+  - Updates `github_repos` table after successful sync (sync.ts:283-289)
+- [x] Implement `checkGitHubStatus()` for external change detection
+  - Implemented in `src/lib/github/sync.ts:305`
+  - Compares current HEAD with last sync SHA
+- [x] Add sync button with status indicator in project page
+  - `GitHubSyncButton` component in `app/components/github-sync-button.tsx`
+  - Shows sync status, loading states, and error messages
+- [ ] ❌ Implement `pushToGitHub()` function with Git Trees API **correctly**
+  - **Current Issue**: Implemented as `syncProjectToGitHub()` but creates dedicated repo instead of syncing to existing
+  - **Required**: Must use `base_tree` parameter to preserve existing files
+  - **Required**: Must prefix all paths with `spec/`
+  - Location: `src/lib/github/sync.ts:194`
+- [ ] ❌ Update GitHub settings UI to allow **selecting existing repository**
+  - **Current Issue**: Only creates new dedicated repo `uspark-{projectId}`
+  - **Required**: UI to select from user's existing repositories
+  - Location: `app/components/github-sync-button.tsx`
 
-### Phase 2: Testing & Validation
-- [ ] Write integration tests for push flow
-- [ ] Test external change detection
-- [ ] Validate with repositories of different sizes
-- [ ] Test error handling (rate limits, permissions, network failures)
+### Phase 2: Testing & Validation ⚠️ Tests Exist But Test Wrong Behavior
+- [x] Write integration tests for push flow
+  - `src/lib/github/sync.test.ts` with 14 test cases
+  - **Note**: Tests validate current (incorrect) behavior
+- [x] Test external change detection
+  - Test cases for SHA mismatch detection (sync.test.ts:348-394)
+- [x] Validate with repositories of different sizes
+  - Tests with multiple file counts (1, 2, 4 files)
+- [x] Test error handling (rate limits, permissions, network failures)
+  - Tests for unauthorized, not found, no files, blob storage errors
+- [ ] ❌ Update tests to validate `/spec` directory behavior
+  - Need to test that existing files outside `/spec` are preserved
+  - Need to test that all synced files are under `spec/` prefix
 
-### Phase 3: MVP Enhancement Deployment
-- [ ] Deploy schema changes
-- [ ] Enable feature for existing users (migration path from old `uspark-{id}` repos)
+### Phase 3: Complete MVP Implementation 🔄 Required to Match MVP Spec
+- [ ] Add API to list user's existing repositories
+  - Fetch from GitHub API using installation token
+  - Filter by installation access
+- [ ] Add UI for selecting existing repository
+  - Dropdown/search to select from user's repos
+  - Show repository details (owner/name, last updated)
+  - Option to create new repo if needed
+- [ ] Update sync logic to use `base_tree` parameter
+  - Preserve user's existing files outside `/spec` directory
+  - Only modify files under `spec/` path
+- [ ] Prefix all file paths with `spec/`
+  - Modify `createGitHubCommit()` to add `spec/` prefix
+  - Ensure nested directory structure (e.g., `spec/tasks/feature-auth.md`)
+- [ ] Update database schema if needed
+  - May need to distinguish between "dedicated repo" vs "existing repo with /spec"
+  - Store repository selection mode
+- [ ] Update all tests to validate correct behavior
+  - Test `/spec` directory isolation
+  - Test preservation of existing files
+  - Test path prefixing
+- [ ] Deploy schema changes to production
 - [ ] Monitor sync success rates
+  - Add telemetry for sync operations
+  - Track success/failure rates, error types
 - [ ] Gather user feedback
+  - Validate the `/spec` directory approach with users
 
 ## References
 
