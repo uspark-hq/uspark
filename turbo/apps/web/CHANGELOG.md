@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.34.0](https://github.com/uspark-hq/uspark/compare/web-v0.33.0...web-v0.34.0) (2025-10-01)
+
+
+### Features
+
+* allow selecting existing repositories for github sync ([#415](https://github.com/uspark-hq/uspark/issues/415)) ([4ca8560](https://github.com/uspark-hq/uspark/commit/4ca85603c0110586676647cc01d0ff2d46c14d1b))
+
+
+### Bug Fixes
+
+* sync github files to /spec directory with base_tree ([#412](https://github.com/uspark-hq/uspark/issues/412)) ([08e5b7f](https://github.com/uspark-hq/uspark/commit/08e5b7f1538e51090900117c0dbb0c8de9127c90))
+
 ## [0.33.0](https://github.com/uspark-hq/uspark/compare/web-v0.32.0...web-v0.33.0) (2025-10-01)
 
 
