@@ -23,6 +23,16 @@
   "postCreateCommand": "bash .devcontainer/setup.sh",
   "customizations": {
     "vscode": {
+      "extensions": [
+        "anthropic.claude-code",
+        "esbenp.prettier-vscode",
+        "dbaeumer.vscode-eslint",
+        "oxc.oxc-vscode",
+        "vitest.explorer",
+        "mtxr.sqltools-driver-pg",
+        "ms-playwright.playwright",
+        "foxundermoon.shell-format"
+      ],
       "settings": {
         "sqltools.connections": [
           {
