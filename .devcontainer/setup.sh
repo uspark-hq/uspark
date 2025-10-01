@@ -27,14 +27,20 @@ mkcert -install
 CHROME_MCP_PROFILE="/home/vscode/.cache/chrome-devtools-mcp/chrome-profile"
 if [ -f "/home/vscode/.local/share/mkcert/rootCA.pem" ]; then
   echo "Importing mkcert CA to Chrome MCP profile..."
-  # Clean up old Chrome MCP profile to ensure fresh certificate import
-  rm -rf "$CHROME_MCP_PROFILE"
   mkdir -p "$CHROME_MCP_PROFILE"
-  # Initialize NSS database
-  certutil -d sql:"$CHROME_MCP_PROFILE" -N --empty-password
+  # Initialize NSS database if it doesn't exist
+  if [ ! -f "$CHROME_MCP_PROFILE/cert9.db" ]; then
+    certutil -d sql:"$CHROME_MCP_PROFILE" -N --empty-password
+  fi
   # Get the certificate nickname from system NSS database (includes serial number)
   CERT_NAME=$(certutil -d sql:/home/vscode/.pki/nssdb -L | grep "mkcert development CA" | awk '{print $1" "$2" "$3" "$4}')
-  # Import the certificate
+  # Remove any existing mkcert certificates from Chrome profile
+  certutil -d sql:"$CHROME_MCP_PROFILE" -L 2>/dev/null | grep -i "mkcert" | while read -r line; do
+    # Extract certificate nickname (everything except the last 3 columns which are trust attributes)
+    cert_nickname=$(echo "$line" | awk '{for(i=1;i<=NF-3;i++) printf "%s ", $i; print ""}' | sed 's/[[:space:]]*$//')
+    certutil -d sql:"$CHROME_MCP_PROFILE" -D -n "$cert_nickname" 2>/dev/null || true
+  done
+  # Import the current mkcert certificate
   certutil -d sql:"$CHROME_MCP_PROFILE" -A -t "C,," -n "$CERT_NAME" -i "/home/vscode/.local/share/mkcert/rootCA.pem"
 fi
 
