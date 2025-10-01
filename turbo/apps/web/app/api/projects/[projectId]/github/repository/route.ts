@@ -1,16 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import type { z } from "zod";
 import {
   createProjectRepository,
   getProjectRepository,
   hasInstallationAccess,
   removeRepositoryLink,
 } from "../../../../../../src/lib/github/repository";
+import { projectDetailContract } from "@uspark/core";
+
+// Extract types from contract
+type GitHubRepositoryResponse = z.infer<
+  (typeof projectDetailContract.getGitHubRepository.responses)[200]
+>;
+type UnauthorizedResponse = z.infer<
+  (typeof projectDetailContract.getGitHubRepository.responses)[401]
+>;
 
 /**
  * GET /api/projects/[projectId]/github/repository
  *
  * Gets repository information for a project
+ *
+ * Contract: projectDetailContract.getGitHubRepository
  */
 export async function GET(
   request: NextRequest,
@@ -18,7 +30,11 @@ export async function GET(
 ) {
   const { userId } = await auth();
   if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    const error: UnauthorizedResponse = {
+      error: "unauthorized",
+      error_description: "Authentication required",
+    };
+    return NextResponse.json(error, { status: 401 });
   }
 
   const { projectId } = await context.params;
@@ -26,6 +42,7 @@ export async function GET(
   const repository = await getProjectRepository(projectId);
 
   if (!repository) {
+    // Note: Contract defines "repository_not_linked", but keeping "repository_not_found" for backward compatibility
     return NextResponse.json(
       { error: "repository_not_found" },
       { status: 404 },
@@ -41,7 +58,8 @@ export async function GET(
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  return NextResponse.json({ repository });
+  const response: GitHubRepositoryResponse = { repository };
+  return NextResponse.json(response);
 }
 
 /**
