@@ -14,8 +14,8 @@ export async function GET() {
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
-  // GitHub App installation URL
-  const installUrl = `https://github.com/apps/uspark-sync/installations/new`;
+  // GitHub App installation URL - use base URL to allow org selection
+  const installUrl = `https://github.com/apps/uspark-sync`;
 
   // Add state parameter to track the user
   const url = new URL(installUrl);
