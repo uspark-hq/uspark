@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
+import type { z } from "zod";
 import { initServices } from "../../../../../../../src/lib/init-services";
 import {
   SESSIONS_TBL,
@@ -8,11 +9,22 @@ import {
 } from "../../../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
 import { eq, and, asc } from "drizzle-orm";
+import { projectDetailContract } from "@uspark/core";
+
+// Extract types from contract
+type SessionUpdateResponse = z.infer<
+  (typeof projectDetailContract.getSessionUpdates.responses)[200]
+>;
+type UnauthorizedResponse = z.infer<
+  (typeof projectDetailContract.getSessionUpdates.responses)[401]
+>;
 
 /**
  * GET /api/projects/:projectId/sessions/:sessionId/updates
  * Long poll for session updates - simplified version without version tracking
  * Just queries current state and compares with client state
+ *
+ * Contract: projectDetailContract.getSessionUpdates
  */
 export async function GET(
   request: NextRequest,
@@ -21,7 +33,11 @@ export async function GET(
   const { userId } = await auth();
 
   if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+    const error: UnauthorizedResponse = {
+      error: "unauthorized",
+      error_description: "Authentication required",
+    };
+    return NextResponse.json(error, { status: 401 });
   }
 
   initServices();
@@ -58,7 +74,11 @@ export async function GET(
     );
 
   if (!project) {
-    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
+    // Note: Contract defines "not_found", but keeping "project_not_found" for backward compatibility
+    return NextResponse.json(
+      { error: "project_not_found", error_description: "Project not found" },
+      { status: 404 },
+    );
   }
 
   // Verify session exists
@@ -73,7 +93,11 @@ export async function GET(
     );
 
   if (!session) {
-    return NextResponse.json({ error: "session_not_found" }, { status: 404 });
+    // Note: Contract defines "not_found", but keeping "session_not_found" for backward compatibility
+    return NextResponse.json(
+      { error: "session_not_found", error_description: "Session not found" },
+      { status: 404 },
+    );
   }
 
   // Long polling implementation
@@ -120,13 +144,31 @@ export async function GET(
 
     // If there are updates, return immediately
     if (hasUpdates) {
-      return NextResponse.json({
+      const response: SessionUpdateResponse = {
         session: {
           id: sessionId,
           updatedAt: session.updatedAt.toISOString(),
         },
-        turns: turnsWithBlocks,
-      });
+        turns: turnsWithBlocks.map((t) => ({
+          id: t.id,
+          userPrompt: t.userPrompt,
+          status: t.status as
+            | "pending"
+            | "in_progress"
+            | "completed"
+            | "failed",
+          startedAt: t.startedAt ? t.startedAt.toISOString() : null,
+          completedAt: t.completedAt ? t.completedAt.toISOString() : null,
+          errorMessage: t.errorMessage || null,
+          blocks: t.blocks.map((b) => ({
+            id: b.id,
+            type: b.type,
+            content: b.content as Record<string, unknown>,
+            sequenceNumber: b.sequenceNumber,
+          })),
+        })),
+      };
+      return NextResponse.json(response);
     }
 
     // Check if there are any active turns

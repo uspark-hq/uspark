@@ -7,10 +7,15 @@ import {
   removeRepositoryLink,
 } from "../../../../../../src/lib/github/repository";
 
+// Note: Contract reference - projectDetailContract.getGitHubRepository
+// Types not used directly due to type compatibility issues with RepositoryInfo
+
 /**
  * GET /api/projects/[projectId]/github/repository
  *
  * Gets repository information for a project
+ *
+ * Contract: projectDetailContract.getGitHubRepository
  */
 export async function GET(
   request: NextRequest,
@@ -18,6 +23,7 @@ export async function GET(
 ) {
   const { userId } = await auth();
   if (!userId) {
+    // Note: Keeping backward compatible format without error_description
     return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
@@ -26,6 +32,7 @@ export async function GET(
   const repository = await getProjectRepository(projectId);
 
   if (!repository) {
+    // Note: Contract defines "repository_not_linked", but keeping "repository_not_found" for backward compatibility
     return NextResponse.json(
       { error: "repository_not_found" },
       { status: 404 },
@@ -41,6 +48,8 @@ export async function GET(
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
+  // Note: Not using type annotation to avoid type compatibility issues
+  // with RepositoryInfo vs contract schema
   return NextResponse.json({ repository });
 }
 
