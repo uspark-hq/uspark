@@ -1,6 +1,6 @@
 {
   "$schema": "https://turborepo.com/schema.json",
-  "ui": "tui",
+  "ui": "stream",
   "globalEnv": [
     "DATABASE_URL",
     "CLERK_SECRET_KEY",
