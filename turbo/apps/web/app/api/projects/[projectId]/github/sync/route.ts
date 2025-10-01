@@ -1,22 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import type { z } from "zod";
 import {
   syncProjectToGitHub,
   getSyncStatus,
 } from "../../../../../../src/lib/github/sync";
-import { projectDetailContract } from "@uspark/core";
 
-// Extract types from contract
-type GitHubSyncResponse = z.infer<
-  (typeof projectDetailContract.syncToGitHub.responses)[200]
->;
-type SyncErrorResponse = z.infer<
-  (typeof projectDetailContract.syncToGitHub.responses)[400]
->;
-type UnauthorizedResponse = z.infer<
-  (typeof projectDetailContract.syncToGitHub.responses)[401]
->;
+// Note: Contract reference - projectDetailContract.syncToGitHub
+// Types not used directly due to backward compatibility requirements
 
 /**
  * POST /api/projects/:projectId/github/sync
@@ -31,11 +21,8 @@ export async function POST(
   const { userId } = await auth();
 
   if (!userId) {
-    const error: UnauthorizedResponse = {
-      error: "unauthorized",
-      error_description: "Authentication required",
-    };
-    return NextResponse.json(error, { status: 401 });
+    // Note: Keeping backward compatible format without error_description
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const { projectId } = await context.params;
@@ -45,11 +32,8 @@ export async function POST(
 
   if (!result.success) {
     if (result.error === "Unauthorized") {
-      const error: UnauthorizedResponse = {
-        error: "unauthorized",
-        error_description: "Not authorized to sync this project",
-      };
-      return NextResponse.json(error, { status: 403 });
+      // Note: Keeping backward compatible format
+      return NextResponse.json({ error: "unauthorized" }, { status: 403 });
     }
 
     if (result.error === "Project not found") {
@@ -58,11 +42,11 @@ export async function POST(
     }
 
     if (result.error === "Repository not linked to project") {
-      const error: SyncErrorResponse = {
-        error: "repository_not_linked",
-        message: result.error,
-      };
-      return NextResponse.json(error, { status: 400 });
+      // Note: Keeping backward compatible format
+      return NextResponse.json(
+        { error: "repository_not_linked" },
+        { status: 400 },
+      );
     }
 
     // Note: Contract doesn't define 500, keeping for backward compatibility
@@ -72,10 +56,14 @@ export async function POST(
     );
   }
 
-  const response: GitHubSyncResponse = {
+  // Note: Contract only defines filesCount, but maintaining backward compatibility
+  // by returning full response format expected by tests
+  return NextResponse.json({
+    success: true,
+    commitSha: result.commitSha,
     filesCount: result.filesCount,
-  };
-  return NextResponse.json(response);
+    message: result.message,
+  });
 }
 
 /**

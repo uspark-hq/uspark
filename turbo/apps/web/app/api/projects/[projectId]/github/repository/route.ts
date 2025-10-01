@@ -13,9 +13,6 @@ import { projectDetailContract } from "@uspark/core";
 type GitHubRepositoryResponse = z.infer<
   (typeof projectDetailContract.getGitHubRepository.responses)[200]
 >;
-type UnauthorizedResponse = z.infer<
-  (typeof projectDetailContract.getGitHubRepository.responses)[401]
->;
 
 /**
  * GET /api/projects/[projectId]/github/repository
@@ -30,11 +27,8 @@ export async function GET(
 ) {
   const { userId } = await auth();
   if (!userId) {
-    const error: UnauthorizedResponse = {
-      error: "unauthorized",
-      error_description: "Authentication required",
-    };
-    return NextResponse.json(error, { status: 401 });
+    // Note: Keeping backward compatible format without error_description
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   }
 
   const { projectId } = await context.params;
