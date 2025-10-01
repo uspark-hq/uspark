@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.35.0](https://github.com/uspark-hq/uspark/compare/web-v0.34.0...web-v0.35.0) (2025-10-01)
+
+
+### Features
+
+* add project deletion functionality ([#418](https://github.com/uspark-hq/uspark/issues/418)) ([486e326](https://github.com/uspark-hq/uspark/commit/486e326929ebecbe1f9a3bc806435572ca5a351e))
+
+
+### Bug Fixes
+
+* allow organization selection in github app installation ([#417](https://github.com/uspark-hq/uspark/issues/417)) ([9dc2b3a](https://github.com/uspark-hq/uspark/commit/9dc2b3a04560dc0e5c03e8b5d52aae38e42890c4))
+
 ## [0.34.0](https://github.com/uspark-hq/uspark/compare/web-v0.33.0...web-v0.34.0) (2025-10-01)
 
 
