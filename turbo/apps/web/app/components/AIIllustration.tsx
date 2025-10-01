@@ -1,3 +1,7 @@
+"use client";
+
+import { useMemo } from "react";
+
 export const AINetworkIllustration = () => (
   <svg
     viewBox="0 0 400 400"
@@ -78,73 +82,85 @@ export const AINetworkIllustration = () => (
   </svg>
 );
 
-export const DataFlowIllustration = () => (
-  <svg
-    viewBox="0 0 400 400"
-    fill="none"
-    xmlns="http://www.w3.org/2000/svg"
-    className="w-full h-full"
-  >
-    <defs>
-      <linearGradient id="dataGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-        <stop offset="0%" stopColor="#f093fb" />
-        <stop offset="100%" stopColor="#f5576c" />
-      </linearGradient>
-    </defs>
+export const DataFlowIllustration = () => {
+  const dataPoints = useMemo(
+    () =>
+      Array.from({ length: 10 }, () => ({
+        cx: 50 + Math.random() * 300,
+        cy: 50 + Math.random() * 300,
+        dur: 3 + Math.random() * 2,
+      })),
+    [],
+  );
 
-    {/* Data streams */}
-    {[...Array(5)].map((_, i) => (
-      <rect
-        key={i}
-        x={50 + i * 70}
-        y="50"
-        width="10"
-        height="300"
-        fill="url(#dataGradient)"
-        opacity="0.3"
-      >
-        <animate
-          attributeName="height"
-          values="300;100;300"
-          dur={`${2 + i * 0.5}s`}
-          repeatCount="indefinite"
-        />
-        <animate
-          attributeName="y"
-          values="50;150;50"
-          dur={`${2 + i * 0.5}s`}
-          repeatCount="indefinite"
-        />
-      </rect>
-    ))}
+  return (
+    <svg
+      viewBox="0 0 400 400"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className="w-full h-full"
+    >
+      <defs>
+        <linearGradient id="dataGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+          <stop offset="0%" stopColor="#f093fb" />
+          <stop offset="100%" stopColor="#f5576c" />
+        </linearGradient>
+      </defs>
 
-    {/* Floating data points */}
-    {[...Array(10)].map((_, i) => (
-      <circle
-        key={i}
-        cx={50 + Math.random() * 300}
-        cy={50 + Math.random() * 300}
-        r="4"
-        fill="#f5576c"
-        opacity="0.6"
-      >
-        <animate
-          attributeName="cy"
-          from="350"
-          to="50"
-          dur={`${3 + Math.random() * 2}s`}
-          repeatCount="indefinite"
-        />
-        <animate
-          attributeName="opacity"
-          values="0;0.6;0"
-          dur={`${3 + Math.random() * 2}s`}
-          repeatCount="indefinite"
-        />
-      </circle>
-    ))}
-  </svg>
-);
+      {/* Data streams */}
+      {[...Array(5)].map((_, i) => (
+        <rect
+          key={i}
+          x={50 + i * 70}
+          y="50"
+          width="10"
+          height="300"
+          fill="url(#dataGradient)"
+          opacity="0.3"
+        >
+          <animate
+            attributeName="height"
+            values="300;100;300"
+            dur={`${2 + i * 0.5}s`}
+            repeatCount="indefinite"
+          />
+          <animate
+            attributeName="y"
+            values="50;150;50"
+            dur={`${2 + i * 0.5}s`}
+            repeatCount="indefinite"
+          />
+        </rect>
+      ))}
+
+      {/* Floating data points */}
+      {dataPoints.map((point, i) => (
+        <circle
+          key={i}
+          cx={point.cx}
+          cy={point.cy}
+          r="4"
+          fill="#f5576c"
+          opacity="0.6"
+        >
+          <animate
+            attributeName="cy"
+            from="350"
+            to="50"
+            dur={`${point.dur}s`}
+            repeatCount="indefinite"
+          />
+          <animate
+            attributeName="opacity"
+            values="0;0.6;0"
+            dur={`${point.dur}s`}
+            repeatCount="indefinite"
+          />
+        </circle>
+      ))}
+    </svg>
+  );
+};
 
 export const CreativeSparkIllustration = () => (
   <svg
