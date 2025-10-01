@@ -43,8 +43,12 @@ export function GitHubSyncButton({ projectId }: GitHubSyncButtonProps) {
     type: "success" | "error" | null;
     message: string;
   }>({ type: null, message: "" });
-  const [availableRepositories, setAvailableRepositories] = useState<GitHubRepository[]>([]);
-  const [selectedRepositoryId, setSelectedRepositoryId] = useState<number | null>(null);
+  const [availableRepositories, setAvailableRepositories] = useState<
+    GitHubRepository[]
+  >([]);
+  const [selectedRepositoryId, setSelectedRepositoryId] = useState<
+    number | null
+  >(null);
   const [isLoadingRepositories, setIsLoadingRepositories] = useState(false);
 
   // Check if repository is linked on mount
@@ -272,7 +276,14 @@ export function GitHubSyncButton({ projectId }: GitHubSyncButtonProps) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
       {!hasRepository ? (
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            flexWrap: "wrap",
+          }}
+        >
           {/* Repository selector */}
           {availableRepositories.length > 0 && (
             <select
@@ -365,7 +376,9 @@ export function GitHubSyncButton({ projectId }: GitHubSyncButtonProps) {
           </button>
 
           {isLoadingRepositories && (
-            <span style={{ fontSize: "13px", color: "rgba(156, 163, 175, 0.8)" }}>
+            <span
+              style={{ fontSize: "13px", color: "rgba(156, 163, 175, 0.8)" }}
+            >
               Loading repositories...
             </span>
           )}
@@ -387,7 +400,14 @@ export function GitHubSyncButton({ projectId }: GitHubSyncButtonProps) {
           )}
         </div>
       ) : (
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "12px",
+            flexWrap: "wrap",
+          }}
+        >
           {/* Show repository info */}
           {repositoryInfo?.fullName && (
             <div

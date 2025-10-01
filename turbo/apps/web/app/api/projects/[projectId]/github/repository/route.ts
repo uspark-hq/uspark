@@ -91,7 +91,10 @@ export async function POST(
   try {
     // If repositoryId is provided, link existing repository
     if (repositoryId && repositoryName) {
-      if (typeof repositoryId !== "number" || typeof repositoryName !== "string") {
+      if (
+        typeof repositoryId !== "number" ||
+        typeof repositoryName !== "string"
+      ) {
         return NextResponse.json(
           { error: "invalid_repository_parameters" },
           { status: 400 },

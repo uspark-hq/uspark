@@ -434,7 +434,9 @@ describe("GitHub Repository", () => {
           222222,
           "another-repo",
         ),
-      ).rejects.toThrow(`Repository already exists for project ${testProjectId}`);
+      ).rejects.toThrow(
+        `Repository already exists for project ${testProjectId}`,
+      );
     });
   });
 });

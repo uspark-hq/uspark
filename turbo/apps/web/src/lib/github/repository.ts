@@ -338,12 +338,9 @@ export async function getInstallationRepositories(
   const octokit = await createInstallationOctokit(installationId);
 
   // Get all repositories accessible to this installation
-  const { data } = await octokit.request(
-    "GET /installation/repositories",
-    {
-      per_page: 100,
-    },
-  );
+  const { data } = await octokit.request("GET /installation/repositories", {
+    per_page: 100,
+  });
 
   // Map to our GitHubRepository type
   return data.repositories.map((repo) => ({
