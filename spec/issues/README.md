@@ -1,8 +1,8 @@
 # uSpark Technical Specifications
 
-## Current Status: MVP Complete (100%) ✅
+## Current Status: MVP Incomplete ⚠️
 
-As of 2025-09-25, all MVP features have been successfully implemented and integrated.
+GitHub sync feature does not match MVP requirements. Current implementation creates dedicated repositories instead of syncing to user's existing repository `/spec` directory.
 
 ## Active Documentation
 
@@ -24,12 +24,17 @@ Historical documents and outdated specifications are stored in the [archive](arc
 
 ## MVP Completion Summary
 
-### ✅ Completed Features
+### ⚠️ Partially Completed Features
 
-1. **GitHub Integration** (100%)
-   - One-way sync (Web → GitHub)
-   - Automatic repository creation
-   - Git Trees API implementation
+1. **GitHub Integration** (~60% - Does Not Match MVP Requirements)
+   - ✅ GitHub App installation and authentication
+   - ❌ Sync to existing repository (currently creates new dedicated repo)
+   - ❌ Sync to `/spec` directory (currently mirrors entire project)
+   - ✅ One-way sync (Web → GitHub)
+   - ✅ Git Trees API implementation
+   - ✅ UI for sync management
+
+### ✅ Completed Features
 
 2. **CLI Integration** (100%)
    - `uspark pull/push/watch-claude` commands
@@ -75,6 +80,13 @@ Historical documents and outdated specifications are stored in the [archive](arc
 - Auto-sync on edit
 - Multi-region deployment
 - Enhanced caching
+
+## Known Issues (Must Fix for MVP)
+
+These issues prevent MVP completion:
+- **GitHub sync target**: Currently creates dedicated repo, must sync to existing repo's `/spec` directory
+- **File path prefix**: Currently mirrors entire project, must prefix all files with `spec/`
+- **Repository selection**: Currently auto-creates repo, must allow selecting existing repos
 
 ## Technical Debt (Accepted for MVP)
 
