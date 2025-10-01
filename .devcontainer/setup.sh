@@ -11,7 +11,7 @@ sudo service postgresql start 2>/dev/null || true
 
 # Setup directories
 sudo mkdir -p /home/vscode/.local/bin
-sudo chown -R vscode:vscode /home/vscode/.config /home/vscode/.cache /home/vscode/.local
+sudo chown -R vscode:vscode /home/vscode/.config /home/vscode/.cache /home/vscode/.local /home/vscode/.pki
 
 # Setup local domains in hosts file
 if ! grep -q "www.uspark.dev" /etc/hosts; then
@@ -21,7 +21,13 @@ fi
 
 # Setup mkcert root CA
 echo "Installing mkcert root CA..."
-mkcert -install
+# Initialize NSS database if it doesn't exist
+if [ ! -f "/home/vscode/.pki/nssdb/cert9.db" ]; then
+  mkdir -p /home/vscode/.pki/nssdb
+  certutil -d sql:/home/vscode/.pki/nssdb -N --empty-password
+fi
+# Install to NSS database only (not system trust store)
+TRUST_STORES=nss mkcert -install
 
 # Import mkcert CA to Chrome MCP profile
 CHROME_MCP_PROFILE="/home/vscode/.cache/chrome-devtools-mcp/chrome-profile"
