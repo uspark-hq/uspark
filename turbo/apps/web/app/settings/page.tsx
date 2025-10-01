@@ -58,32 +58,6 @@ export default function SettingsPage() {
           </Link>
 
           <Link
-            href="/settings/tokens"
-            style={{
-              padding: "20px",
-              border: "1px solid #e1e4e8",
-              borderRadius: "8px",
-              textDecoration: "none",
-              color: "inherit",
-              display: "block",
-              transition: "border-color 0.2s",
-            }}
-          >
-            <h2
-              style={{
-                fontSize: "1.25rem",
-                marginBottom: "8px",
-                color: "var(--foreground)",
-              }}
-            >
-              CLI Tokens
-            </h2>
-            <p style={{ color: "#666", margin: 0 }}>
-              Generate tokens to authenticate with the uSpark CLI
-            </p>
-          </Link>
-
-          <Link
             href="/settings/shares"
             style={{
               padding: "20px",
