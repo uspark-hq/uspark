@@ -287,23 +287,6 @@ export async function getUserInstallations(userId: string) {
 }
 
 /**
- * Removes repository link from database (does not delete GitHub repo)
- *
- * @param projectId - The project ID
- * @returns Number of deleted records
- */
-export async function removeRepositoryLink(projectId: string): Promise<number> {
-  initServices();
-  const db = globalThis.services.db;
-
-  const result = await db
-    .delete(githubRepos)
-    .where(eq(githubRepos.projectId, projectId));
-
-  return result.rowCount || 0;
-}
-
-/**
  * Repository information from GitHub API
  */
 export type GitHubRepository = {

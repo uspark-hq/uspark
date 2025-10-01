@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { POST, GET } from "./route";
+import { POST } from "./route";
 import { NextRequest } from "next/server";
 import { initServices } from "../../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../../src/db/schema/projects";
@@ -240,88 +240,6 @@ describe("/api/projects/[projectId]/github/sync", () => {
       expect(response.status).toBe(400);
       const data = await response.json();
       expect(data.error).toBe("repository_not_linked");
-    });
-  });
-
-  describe("GET - Sync Status", () => {
-    it("should return sync status when authenticated", async () => {
-      mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const projectId = `status-${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
-      createdProjectIds.push(projectId);
-      const db = globalThis.services.db;
-
-      // Insert test repository link
-      await db.insert(githubRepos).values({
-        projectId,
-        installationId: testInstallationId,
-        repoName: "test-repo",
-        repoId: 67890,
-      });
-
-      const request = new NextRequest(
-        `http://localhost/api/projects/${projectId}/github/sync`,
-        {
-          method: "GET",
-        },
-      );
-
-      const response = await GET(request, {
-        params: Promise.resolve({ projectId }),
-      });
-
-      expect(response.status).toBe(200);
-      const data = await response.json();
-      expect(data.linked).toBe(true);
-      expect(data.hasExternalChanges).toBe(false);
-      expect(data.lastSyncCommitSha).toBeNull();
-      expect(data.message).toBe("Repository linked but never synced");
-    });
-
-    it("should return unlinked status when repository not linked", async () => {
-      mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const request = new NextRequest(
-        "http://localhost/api/projects/nonexistent/github/sync",
-        {
-          method: "GET",
-        },
-      );
-
-      const response = await GET(request, {
-        params: Promise.resolve({ projectId: "nonexistent" }),
-      });
-
-      expect(response.status).toBe(200);
-      const data = await response.json();
-      expect(data.linked).toBe(false);
-      expect(data.hasExternalChanges).toBe(false);
-      expect(data.message).toBe("No GitHub repository linked");
-    });
-
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValue({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const request = new NextRequest(
-        `http://localhost/api/projects/any-project/github/sync`,
-        {
-          method: "GET",
-        },
-      );
-
-      const response = await GET(request, {
-        params: Promise.resolve({ projectId: "any-project" }),
-      });
-
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data.error).toBe("unauthorized");
     });
   });
 });
