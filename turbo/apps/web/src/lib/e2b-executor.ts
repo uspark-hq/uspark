@@ -148,8 +148,16 @@ export class E2BExecutor {
     );
 
     if (result.exitCode !== 0) {
-      console.error("Failed to initialize sandbox:", result.stderr);
-      throw new Error(`Sandbox initialization failed: ${result.stderr}`);
+      const errorDetails = {
+        exitCode: result.exitCode,
+        stdout: result.stdout,
+        stderr: result.stderr,
+        projectId,
+      };
+      console.error("Failed to initialize sandbox:", errorDetails);
+      throw new Error(
+        `Sandbox initialization failed (exit ${result.exitCode}): ${result.stderr || result.stdout || "Unknown error"}`,
+      );
     }
 
     console.log("Sandbox initialized successfully with project files");
