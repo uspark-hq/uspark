@@ -32,7 +32,9 @@ if [ -f "/home/vscode/.local/share/mkcert/rootCA.pem" ]; then
   if [ ! -f "$CHROME_MCP_PROFILE/cert9.db" ]; then
     certutil -d sql:"$CHROME_MCP_PROFILE" -N --empty-password
   fi
-  certutil -d sql:"$CHROME_MCP_PROFILE" -A -t "C,," -n "mkcert" -i "/home/vscode/.local/share/mkcert/rootCA.pem"
+  # Get the certificate nickname from system NSS database (includes serial number)
+  CERT_NAME=$(certutil -d sql:/home/vscode/.pki/nssdb -L | grep "mkcert development CA" | awk '{print $1" "$2" "$3" "$4}')
+  certutil -d sql:"$CHROME_MCP_PROFILE" -A -t "C,," -n "$CERT_NAME" -i "/home/vscode/.local/share/mkcert/rootCA.pem"
 fi
 
 echo "✅ Dev container ready!"
