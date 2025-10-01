@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.33.0](https://github.com/uspark-hq/uspark/compare/web-v0.32.0...web-v0.33.0) (2025-10-01)
+
+
+### Features
+
+* add commit SHA tracking to github sync ([#395](https://github.com/uspark-hq/uspark/issues/395)) ([4cdf021](https://github.com/uspark-hq/uspark/commit/4cdf0214546201d44145dbb8639b38f2a39a8138))
+* migrate turns and updates endpoints to use contracts (part 2) ([#402](https://github.com/uspark-hq/uspark/issues/402)) ([f5b18d0](https://github.com/uspark-hq/uspark/commit/f5b18d016b4c5645ab0d2c5263ea6533dc5f0f6e))
+
+
+### Bug Fixes
+
+* resolve hydration mismatch in data flow illustration component ([#409](https://github.com/uspark-hq/uspark/issues/409)) ([a3b3701](https://github.com/uspark-hq/uspark/commit/a3b370124ccf4f7ad83e32e57bd77163c3850d07))
+
 ## [0.32.0](https://github.com/uspark-hq/uspark/compare/web-v0.31.3...web-v0.32.0) (2025-09-30)
 
 
