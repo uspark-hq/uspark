@@ -18,7 +18,7 @@ Usage: `/dev-start`
 2. **Start dev server in background:**
    Use Bash tool with `run_in_background: true`:
    ```bash
-   cd /workspaces/uspark2/turbo && pnpm dev --ui=stream
+   cd turbo && pnpm dev --ui=stream
    ```
 
 3. **Show the shell ID:**
