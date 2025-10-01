@@ -5,6 +5,7 @@ import {
   getProjectRepository,
   hasInstallationAccess,
   removeRepositoryLink,
+  linkExistingRepository,
 } from "../../../../../../src/lib/github/repository";
 
 // Note: Contract reference - projectDetailContract.getGitHubRepository
@@ -56,9 +57,9 @@ export async function GET(
 /**
  * POST /api/projects/[projectId]/github/repository
  *
- * Creates a new GitHub repository for a project
+ * Creates a new GitHub repository for a project or links an existing one
  *
- * Body: { installationId: number }
+ * Body: { installationId: number, repositoryId?: number, repositoryName?: string, owner?: string }
  */
 export async function POST(
   request: NextRequest,
@@ -72,7 +73,7 @@ export async function POST(
   const { projectId } = await context.params;
 
   const body = await request.json();
-  const { installationId } = body;
+  const { installationId, repositoryId, repositoryName } = body;
 
   if (!installationId || typeof installationId !== "number") {
     return NextResponse.json(
@@ -87,8 +88,29 @@ export async function POST(
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  // Create repository
   try {
+    // If repositoryId is provided, link existing repository
+    if (repositoryId && repositoryName) {
+      if (
+        typeof repositoryId !== "number" ||
+        typeof repositoryName !== "string"
+      ) {
+        return NextResponse.json(
+          { error: "invalid_repository_parameters" },
+          { status: 400 },
+        );
+      }
+
+      const repository = await linkExistingRepository(
+        projectId,
+        installationId,
+        repositoryId,
+        repositoryName,
+      );
+      return NextResponse.json({ repository }, { status: 201 });
+    }
+
+    // Otherwise, create a new repository
     const repository = await createProjectRepository(projectId, installationId);
     return NextResponse.json({ repository }, { status: 201 });
   } catch (error) {

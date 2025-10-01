@@ -302,3 +302,113 @@ export async function removeRepositoryLink(projectId: string): Promise<number> {
 
   return result.rowCount || 0;
 }
+
+/**
+ * Repository information from GitHub API
+ */
+export type GitHubRepository = {
+  id: number;
+  name: string;
+  full_name: string;
+  private: boolean;
+  owner: {
+    login: string;
+    type: string;
+  };
+  description: string | null;
+  updated_at: string | null;
+  permissions?: {
+    admin: boolean;
+    push: boolean;
+    pull: boolean;
+    maintain?: boolean;
+    triage?: boolean;
+  };
+};
+
+/**
+ * Gets all repositories accessible by an installation
+ *
+ * @param installationId - The GitHub App installation ID
+ * @returns List of repositories
+ */
+export async function getInstallationRepositories(
+  installationId: number,
+): Promise<GitHubRepository[]> {
+  const octokit = await createInstallationOctokit(installationId);
+
+  // Get all repositories accessible to this installation
+  const { data } = await octokit.request("GET /installation/repositories", {
+    per_page: 100,
+  });
+
+  // Map to our GitHubRepository type
+  return data.repositories.map((repo) => ({
+    id: repo.id,
+    name: repo.name,
+    full_name: repo.full_name,
+    private: repo.private,
+    owner: {
+      login: repo.owner.login,
+      type: repo.owner.type,
+    },
+    description: repo.description,
+    updated_at: repo.updated_at,
+    permissions: repo.permissions,
+  }));
+}
+
+/**
+ * Links an existing GitHub repository to a project
+ *
+ * @param projectId - The project ID
+ * @param installationId - The GitHub App installation ID
+ * @param repoId - The GitHub repository ID
+ * @param repoName - The repository name
+ * @returns Repository information
+ */
+export async function linkExistingRepository(
+  projectId: string,
+  installationId: number,
+  repoId: number,
+  repoName: string,
+): Promise<{ repoId: number; repoName: string; fullName: string }> {
+  initServices();
+  const db = globalThis.services.db;
+
+  // Check if repository already exists for this project
+  const existingRepo = await db
+    .select()
+    .from(githubRepos)
+    .where(eq(githubRepos.projectId, projectId))
+    .limit(1);
+
+  if (existingRepo.length > 0) {
+    throw new Error(`Repository already exists for project ${projectId}`);
+  }
+
+  // Get installation details to build full name
+  const installation = await getInstallationDetails(installationId);
+
+  const accountLogin = installation.account
+    ? "login" in installation.account
+      ? installation.account.login
+      : installation.account.slug || installation.account.name
+    : "unknown";
+
+  const fullName = `${accountLogin}/${repoName}`;
+
+  // Store repository link in database
+  await db.insert(githubRepos).values({
+    projectId,
+    installationId,
+    repoName,
+    repoId,
+  });
+
+  return {
+    repoId,
+    repoName,
+    fullName,
+  };
+}

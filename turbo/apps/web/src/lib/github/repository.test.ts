@@ -5,6 +5,7 @@ import {
   hasInstallationAccess,
   getUserInstallations,
   removeRepositoryLink,
+  linkExistingRepository,
 } from "./repository";
 import { initServices } from "../init-services";
 import { githubInstallations, githubRepos } from "../../db/schema/github";
@@ -335,6 +336,107 @@ describe("GitHub Repository", () => {
     it("should return 0 if no repository found", async () => {
       const result = await removeRepositoryLink("non-existent-project");
       expect(result).toBe(0);
+    });
+  });
+
+  describe("linkExistingRepository", () => {
+    it("should link an existing repository to a project", async () => {
+      const existingRepoId = 123456;
+      const existingRepoName = "my-existing-repo";
+
+      // Mock getInstallationDetails
+      vi.mocked(getInstallationDetails).mockResolvedValue({
+        account: {
+          type: "User",
+          login: "testuser",
+        },
+      } as Awaited<ReturnType<typeof getInstallationDetails>>);
+
+      // Link the existing repository
+      const result = await linkExistingRepository(
+        testProjectId,
+        testInstallationId,
+        existingRepoId,
+        existingRepoName,
+      );
+
+      expect(result).toEqual({
+        repoId: existingRepoId,
+        repoName: existingRepoName,
+        fullName: `testuser/${existingRepoName}`,
+      });
+
+      // Verify database record was created
+      const db = globalThis.services.db;
+      const repos = await db
+        .select()
+        .from(githubRepos)
+        .where(eq(githubRepos.projectId, testProjectId));
+
+      expect(repos).toHaveLength(1);
+      expect(repos[0]).toMatchObject({
+        projectId: testProjectId,
+        installationId: testInstallationId,
+        repoName: existingRepoName,
+        repoId: existingRepoId,
+      });
+    });
+
+    it("should link repository for organization account", async () => {
+      const existingRepoId = 654321;
+      const existingRepoName = "org-repo";
+
+      // Mock getInstallationDetails for organization
+      vi.mocked(getInstallationDetails).mockResolvedValue({
+        account: {
+          type: "Organization",
+          login: "testorg",
+        },
+      } as Awaited<ReturnType<typeof getInstallationDetails>>);
+
+      const result = await linkExistingRepository(
+        testProjectId,
+        testInstallationId,
+        existingRepoId,
+        existingRepoName,
+      );
+
+      expect(result).toEqual({
+        repoId: existingRepoId,
+        repoName: existingRepoName,
+        fullName: `testorg/${existingRepoName}`,
+      });
+    });
+
+    it("should throw error when repository already exists for project", async () => {
+      // Create existing repository link
+      const db = globalThis.services.db;
+      await db.insert(githubRepos).values({
+        projectId: testProjectId,
+        installationId: testInstallationId,
+        repoName: "existing-repo",
+        repoId: 111111,
+      });
+
+      // Mock getInstallationDetails
+      vi.mocked(getInstallationDetails).mockResolvedValue({
+        account: {
+          type: "User",
+          login: "testuser",
+        },
+      } as Awaited<ReturnType<typeof getInstallationDetails>>);
+
+      // Attempt to link another repository
+      await expect(
+        linkExistingRepository(
+          testProjectId,
+          testInstallationId,
+          222222,
+          "another-repo",
+        ),
+      ).rejects.toThrow(
+        `Repository already exists for project ${testProjectId}`,
+      );
     });
   });
 });
