@@ -1,19 +1,23 @@
 ---
-command: dev-start
-description: Start the development server in background mode
+command: dev-restart
+description: Restart the development server (stop and start)
 ---
 
-Starts the Turbo development server in the background with stream UI mode.
+Restarts the Turbo development server by stopping the current instance and starting a new one.
 
-Usage: `/dev-start`
+Usage: `/dev-restart`
 
 ## What to do:
 
-1. **Check if dev server is already running:**
+1. **Find and stop any running dev server:**
    ```bash
-   pgrep -f "pnpm dev"
+   # List all background bash shells to find dev server
+   # Look for shells running "pnpm dev"
    ```
-   If running, show warning and suggest using `/dev-stop` first.
+
+   For each dev server shell found:
+   - Use `KillShell({ shell_id: "<id>" })` to stop it
+   - Wait 2 seconds for processes to fully terminate
 
 2. **Generate SSL certificates if needed:**
    Check if certificates exist, generate if missing:
@@ -41,9 +45,9 @@ Usage: `/dev-start`
 4. **Show the shell ID:**
    Display the shell_id returned by the Bash tool so user knows which process to monitor.
 
-5. **Show next steps:**
+5. **Show completion message:**
    ```
-   ✅ Dev server started in background (shell_id: <id>)
+   🔄 Dev server restarted successfully (shell_id: <id>)
 
    Next steps:
    - Use `/dev-logs` to view server output
@@ -51,4 +55,4 @@ Usage: `/dev-start`
    - Use `/dev-stop` to stop the server
    ```
 
-Note: The `--ui=stream` flag ensures non-interactive output suitable for background monitoring.
+Note: This command is useful when you need to reload configuration changes or clear stale processes.

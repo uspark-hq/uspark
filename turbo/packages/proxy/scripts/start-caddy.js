@@ -57,4 +57,15 @@ stopCaddy.on("close", () => {
     spawn("caddy", ["stop"], { stdio: "inherit" });
     process.exit(0);
   });
+
+  // Prevent Node.js from exiting by keeping the event loop active
+  // This ensures the Caddy process continues running
+  caddy.on("exit", (code, signal) => {
+    if (code !== null) {
+      console.error(`Caddy exited with code ${code}`);
+    } else if (signal !== null) {
+      console.error(`Caddy was killed by signal ${signal}`);
+    }
+    process.exit(code || 1);
+  });
 });
