@@ -3,17 +3,21 @@ command: dev-start
 description: Start the development server in background mode
 ---
 
-Starts the Turbo development server in the background with stream UI mode.
+Starts the Turbo development server in the background with stream UI mode. If a dev server is already running, it will be stopped first.
 
 Usage: `/dev-start`
 
 ## What to do:
 
-1. **Check if dev server is already running:**
+1. **Stop any running dev server:**
    ```bash
-   pgrep -f "pnpm dev"
+   # List all background bash shells to find dev server
+   # Look for shells running "pnpm dev"
    ```
-   If running, show warning and suggest using `/dev-stop` first.
+
+   For each dev server shell found:
+   - Use `KillShell({ shell_id: "<id>" })` to stop it
+   - Wait 2 seconds for processes to fully terminate
 
 2. **Generate SSL certificates if needed:**
    Check if certificates exist, generate if missing:
