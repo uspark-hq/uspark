@@ -19,9 +19,12 @@ if ! grep -q "www.uspark.dev" /etc/hosts; then
   echo "127.0.0.1 uspark.dev www.uspark.dev app.uspark.dev docs.uspark.dev" | sudo tee -a /etc/hosts > /dev/null
 fi
 
+# Setup mkcert root CA
+echo "Installing mkcert root CA..."
+mkcert -install
+
 echo "✅ Dev container ready!"
 echo ""
 echo "📝 Note: Caddy proxy is now managed via turbo/pnpm"
 echo "   - Start all services: cd turbo && pnpm dev"
-echo "   - Check certificates: cd turbo/packages/proxy && npm run check-certs"
-echo "   - Generate certificates: Run './scripts/generate-certs.sh' on host machine"
+echo "   - Generate certificates: cd turbo/packages/proxy && npm run generate-certs"
