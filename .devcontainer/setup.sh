@@ -23,6 +23,18 @@ fi
 echo "Installing mkcert root CA..."
 mkcert -install
 
+# Import mkcert CA to Chrome MCP profile
+CHROME_MCP_PROFILE="/home/vscode/.cache/chrome-devtools-mcp/chrome-profile"
+if [ -f "/home/vscode/.local/share/mkcert/rootCA.pem" ]; then
+  echo "Importing mkcert CA to Chrome MCP profile..."
+  mkdir -p "$CHROME_MCP_PROFILE"
+  # Initialize NSS database if it doesn't exist
+  if [ ! -f "$CHROME_MCP_PROFILE/cert9.db" ]; then
+    certutil -d sql:"$CHROME_MCP_PROFILE" -N --empty-password
+  fi
+  certutil -d sql:"$CHROME_MCP_PROFILE" -A -t "C,," -n "mkcert" -i "/home/vscode/.local/share/mkcert/rootCA.pem"
+fi
+
 echo "✅ Dev container ready!"
 echo ""
 echo "📝 Note: Caddy proxy is now managed via turbo/pnpm"
