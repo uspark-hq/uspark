@@ -3,6 +3,10 @@ import * as Y from "yjs";
 import { initServices } from "../../../../src/lib/init-services";
 import { getUserId } from "../../../../src/lib/auth/get-user-id";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
+import { SESSIONS_TBL } from "../../../../src/db/schema/sessions";
+import { githubRepos } from "../../../../src/db/schema/github";
+import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
+import { AGENT_SESSIONS_TBL } from "../../../../src/db/schema/agent-sessions";
 import { eq, and } from "drizzle-orm";
 
 /**
@@ -150,4 +154,57 @@ export async function PATCH(
       "X-Version": result[0]?.version.toString() || "",
     },
   });
+}
+
+/**
+ * DELETE /api/projects/:projectId
+ * Deletes a project and all related data
+ */
+export async function DELETE(
+  request: NextRequest,
+  context: { params: Promise<{ projectId: string }> },
+) {
+  const userId = await getUserId();
+
+  if (!userId) {
+    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
+  }
+
+  initServices();
+  const { projectId } = await context.params;
+  const db = globalThis.services.db;
+
+  // Verify project exists and user owns it
+  const [project] = await db
+    .select()
+    .from(PROJECTS_TBL)
+    .where(
+      and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)),
+    );
+
+  if (!project) {
+    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+  }
+
+  // Delete related data (order matters for foreign key constraints)
+  // 1. Delete sessions (turns and blocks cascade automatically)
+  await db.delete(SESSIONS_TBL).where(eq(SESSIONS_TBL.projectId, projectId));
+
+  // 2. Delete GitHub repository links
+  await db.delete(githubRepos).where(eq(githubRepos.projectId, projectId));
+
+  // 3. Delete share links
+  await db
+    .delete(SHARE_LINKS_TBL)
+    .where(eq(SHARE_LINKS_TBL.projectId, projectId));
+
+  // 4. Delete agent sessions
+  await db
+    .delete(AGENT_SESSIONS_TBL)
+    .where(eq(AGENT_SESSIONS_TBL.projectId, projectId));
+
+  // 5. Finally, delete the project itself
+  await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.id, projectId));
+
+  return new Response(null, { status: 204 });
 }

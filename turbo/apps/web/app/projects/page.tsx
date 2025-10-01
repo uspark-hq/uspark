@@ -32,6 +32,9 @@ export default function ProjectsListPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Load projects from API
   useEffect(() => {
@@ -92,6 +95,31 @@ export default function ProjectsListPage() {
       setError(err instanceof Error ? err.message : "Failed to create project");
     } finally {
       setCreating(false);
+    }
+  };
+
+  const handleDeleteProject = async () => {
+    if (!projectToDelete) return;
+
+    setDeleting(true);
+
+    try {
+      const response = await fetch(`/api/projects/${projectToDelete.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to delete project");
+      }
+
+      // Remove from projects list
+      setProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
+      setShowDeleteDialog(false);
+      setProjectToDelete(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to delete project");
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -220,28 +248,43 @@ export default function ProjectsListPage() {
           }}
         >
           {projects.map((project) => (
-            <Card
-              key={project.id}
-              className="cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5"
-              onClick={() => router.push(`/projects/${project.id}`)}
-            >
-              <CardHeader>
-                <div className="flex items-center">
-                  <div className="text-3xl mr-3">📁</div>
-                  <div>
-                    <CardTitle>{project.name}</CardTitle>
-                    <CardDescription>
-                      Updated {formatDate(project.updated_at)}
-                    </CardDescription>
+            <Card key={project.id} className="transition-all hover:shadow-lg">
+              <div
+                className="cursor-pointer"
+                onClick={() => router.push(`/projects/${project.id}`)}
+              >
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center">
+                      <div className="text-3xl mr-3">📁</div>
+                      <div>
+                        <CardTitle>{project.name}</CardTitle>
+                        <CardDescription>
+                          Updated {formatDate(project.updated_at)}
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setProjectToDelete(project);
+                        setShowDeleteDialog(true);
+                      }}
+                    >
+                      Delete
+                    </Button>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="flex justify-between text-sm text-muted-foreground">
-                  <span>0 files</span>
-                  <span>{formatFileSize(0)}</span>
-                </div>
-              </CardContent>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-between text-sm text-muted-foreground">
+                    <span>0 files</span>
+                    <span>{formatFileSize(0)}</span>
+                  </div>
+                </CardContent>
+              </div>
             </Card>
           ))}
         </div>
@@ -311,6 +354,39 @@ export default function ProjectsListPage() {
               disabled={!newProjectName.trim() || creating}
             >
               {creating ? "Creating..." : "Create Project"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Project Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Project</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete &quot;{projectToDelete?.name}
+              &quot;? This action cannot be undone. All files, sessions, and
+              related data will be permanently deleted.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setProjectToDelete(null);
+              }}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteProject}
+              disabled={deleting}
+            >
+              {deleting ? "Deleting..." : "Delete Project"}
             </Button>
           </DialogFooter>
         </DialogContent>

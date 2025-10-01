@@ -1,11 +1,15 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import "../../../../src/test/setup";
 import { NextRequest } from "next/server";
-import { GET, PATCH } from "./route";
+import { GET, PATCH, DELETE } from "./route";
 import { POST as createProject } from "../route";
 import * as Y from "yjs";
 import { initServices } from "../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
+import { SESSIONS_TBL } from "../../../../src/db/schema/sessions";
+import { githubRepos } from "../../../../src/db/schema/github";
+import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
+import { AGENT_SESSIONS_TBL } from "../../../../src/db/schema/agent-sessions";
 import { eq, and } from "drizzle-orm";
 
 // Mock Clerk authentication
@@ -342,6 +346,218 @@ describe("/api/projects/:projectId", () => {
       expect(response2.status).toBe(409);
       const error = await response2.json();
       expect(error).toHaveProperty("error", "Version conflict");
+    });
+  });
+
+  describe("DELETE /api/projects/:projectId", () => {
+    it("should return 401 when not authenticated", async () => {
+      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
+        ReturnType<typeof auth>
+      >);
+
+      const mockRequest = new NextRequest("http://localhost:3000", {
+        method: "DELETE",
+      });
+      const context = { params: Promise.resolve({ projectId }) };
+
+      const response = await DELETE(mockRequest, context);
+
+      expect(response.status).toBe(401);
+      const data = await response.json();
+      expect(data).toHaveProperty("error", "unauthorized");
+    });
+
+    it("should return 404 when project doesn't exist", async () => {
+      const mockRequest = new NextRequest("http://localhost:3000", {
+        method: "DELETE",
+      });
+      const context = {
+        params: Promise.resolve({ projectId: "non-existent-project" }),
+      };
+
+      const response = await DELETE(mockRequest, context);
+
+      expect(response.status).toBe(404);
+      const data = await response.json();
+      expect(data).toHaveProperty("error", "Project not found");
+    });
+
+    it("should return 404 when trying to delete another user's project", async () => {
+      // Create project for another user
+      const otherUserId = "other-user";
+      const otherProjectId = `other-project-${Date.now()}`;
+
+      await globalThis.services.db.insert(PROJECTS_TBL).values({
+        id: otherProjectId,
+        userId: otherUserId,
+        ydocData: Buffer.from(Y.encodeStateAsUpdate(new Y.Doc())).toString(
+          "base64",
+        ),
+        version: 0,
+      });
+
+      // Try to delete as current user
+      const mockRequest = new NextRequest("http://localhost:3000", {
+        method: "DELETE",
+      });
+      const context = {
+        params: Promise.resolve({ projectId: otherProjectId }),
+      };
+
+      const response = await DELETE(mockRequest, context);
+
+      expect(response.status).toBe(404);
+
+      // Clean up
+      await globalThis.services.db
+        .delete(PROJECTS_TBL)
+        .where(eq(PROJECTS_TBL.id, otherProjectId));
+    });
+
+    it("should delete project and all related data", async () => {
+      // Create project using API endpoint
+      const createRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ name: "test-project-to-delete" }),
+      });
+      const createResponse = await createProject(createRequest);
+      const createdProject = await createResponse.json();
+      const testProjectId = createdProject.id;
+
+      // Create related data
+      // 1. Create session
+      await globalThis.services.db.insert(SESSIONS_TBL).values({
+        id: `session-${testProjectId}`,
+        projectId: testProjectId,
+        title: "Test Session",
+      });
+
+      // 2. Create GitHub repo link
+      await globalThis.services.db.insert(githubRepos).values({
+        id: `github-${testProjectId}`,
+        projectId: testProjectId,
+        installationId: 12345,
+        repoName: "test-repo",
+        repoId: 67890,
+      });
+
+      // 3. Create share link
+      await globalThis.services.db.insert(SHARE_LINKS_TBL).values({
+        id: `share-${testProjectId}`,
+        token: `token-${testProjectId}`,
+        projectId: testProjectId,
+        userId: userId,
+        filePath: "test.md",
+      });
+
+      // 4. Create agent session
+      await globalThis.services.db.insert(AGENT_SESSIONS_TBL).values({
+        id: `agent-${testProjectId}`,
+        projectId: testProjectId,
+        userId: userId,
+        prompt: "Test prompt",
+        status: "completed",
+      });
+
+      // Verify all data exists before deletion
+      const [projectBefore] = await globalThis.services.db
+        .select()
+        .from(PROJECTS_TBL)
+        .where(eq(PROJECTS_TBL.id, testProjectId));
+      expect(projectBefore).toBeDefined();
+
+      const [sessionBefore] = await globalThis.services.db
+        .select()
+        .from(SESSIONS_TBL)
+        .where(eq(SESSIONS_TBL.projectId, testProjectId));
+      expect(sessionBefore).toBeDefined();
+
+      const [githubRepoBefore] = await globalThis.services.db
+        .select()
+        .from(githubRepos)
+        .where(eq(githubRepos.projectId, testProjectId));
+      expect(githubRepoBefore).toBeDefined();
+
+      const [shareLinkBefore] = await globalThis.services.db
+        .select()
+        .from(SHARE_LINKS_TBL)
+        .where(eq(SHARE_LINKS_TBL.projectId, testProjectId));
+      expect(shareLinkBefore).toBeDefined();
+
+      const [agentSessionBefore] = await globalThis.services.db
+        .select()
+        .from(AGENT_SESSIONS_TBL)
+        .where(eq(AGENT_SESSIONS_TBL.projectId, testProjectId));
+      expect(agentSessionBefore).toBeDefined();
+
+      // Delete the project
+      const mockRequest = new NextRequest("http://localhost:3000", {
+        method: "DELETE",
+      });
+      const context = { params: Promise.resolve({ projectId: testProjectId }) };
+
+      const response = await DELETE(mockRequest, context);
+
+      expect(response.status).toBe(204);
+
+      // Verify all data was deleted
+      const [projectAfter] = await globalThis.services.db
+        .select()
+        .from(PROJECTS_TBL)
+        .where(eq(PROJECTS_TBL.id, testProjectId));
+      expect(projectAfter).toBeUndefined();
+
+      const [sessionAfter] = await globalThis.services.db
+        .select()
+        .from(SESSIONS_TBL)
+        .where(eq(SESSIONS_TBL.projectId, testProjectId));
+      expect(sessionAfter).toBeUndefined();
+
+      const [githubRepoAfter] = await globalThis.services.db
+        .select()
+        .from(githubRepos)
+        .where(eq(githubRepos.projectId, testProjectId));
+      expect(githubRepoAfter).toBeUndefined();
+
+      const [shareLinkAfter] = await globalThis.services.db
+        .select()
+        .from(SHARE_LINKS_TBL)
+        .where(eq(SHARE_LINKS_TBL.projectId, testProjectId));
+      expect(shareLinkAfter).toBeUndefined();
+
+      const [agentSessionAfter] = await globalThis.services.db
+        .select()
+        .from(AGENT_SESSIONS_TBL)
+        .where(eq(AGENT_SESSIONS_TBL.projectId, testProjectId));
+      expect(agentSessionAfter).toBeUndefined();
+    });
+
+    it("should successfully delete project even without related data", async () => {
+      // Create project using API endpoint
+      const createRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ name: "test-project-simple" }),
+      });
+      const createResponse = await createProject(createRequest);
+      const createdProject = await createResponse.json();
+      const testProjectId = createdProject.id;
+
+      // Delete without creating any related data
+      const mockRequest = new NextRequest("http://localhost:3000", {
+        method: "DELETE",
+      });
+      const context = { params: Promise.resolve({ projectId: testProjectId }) };
+
+      const response = await DELETE(mockRequest, context);
+
+      expect(response.status).toBe(204);
+
+      // Verify project was deleted
+      const [projectAfter] = await globalThis.services.db
+        .select()
+        .from(PROJECTS_TBL)
+        .where(eq(PROJECTS_TBL.id, testProjectId));
+      expect(projectAfter).toBeUndefined();
     });
   });
 });
