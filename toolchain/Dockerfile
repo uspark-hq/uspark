@@ -31,6 +31,15 @@ RUN npm install -g pnpm@10.15.0 lefthook@1.12.3 vercel@46.1.1 neonctl@2.15.0
 # This is needed for e2e tests in CI
 RUN npx playwright install-deps chromium
 
+# Install Chromium browser via Playwright to a shared location
+# Required for Chrome DevTools MCP and e2e tests
+RUN PLAYWRIGHT_BROWSERS_PATH=/opt/ms-playwright npx playwright install chromium
+
+# Create symlink for Chrome DevTools MCP
+# MCP expects Chrome at /opt/google/chrome/chrome by default
+RUN mkdir -p /opt/google/chrome && \
+    ln -s /opt/ms-playwright/chromium-*/chrome-linux/chrome /opt/google/chrome/chrome
+
 # Stage 2: Development environment with additional tools
 FROM toolchain AS development
 
