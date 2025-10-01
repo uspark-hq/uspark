@@ -27,13 +27,14 @@ mkcert -install
 CHROME_MCP_PROFILE="/home/vscode/.cache/chrome-devtools-mcp/chrome-profile"
 if [ -f "/home/vscode/.local/share/mkcert/rootCA.pem" ]; then
   echo "Importing mkcert CA to Chrome MCP profile..."
+  # Clean up old Chrome MCP profile to ensure fresh certificate import
+  rm -rf "$CHROME_MCP_PROFILE"
   mkdir -p "$CHROME_MCP_PROFILE"
-  # Initialize NSS database if it doesn't exist
-  if [ ! -f "$CHROME_MCP_PROFILE/cert9.db" ]; then
-    certutil -d sql:"$CHROME_MCP_PROFILE" -N --empty-password
-  fi
+  # Initialize NSS database
+  certutil -d sql:"$CHROME_MCP_PROFILE" -N --empty-password
   # Get the certificate nickname from system NSS database (includes serial number)
   CERT_NAME=$(certutil -d sql:/home/vscode/.pki/nssdb -L | grep "mkcert development CA" | awk '{print $1" "$2" "$3" "$4}')
+  # Import the certificate
   certutil -d sql:"$CHROME_MCP_PROFILE" -A -t "C,," -n "$CERT_NAME" -i "/home/vscode/.local/share/mkcert/rootCA.pem"
 fi
 
