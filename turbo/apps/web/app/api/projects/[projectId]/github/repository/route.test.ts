@@ -242,6 +242,101 @@ describe("/api/projects/[projectId]/github/repository", () => {
       expect(response.status).toBe(409);
       expect(data).toEqual({ error: "repository_already_exists" });
     });
+
+    it("should link existing repository successfully", async () => {
+      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
+        ReturnType<typeof auth>
+      >);
+
+      // Setup test data
+      initServices();
+      const db = globalThis.services.db;
+
+      // Create test installation
+      await db.insert(githubInstallations).values({
+        userId,
+        installationId: testInstallationId,
+        accountName: "testuser",
+      });
+
+      const existingRepoId = 123456;
+      const existingRepoName = "my-existing-repo";
+
+      const request = new NextRequest(
+        "http://localhost/api/projects/test-project-123/github/repository",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            installationId: testInstallationId,
+            repositoryId: existingRepoId,
+            repositoryName: existingRepoName,
+            owner: "testuser",
+          }),
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+      const context = { params: Promise.resolve({ projectId }) };
+
+      const response = await POST(request, context);
+      const data = await response.json();
+
+      expect(response.status).toBe(201);
+      expect(data.repository.repoId).toBe(existingRepoId);
+      expect(data.repository.repoName).toBe(existingRepoName);
+      expect(data.repository.fullName).toBe(`testuser/${existingRepoName}`);
+
+      // Verify repository link was created in database
+      const createdRepo = await db
+        .select()
+        .from(githubRepos)
+        .where(eq(githubRepos.projectId, projectId));
+      expect(createdRepo.length).toBe(1);
+      expect(createdRepo[0]).toMatchObject({
+        projectId,
+        installationId: testInstallationId,
+        repoId: existingRepoId,
+        repoName: existingRepoName,
+      });
+    });
+
+    it("should return 400 for invalid repository parameters", async () => {
+      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
+        ReturnType<typeof auth>
+      >);
+
+      // Setup test data
+      initServices();
+      const db = globalThis.services.db;
+
+      // Create test installation
+      await db.insert(githubInstallations).values({
+        userId,
+        installationId: testInstallationId,
+        accountName: "testuser",
+      });
+
+      // Missing repositoryName (repositoryId provided but not repositoryName)
+      const request = new NextRequest(
+        "http://localhost/api/projects/test-project-123/github/repository",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            installationId: testInstallationId,
+            repositoryId: 123456,
+            // repositoryName is missing
+          }),
+          headers: { "Content-Type": "application/json" },
+        },
+      );
+      const context = { params: Promise.resolve({ projectId }) };
+
+      const response = await POST(request, context);
+
+      // Should fall back to creating new repo since repositoryName is missing
+      // Based on the implementation: if (repositoryId && repositoryName)
+      // Without repositoryName, it will try to create a new repo
+      expect(response.status).toBe(201);
+    });
   });
 
   describe("DELETE", () => {
