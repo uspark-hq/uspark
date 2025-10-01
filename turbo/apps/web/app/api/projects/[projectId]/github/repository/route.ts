@@ -4,7 +4,6 @@ import {
   createProjectRepository,
   getProjectRepository,
   hasInstallationAccess,
-  removeRepositoryLink,
   linkExistingRepository,
 } from "../../../../../../src/lib/github/repository";
 
@@ -134,51 +133,4 @@ export async function POST(
 
     throw error;
   }
-}
-
-/**
- * DELETE /api/projects/[projectId]/github/repository
- *
- * Removes repository link from project (does not delete GitHub repo)
- */
-export async function DELETE(
-  request: NextRequest,
-  context: { params: Promise<{ projectId: string }> },
-) {
-  const { userId } = await auth();
-  if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
-  const { projectId } = await context.params;
-
-  const repository = await getProjectRepository(projectId);
-
-  if (!repository) {
-    return NextResponse.json(
-      { error: "repository_not_found" },
-      { status: 404 },
-    );
-  }
-
-  // Verify user has access to this installation
-  const hasAccess = await hasInstallationAccess(
-    userId,
-    repository.installationId,
-  );
-  if (!hasAccess) {
-    return NextResponse.json({ error: "forbidden" }, { status: 403 });
-  }
-
-  // Remove repository link from database
-  const deletedCount = await removeRepositoryLink(projectId);
-
-  if (deletedCount === 0) {
-    return NextResponse.json(
-      { error: "repository_not_found" },
-      { status: 404 },
-    );
-  }
-
-  return NextResponse.json({ message: "repository_link_removed" });
 }

@@ -1,9 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import {
-  syncProjectToGitHub,
-  checkGitHubStatus,
-} from "../../../../../../src/lib/github/sync";
+import { syncProjectToGitHub } from "../../../../../../src/lib/github/sync";
 
 // Note: Contract reference - projectDetailContract.syncToGitHub
 // Types not used directly due to backward compatibility requirements
@@ -64,26 +61,4 @@ export async function POST(
     filesCount: result.filesCount,
     message: result.message,
   });
-}
-
-/**
- * GET /api/projects/:projectId/github/sync
- * Checks GitHub sync status and detects external changes
- */
-export async function GET(
-  _request: NextRequest,
-  context: { params: Promise<{ projectId: string }> },
-) {
-  const { userId } = await auth();
-
-  if (!userId) {
-    return NextResponse.json({ error: "unauthorized" }, { status: 401 });
-  }
-
-  const { projectId } = await context.params;
-
-  // Check GitHub status with external change detection
-  const status = await checkGitHubStatus(projectId);
-
-  return NextResponse.json(status);
 }

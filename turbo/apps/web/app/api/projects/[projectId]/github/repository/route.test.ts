@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "../../../../../../src/test/setup";
 import { NextRequest } from "next/server";
-import { GET, POST, DELETE } from "./route";
+import { GET, POST } from "./route";
 import { auth } from "@clerk/nextjs/server";
 import {
   cleanupTestProjects,
@@ -336,95 +336,6 @@ describe("/api/projects/[projectId]/github/repository", () => {
       // Based on the implementation: if (repositoryId && repositoryName)
       // Without repositoryName, it will try to create a new repo
       expect(response.status).toBe(201);
-    });
-  });
-
-  describe("DELETE", () => {
-    it("should remove repository link successfully", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      // Setup test data
-      initServices();
-      const db = globalThis.services.db;
-
-      // Create test installation
-      await db.insert(githubInstallations).values({
-        userId,
-        installationId: testInstallationId,
-        accountName: "testuser",
-      });
-
-      // Create test repository to delete
-      await db.insert(githubRepos).values({
-        projectId,
-        installationId: testInstallationId,
-        repoName: "uspark-test-project-123",
-        repoId: 987654,
-      });
-
-      const request = new NextRequest(
-        "http://localhost/api/projects/test-project-123/github/repository",
-        {
-          method: "DELETE",
-        },
-      );
-      const context = { params: Promise.resolve({ projectId }) };
-
-      const response = await DELETE(request, context);
-      const data = await response.json();
-
-      expect(response.status).toBe(200);
-      expect(data).toEqual({ message: "repository_link_removed" });
-
-      // Verify repository was deleted from database
-      const deletedRepo = await db
-        .select()
-        .from(githubRepos)
-        .where(eq(githubRepos.projectId, projectId));
-      expect(deletedRepo.length).toBe(0);
-    });
-
-    it("should return 404 if repository not found during delete", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      // Setup test data
-      initServices();
-      const db = globalThis.services.db;
-
-      // Create test installation
-      await db.insert(githubInstallations).values({
-        userId,
-        installationId: testInstallationId,
-        accountName: "testuser",
-      });
-
-      // Create repository for a different project (not the one we're trying to delete)
-      await db.insert(githubRepos).values({
-        projectId: "different-project",
-        installationId: testInstallationId,
-        repoName: "different-repo",
-        repoId: 111111,
-      });
-
-      const request = new NextRequest(
-        "http://localhost/api/projects/test-project-123/github/repository",
-        {
-          method: "DELETE",
-        },
-      );
-      const context = { params: Promise.resolve({ projectId }) };
-
-      const response = await DELETE(request, context);
-      const data = await response.json();
-
-      // The delete should succeed but not find any repos to delete
-      // Based on the route implementation, if no repository exists it returns 404
-      expect(response.status).toBe(404);
-      expect(data).toEqual({ error: "repository_not_found" });
     });
   });
 });

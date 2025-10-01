@@ -1,9 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import { syncProjectToGitHub, getSyncStatus, checkGitHubStatus } from "./sync";
+import { syncProjectToGitHub } from "./sync";
 import { getProjectRepository } from "./repository";
-import { initServices } from "../init-services";
-import { githubRepos } from "../../db/schema/github";
-import { eq } from "drizzle-orm";
 import * as Y from "yjs";
 import {
   createTestProjectForUser,
@@ -210,37 +207,6 @@ describe("GitHub Sync", () => {
     });
   });
 
-  describe("getSyncStatus", () => {
-    it("should return linked status when repository exists", async () => {
-      const projectId = "linked-test-" + Date.now() + "-" + Math.random();
-
-      // Link repository using utility function
-      const repo = await linkGitHubRepository(
-        projectId,
-        12345,
-        "test-repo",
-        67890,
-      );
-
-      const status = await getSyncStatus(projectId);
-
-      expect(repo).toBeDefined();
-      expect(status.linked).toBe(true);
-      expect(status.repoId).toBe(67890);
-      expect(status.repoName).toBe("test-repo");
-      expect(status.lastSynced).toEqual(repo!.updatedAt);
-    });
-
-    it("should return unlinked status when repository does not exist", async () => {
-      const projectId = "404e4567-e89b-12d3-a456-426614174404";
-
-      const status = await getSyncStatus(projectId);
-
-      expect(status.linked).toBe(false);
-      expect(status.message).toBe("No GitHub repository linked");
-    });
-  });
-
   describe("extractFilesFromYDoc", () => {
     it("should extract files correctly from YDoc data", async () => {
       // This tests the YDoc parsing logic directly with real YDoc operations
@@ -323,114 +289,6 @@ describe("GitHub Sync", () => {
       // sent to GitHub API, but the sync succeeds which means paths are
       // correctly formatted. Integration tests with real GitHub would verify
       // the spec/ prefix is applied correctly.
-    });
-  });
-
-  describe("checkGitHubStatus", () => {
-    it("should return unlinked status when repository not linked", async () => {
-      const projectId = "unlinked-" + Date.now() + "-" + Math.random();
-
-      const status = await checkGitHubStatus(projectId);
-
-      expect(status.linked).toBe(false);
-      expect(status.hasExternalChanges).toBe(false);
-      expect(status.message).toBe("No GitHub repository linked");
-    });
-
-    it("should return no changes when never synced", async () => {
-      const projectId = "never-synced-" + Date.now() + "-" + Math.random();
-
-      // Link repository without syncing
-      await linkGitHubRepository(projectId, 12345, "test-repo", 67890);
-
-      const status = await checkGitHubStatus(projectId);
-
-      expect(status.linked).toBe(true);
-      expect(status.hasExternalChanges).toBe(false);
-      expect(status.lastSyncCommitSha).toBeNull();
-      expect(status.message).toBe("Repository linked but never synced");
-    });
-
-    it("should detect no external changes when SHA matches", async () => {
-      const projectId = "no-changes-" + Date.now() + "-" + Math.random();
-      const userId = "user_123";
-
-      // Create project and sync
-      const ydoc = new Y.Doc();
-      const filesMap = ydoc.getMap("files");
-      const blobsMap = ydoc.getMap("blobs");
-      filesMap.set("README.md", { hash: "hash123", mtime: Date.now() });
-      blobsMap.set("hash123", { size: 100 });
-      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
-        "base64",
-      );
-
-      await createTestProjectForUser(userId, {
-        id: projectId,
-        ydocData,
-        version: 0,
-      });
-      await linkGitHubRepository(projectId, 12345, "test-repo", 67890);
-
-      // Sync (MSW will return commit SHA: "new-commit-sha-202")
-      await syncProjectToGitHub(projectId, userId);
-
-      // Check status (MSW will return same SHA for GET ref)
-      const status = await checkGitHubStatus(projectId);
-
-      expect(status.linked).toBe(true);
-      expect(status.hasExternalChanges).toBe(false);
-      expect(status.lastSyncCommitSha).toBe("new-commit-sha-202");
-      expect(status.currentCommitSha).toBe("new-commit-sha-202");
-      expect(status.message).toContain("up to date");
-    });
-
-    it("should detect external changes when SHA differs", async () => {
-      const projectId = "has-changes-" + Date.now() + "-" + Math.random();
-      const userId = "user_123";
-
-      // Create and link repository with old commit SHA
-      const ydoc = new Y.Doc();
-      const filesMap = ydoc.getMap("files");
-      const blobsMap = ydoc.getMap("blobs");
-      filesMap.set("README.md", { hash: "hash123", mtime: Date.now() });
-      blobsMap.set("hash123", { size: 100 });
-      const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
-        "base64",
-      );
-
-      await createTestProjectForUser(userId, {
-        id: projectId,
-        ydocData,
-        version: 0,
-      });
-
-      const repo = await linkGitHubRepository(
-        projectId,
-        12345,
-        "test-repo",
-        67890,
-      );
-
-      // Manually set an old commit SHA to simulate external change
-      initServices();
-      const db = globalThis.services.db;
-      await db
-        .update(githubRepos)
-        .set({
-          lastSyncCommitSha: "old-commit-sha-100",
-          lastSyncAt: new Date(),
-        })
-        .where(eq(githubRepos.id, repo!.id));
-
-      // Check status (MSW will return "new-commit-sha-202" which is different)
-      const status = await checkGitHubStatus(projectId);
-
-      expect(status.linked).toBe(true);
-      expect(status.hasExternalChanges).toBe(true);
-      expect(status.lastSyncCommitSha).toBe("old-commit-sha-100");
-      expect(status.currentCommitSha).toBe("new-commit-sha-202");
-      expect(status.message).toContain("modified outside uSpark");
     });
   });
 });

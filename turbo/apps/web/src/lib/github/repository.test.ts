@@ -4,7 +4,6 @@ import {
   getProjectRepository,
   hasInstallationAccess,
   getUserInstallations,
-  removeRepositoryLink,
   linkExistingRepository,
 } from "./repository";
 import { initServices } from "../init-services";
@@ -300,42 +299,6 @@ describe("GitHub Repository", () => {
     it("should return empty array for user with no installations", async () => {
       const result = await getUserInstallations("user-without-installations");
       expect(result).toEqual([]);
-    });
-  });
-
-  describe("removeRepositoryLink", () => {
-    it("should remove repository link from database", async () => {
-      // Create repository in database
-      const db = globalThis.services.db;
-      await db.insert(githubRepos).values({
-        projectId: testProjectId,
-        installationId: testInstallationId,
-        repoName: expectedRepoName,
-        repoId: 987654,
-      });
-
-      // Verify it exists
-      let repos = await db
-        .select()
-        .from(githubRepos)
-        .where(eq(githubRepos.projectId, testProjectId));
-      expect(repos).toHaveLength(1);
-
-      // Remove it
-      const result = await removeRepositoryLink(testProjectId);
-      expect(result).toBe(1);
-
-      // Verify it's gone
-      repos = await db
-        .select()
-        .from(githubRepos)
-        .where(eq(githubRepos.projectId, testProjectId));
-      expect(repos).toHaveLength(0);
-    });
-
-    it("should return 0 if no repository found", async () => {
-      const result = await removeRepositoryLink("non-existent-project");
-      expect(result).toBe(0);
     });
   });
 
