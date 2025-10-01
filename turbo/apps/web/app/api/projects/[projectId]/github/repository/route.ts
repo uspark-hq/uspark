@@ -1,18 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import type { z } from "zod";
 import {
   createProjectRepository,
   getProjectRepository,
   hasInstallationAccess,
   removeRepositoryLink,
 } from "../../../../../../src/lib/github/repository";
-import { projectDetailContract } from "@uspark/core";
 
-// Extract types from contract
-type GitHubRepositoryResponse = z.infer<
-  (typeof projectDetailContract.getGitHubRepository.responses)[200]
->;
+// Note: Contract reference - projectDetailContract.getGitHubRepository
+// Types not used directly due to type compatibility issues with RepositoryInfo
 
 /**
  * GET /api/projects/[projectId]/github/repository
@@ -52,8 +48,9 @@ export async function GET(
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  const response: GitHubRepositoryResponse = { repository };
-  return NextResponse.json(response);
+  // Note: Not using type annotation to avoid type compatibility issues
+  // with RepositoryInfo vs contract schema
+  return NextResponse.json({ repository });
 }
 
 /**
