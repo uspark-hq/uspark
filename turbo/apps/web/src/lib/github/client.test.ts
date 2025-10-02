@@ -1,9 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import {
-  createAppOctokit,
-  createInstallationOctokit,
-  getInstallationDetails,
-} from "./client";
+import { createInstallationOctokit, getInstallationDetails } from "./client";
 import { getInstallationToken } from "./auth";
 
 // Mock @octokit/app
@@ -65,13 +61,6 @@ vi.mock("./auth", () => ({
 describe("GitHub Client", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-  });
-
-  describe("createAppOctokit", () => {
-    it("should create an App client", () => {
-      const app = createAppOctokit();
-      expect(app).toBeDefined();
-    });
   });
 
   describe("createInstallationOctokit", () => {
