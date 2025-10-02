@@ -88,6 +88,25 @@ export const sessionTurns = function (params: {
   })
 }
 
+export const turnDetail = function (params: {
+  projectId: string
+  sessionId: string
+  turnId: string
+}) {
+  return computed(async (get) => {
+    const workspaceFetch = get(fetch$)
+
+    return await contractFetch(turnsContract.getTurn, {
+      params: {
+        projectId: params.projectId,
+        sessionId: params.sessionId,
+        turnId: params.turnId,
+      },
+      fetch: workspaceFetch,
+    })
+  })
+}
+
 export const createSession$ = command(
   (
     { get },
@@ -125,23 +144,17 @@ export const sendMessage$ = command(
   },
 )
 
-export const sessionUpdates = function (params: {
+export const lastBlockId = function (params: {
   projectId: string
   sessionId: string
-  lastBlockId?: string
-  timeout?: string
 }) {
   return computed(async (get) => {
     const workspaceFetch = get(fetch$)
 
-    return await contractFetch(projectDetailContract.getSessionUpdates, {
+    return await contractFetch(projectDetailContract.getLastBlockId, {
       params: {
         projectId: params.projectId,
         sessionId: params.sessionId,
-      },
-      query: {
-        lastBlockId: params.lastBlockId,
-        timeout: params.timeout ?? '30000',
       },
       fetch: workspaceFetch,
     })

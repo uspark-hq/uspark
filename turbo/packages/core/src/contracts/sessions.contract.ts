@@ -176,21 +176,20 @@ export const sessionsContract = c.router({
     summary: "Interrupt a running session",
   },
 
-  getSessionUpdates: {
+  getLastBlockId: {
     method: "GET",
-    path: "/api/projects/:projectId/sessions/:sessionId/updates",
+    path: "/api/projects/:projectId/sessions/:sessionId/last-block-id",
     pathParams: z.object({
       projectId: z.string().uuid(),
       sessionId: z.string().startsWith("sess_"),
     }),
-    query: z.object({
-      since: z.string().optional(), // ISO timestamp
-    }),
     responses: {
-      200: SessionUpdatesResponseSchema,
+      200: z.object({
+        lastBlockId: z.string().nullable(),
+      }),
       401: SessionErrorResponseSchema,
       404: SessionErrorResponseSchema,
     },
-    summary: "Poll for session updates",
+    summary: "Get last block ID",
   },
 });

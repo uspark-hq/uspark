@@ -3,6 +3,7 @@ import {
   projectFiles,
   projectSessions,
   sessionTurns,
+  turnDetail,
 } from '../external/project-detail'
 import { pathParams$, searchParams$ } from '../route'
 
@@ -29,19 +30,24 @@ export const projectSessions$ = computed((get) => {
   return get(projectSessions(projectId))
 })
 
-export const selectedSession$ = computed(async (get) => {
+const sessionId$ = computed((get) => {
   const searchParams = get(searchParams$)
+
+  return searchParams.get('sessionId') ?? undefined
+})
+
+export const selectedSession$ = computed(async (get) => {
+  const sessionId = get(sessionId$)
+  if (!sessionId) {
+    return undefined
+  }
+
   const sessionsResponse = await get(projectSessions$)
   if (!sessionsResponse) {
     return undefined
   }
 
   const sessions = sessionsResponse.sessions
-  const sessionId = searchParams.get('sessionId')
-  if (!sessionId) {
-    return undefined
-  }
-
   return sessions.find((s) => s.id === sessionId)
 })
 
@@ -55,10 +61,22 @@ export const turns$ = computed(async (get) => {
     return undefined
   }
 
-  return get(
+  const resp = await get(
     sessionTurns({
       projectId: projectId,
       sessionId: session.id,
+    }),
+  )
+
+  return Promise.all(
+    resp.turns.map((turn) => {
+      return get(
+        turnDetail({
+          projectId: projectId,
+          sessionId: session.id,
+          turnId: turn.id,
+        }),
+      )
     }),
   )
 })

@@ -15,12 +15,13 @@ import {
   getFileContentUrl,
   githubInstallations$,
   githubRepository,
+  lastBlockId,
   projectFiles,
   projectSessions,
   sendMessage$,
-  sessionUpdates,
   shareFile$,
   syncToGithub$,
+  turnDetail,
 } from '../project-detail'
 
 const context = testContext()
@@ -214,74 +215,103 @@ describe('project-detail signals', () => {
     })
   })
 
-  describe('sessionUpdates', () => {
-    it('should fetch session updates with long polling', async () => {
+  describe('lastBlockId', () => {
+    it('should fetch last block ID when blocks exist', async () => {
       const { store } = context
 
       const mockResponse = {
-        session: {
-          id: 'session-456',
-          updatedAt: '2024-01-01T00:00:00Z',
-        },
-        turns: [
+        lastBlockId: 'block-123',
+      }
+
+      server.use(
+        http.get(
+          '*/api/projects/:projectId/sessions/:sessionId/last-block-id',
+          ({ params }) => {
+            expect(params.projectId).toBe('project-123')
+            expect(params.sessionId).toBe('session-456')
+            return HttpResponse.json(mockResponse)
+          },
+        ),
+      )
+
+      const blockIdSignal$ = lastBlockId({
+        projectId: 'project-123',
+        sessionId: 'session-456',
+      })
+      const result = await store.get(blockIdSignal$)
+
+      expect(result).toStrictEqual(mockResponse)
+    })
+
+    it('should return null when no blocks exist', async () => {
+      const { store } = context
+
+      server.use(
+        http.get(
+          '*/api/projects/:projectId/sessions/:sessionId/last-block-id',
+          () => {
+            return HttpResponse.json({ lastBlockId: null })
+          },
+        ),
+      )
+
+      const blockIdSignal$ = lastBlockId({
+        projectId: 'project-123',
+        sessionId: 'session-456',
+      })
+      const result = await store.get(blockIdSignal$)
+
+      expect(result).toStrictEqual({ lastBlockId: null })
+    })
+  })
+
+  describe('turnDetail', () => {
+    it('should fetch turn with all blocks', async () => {
+      const { store } = context
+
+      const mockResponse = {
+        id: 'turn_123',
+        session_id: 'session-456',
+        user_prompt: 'Test question',
+        status: 'completed',
+        started_at: '2024-01-01T00:00:00Z',
+        completed_at: '2024-01-01T00:01:00Z',
+        blocks: [
           {
-            id: 'turn-1',
-            userPrompt: 'Test',
-            status: 'completed',
-            startedAt: '2024-01-01T00:00:00Z',
-            completedAt: '2024-01-01T00:01:00Z',
-            blocks: [],
+            id: 'block_1',
+            type: 'text',
+            content: { text: 'Answer 1' },
+            sequence_number: 0,
+          },
+          {
+            id: 'block_2',
+            type: 'code',
+            content: { code: 'console.log("hello")' },
+            sequence_number: 1,
           },
         ],
       }
 
       server.use(
         http.get(
-          '*/api/projects/:projectId/sessions/:sessionId/updates',
-          ({ params, request }) => {
+          '*/api/projects/:projectId/sessions/:sessionId/turns/:turnId',
+          ({ params }) => {
             expect(params.projectId).toBe('project-123')
             expect(params.sessionId).toBe('session-456')
-            const url = new URL(request.url)
-            expect(url.searchParams.get('state')).toBe('turn1:0')
-            expect(url.searchParams.get('timeout')).toBe('30000')
+            expect(params.turnId).toBe('turn_123')
             return HttpResponse.json(mockResponse)
           },
         ),
       )
 
-      const updatesSignal$ = sessionUpdates({
+      const turnSignal$ = turnDetail({
         projectId: 'project-123',
         sessionId: 'session-456',
-        state: 'turn1:0',
+        turnId: 'turn_123',
       })
-      const result = await store.get(updatesSignal$)
+      const result = await store.get(turnSignal$)
 
       expect(result).toStrictEqual(mockResponse)
-    })
-
-    it('should handle 204 No Content response', async () => {
-      const { store } = context
-
-      server.use(
-        http.get(
-          '*/api/projects/:projectId/sessions/:sessionId/updates',
-          () => {
-            return new HttpResponse(null, { status: 204 })
-          },
-        ),
-      )
-
-      const updatesSignal$ = sessionUpdates({
-        projectId: 'project-123',
-        sessionId: 'session-456',
-        state: 'turn1:0',
-        timeout: '5000',
-      })
-      const result = await store.get(updatesSignal$)
-
-      // contractFetch returns empty ArrayBuffer for 204 responses
-      expect(result).toBeInstanceOf(ArrayBuffer)
-      expect(result.byteLength).toBe(0)
     })
   })
 
