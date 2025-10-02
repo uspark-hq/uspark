@@ -107,38 +107,6 @@ describe("/api/cli/auth/generate-token", () => {
     expect(diffInDays).toBeLessThanOrEqual(90);
   });
 
-  it("should return unauthorized error when user is not authenticated", async () => {
-    // Mock unauthenticated user
-    vi.mocked(auth).mockResolvedValue({ userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
-
-    const request = new NextRequest(
-      "http://localhost/api/cli/auth/generate-token",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          name: "Test Token",
-          expires_in_days: 30,
-        }),
-      },
-    );
-
-    const response = await POST(request);
-    expect(response.status).toBe(401);
-
-    const data = await response.json();
-    const validationResult = GenerateTokenErrorSchema.safeParse(data);
-    expect(validationResult.success).toBe(true);
-
-    if (validationResult.success) {
-      expect(validationResult.data.error).toBe("unauthorized");
-      expect(validationResult.data.error_description).toContain(
-        "Authentication required",
-      );
-    }
-  });
-
   it("should enforce token limit per user", async () => {
     vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as Awaited<
       ReturnType<typeof auth>
@@ -240,61 +208,6 @@ describe("/api/cli/auth/generate-token", () => {
 
     const response2 = await POST(request2);
     expect(response2.status).toBe(403);
-  });
-
-  it("should return invalid request error for missing name", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as Awaited<
-      ReturnType<typeof auth>
-    >);
-
-    const request = new NextRequest(
-      "http://localhost/api/cli/auth/generate-token",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          expires_in_days: 30,
-        }),
-      },
-    );
-
-    const response = await POST(request);
-    expect(response.status).toBe(400);
-
-    const data = await response.json();
-    const validationResult = GenerateTokenErrorSchema.safeParse(data);
-    expect(validationResult.success).toBe(true);
-
-    if (validationResult.success) {
-      expect(validationResult.data.error).toBe("invalid_request");
-    }
-  });
-
-  it("should return invalid request error for invalid expires_in_days", async () => {
-    vi.mocked(auth).mockResolvedValue({ userId: "user_123" } as Awaited<
-      ReturnType<typeof auth>
-    >);
-
-    const request = new NextRequest(
-      "http://localhost/api/cli/auth/generate-token",
-      {
-        method: "POST",
-        body: JSON.stringify({
-          name: "Test Token",
-          expires_in_days: 400, // More than 365 max
-        }),
-      },
-    );
-
-    const response = await POST(request);
-    expect(response.status).toBe(400);
-
-    const data = await response.json();
-    const validationResult = GenerateTokenErrorSchema.safeParse(data);
-    expect(validationResult.success).toBe(true);
-
-    if (validationResult.success) {
-      expect(validationResult.data.error).toBe("invalid_request");
-    }
   });
 
   it("should allow different users to have their own token limits", async () => {

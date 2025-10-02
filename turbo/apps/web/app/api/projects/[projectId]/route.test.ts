@@ -46,21 +46,6 @@ describe("/api/projects/:projectId", () => {
   });
 
   describe("GET /api/projects/:projectId", () => {
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const mockRequest = new NextRequest("http://localhost:3000");
-      const context = { params: Promise.resolve({ projectId }) };
-
-      const response = await GET(mockRequest, context);
-
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "unauthorized");
-    });
-
     it("should create new project with empty YDoc when project doesn't exist", async () => {
       const mockRequest = new NextRequest("http://localhost:3000");
       const context = { params: Promise.resolve({ projectId }) };
@@ -137,25 +122,6 @@ describe("/api/projects/:projectId", () => {
   });
 
   describe("PATCH /api/projects/:projectId", () => {
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const update = new Uint8Array([1, 2, 3]);
-      const mockRequest = new NextRequest("http://localhost:3000", {
-        method: "PATCH",
-        body: update,
-      });
-      const context = { params: Promise.resolve({ projectId }) };
-
-      const response = await PATCH(mockRequest, context);
-
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "unauthorized");
-    });
-
     it("should apply YDoc updates to existing project", async () => {
       // Create initial project using API endpoint
       const createRequest = new NextRequest("http://localhost:3000", {
@@ -224,27 +190,6 @@ describe("/api/projects/:projectId", () => {
       const storedFiles = storedDoc.getMap("files");
       expect(storedFiles.size).toBe(1);
       expect(storedFiles.get("newfile.ts")).toHaveProperty("hash", "xyz789");
-    });
-
-    it("should return 404 when project doesn't exist", async () => {
-      const update = new Uint8Array([1, 2, 3]); // dummy update
-
-      const mockRequest = new NextRequest("http://localhost:3000", {
-        method: "PATCH",
-        body: Buffer.from(update),
-        headers: {
-          "Content-Type": "application/octet-stream",
-        },
-      });
-      const context = {
-        params: Promise.resolve({ projectId: "non-existent" }),
-      };
-
-      const response = await PATCH(mockRequest, context);
-
-      expect(response.status).toBe(404);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "Project not found");
     });
 
     it("should return 409 on version conflict", async () => {
@@ -350,70 +295,6 @@ describe("/api/projects/:projectId", () => {
   });
 
   describe("DELETE /api/projects/:projectId", () => {
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const mockRequest = new NextRequest("http://localhost:3000", {
-        method: "DELETE",
-      });
-      const context = { params: Promise.resolve({ projectId }) };
-
-      const response = await DELETE(mockRequest, context);
-
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "unauthorized");
-    });
-
-    it("should return 404 when project doesn't exist", async () => {
-      const mockRequest = new NextRequest("http://localhost:3000", {
-        method: "DELETE",
-      });
-      const context = {
-        params: Promise.resolve({ projectId: "non-existent-project" }),
-      };
-
-      const response = await DELETE(mockRequest, context);
-
-      expect(response.status).toBe(404);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "Project not found");
-    });
-
-    it("should return 404 when trying to delete another user's project", async () => {
-      // Create project for another user
-      const otherUserId = "other-user";
-      const otherProjectId = `other-project-${Date.now()}`;
-
-      await globalThis.services.db.insert(PROJECTS_TBL).values({
-        id: otherProjectId,
-        userId: otherUserId,
-        ydocData: Buffer.from(Y.encodeStateAsUpdate(new Y.Doc())).toString(
-          "base64",
-        ),
-        version: 0,
-      });
-
-      // Try to delete as current user
-      const mockRequest = new NextRequest("http://localhost:3000", {
-        method: "DELETE",
-      });
-      const context = {
-        params: Promise.resolve({ projectId: otherProjectId }),
-      };
-
-      const response = await DELETE(mockRequest, context);
-
-      expect(response.status).toBe(404);
-
-      // Clean up
-      await globalThis.services.db
-        .delete(PROJECTS_TBL)
-        .where(eq(PROJECTS_TBL.id, otherProjectId));
-    });
-
     it("should delete project and all related data", async () => {
       // Create project using API endpoint
       const createRequest = new NextRequest("http://localhost:3000", {

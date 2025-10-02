@@ -164,6 +164,24 @@ This document defines code quality issues and anti-patterns to identify during c
 - **Over-testing error responses** - Excessive boilerplate tests for HTTP status codes
   - Don't write repetitive tests for every 401/404/400 scenario
   - Focus on meaningful error handling, not HTTP status code validation
+  - Example:
+    ```typescript
+    // ❌ Bad: Testing every error status
+    it("should return 401 when not authenticated", async () => {
+      expect(response.status).toBe(401);
+    });
+    it("should return 404 when not found", async () => {
+      expect(response.status).toBe(404);
+    });
+    it("should return 400 when invalid", async () => {
+      expect(response.status).toBe(400);
+    });
+
+    // ✅ Good: Test meaningful error behavior
+    it("should handle authentication flow correctly", async () => {
+      // Test the actual authentication logic and business rules
+    });
+    ```
 - **Over-testing schema validation** - Redundant validation tests for Zod schemas
   - Zod already validates at runtime - no need to test that Zod works
   - Trust the schema library; test business logic instead
@@ -171,4 +189,106 @@ This document defines code quality issues and anti-patterns to identify during c
   - Reduces confidence that integrated components work together
   - Prefer integration tests with real dependencies when possible
   - Only mock external services, network calls, or slow operations
+  - Tests that only verify mocks were called provide zero confidence
+  - Example:
+    ```typescript
+    // ❌ Bad: Only testing that mocks were called
+    it("should call getUser", async () => {
+      await someFunction();
+      expect(mockGetUser).toHaveBeenCalled();
+    });
+
+    // ✅ Good: Test actual behavior with real or minimal mocks
+    it("should retrieve and display user data", async () => {
+      const result = await someFunction();
+      expect(result.userName).toBe("expected-name");
+    });
+    ```
+- **Console output mocking without assertions** - Mocking console.log/error without verifying output
+  - Mocking console methods just to suppress output adds no value
+  - If you need to verify logging, assert on the log content
+  - Otherwise, let console output appear naturally in tests
+  - Example:
+    ```typescript
+    // ❌ Bad: Pointless console mocking
+    beforeEach(() => {
+      console.log = vi.fn();
+      console.error = vi.fn();
+    });
+
+    // ✅ Good: Either assert on logs or don't mock
+    it("should log error details", () => {
+      const consoleSpy = vi.spyOn(console, "error");
+      performAction();
+      expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("error"));
+    });
+    ```
+- **Testing UI implementation details** - Testing internal React/UI mechanics instead of user behavior
+  - Don't test keyboard event handlers, CSS classes, or internal state
+  - Test what users see and do, not how React implements it
+  - Example:
+    ```typescript
+    // ❌ Bad: Testing implementation details
+    it("should prevent form submission on Shift+Enter", () => {
+      fireEvent.keyDown(input, { key: "Enter", shiftKey: true });
+      expect(mockSubmit).not.toHaveBeenCalled();
+    });
+
+    it("should have correct CSS classes", () => {
+      expect(button).toHaveClass("btn-primary");
+    });
+
+    // ✅ Good: Test user-visible behavior
+    it("should submit form when user presses send button", () => {
+      userEvent.click(sendButton);
+      expect(screen.getByText("Message sent")).toBeInTheDocument();
+    });
+    ```
+- **Testing empty/loading/error states without logic** - Trivial tests for states with no business logic
+  - Don't test that loading spinner appears - it's just conditional rendering
+  - Don't test that error message displays - it's just JSX
+  - Test the logic that causes these states, not the states themselves
+  - Example:
+    ```typescript
+    // ❌ Bad: Testing trivial rendering
+    it("should show loading spinner when loading", () => {
+      render(<Component isLoading={true} />);
+      expect(screen.getByTestId("spinner")).toBeInTheDocument();
+    });
+
+    it("should show error when error prop is set", () => {
+      render(<Component error="Something failed" />);
+      expect(screen.getByText("Something failed")).toBeInTheDocument();
+    });
+
+    // ✅ Good: Test the logic that produces these states
+    it("should load data and handle errors", async () => {
+      render(<Component />);
+      // Verify actual data fetching, error handling logic
+      await waitFor(() => {
+        expect(screen.getByText("Loaded data")).toBeInTheDocument();
+      });
+    });
+    ```
+- **Testing specific UI text content** - Brittle tests that break when copy changes
+  - Don't test exact heading text, button labels, or help text
+  - Test functionality and user flows, not marketing copy
+  - Use data-testid for elements that need identification
+  - Example:
+    ```typescript
+    // ❌ Bad: Testing exact text content
+    it("should display correct heading", () => {
+      expect(screen.getByRole("heading")).toHaveTextContent("Welcome to Dashboard");
+    });
+
+    it("should show help text", () => {
+      expect(screen.getByText("Click here to get started")).toBeInTheDocument();
+    });
+
+    // ✅ Good: Test behavior, not copy
+    it("should allow user to create new project", async () => {
+      await userEvent.click(screen.getByTestId("create-project-button"));
+      expect(screen.getByTestId("project-form")).toBeVisible();
+    });
+    ```
 

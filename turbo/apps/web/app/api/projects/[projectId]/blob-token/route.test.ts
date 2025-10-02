@@ -2,7 +2,6 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "../../../../../src/test/setup";
 import { GET } from "./route";
 import { POST as createProject } from "../../route";
-import { createTestProjectForUser } from "../../../../../src/test/db-test-utils";
 import { initServices } from "../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { like } from "drizzle-orm";
@@ -74,57 +73,5 @@ describe("GET /api/projects/[projectId]/blob-token", () => {
     expect(data).toHaveProperty("downloadUrlPrefix");
     // Check that client token is project-scoped
     expect(data.token).toContain(`client_token_projects_`);
-  });
-
-  it("should return 404 for non-existent project", async () => {
-    const projectId = `non-existent-${timestamp}`;
-
-    const request = new NextRequest(
-      "http://localhost/api/projects/non-existent/blob-token",
-    );
-    const response = await GET(request, {
-      params: Promise.resolve({ projectId }),
-    });
-
-    expect(response.status).toBe(404);
-    const data = await response.json();
-    expect(data.error).toBe("project_not_found");
-  });
-
-  it("should return 404 for project owned by different user", async () => {
-    const projectId = `other-user-project-${timestamp}`;
-
-    // Create project owned by different user using utility function
-    await createTestProjectForUser("other-user", {
-      id: projectId,
-      ydocData: Buffer.from("test").toString("base64"),
-      version: 0,
-    });
-
-    const request = new NextRequest(
-      "http://localhost/api/projects/other-user-project/blob-token",
-    );
-    const response = await GET(request, {
-      params: Promise.resolve({ projectId }),
-    });
-
-    expect(response.status).toBe(404);
-    const data = await response.json();
-    expect(data.error).toBe("project_not_found");
-  });
-
-  it("should return 401 for unauthorized user", async () => {
-    mockUserId = null; // Simulate no authenticated user
-
-    const request = new NextRequest(
-      "http://localhost/api/projects/test-project/blob-token",
-    );
-    const response = await GET(request, {
-      params: Promise.resolve({ projectId: "test-project" }),
-    });
-
-    expect(response.status).toBe(401);
-    const data = await response.json();
-    expect(data.error).toBe("unauthorized");
   });
 });

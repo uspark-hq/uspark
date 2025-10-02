@@ -95,53 +95,6 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
   });
 
   describe("GET /api/projects/:projectId/sessions/:sessionId", () => {
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const request = new NextRequest("http://localhost:3000");
-      const context = { params: Promise.resolve({ projectId, sessionId }) };
-
-      const response = await GET(request, context);
-
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "unauthorized");
-    });
-
-    it("should return 404 when project doesn't exist", async () => {
-      const request = new NextRequest("http://localhost:3000");
-      const context = {
-        params: Promise.resolve({
-          projectId: "non-existent",
-          sessionId,
-        }),
-      };
-
-      const response = await GET(request, context);
-
-      expect(response.status).toBe(404);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "project_not_found");
-    });
-
-    it("should return 404 when session doesn't exist", async () => {
-      const request = new NextRequest("http://localhost:3000");
-      const context = {
-        params: Promise.resolve({
-          projectId,
-          sessionId: "non-existent",
-        }),
-      };
-
-      const response = await GET(request, context);
-
-      expect(response.status).toBe(404);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "session_not_found");
-    });
-
     it("should return session details with empty turn_ids", async () => {
       const request = new NextRequest("http://localhost:3000");
       const context = { params: Promise.resolve({ projectId, sessionId }) };

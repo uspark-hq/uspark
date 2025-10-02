@@ -162,48 +162,6 @@ describe("/api/projects/[projectId]/github/sync", () => {
       expect(data.message).toContain("Successfully synced");
     });
 
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValue({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const request = new NextRequest(
-        `http://localhost/api/projects/any-project/github/sync`,
-        {
-          method: "POST",
-        },
-      );
-
-      const response = await POST(request, {
-        params: Promise.resolve({ projectId: "any-project" }),
-      });
-
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data.error).toBe("unauthorized");
-    });
-
-    it("should return 404 when project not found", async () => {
-      mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const request = new NextRequest(
-        "http://localhost/api/projects/nonexistent/github/sync",
-        {
-          method: "POST",
-        },
-      );
-
-      const response = await POST(request, {
-        params: Promise.resolve({ projectId: "nonexistent" }),
-      });
-
-      expect(response.status).toBe(404);
-      const data = await response.json();
-      expect(data.error).toBe("project_not_found");
-    });
-
     it("should return 400 when repository not linked", async () => {
       mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<
         ReturnType<typeof auth>

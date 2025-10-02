@@ -97,13 +97,6 @@ describe("Projects List Page", () => {
     ).toBeInTheDocument();
   });
 
-  it("shows loading state initially", () => {
-    render(<ProjectsListPage />);
-
-    // Should show loading state initially
-    expect(screen.getByText("Loading your projects...")).toBeInTheDocument();
-  });
-
   it("displays projects after loading from API", async () => {
     render(<ProjectsListPage />);
 
@@ -315,47 +308,5 @@ describe("Projects List Page", () => {
     await waitFor(() => {
       expect(mockPush).toHaveBeenCalled();
     });
-  });
-
-  it("handles API errors gracefully", async () => {
-    // Override handler to return error
-    server.use(
-      http.get("*/api/projects", () => {
-        return HttpResponse.json({ error: "Server error" }, { status: 500 });
-      }),
-    );
-
-    render(<ProjectsListPage />);
-
-    // Wait for error to appear - the component shows the actual error message
-    await waitFor(() => {
-      expect(screen.getByText(/Failed to fetch projects/)).toBeInTheDocument();
-    });
-  });
-
-  it("handles empty projects list", async () => {
-    // Override handler to return empty list
-    server.use(
-      http.get("*/api/projects", () => {
-        return HttpResponse.json({ projects: [] });
-      }),
-    );
-
-    render(<ProjectsListPage />);
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading your projects..."),
-      ).not.toBeInTheDocument();
-    });
-
-    // Should show empty state
-    expect(screen.getByText("No projects yet")).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Create your first project to start collaborating with Claude Code",
-      ),
-    ).toBeInTheDocument();
   });
 });

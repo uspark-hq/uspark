@@ -6,8 +6,9 @@ import { getInstallationToken } from "./auth";
 /**
  * Creates an App-level Octokit client
  * Simple implementation for MVP
+ * Internal use only
  */
-export function createAppOctokit(): App {
+function createAppOctokit(): App {
   initServices();
   const env = globalThis.services.env;
 

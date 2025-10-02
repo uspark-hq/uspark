@@ -34,17 +34,6 @@ describe("ChatInterface", () => {
     expect(screen.getByRole("button", { name: /send/i })).toBeInTheDocument();
   });
 
-  it("displays empty state when no turns exist", async () => {
-    render(<ChatInterface projectId="project-1" />);
-
-    // Should show the placeholder text for no session selected initially
-    await waitFor(() => {
-      expect(
-        screen.getByText(/select or create a session/i),
-      ).toBeInTheDocument();
-    });
-  });
-
   it("displays turns when they exist", async () => {
     // First, we need to update MSW handler to return an existing session
     // We'll use dynamic imports to modify the mock
@@ -169,39 +158,5 @@ describe("ChatInterface", () => {
     await waitFor(() => {
       expect(textarea).toHaveValue("");
     });
-  });
-
-  it("prevents sending when Shift+Enter is pressed", async () => {
-    render(<ChatInterface projectId="project-1" />);
-
-    const textarea = screen.getByPlaceholderText(/ask claude/i);
-
-    // Type a message
-    fireEvent.change(textarea, { target: { value: "Test message" } });
-
-    // Press Shift+Enter (should not send)
-    fireEvent.keyDown(textarea, { key: "Enter", shiftKey: true });
-
-    // Input should still have the message
-    expect(textarea).toHaveValue("Test message");
-  });
-
-  it("shows polling indicator when polling is active", async () => {
-    // Mock useSessionPolling to return polling state
-    const mockUseSessionPolling = vi.mocked(
-      await import("../use-session-polling"),
-    ).useSessionPolling;
-
-    mockUseSessionPolling.mockReturnValue({
-      turns: [],
-      isPolling: true,
-      refetch: vi.fn(),
-      hasActiveTurns: true,
-    });
-
-    render(<ChatInterface projectId="project-1" />);
-
-    // Should show some indication of active polling/processing
-    // This depends on your UI implementation
   });
 });

@@ -144,67 +144,6 @@ describe("YjsFileExplorer Integration", () => {
     expect(screen.getByText("Button.tsx")).toBeInTheDocument();
   });
 
-  it("handles API errors gracefully", async () => {
-    server.use(
-      http.get("/api/projects/test-project", () => {
-        return HttpResponse.error();
-      }),
-    );
-
-    render(<YjsFileExplorer projectId="test-project" />);
-
-    // Should show loading initially
-    expect(screen.getByText("Loading project files...")).toBeInTheDocument();
-
-    // Wait for error state
-    await waitFor(() => {
-      expect(screen.getByText("Failed to load project")).toBeInTheDocument();
-    });
-  });
-
-  it("handles empty YJS document", async () => {
-    const emptyYdoc = new Y.Doc();
-    const emptyUpdate = Y.encodeStateAsUpdate(emptyYdoc);
-
-    server.use(
-      http.get("/api/projects/empty-project", () => {
-        return HttpResponse.arrayBuffer(emptyUpdate.buffer);
-      }),
-    );
-
-    render(<YjsFileExplorer projectId="empty-project" showMetadata={true} />);
-
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading project files..."),
-      ).not.toBeInTheDocument();
-    });
-
-    // Should show empty state
-    expect(screen.getByText("No files to display")).toBeInTheDocument();
-
-    // Metadata section should not be shown when there are no files
-    expect(screen.queryByText("0 files")).not.toBeInTheDocument();
-  });
-
-  it("handles HTTP error responses", async () => {
-    server.use(
-      http.get("/api/projects/nonexistent-project", () => {
-        return new HttpResponse(null, { status: 404, statusText: "Not Found" });
-      }),
-    );
-
-    render(<YjsFileExplorer projectId="nonexistent-project" />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Failed to load project")).toBeInTheDocument();
-    });
-
-    expect(
-      screen.getByText("Failed to load project: Not Found"),
-    ).toBeInTheDocument();
-  });
-
   it("updates when projectId changes", async () => {
     const mockYjsData1 = createMockYjsDocument();
     const mockYjsData2 = createMockYjsDocument();

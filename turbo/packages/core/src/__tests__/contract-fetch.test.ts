@@ -275,50 +275,6 @@ describe("contractFetch with MSW", () => {
         }
       }
     });
-
-    it("should throw ContractFetchError for 400 response", async () => {
-      const errorResponse = {
-        error: "validation_error",
-        error_description: "Invalid request body",
-      };
-
-      server.use(
-        http.post(`${BASE_URL}/api/items`, () => {
-          return HttpResponse.json(errorResponse, { status: 400 });
-        }),
-      );
-
-      await expect(
-        contractFetch(testContract.createItem, {
-          baseUrl: BASE_URL,
-          body: { name: "", count: -1 },
-        }),
-      ).rejects.toThrow(ContractFetchError);
-    });
-
-    it("should handle non-JSON error responses", async () => {
-      server.use(
-        http.get(`${BASE_URL}/api/items/500`, () => {
-          return new HttpResponse("Internal Server Error", {
-            status: 500,
-            headers: { "Content-Type": "text/plain" },
-          });
-        }),
-      );
-
-      try {
-        await contractFetch(testContract.getItem, {
-          baseUrl: BASE_URL,
-          params: { id: "500" },
-        });
-      } catch (error) {
-        expect(error).toBeInstanceOf(ContractFetchError);
-        if (error instanceof ContractFetchError) {
-          expect(error.status).toBe(500);
-          expect(error.data).toEqual({ error: "request_failed" });
-        }
-      }
-    });
   });
 
   describe("Binary data", () => {

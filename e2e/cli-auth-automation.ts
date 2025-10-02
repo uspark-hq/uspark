@@ -3,58 +3,58 @@ import { clerk, clerkSetup } from "@clerk/testing/playwright";
 import { spawn, ChildProcess } from "child_process";
 import * as dotenv from "dotenv";
 
-// 加载环境变量
+// Load environment variables
 dotenv.config({ path: ".env" });
 
 /**
- * 自动化 CLI 认证流程
+ * Automate CLI authentication flow
  *
- * 前置条件：
- * - CLI 必须已全局安装: cd turbo/apps/cli && pnpm link --global
+ * Prerequisites:
+ * - CLI must be installed globally: cd turbo/apps/cli && pnpm link --global
  *
- * 步骤：
- * 1. 启动 CLI 认证命令
- * 2. 解析设备码
- * 3. 使用 Playwright 自动登录并输入码
+ * Steps:
+ * 1. Start CLI auth command
+ * 2. Parse device code
+ * 3. Use Playwright to auto-login and enter code
  *
- * @param apiHost - API 服务器地址，默认使用环境变量 API_HOST 或 localhost:3000
+ * @param apiHost - API server address, defaults to environment variable API_HOST or localhost:3000
  */
 export async function automateCliAuth(apiHost?: string) {
   let cliProcess: ChildProcess | null = null;
   let browser = null;
 
   try {
-    console.log("🚀 启动 CLI 认证流程...");
+    console.log("🚀 Starting CLI authentication flow...");
 
-    // 步骤 1: 启动 CLI auth 命令
-    // 使用提供的 apiHost 或环境变量 API_HOST，默认为 localhost:3000
+    // Step 1: Start CLI auth command
+    // Use provided apiHost or environment variable API_HOST, defaults to localhost:3000
     const apiUrl = apiHost || process.env.API_HOST || "http://localhost:3000";
-    console.log(`📡 连接到 API: ${apiUrl}`);
+    console.log(`📡 Connecting to API: ${apiUrl}`);
 
-    // 始终使用全局安装的 uspark 命令
-    // GitHub Actions 和本地开发都应该先通过 pnpm link --global 安装 CLI
+    // Always use globally installed uspark command
+    // Both GitHub Actions and local development should install CLI via pnpm link --global first
     cliProcess = spawn("uspark", ["auth", "login"], {
       cwd: process.cwd(),
       stdio: ["pipe", "pipe", "pipe"],
       env: {
         ...process.env,
-        API_HOST: apiUrl  // 设置 API_HOST 环境变量
+        API_HOST: apiUrl  // Set API_HOST environment variable
       }
     });
 
-    // 步骤 2: 捕获并解析设备码和 URL
+    // Step 2: Capture and parse device code and URL
     let cliOutput = "";
     const { deviceCode, authUrl } = await new Promise<{ deviceCode: string; authUrl: string }>((resolve, reject) => {
       let output = "";
       const timeout = setTimeout(() => {
-        reject(new Error("超时：无法获取设备码"));
+        reject(new Error("Timeout: Unable to get device code"));
       }, 10000);
 
       cliProcess!.stdout?.on("data", (data) => {
         output += data.toString();
         console.log(data.toString());
 
-        // 匹配设备码格式: XXXX-XXXX
+        // Match device code format: XXXX-XXXX
         const codeMatch = output.match(/enter this code:\s*([A-Z0-9]{4}-[A-Z0-9]{4})/i);
         const urlMatch = output.match(/visit:\s*(https?:\/\/[^\s]+\/cli-auth)/i);
 
@@ -69,7 +69,7 @@ export async function automateCliAuth(apiHost?: string) {
       });
 
       cliProcess!.stderr?.on("data", (data) => {
-        console.error("CLI 错误:", data.toString());
+        console.error("CLI error:", data.toString());
       });
 
       cliProcess!.on("error", (err) => {
@@ -78,21 +78,21 @@ export async function automateCliAuth(apiHost?: string) {
       });
     });
 
-    console.log(`✅ 获取到设备码: ${deviceCode}`);
+    console.log(`✅ Got device code: ${deviceCode}`);
 
-    // 步骤 3: 启动浏览器并完成认证
+    // Step 3: Launch browser and complete authentication
     browser = await chromium.launch({
-      headless: true, // 在无头模式下运行
+      headless: true, // Run in headless mode
     });
 
     const context = await browser.newContext();
     const page = await context.newPage();
 
-    // 步骤 4: 设置 Clerk 认证
+    // Step 4: Setup Clerk authentication
     await clerkSetup();
 
-    // 步骤 5: 登录 Clerk
-    // 使用配置的 API URL
+    // Step 5: Login to Clerk
+    // Use configured API URL
     const baseUrl = apiUrl;
 
     await page.goto(baseUrl);
@@ -101,71 +101,71 @@ export async function automateCliAuth(apiHost?: string) {
       emailAddress: "e2e+clerk_test@uspark.ai",
     });
 
-    console.log("✅ Clerk 登录成功");
-    console.log(`🔗 访问认证页面: ${baseUrl}/cli-auth`);
+    console.log("✅ Clerk login successful");
+    console.log(`🔗 Visiting auth page: ${baseUrl}/cli-auth`);
 
-    // 步骤 6: 访问 CLI 认证页面
+    // Step 6: Visit CLI auth page
     await page.goto(`${baseUrl}/cli-auth`);
     await page.waitForLoadState("networkidle");
 
-    // 步骤 7: 输入设备码
-    // 设备码格式: XXXX-XXXX，需要分别输入到多个输入框
-    console.log(`📝 正在输入设备码: ${deviceCode}`);
+    // Step 7: Enter device code
+    // Device code format: XXXX-XXXX, needs to be entered into multiple input boxes
+    console.log(`📝 Entering device code: ${deviceCode}`);
 
-    // 去掉连字符，得到纯字符
+    // Remove hyphen to get pure characters
     const codeChars = deviceCode.replace('-', '');
 
-    // 查找所有输入框
+    // Find all input boxes
     const codeInputs = await page.locator('input[type="text"], input[maxlength="1"]').all();
-    console.log(`🔍 找到 ${codeInputs.length} 个输入框`);
+    console.log(`🔍 Found ${codeInputs.length} input boxes`);
 
-    // 输入每个字符到对应的输入框
+    // Enter each character into corresponding input box
     for (let i = 0; i < codeChars.length && i < codeInputs.length; i++) {
       await codeInputs[i].fill(codeChars[i]);
-      // 添加小延迟，模拟真实输入
+      // Add small delay to simulate real input
       await page.waitForTimeout(50);
     }
 
-    console.log(`✅ 已输入设备码: ${deviceCode}`);
+    console.log(`✅ Device code entered: ${deviceCode}`);
 
-    // 调试: 截图看看页面状态
+    // Debug: Screenshot to see page state
     await page.screenshot({ path: 'debug-before-submit.png' });
 
-    // 查找并点击 Authorize Device 按钮
+    // Find and click Authorize Device button
     const authorizeButton = await page.locator('button:has-text("Authorize Device")');
     const buttonExists = await authorizeButton.count() > 0;
 
     if (buttonExists) {
-      console.log("✅ 找到 Authorize Device 按钮");
+      console.log("✅ Found Authorize Device button");
 
-      // 点击按钮
+      // Click button
       await authorizeButton.first().click();
-      console.log("✅ 已点击 Authorize Device 按钮");
+      console.log("✅ Clicked Authorize Device button");
 
-      // 等待页面响应
+      // Wait for page response
       await page.waitForTimeout(2000);
 
-      // 截图查看点击后的状态
+      // Screenshot to see post-click state
       await page.screenshot({ path: 'debug-after-click.png' });
-      console.log("📸 已保存点击后的截图");
+      console.log("📸 Saved post-click screenshot");
     } else {
-      console.log("❌ 未找到 Authorize Device 按钮");
-      // 尝试按 Enter
+      console.log("❌ Authorize Device button not found");
+      // Try pressing Enter
       await codeInput.press('Enter');
-      console.log("⏳ 尝试按 Enter 提交");
+      console.log("⏳ Trying Enter to submit");
     }
 
-    console.log("⏳ 等待认证响应...");
+    console.log("⏳ Waiting for auth response...");
 
-    // 步骤 9: 等待认证成功
-    // 可以通过检查页面提示或 CLI 输出确认
+    // Step 9: Wait for authentication success
+    // Can verify via page prompt or CLI output
     await page.waitForSelector('text=/success|verified|completed/i', {
       timeout: 10000,
     }).catch(() => {
-      console.log("⚠️  未找到成功提示，但可能已经认证成功");
+      console.log("⚠️  Success message not found, but authentication may have succeeded");
     });
 
-    // 等待 CLI 进程完成认证
+    // Wait for CLI process to complete authentication
     const authSuccess = await new Promise<boolean>((resolve) => {
       if (!cliProcess) {
         resolve(false);
@@ -174,11 +174,11 @@ export async function automateCliAuth(apiHost?: string) {
 
       let resolved = false;
 
-      // 监听 CLI 输出中的成功消息
+      // Listen for success message in CLI output
       cliProcess.stdout?.on("data", (data) => {
         const output = data.toString();
 
-        // 只打印非空输出
+        // Only print non-empty output
         if (output.trim()) {
           console.log("CLI:", output.trim());
         }
@@ -188,7 +188,7 @@ export async function automateCliAuth(apiHost?: string) {
             output.includes("✓ Authentication complete") ||
             output.includes("✓")) {
           if (!resolved) {
-            console.log("🎉 检测到认证成功！");
+            console.log("🎉 Authentication success detected!");
             resolved = true;
             resolve(true);
           }
@@ -198,22 +198,22 @@ export async function automateCliAuth(apiHost?: string) {
       cliProcess.stderr?.on("data", (data) => {
         const error = data.toString().trim();
         if (error) {
-          console.error("CLI 错误:", error);
+          console.error("CLI error:", error);
         }
       });
 
       cliProcess.on("exit", (code) => {
         if (!resolved) {
-          console.log(`CLI 进程退出，代码: ${code}`);
+          console.log(`CLI process exited with code: ${code}`);
           resolved = true;
           resolve(code === 0);
         }
       });
 
-      // 增加超时时间
+      // Increase timeout duration
       setTimeout(() => {
         if (!resolved) {
-          console.log("⏱️ 超时（15秒），检查认证状态...");
+          console.log("⏱️ Timeout (15s), checking auth status...");
           resolved = true;
           resolve(false);
         }
@@ -221,32 +221,32 @@ export async function automateCliAuth(apiHost?: string) {
     });
 
     if (!authSuccess) {
-      throw new Error("CLI 认证似乎未成功完成");
+      throw new Error("CLI authentication appears to have failed");
     }
 
-    console.log("🎉 CLI 认证流程完成!");
+    console.log("🎉 CLI authentication flow complete!");
 
-    // 验证认证文件是否创建
+    // Verify auth file was created
     const fs = require("fs");
     const os = require("os");
     const path = require("path");
     const configPath = path.join(os.homedir(), ".uspark", "config.json");
 
     if (fs.existsSync(configPath)) {
-      console.log("✅ 认证文件已创建:", configPath);
+      console.log("✅ Auth file created:", configPath);
       const config = JSON.parse(fs.readFileSync(configPath, "utf-8"));
       if (config.token) {
-        console.log("✅ 认证令牌已保存");
+        console.log("✅ Auth token saved");
       }
     } else {
-      console.log("⚠️  警告: 认证文件未找到，可能需要重试");
+      console.log("⚠️  Warning: Auth file not found, may need retry");
     }
 
   } catch (error) {
-    console.error("❌ 认证失败:", error);
+    console.error("❌ Authentication failed:", error);
     throw error;
   } finally {
-    // 清理资源
+    // Clean up resources
     if (browser) {
       await browser.close();
     }
@@ -256,18 +256,18 @@ export async function automateCliAuth(apiHost?: string) {
   }
 }
 
-// 如果直接运行此脚本
+// If running this script directly
 if (require.main === module) {
-  // 可以通过命令行参数或环境变量指定 API_HOST
+  // Can specify API_HOST via command line argument or environment variable
   const apiHost = process.argv[2] || process.env.API_HOST;
 
   automateCliAuth(apiHost)
     .then(() => {
-      console.log("✅ 自动化认证成功完成");
+      console.log("✅ Automated authentication completed successfully");
       process.exit(0);
     })
     .catch((error) => {
-      console.error("❌ 自动化认证失败:", error);
+      console.error("❌ Automated authentication failed:", error);
       process.exit(1);
     });
 }

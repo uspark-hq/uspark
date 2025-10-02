@@ -111,13 +111,6 @@ describe("DELETE /api/shares/[id]", () => {
       .where(eq(PROJECTS_TBL.id, projectId));
   });
 
-  it("should return 404 when trying to delete non-existent share", async () => {
-    const response = await apiCall(DELETE, "DELETE", { id: "non-existent" });
-
-    expect(response.status).toBe(404);
-    expect(response.data).toEqual({ error: "share_not_found" });
-  });
-
   it("should return 404 when trying to delete another user's share", async () => {
     const shareId = `test-share-id-other-${Date.now()}`;
 
@@ -165,18 +158,6 @@ describe("DELETE /api/shares/[id]", () => {
     await globalThis.services.db
       .delete(PROJECTS_TBL)
       .where(eq(PROJECTS_TBL.id, projectId));
-  });
-
-  it("should return 401 when not authenticated", async () => {
-    mockAuth.mockResolvedValue({ userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
-
-    const shareId = "test-share-id";
-    const response = await apiCall(DELETE, "DELETE", { id: shareId });
-
-    expect(response.status).toBe(401);
-    expect(response.data).toEqual({ error: "unauthorized" });
   });
 
   it("should only delete the specified share, not others", async () => {

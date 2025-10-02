@@ -37,10 +37,4 @@ describe("Card", () => {
     expect(screen.getByText("Card description text")).toBeInTheDocument();
     expect(screen.getByText("Card content")).toBeInTheDocument();
   });
-
-  it("applies correct CSS classes", () => {
-    render(<Card data-testid="card">Content</Card>);
-    const card = screen.getByTestId("card");
-    expect(card).toHaveClass("rounded-lg", "border", "bg-card");
-  });
 });
