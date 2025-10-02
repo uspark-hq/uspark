@@ -207,18 +207,3 @@ export async function updateDeviceCodeStatus(
     })
     .where(eq(DEVICE_CODES_TBL.code, code));
 }
-
-/**
- * Sets a device code as expired for testing.
- * Use this ONLY for testing expiration scenarios.
- */
-export async function setDeviceCodeExpired(code: string) {
-  initServices();
-  await globalThis.services.db
-    .update(DEVICE_CODES_TBL)
-    .set({
-      expiresAt: new Date(Date.now() - 1000), // 1 second ago
-      updatedAt: new Date(),
-    })
-    .where(eq(DEVICE_CODES_TBL.code, code));
-}
