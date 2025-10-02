@@ -11,10 +11,10 @@ interface ProjectFilesData {
   fileCount: number
 }
 
-export const blobStore$ = computed((get) => {
+export const blobStore$ = computed(async (get) => {
   const workspaceFetch = get(fetch$)
 
-  return contractFetch(projectDetailContract.getBlobStore, {
+  return await contractFetch(projectDetailContract.getBlobStore, {
     fetch: workspaceFetch,
   })
 })
@@ -28,7 +28,7 @@ export const projectFiles = function (projectId: string) {
       fetch: workspaceFetch,
     })
 
-    const yjsData = new Uint8Array(response as ArrayBuffer)
+    const yjsData = new Uint8Array(response)
 
     return parseYjsFileSystem(yjsData)
   })
@@ -54,10 +54,10 @@ export const shareFile$ = command(
 )
 
 export const projectSessions = function (projectId: string) {
-  return computed((get) => {
+  return computed(async (get) => {
     const workspaceFetch = get(fetch$)
 
-    return contractFetch(projectDetailContract.listSessions, {
+    return await contractFetch(projectDetailContract.listSessions, {
       params: { projectId },
       fetch: workspaceFetch,
     })
@@ -107,10 +107,10 @@ export const sessionUpdates = function (params: {
   state: string
   timeout?: string
 }) {
-  return computed((get) => {
+  return computed(async (get) => {
     const workspaceFetch = get(fetch$)
 
-    return contractFetch(projectDetailContract.getSessionUpdates, {
+    return await contractFetch(projectDetailContract.getSessionUpdates, {
       params: {
         projectId: params.projectId,
         sessionId: params.sessionId,
@@ -125,20 +125,20 @@ export const sessionUpdates = function (params: {
 }
 
 export const githubRepository = function (projectId: string) {
-  return computed((get) => {
+  return computed(async (get) => {
     const workspaceFetch = get(fetch$)
 
-    return contractFetch(projectDetailContract.getGitHubRepository, {
+    return await contractFetch(projectDetailContract.getGitHubRepository, {
       params: { projectId },
       fetch: workspaceFetch,
     })
   })
 }
 
-export const githubInstallations$ = computed((get) => {
+export const githubInstallations$ = computed(async (get) => {
   const workspaceFetch = get(fetch$)
 
-  return contractFetch(projectDetailContract.listGitHubInstallations, {
+  return await contractFetch(projectDetailContract.listGitHubInstallations, {
     fetch: workspaceFetch,
   })
 })

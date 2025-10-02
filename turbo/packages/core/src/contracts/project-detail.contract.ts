@@ -96,10 +96,6 @@ export const projectDetailContract = c.router({
     path: "/api/blob-store",
     responses: {
       200: BlobStoreResponseSchema,
-      401: z.object({
-        error: z.literal("unauthorized"),
-        error_description: z.string(),
-      }),
     },
     summary: "Get blob store ID",
     description:
@@ -116,13 +112,6 @@ export const projectDetailContract = c.router({
     }),
     responses: {
       200: ShareResponseSchema,
-      400: z.object({
-        error: z.string(),
-      }),
-      401: z.object({
-        error: z.literal("unauthorized"),
-        error_description: z.string(),
-      }),
     },
     summary: "Create share link",
     description: "Creates a shareable read-only link for a project file",
@@ -141,14 +130,6 @@ export const projectDetailContract = c.router({
     }),
     responses: {
       200: SessionsResponseSchema,
-      401: z.object({
-        error: z.literal("unauthorized"),
-        error_description: z.string(),
-      }),
-      404: z.object({
-        error: z.literal("project_not_found"),
-        error_description: z.string(),
-      }),
     },
     summary: "List project sessions",
     description:
@@ -166,17 +147,6 @@ export const projectDetailContract = c.router({
     }),
     responses: {
       200: SessionSchema,
-      400: z.object({
-        error: z.string(),
-      }),
-      401: z.object({
-        error: z.literal("unauthorized"),
-        error_description: z.string(),
-      }),
-      404: z.object({
-        error: z.literal("project_not_found"),
-        error_description: z.string(),
-      }),
     },
     summary: "Create new session",
     description: "Creates a new chat session for a project",
@@ -193,20 +163,8 @@ export const projectDetailContract = c.router({
       user_message: z.string(),
     }),
     responses: {
-      201: z.object({
+      200: z.object({
         id: z.string(),
-      }),
-      401: z.object({
-        error: z.literal("unauthorized"),
-        error_description: z.string(),
-      }),
-      404: z.object({
-        error: z.literal("not_found"),
-        error_description: z.string(),
-      }),
-      500: z.object({
-        error: z.literal("server_error"),
-        error_description: z.string(),
       }),
     },
     summary: "Send message",
@@ -227,14 +185,6 @@ export const projectDetailContract = c.router({
     responses: {
       200: ProjectSessionUpdateResponseSchema,
       204: z.void(), // No content - no updates
-      401: z.object({
-        error: z.literal("unauthorized"),
-        error_description: z.string(),
-      }),
-      404: z.object({
-        error: z.literal("not_found"),
-        error_description: z.string(),
-      }),
     },
     summary: "Get session updates",
     description: "Long polling endpoint for session updates",
@@ -249,14 +199,6 @@ export const projectDetailContract = c.router({
     }),
     responses: {
       200: GitHubRepositoryResponseSchema,
-      404: z.object({
-        error: z.literal("repository_not_linked"),
-        error_description: z.string(),
-      }),
-      401: z.object({
-        error: z.literal("unauthorized"),
-        error_description: z.string(),
-      }),
     },
     summary: "Get GitHub repository",
     description: "Returns the linked GitHub repository for a project",
@@ -267,10 +209,6 @@ export const projectDetailContract = c.router({
     path: "/api/github/installations",
     responses: {
       200: GitHubInstallationsResponseSchema,
-      401: z.object({
-        error: z.literal("unauthorized"),
-        error_description: z.string(),
-      }),
     },
     summary: "List GitHub installations",
     description: "Returns user's GitHub app installations",
@@ -286,15 +224,7 @@ export const projectDetailContract = c.router({
       installationId: z.number(),
     }),
     responses: {
-      201: GitHubRepositoryResponseSchema,
-      400: z.object({
-        error: z.enum(["repository_already_exists", "github_not_connected"]),
-        message: z.string().optional(),
-      }),
-      401: z.object({
-        error: z.literal("unauthorized"),
-        error_description: z.string(),
-      }),
+      200: GitHubRepositoryResponseSchema,
     },
     summary: "Create GitHub repository",
     description: "Creates and links a GitHub repository to a project",
@@ -309,14 +239,6 @@ export const projectDetailContract = c.router({
     body: z.object({}), // Empty body for POST request
     responses: {
       200: GitHubSyncResponseSchema,
-      400: z.object({
-        error: z.enum(["repository_not_linked", "sync_in_progress"]),
-        message: z.string().optional(),
-      }),
-      401: z.object({
-        error: z.literal("unauthorized"),
-        error_description: z.string(),
-      }),
     },
     summary: "Sync to GitHub",
     description: "Syncs project files to the linked GitHub repository",

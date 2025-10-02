@@ -14,12 +14,6 @@ import { eq, and } from "drizzle-orm";
 type ShareResponse = z.infer<
   (typeof projectDetailContract.shareFile.responses)[200]
 >;
-type BadRequestResponse = z.infer<
-  (typeof projectDetailContract.shareFile.responses)[400]
->;
-type UnauthorizedResponse = z.infer<
-  (typeof projectDetailContract.shareFile.responses)[401]
->;
 
 /**
  * Generate a cryptographically secure share token
@@ -39,11 +33,13 @@ export async function POST(request: NextRequest) {
   const { userId } = await auth();
 
   if (!userId) {
-    const errorResponse: UnauthorizedResponse = {
-      error: "unauthorized",
-      error_description: "Authentication required",
-    };
-    return NextResponse.json(errorResponse, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "unauthorized",
+        error_description: "Authentication required",
+      },
+      { status: 401 },
+    );
   }
 
   initServices();
@@ -77,10 +73,12 @@ export async function POST(request: NextRequest) {
     );
 
   if (!project) {
-    const errorResponse: BadRequestResponse = {
-      error: "project_not_found",
-    };
-    return NextResponse.json(errorResponse, { status: 404 });
+    return NextResponse.json(
+      {
+        error: "project_not_found",
+      },
+      { status: 404 },
+    );
   }
 
   // Generate unique token and ID
@@ -106,5 +104,5 @@ export async function POST(request: NextRequest) {
     token,
   };
 
-  return NextResponse.json(response, { status: 201 });
+  return NextResponse.json(response, { status: 200 });
 }
