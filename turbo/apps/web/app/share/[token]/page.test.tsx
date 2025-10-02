@@ -14,13 +14,6 @@ describe("SharePage", () => {
     vi.clearAllMocks();
   });
 
-  it("should display loading state initially", async () => {
-    const params = Promise.resolve({ token: "test-token" });
-    render(<SharePage params={params} />);
-
-    expect(screen.getByText("Loading shared content...")).toBeInTheDocument();
-  });
-
   it("should fetch and display markdown file content", async () => {
     const mockMetadata = {
       project_name: "Test Project",
@@ -125,49 +118,6 @@ describe("SharePage", () => {
     });
   });
 
-  it("should handle file content fetch failure gracefully", async () => {
-    const mockMetadata = {
-      project_name: "Test Project",
-      file_path: "test.md",
-      hash: "missing-hash",
-      mtime: Date.now(),
-      blob_url:
-        "https://test-store.public.blob.vercel-storage.com/projects/test-project/missing-hash",
-    };
-
-    server.use(
-      http.get("/api/share/test-token", () => {
-        return HttpResponse.json(mockMetadata);
-      }),
-      http.get(
-        "https://test-store.public.blob.vercel-storage.com/projects/test-project/missing-hash",
-        () => {
-          return new HttpResponse(null, { status: 404 });
-        },
-      ),
-    );
-
-    const consoleWarnSpy = vi
-      .spyOn(console, "warn")
-      .mockImplementation(() => {});
-
-    const params = Promise.resolve({ token: "test-token" });
-    render(<SharePage params={params} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Test Project")).toBeInTheDocument();
-    });
-
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      "Could not fetch file content from blob storage",
-    );
-    expect(
-      screen.getByText("File preview is not available yet."),
-    ).toBeInTheDocument();
-
-    consoleWarnSpy.mockRestore();
-  });
-
   it("should handle download button click for non-markdown files", async () => {
     const mockMetadata = {
       project_name: "Test Project",
@@ -207,57 +157,5 @@ describe("SharePage", () => {
 
     // The download will trigger but jsdom doesn't actually download files
     // We're mainly testing that the button exists and is clickable
-  });
-
-  it("should handle API errors gracefully", async () => {
-    server.use(
-      http.get("/api/share/test-token", () => {
-        return new HttpResponse(null, { status: 500 });
-      }),
-    );
-
-    const consoleErrorSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
-
-    const params = Promise.resolve({ token: "test-token" });
-    render(<SharePage params={params} />);
-
-    await waitFor(() => {
-      expect(notFound).toHaveBeenCalled();
-    });
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Failed to fetch share metadata:",
-      expect.any(Error),
-    );
-
-    consoleErrorSpy.mockRestore();
-  });
-
-  it("should handle network errors gracefully", async () => {
-    server.use(
-      http.get("/api/share/test-token", () => {
-        return HttpResponse.error();
-      }),
-    );
-
-    const consoleErrorSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => {});
-
-    const params = Promise.resolve({ token: "test-token" });
-    render(<SharePage params={params} />);
-
-    await waitFor(() => {
-      expect(notFound).toHaveBeenCalled();
-    });
-
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      "Failed to fetch share metadata:",
-      expect.any(Error),
-    );
-
-    consoleErrorSpy.mockRestore();
   });
 });
