@@ -179,7 +179,7 @@ export const projectDetailContract = c.router({
       sessionId: z.string(),
     }),
     query: z.object({
-      state: z.string(),
+      lastBlockId: z.string().optional(),
       timeout: z.string().optional(),
     }),
     responses: {
@@ -187,7 +187,8 @@ export const projectDetailContract = c.router({
       204: z.void(), // No content - no updates
     },
     summary: "Get session updates",
-    description: "Long polling endpoint for session updates",
+    description:
+      "Long polling endpoint for session updates. Pass lastBlockId to get only new blocks after that ID.",
   },
 
   // GitHub Integration

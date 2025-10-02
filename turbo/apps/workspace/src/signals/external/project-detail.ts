@@ -1,6 +1,7 @@
 import { contractFetch } from '@uspark/core/contract-fetch'
 import { projectDetailContract } from '@uspark/core/contracts/project-detail.contract'
 import { projectsContract } from '@uspark/core/contracts/projects.contract'
+import { turnsContract } from '@uspark/core/contracts/turns.contract'
 import { parseYjsFileSystem, type FileItem } from '@uspark/core/yjs-filesystem'
 import { command, computed } from 'ccstate'
 import { fetch$ } from '../fetch'
@@ -64,6 +65,29 @@ export const projectSessions = function (projectId: string) {
   })
 }
 
+export const sessionTurns = function (params: {
+  projectId: string
+  sessionId: string
+  limit?: number
+  offset?: number
+}) {
+  return computed(async (get) => {
+    const workspaceFetch = get(fetch$)
+
+    return await contractFetch(turnsContract.listTurns, {
+      params: {
+        projectId: params.projectId,
+        sessionId: params.sessionId,
+      },
+      query: {
+        limit: params.limit?.toString() ?? '20',
+        offset: params.offset?.toString() ?? '0',
+      },
+      fetch: workspaceFetch,
+    })
+  })
+}
+
 export const createSession$ = command(
   (
     { get },
@@ -104,7 +128,7 @@ export const sendMessage$ = command(
 export const sessionUpdates = function (params: {
   projectId: string
   sessionId: string
-  state: string
+  lastBlockId?: string
   timeout?: string
 }) {
   return computed(async (get) => {
@@ -116,7 +140,7 @@ export const sessionUpdates = function (params: {
         sessionId: params.sessionId,
       },
       query: {
-        state: params.state,
+        lastBlockId: params.lastBlockId,
         timeout: params.timeout ?? '30000',
       },
       fetch: workspaceFetch,
