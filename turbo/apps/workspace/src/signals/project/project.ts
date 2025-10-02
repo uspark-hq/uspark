@@ -1,5 +1,9 @@
 import { computed } from 'ccstate'
-import { projectFiles, projectSessions } from '../external/project-detail'
+import {
+  projectFiles,
+  projectSessions,
+  sessionTurns,
+} from '../external/project-detail'
 import { pathParams$, searchParams$ } from '../route'
 
 const projectId$ = computed((get) => {
@@ -39,4 +43,22 @@ export const selectedSession$ = computed(async (get) => {
   }
 
   return sessions.find((s) => s.id === sessionId)
+})
+
+export const turns$ = computed(async (get) => {
+  const session = await get(selectedSession$)
+  if (!session) {
+    return undefined
+  }
+  const projectId = get(projectId$)
+  if (!projectId) {
+    return undefined
+  }
+
+  return get(
+    sessionTurns({
+      projectId: projectId,
+      sessionId: session.id,
+    }),
+  )
 })
