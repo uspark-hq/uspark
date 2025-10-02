@@ -8,7 +8,7 @@ import {
   BLOCKS_TBL,
 } from "../../../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
-import { eq, and, asc, gt } from "drizzle-orm";
+import { eq, and, asc, gte, ne } from "drizzle-orm";
 import { projectDetailContract } from "@uspark/core";
 
 // Extract types from contract
@@ -112,8 +112,9 @@ export async function GET(
 
     // Check if there are new blocks after the last one
     let hasNewBlocks = false;
-    if (lastBlockTimestamp) {
-      // Check for blocks created after the last block
+    if (lastBlockId && lastBlockTimestamp) {
+      // Check for blocks created at or after the last block's timestamp, excluding the last block itself
+      // Using gte instead of gt to handle cases where multiple blocks have the same timestamp
       const newBlocks = await globalThis.services.db
         .select({ id: BLOCKS_TBL.id })
         .from(BLOCKS_TBL)
@@ -121,12 +122,23 @@ export async function GET(
         .where(
           and(
             eq(TURNS_TBL.sessionId, sessionId),
-            gt(BLOCKS_TBL.createdAt, lastBlockTimestamp),
+            gte(BLOCKS_TBL.createdAt, lastBlockTimestamp),
+            ne(BLOCKS_TBL.id, lastBlockId), // Exclude the last block itself
           ),
         )
         .limit(1);
 
       hasNewBlocks = newBlocks.length > 0;
+    } else if (lastBlockId && !lastBlockTimestamp) {
+      // lastBlockId was provided but not found - treat as if we haven't seen anything
+      const anyBlocks = await globalThis.services.db
+        .select({ id: BLOCKS_TBL.id })
+        .from(BLOCKS_TBL)
+        .innerJoin(TURNS_TBL, eq(BLOCKS_TBL.turnId, TURNS_TBL.id))
+        .where(eq(TURNS_TBL.sessionId, sessionId))
+        .limit(1);
+
+      hasNewBlocks = anyBlocks.length > 0;
     } else {
       // No lastBlockId provided, check if there are any blocks at all
       const anyBlocks = await globalThis.services.db
