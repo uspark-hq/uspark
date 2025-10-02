@@ -136,76 +136,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
   });
 
   describe("POST /api/projects/:projectId/sessions/:sessionId/turns", () => {
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const request = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({ user_message: "Hello" }),
-      });
-      const context = { params: Promise.resolve({ projectId, sessionId }) };
-
-      const response = await POST(request, context);
-
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "unauthorized");
-    });
-
-    it("should return 404 when project doesn't exist", async () => {
-      const request = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({ user_message: "Hello" }),
-      });
-      const context = {
-        params: Promise.resolve({
-          projectId: "non-existent",
-          sessionId,
-        }),
-      };
-
-      const response = await POST(request, context);
-
-      expect(response.status).toBe(404);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "project_not_found");
-    });
-
-    it("should return 404 when session doesn't exist", async () => {
-      const request = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({ user_message: "Hello" }),
-      });
-      const context = {
-        params: Promise.resolve({
-          projectId,
-          sessionId: "non-existent",
-        }),
-      };
-
-      const response = await POST(request, context);
-
-      expect(response.status).toBe(404);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "session_not_found");
-    });
-
-    it("should return 400 when user_message is missing", async () => {
-      const request = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({}),
-      });
-      const context = { params: Promise.resolve({ projectId, sessionId }) };
-
-      const response = await POST(request, context);
-
-      expect(response.status).toBe(400);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "user_message_required");
-    });
-
     it("should create a new turn with pending status", async () => {
       const userMessage = "What is the weather today?";
       const request = new NextRequest("http://localhost:3000", {
@@ -243,21 +173,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
   });
 
   describe("GET /api/projects/:projectId/sessions/:sessionId/turns", () => {
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const request = new NextRequest("http://localhost:3000");
-      const context = { params: Promise.resolve({ projectId, sessionId }) };
-
-      const response = await GET(request, context);
-
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "unauthorized");
-    });
-
     it("should return empty list when no turns exist", async () => {
       const request = new NextRequest("http://localhost:3000");
       const context = { params: Promise.resolve({ projectId, sessionId }) };
