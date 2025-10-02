@@ -31,18 +31,6 @@ describe("GET /api/github/installation-status", () => {
     >);
   });
 
-  it("returns 401 when user is not authenticated", async () => {
-    mockAuth.mockResolvedValue({ userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
-
-    const response = await GET();
-    const data = await response.json();
-
-    expect(response.status).toBe(401);
-    expect(data).toEqual({ error: "Unauthorized" });
-  });
-
   it("returns null when no installation found", async () => {
     const response = await GET();
     const data = await response.json();

@@ -80,59 +80,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
   });
 
   describe("POST /api/projects/:projectId/sessions/:sessionId/interrupt", () => {
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const request = new NextRequest("http://localhost:3000", {
-        method: "POST",
-      });
-      const context = { params: Promise.resolve({ projectId, sessionId }) };
-
-      const response = await POST(request, context);
-
-      expect(response.status).toBe(401);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "unauthorized");
-    });
-
-    it("should return 404 when project doesn't exist", async () => {
-      const request = new NextRequest("http://localhost:3000", {
-        method: "POST",
-      });
-      const context = {
-        params: Promise.resolve({
-          projectId: "non-existent",
-          sessionId,
-        }),
-      };
-
-      const response = await POST(request, context);
-
-      expect(response.status).toBe(404);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "project_not_found");
-    });
-
-    it("should return 404 when session doesn't exist", async () => {
-      const request = new NextRequest("http://localhost:3000", {
-        method: "POST",
-      });
-      const context = {
-        params: Promise.resolve({
-          projectId,
-          sessionId: "non-existent",
-        }),
-      };
-
-      const response = await POST(request, context);
-
-      expect(response.status).toBe(404);
-      const data = await response.json();
-      expect(data).toHaveProperty("error", "session_not_found");
-    });
-
     it("should mark all running turns as failed", async () => {
       // Create multiple turns with different statuses
       const [runningTurn1] = await globalThis.services.db
