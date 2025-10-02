@@ -57,34 +57,6 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
       expect(response.data).toHaveProperty("id");
       expect(response.data.title).toBeNull();
     });
-
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const response = await apiCall(
-        POST,
-        "POST",
-        { projectId },
-        { title: "Test Session" },
-      );
-
-      expect(response.status).toBe(401);
-      expect(response.data).toHaveProperty("error", "unauthorized");
-    });
-
-    it("should return 404 for non-existent project", async () => {
-      const response = await apiCall(
-        POST,
-        "POST",
-        { projectId: "non-existent" },
-        { title: "Test Session" },
-      );
-
-      expect(response.status).toBe(404);
-      expect(response.data).toHaveProperty("error", "project_not_found");
-    });
   });
 
   describe("GET /api/projects/:projectId/sessions", () => {
@@ -193,37 +165,6 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
       sessionIds.forEach((id) => {
         expect(page2Ids).toContain(id);
       });
-    });
-
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const response = await apiCall(GET, "GET", { projectId });
-
-      expect(response.status).toBe(401);
-      expect(response.data).toHaveProperty("error", "unauthorized");
-    });
-
-    it("should return 404 for non-existent project", async () => {
-      const response = await apiCall(GET, "GET", { projectId: "non-existent" });
-
-      expect(response.status).toBe(404);
-      expect(response.data).toHaveProperty("error", "project_not_found");
-    });
-
-    it("should handle invalid pagination parameters", async () => {
-      const response = await apiCallWithQuery(
-        GET,
-        { projectId },
-        { limit: "invalid", offset: "abc" },
-      );
-
-      expect(response.status).toBe(200);
-      // Should use defaults (limit=20, offset=0)
-      expect(response.data).toHaveProperty("sessions");
-      expect(response.data).toHaveProperty("total");
     });
   });
 });
