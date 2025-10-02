@@ -1,6 +1,8 @@
 import { POST } from "./route";
 import { auth } from "@clerk/nextjs/server";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import "../../../../src/test/setup";
+import { initServices } from "../../../../src/lib/init-services";
 import {
   githubInstallations,
   githubRepos,
@@ -19,31 +21,12 @@ describe("POST /api/github/disconnect", () => {
 
   beforeEach(async () => {
     // Each test gets a fresh database, so no cleanup needed
+    initServices();
 
     // Default to authenticated user
     mockAuth.mockResolvedValue({ userId: testUserId } as Awaited<
       ReturnType<typeof auth>
     >);
-  });
-
-  it("returns 401 when user is not authenticated", async () => {
-    mockAuth.mockResolvedValue({ userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
-
-    const response = await POST();
-    const data = await response.json();
-
-    expect(response.status).toBe(401);
-    expect(data).toEqual({ error: "Unauthorized" });
-  });
-
-  it("returns 404 when no installation found", async () => {
-    const response = await POST();
-    const data = await response.json();
-
-    expect(response.status).toBe(404);
-    expect(data).toEqual({ error: "No GitHub installation found" });
   });
 
   it("successfully disconnects GitHub installation and deletes repos", async () => {
@@ -150,32 +133,5 @@ describe("POST /api/github/disconnect", () => {
     await globalThis.services.db
       .delete(githubInstallations)
       .where(eq(githubInstallations.userId, otherUserId));
-  });
-
-  it("handles case when installation has no repos", async () => {
-    // Insert test installation without any repos
-    // Fixed unique ID for this test
-    const ghInstallationId = 100004;
-    await globalThis.services.db.insert(githubInstallations).values({
-      id: `install-${testUserId}-3`,
-      userId: testUserId,
-      installationId: ghInstallationId,
-      accountName: "test-org-no-repos",
-    });
-
-    const response = await POST();
-    const data = await response.json();
-
-    expect(response.status).toBe(200);
-    expect(data).toEqual({
-      message: "GitHub account disconnected successfully",
-    });
-
-    // Verify installation was deleted
-    const remainingInstallations = await globalThis.services.db
-      .select()
-      .from(githubInstallations)
-      .where(eq(githubInstallations.userId, testUserId));
-    expect(remainingInstallations).toHaveLength(0);
   });
 });

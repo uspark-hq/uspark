@@ -175,20 +175,6 @@ export async function cleanupTestProjects(projectIds: string[]) {
 }
 
 /**
- * Cleans up test GitHub installations.
- */
-export async function cleanupTestGitHubInstallations(
-  installationIds: number[],
-) {
-  if (installationIds.length === 0) return;
-
-  initServices();
-  await globalThis.services.db
-    .delete(githubInstallations)
-    .where(inArray(githubInstallations.installationId, installationIds));
-}
-
-/**
  * Updates a device code status for testing.
  * Use this ONLY for testing device code flows.
  */
@@ -203,21 +189,6 @@ export async function updateDeviceCodeStatus(
     .set({
       status,
       userId,
-      updatedAt: new Date(),
-    })
-    .where(eq(DEVICE_CODES_TBL.code, code));
-}
-
-/**
- * Sets a device code as expired for testing.
- * Use this ONLY for testing expiration scenarios.
- */
-export async function setDeviceCodeExpired(code: string) {
-  initServices();
-  await globalThis.services.db
-    .update(DEVICE_CODES_TBL)
-    .set({
-      expiresAt: new Date(Date.now() - 1000), // 1 second ago
       updatedAt: new Date(),
     })
     .where(eq(DEVICE_CODES_TBL.code, code));

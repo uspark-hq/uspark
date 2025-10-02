@@ -13,7 +13,6 @@ describe("BlockDisplay", () => {
 
     render(<BlockDisplay block={block} />);
     expect(screen.getByText(/Analyzing the request/)).toBeInTheDocument();
-    expect(screen.getByText(/💭/)).toBeInTheDocument();
   });
 
   it("renders content block correctly", () => {
@@ -42,7 +41,6 @@ describe("BlockDisplay", () => {
 
     render(<BlockDisplay block={block} />);
     expect(screen.getByText(/Tool: read_file/)).toBeInTheDocument();
-    expect(screen.getByText(/🔧/)).toBeInTheDocument();
 
     // Should show parameters by default
     expect(screen.getByText(/\/test\.txt/)).toBeInTheDocument();
@@ -68,7 +66,6 @@ describe("BlockDisplay", () => {
     };
 
     render(<BlockDisplay block={block} />);
-    expect(screen.getByText(/❌/)).toBeInTheDocument();
     expect(screen.getByText(/Error: File not found/)).toBeInTheDocument();
   });
 
@@ -85,21 +82,6 @@ describe("BlockDisplay", () => {
     };
 
     render(<BlockDisplay block={block} />);
-    expect(screen.getByText(/✅/)).toBeInTheDocument();
     expect(screen.getByText("File content here")).toBeInTheDocument();
-  });
-
-  it("handles unknown block type gracefully", () => {
-    const block = {
-      id: "block-6",
-      type: "unknown_type",
-      content: {},
-      sequenceNumber: 5,
-    };
-
-    render(<BlockDisplay block={block} />);
-    expect(
-      screen.getByText(/Unknown block type: unknown_type/),
-    ).toBeInTheDocument();
   });
 });

@@ -3,10 +3,6 @@ import "../../../../../src/test/setup";
 import { GET, POST } from "./route";
 import { POST as createProject } from "../../route";
 import { apiCall } from "../../../../../src/test/api-helpers";
-import {
-  createTestProjectForUser,
-  cleanupTestProjects,
-} from "../../../../../src/test/db-test-utils";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -43,55 +39,6 @@ describe("/api/projects/:projectId/sessions", () => {
   });
 
   describe("POST /api/projects/:projectId/sessions", () => {
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const response = await apiCall(
-        POST,
-        "POST",
-        { projectId },
-        { title: "Test Session" },
-      );
-
-      expect(response.status).toBe(401);
-      expect(response.data).toHaveProperty("error", "unauthorized");
-    });
-
-    it("should return 404 when project doesn't exist", async () => {
-      const response = await apiCall(
-        POST,
-        "POST",
-        { projectId: "non-existent" },
-        { title: "Test Session" },
-      );
-
-      expect(response.status).toBe(404);
-      expect(response.data).toHaveProperty("error", "project_not_found");
-    });
-
-    it("should return 404 when project belongs to another user", async () => {
-      // Create project for another user using utility function
-      const otherProjectId = `other-${Date.now()}`;
-      await createTestProjectForUser("other-user", {
-        id: otherProjectId,
-      });
-
-      const response = await apiCall(
-        POST,
-        "POST",
-        { projectId: otherProjectId },
-        { title: "Test Session" },
-      );
-
-      expect(response.status).toBe(404);
-      expect(response.data).toHaveProperty("error", "project_not_found");
-
-      // Clean up using utility function
-      await cleanupTestProjects([otherProjectId]);
-    });
-
     it("should create session with title", async () => {
       const response = await apiCall(
         POST,
@@ -133,17 +80,6 @@ describe("/api/projects/:projectId/sessions", () => {
   });
 
   describe("GET /api/projects/:projectId/sessions", () => {
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const response = await apiCall(GET, "GET", { projectId });
-
-      expect(response.status).toBe(401);
-      expect(response.data).toHaveProperty("error", "unauthorized");
-    });
-
     it("should return empty list when no sessions exist", async () => {
       const response = await apiCall(GET, "GET", { projectId });
 

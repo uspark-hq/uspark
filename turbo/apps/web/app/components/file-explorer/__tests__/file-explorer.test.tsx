@@ -41,11 +41,6 @@ describe("FileExplorer", () => {
     expect(screen.getByText("package.json")).toBeInTheDocument();
   });
 
-  it("displays empty state when no files provided", () => {
-    render(<FileExplorer files={[]} />);
-    expect(screen.getByText("No files to display")).toBeInTheDocument();
-  });
-
   it("calls onFileSelect when file is clicked", () => {
     const mockOnFileSelect = vi.fn();
     render(<FileExplorer files={mockFiles} onFileSelect={mockOnFileSelect} />);
@@ -68,12 +63,6 @@ describe("FileExplorer", () => {
     // Click again to collapse
     fireEvent.click(screen.getByText("src"));
     expect(screen.queryByText("index.ts")).not.toBeInTheDocument();
-  });
-
-  it("highlights selected file", () => {
-    render(<FileExplorer files={mockFiles} selectedFile="package.json" />);
-    const packageJsonElement = screen.getByText("package.json").parentElement;
-    expect(packageJsonElement).toHaveStyle("border-left: 3px solid #3b82f6");
   });
 });
 

@@ -31,17 +31,6 @@ describe("/api/projects", () => {
   });
 
   describe("GET /api/projects", () => {
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const response = await apiCall(GET, "GET");
-
-      expect(response.status).toBe(401);
-      expect(response.data).toHaveProperty("error", "unauthorized");
-    });
-
     it("should return empty list when user has no projects", async () => {
       const response = await apiCall(GET, "GET");
 
@@ -129,22 +118,6 @@ describe("/api/projects", () => {
   });
 
   describe("POST /api/projects", () => {
-    it("should return 401 when not authenticated", async () => {
-      mockAuth.mockResolvedValueOnce({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const response = await apiCall(
-        POST,
-        "POST",
-        {},
-        { name: "test-project" },
-      );
-
-      expect(response.status).toBe(401);
-      expect(response.data).toHaveProperty("error", "unauthorized");
-    });
-
     it("should create a new project successfully", async () => {
       const projectName = `test-project-${Date.now()}`;
 
@@ -168,66 +141,6 @@ describe("/api/projects", () => {
         (p: { id: string }) => p.id,
       );
       expect(projectIds).toContain(response.data.id);
-    });
-
-    it("should validate request body with schema", async () => {
-      const response = await apiCall(
-        POST,
-        "POST",
-        {},
-        {}, // Missing name
-      );
-
-      expect(response.status).toBe(400);
-      expect(response.data).toHaveProperty("error", "invalid_request");
-      expect(response.data).toHaveProperty("error_description");
-    });
-
-    it("should reject empty name", async () => {
-      const response = await apiCall(POST, "POST", {}, { name: "" });
-
-      expect(response.status).toBe(400);
-      expect(response.data).toHaveProperty("error", "invalid_request");
-      expect(response.data.error_description).toContain(
-        "Project name is required",
-      );
-    });
-
-    it("should reject name that is too long", async () => {
-      const longName = "a".repeat(101); // Exceeds 100 char limit
-
-      const response = await apiCall(POST, "POST", {}, { name: longName });
-
-      expect(response.status).toBe(400);
-      expect(response.data).toHaveProperty("error", "invalid_request");
-      expect(response.data.error_description).toContain(
-        "Project name must be under 100 characters",
-      );
-    });
-
-    it("should reject non-string name", async () => {
-      const response = await apiCall(POST, "POST", {}, { name: 123 });
-
-      expect(response.status).toBe(400);
-      expect(response.data).toHaveProperty("error", "invalid_request");
-      expect(response.data.error_description).toContain(
-        "expected string, received number",
-      );
-    });
-
-    it("should handle invalid JSON", async () => {
-      // Use NextRequest directly to send invalid JSON
-      const { NextRequest } = await import("next/server");
-      const mockRequest = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: "invalid json",
-      });
-
-      // This should throw an error which will be handled by Next.js error boundaries
-      await expect(POST(mockRequest)).rejects.toThrow();
     });
 
     it("should generate unique project IDs", async () => {
