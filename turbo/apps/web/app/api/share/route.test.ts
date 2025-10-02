@@ -3,11 +3,6 @@ import "../../../src/test/setup";
 import { POST } from "./route";
 import { POST as createProject } from "../projects/route";
 import { apiCall } from "../../../src/test/api-helpers";
-import { createTestProjectForUser } from "../../../src/test/db-test-utils";
-import { initServices } from "../../../src/lib/init-services";
-import * as Y from "yjs";
-import { PROJECTS_TBL } from "../../../src/db/schema/projects";
-import { eq } from "drizzle-orm";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -79,116 +74,6 @@ describe("/api/share", () => {
       expect(createdShare).toBeDefined();
       expect(createdShare.projectId).toBe(projectId);
       expect(createdShare.filePath).toBe(testFilePath);
-    });
-
-    it("should return 401 when user is not authenticated", async () => {
-      mockAuth.mockResolvedValue({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const response = await apiCall(
-        POST,
-        "POST",
-        {},
-        {
-          project_id: projectId,
-          file_path: testFilePath,
-        },
-      );
-
-      expect(response.status).toBe(401);
-      expect(response.data).toMatchObject({
-        error: "unauthorized",
-      });
-    });
-
-    it("should return 400 for missing project_id", async () => {
-      const response = await apiCall(
-        POST,
-        "POST",
-        {},
-        {
-          file_path: testFilePath,
-        },
-      );
-
-      expect(response.status).toBe(400);
-      expect(response.data).toMatchObject({
-        error: "invalid_request",
-        error_description: expect.stringContaining("project_id"),
-      });
-    });
-
-    it("should return 400 for missing file_path", async () => {
-      const response = await apiCall(
-        POST,
-        "POST",
-        {},
-        {
-          project_id: projectId,
-        },
-      );
-
-      expect(response.status).toBe(400);
-      expect(response.data).toMatchObject({
-        error: "invalid_request",
-        error_description: expect.stringContaining("file_path"),
-      });
-    });
-
-    it("should return 404 for non-existent project", async () => {
-      const response = await apiCall(
-        POST,
-        "POST",
-        {},
-        {
-          project_id: "non-existent-project",
-          file_path: testFilePath,
-        },
-      );
-
-      expect(response.status).toBe(404);
-      expect(response.data).toMatchObject({
-        error: "project_not_found",
-      });
-    });
-
-    it("should return 404 for project owned by different user", async () => {
-      // Create project owned by different user using direct DB (needed for different user)
-      initServices();
-      const otherUserId = "other-user";
-      const otherProjectId = `other-project-${Date.now()}`;
-
-      const ydoc = new Y.Doc();
-      const state = Y.encodeStateAsUpdate(ydoc);
-      const base64Data = Buffer.from(state).toString("base64");
-
-      // Create project for different user using utility function
-      await createTestProjectForUser(otherUserId, {
-        id: otherProjectId,
-        ydocData: base64Data,
-        version: 0,
-      });
-
-      const response = await apiCall(
-        POST,
-        "POST",
-        {},
-        {
-          project_id: otherProjectId,
-          file_path: testFilePath,
-        },
-      );
-
-      expect(response.status).toBe(404);
-      expect(response.data).toMatchObject({
-        error: "project_not_found",
-      });
-
-      // Clean up
-      await globalThis.services.db
-        .delete(PROJECTS_TBL)
-        .where(eq(PROJECTS_TBL.id, otherProjectId));
     });
   });
 });

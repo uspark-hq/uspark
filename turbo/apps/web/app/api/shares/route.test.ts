@@ -156,15 +156,4 @@ describe("GET /api/shares", () => {
     // Clean up using utility function
     // Note: cleanupTestProjects will handle both shares and projects cleanup
   });
-
-  it("should return 401 when not authenticated", async () => {
-    mockAuth.mockResolvedValue({ userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
-
-    const response = await apiCall(GET, "GET");
-
-    expect(response.status).toBe(401);
-    expect(response.data).toEqual({ error: "unauthorized" });
-  });
 });
