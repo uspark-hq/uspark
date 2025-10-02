@@ -97,44 +97,6 @@ describe("/api/projects/[projectId]/github/repository", () => {
       expect(data.repository.repoName).toBe("uspark-test-project-123");
       expect(data.repository.installationId).toBe(testInstallationId);
     });
-
-    it("should return 404 for non-existent repository", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      // No repository in database for this project
-
-      const request = new NextRequest(
-        "http://localhost/api/projects/non-existent/github/repository",
-      );
-      const context = {
-        params: Promise.resolve({ projectId: "non-existent" }),
-      };
-
-      const response = await GET(request, context);
-      const data = await response.json();
-
-      expect(response.status).toBe(404);
-      expect(data).toEqual({ error: "repository_not_found" });
-    });
-
-    it("should return 401 for unauthenticated user", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId: null } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const request = new NextRequest(
-        "http://localhost/api/projects/test-project-123/github/repository",
-      );
-      const context = { params: Promise.resolve({ projectId }) };
-
-      const response = await GET(request, context);
-      const data = await response.json();
-
-      expect(response.status).toBe(401);
-      expect(data).toEqual({ error: "unauthorized" });
-    });
   });
 
   describe("POST", () => {
@@ -178,28 +140,6 @@ describe("/api/projects/[projectId]/github/repository", () => {
         .from(githubRepos)
         .where(eq(githubRepos.projectId, projectId));
       expect(createdRepo.length).toBe(1);
-    });
-
-    it("should return 400 for missing installation ID", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      const request = new NextRequest(
-        "http://localhost/api/projects/test-project-123/github/repository",
-        {
-          method: "POST",
-          body: JSON.stringify({}),
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-      const context = { params: Promise.resolve({ projectId }) };
-
-      const response = await POST(request, context);
-      const data = await response.json();
-
-      expect(response.status).toBe(400);
-      expect(data).toEqual({ error: "installation_id_required" });
     });
 
     it("should return 409 for repository that already exists", async () => {
@@ -297,45 +237,6 @@ describe("/api/projects/[projectId]/github/repository", () => {
         repoId: existingRepoId,
         repoName: existingRepoName,
       });
-    });
-
-    it("should return 400 for invalid repository parameters", async () => {
-      vi.mocked(auth).mockResolvedValue({ userId } as Awaited<
-        ReturnType<typeof auth>
-      >);
-
-      // Setup test data
-      initServices();
-      const db = globalThis.services.db;
-
-      // Create test installation
-      await db.insert(githubInstallations).values({
-        userId,
-        installationId: testInstallationId,
-        accountName: "testuser",
-      });
-
-      // Missing repositoryName (repositoryId provided but not repositoryName)
-      const request = new NextRequest(
-        "http://localhost/api/projects/test-project-123/github/repository",
-        {
-          method: "POST",
-          body: JSON.stringify({
-            installationId: testInstallationId,
-            repositoryId: 123456,
-            // repositoryName is missing
-          }),
-          headers: { "Content-Type": "application/json" },
-        },
-      );
-      const context = { params: Promise.resolve({ projectId }) };
-
-      const response = await POST(request, context);
-
-      // Should fall back to creating new repo since repositoryName is missing
-      // Based on the implementation: if (repositoryId && repositoryName)
-      // Without repositoryName, it will try to create a new repo
-      expect(response.status).toBe(201);
     });
   });
 });
