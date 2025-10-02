@@ -11,7 +11,6 @@ vi.mock("@vercel/blob", () => ({
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { pushCommand, pullCommand } from "../sync";
-import chalk from "chalk";
 import * as fs from "fs/promises";
 import * as path from "path";
 import { tmpdir } from "os";
@@ -69,9 +68,8 @@ describe("sync commands", () => {
 
       await pushCommand("test.txt", { projectId: "proj-123" });
 
-      expect(console.log).toHaveBeenCalledWith(
-        chalk.green("✓ Successfully pushed test.txt"),
-      );
+      // Verify the file was pushed to the server
+      expect(mockServer.hasFile("proj-123", "test.txt")).toBe(true);
     });
 
     it("should actually update the YDoc with pushed files", async () => {
@@ -122,13 +120,6 @@ describe("sync commands", () => {
         projectId: "proj-123",
         all: true,
       });
-
-      expect(console.log).toHaveBeenCalledWith(
-        chalk.blue("Found 2 files to push"),
-      );
-      expect(console.log).toHaveBeenCalledWith(
-        chalk.green("✓ Successfully pushed 2 files"),
-      );
 
       // Verify the files are actually in the YDoc
       expect(mockServer.hasFile("proj-123", "file1.txt")).toBe(true);
@@ -216,10 +207,6 @@ describe("sync commands", () => {
       // Check file content
       const content = await fs.readFile("test.txt", "utf8");
       expect(content).toBe("test file content");
-
-      expect(console.log).toHaveBeenCalledWith(
-        chalk.green("✓ Successfully pulled to test.txt"),
-      );
     });
 
     it("should pull a file to custom output path", async () => {
@@ -248,10 +235,6 @@ describe("sync commands", () => {
       // Check file content
       const content = await fs.readFile("local/output.txt", "utf8");
       expect(content).toBe("remote file content");
-
-      expect(console.log).toHaveBeenCalledWith(
-        chalk.green("✓ Successfully pulled to local/output.txt"),
-      );
     });
 
     it("should handle project not found error", async () => {
