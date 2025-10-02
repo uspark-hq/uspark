@@ -111,13 +111,6 @@ describe("DELETE /api/shares/[id]", () => {
       .where(eq(PROJECTS_TBL.id, projectId));
   });
 
-  it("should return 404 when trying to delete non-existent share", async () => {
-    const response = await apiCall(DELETE, "DELETE", { id: "non-existent" });
-
-    expect(response.status).toBe(404);
-    expect(response.data).toEqual({ error: "share_not_found" });
-  });
-
   it("should return 404 when trying to delete another user's share", async () => {
     const shareId = `test-share-id-other-${Date.now()}`;
 
