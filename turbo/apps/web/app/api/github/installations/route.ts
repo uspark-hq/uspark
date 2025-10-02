@@ -8,9 +8,6 @@ import { projectDetailContract } from "@uspark/core";
 type GitHubInstallationsResponse = z.infer<
   (typeof projectDetailContract.listGitHubInstallations.responses)[200]
 >;
-type UnauthorizedResponse = z.infer<
-  (typeof projectDetailContract.listGitHubInstallations.responses)[401]
->;
 
 /**
  * GET /api/github/installations
@@ -22,11 +19,13 @@ type UnauthorizedResponse = z.infer<
 export async function GET() {
   const { userId } = await auth();
   if (!userId) {
-    const error: UnauthorizedResponse = {
-      error: "unauthorized",
-      error_description: "Authentication required",
-    };
-    return NextResponse.json(error, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "unauthorized",
+        error_description: "Authentication required",
+      },
+      { status: 401 },
+    );
   }
 
   const installations = await getUserInstallations(userId);

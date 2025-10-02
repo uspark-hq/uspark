@@ -1,23 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
-import type { z } from "zod";
 import { projectDetailContract } from "@uspark/core";
 import { initServices } from "../../../../../src/lib/init-services";
 import { SESSIONS_TBL } from "../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { eq, and, desc, count } from "drizzle-orm";
 import { randomUUID } from "crypto";
-
-// Extract types from contracts
-type UnauthorizedResponse = z.infer<
-  (typeof projectDetailContract.listSessions.responses)[401]
->;
-type NotFoundResponse = z.infer<
-  (typeof projectDetailContract.listSessions.responses)[404]
->;
-type BadRequestResponse = z.infer<
-  (typeof projectDetailContract.createSession.responses)[400]
->;
 
 /**
  * POST /api/projects/:projectId/sessions
@@ -32,11 +20,13 @@ export async function POST(
   const { userId } = await auth();
 
   if (!userId) {
-    const error: UnauthorizedResponse = {
-      error: "unauthorized",
-      error_description: "Authentication required",
-    };
-    return NextResponse.json(error, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "unauthorized",
+        error_description: "Authentication required",
+      },
+      { status: 401 },
+    );
   }
 
   initServices();
@@ -51,11 +41,13 @@ export async function POST(
     );
 
   if (!project) {
-    const error: NotFoundResponse = {
-      error: "project_not_found",
-      error_description: "Project not found",
-    };
-    return NextResponse.json(error, { status: 404 });
+    return NextResponse.json(
+      {
+        error: "project_not_found",
+        error_description: "Project not found",
+      },
+      { status: 404 },
+    );
   }
 
   // Parse and validate request body using contract schema
@@ -63,10 +55,12 @@ export async function POST(
   const parseResult = projectDetailContract.createSession.body.safeParse(body);
 
   if (!parseResult.success) {
-    const error: BadRequestResponse = {
-      error: parseResult.error.issues[0]?.message || "Invalid request",
-    };
-    return NextResponse.json(error, { status: 400 });
+    return NextResponse.json(
+      {
+        error: parseResult.error.issues[0]?.message || "Invalid request",
+      },
+      { status: 400 },
+    );
   }
 
   const { title } = parseResult.data;
@@ -114,11 +108,13 @@ export async function GET(
   const { userId } = await auth();
 
   if (!userId) {
-    const error: UnauthorizedResponse = {
-      error: "unauthorized",
-      error_description: "Authentication required",
-    };
-    return NextResponse.json(error, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "unauthorized",
+        error_description: "Authentication required",
+      },
+      { status: 401 },
+    );
   }
 
   initServices();
@@ -133,11 +129,13 @@ export async function GET(
     );
 
   if (!project) {
-    const error: NotFoundResponse = {
-      error: "project_not_found",
-      error_description: "Project not found",
-    };
-    return NextResponse.json(error, { status: 404 });
+    return NextResponse.json(
+      {
+        error: "project_not_found",
+        error_description: "Project not found",
+      },
+      { status: 404 },
+    );
   }
 
   // Parse pagination parameters
