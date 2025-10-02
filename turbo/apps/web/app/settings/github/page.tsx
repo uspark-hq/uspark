@@ -68,10 +68,7 @@ export default function GitHubSettingsPage() {
               Install the uSpark GitHub App to your account or organization
             </li>
             <li>Choose which repositories the app can access</li>
-            <li>
-              Each project can be linked to a repository named
-              uspark-[projectId]
-            </li>
+            <li>Link each project to an existing repository</li>
             <li>Use the sync button in your project to push files to GitHub</li>
           </ol>
         </div>
