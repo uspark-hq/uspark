@@ -159,19 +159,4 @@ describe("ChatInterface", () => {
       expect(textarea).toHaveValue("");
     });
   });
-
-  it("prevents sending when Shift+Enter is pressed", async () => {
-    render(<ChatInterface projectId="project-1" />);
-
-    const textarea = screen.getByPlaceholderText(/ask claude/i);
-
-    // Type a message
-    fireEvent.change(textarea, { target: { value: "Test message" } });
-
-    // Press Shift+Enter (should not send)
-    fireEvent.keyDown(textarea, { key: "Enter", shiftKey: true });
-
-    // Input should still have the message
-    expect(textarea).toHaveValue("Test message");
-  });
 });

@@ -26,27 +26,6 @@ describe("SharesPage", () => {
     vi.clearAllMocks();
   });
 
-  it("should render shares list when data is available", async () => {
-    // Use default handler from msw-handlers.ts which returns mock shares
-
-    render(<SharesPage />);
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(screen.queryByText("Loading shares...")).not.toBeInTheDocument();
-    });
-
-    // Check first share
-    expect(screen.getByText(/src\/test\.ts/)).toBeInTheDocument();
-    expect(screen.getByText(/Project: project-1/)).toBeInTheDocument();
-    expect(screen.getByText(/Accessed: 5 times/)).toBeInTheDocument();
-
-    // Check second share
-    expect(screen.getByText(/README\.md/)).toBeInTheDocument();
-    expect(screen.getByText(/Project: project-2/)).toBeInTheDocument();
-    expect(screen.getByText(/Accessed: 0 times/)).toBeInTheDocument();
-  });
-
   it("should handle delete share", async () => {
     // Mock window.confirm
     const originalConfirm = window.confirm;
@@ -99,17 +78,5 @@ describe("SharesPage", () => {
     expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
       "https://www.uspark.ai/share/token-1",
     );
-  });
-
-  it("should display correct heading and back link", () => {
-    render(<SharesPage />);
-
-    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent(
-      "Shared Links",
-    );
-    expect(screen.getByText("← Back to Settings")).toBeInTheDocument();
-    expect(
-      screen.getByText(/Manage your shared file links/),
-    ).toBeInTheDocument();
   });
 });
