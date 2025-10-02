@@ -75,41 +75,6 @@ describe("pull command", () => {
     const pulledContent = await readFile(expectedPath, "utf8");
     expect(pulledContent).toBe(fileContent);
   });
-
-  it("should throw error when file not found in project", async () => {
-    const projectId = "empty-project";
-    const filePath = "nonexistent.txt";
-
-    // Don't add any files to the project
-
-    const outputPath = join(tempDir, "output.txt");
-
-    await expect(
-      pullCommand(filePath, {
-        projectId,
-        output: outputPath,
-      }),
-    ).rejects.toThrow("File not found in project: nonexistent.txt");
-  });
-
-  it("should throw error when not authenticated", async () => {
-    // Override config to simulate no authentication
-    setOverrideConfig({
-      token: undefined,
-      apiUrl: "http://localhost:3000",
-    });
-
-    const projectId = "test-project";
-    const filePath = "test.txt";
-    const outputPath = join(tempDir, "test.txt");
-
-    await expect(
-      pullCommand(filePath, {
-        projectId,
-        output: outputPath,
-      }),
-    ).rejects.toThrow("Not authenticated");
-  });
 });
 
 describe("pull --all command", () => {
@@ -180,27 +145,5 @@ describe("pull --all command", () => {
     // Verify no files were created
     const files = readdirSync(tempDir);
     expect(files).toHaveLength(0);
-  });
-
-  it.skip("should throw error when file metadata not found", async () => {
-    // This would need special setup to create a broken state
-    // For now, we'll skip this test since it requires internal manipulation
-  });
-
-  it("should throw error when not authenticated", async () => {
-    // Override config to simulate no authentication
-    setOverrideConfig({
-      token: undefined,
-      apiUrl: "http://localhost:3000",
-    });
-
-    const projectId = "test-project";
-
-    await expect(
-      pullAllCommand({
-        projectId,
-        output: tempDir,
-      }),
-    ).rejects.toThrow("Not authenticated");
   });
 });

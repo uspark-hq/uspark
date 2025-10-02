@@ -30,10 +30,7 @@ describe("Push Multiple Different Blobs", () => {
     vi.clearAllMocks();
 
     // Mock put to track calls
-    vi.mocked(put).mockImplementation(async (pathname, content) => {
-      console.log(
-        `[TEST] put called with pathname: ${pathname}, content length: ${content.toString().length}`,
-      );
+    vi.mocked(put).mockImplementation(async (pathname) => {
       return {
         url: `https://test.blob.storage/${pathname}`,
         pathname,
@@ -42,10 +39,6 @@ describe("Push Multiple Different Blobs", () => {
         contentDisposition: `attachment; filename="${pathname}"`,
       };
     });
-
-    // Mock console
-    console.log = vi.fn();
-    console.error = vi.fn();
   });
 
   afterEach(async () => {
