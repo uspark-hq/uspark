@@ -1,6 +1,7 @@
 import { contractFetch } from '@uspark/core/contract-fetch'
 import { projectDetailContract } from '@uspark/core/contracts/project-detail.contract'
 import { projectsContract } from '@uspark/core/contracts/projects.contract'
+import { turnsContract } from '@uspark/core/contracts/turns.contract'
 import { parseYjsFileSystem, type FileItem } from '@uspark/core/yjs-filesystem'
 import { command, computed } from 'ccstate'
 import { fetch$ } from '../fetch'
@@ -11,10 +12,10 @@ interface ProjectFilesData {
   fileCount: number
 }
 
-export const blobStore$ = computed((get) => {
+export const blobStore$ = computed(async (get) => {
   const workspaceFetch = get(fetch$)
 
-  return contractFetch(projectDetailContract.getBlobStore, {
+  return await contractFetch(projectDetailContract.getBlobStore, {
     fetch: workspaceFetch,
   })
 })
@@ -28,7 +29,7 @@ export const projectFiles = function (projectId: string) {
       fetch: workspaceFetch,
     })
 
-    const yjsData = new Uint8Array(response as ArrayBuffer)
+    const yjsData = new Uint8Array(response)
 
     return parseYjsFileSystem(yjsData)
   })
@@ -54,11 +55,34 @@ export const shareFile$ = command(
 )
 
 export const projectSessions = function (projectId: string) {
-  return computed((get) => {
+  return computed(async (get) => {
     const workspaceFetch = get(fetch$)
 
-    return contractFetch(projectDetailContract.listSessions, {
+    return await contractFetch(projectDetailContract.listSessions, {
       params: { projectId },
+      fetch: workspaceFetch,
+    })
+  })
+}
+
+export const sessionTurns = function (params: {
+  projectId: string
+  sessionId: string
+  limit?: number
+  offset?: number
+}) {
+  return computed(async (get) => {
+    const workspaceFetch = get(fetch$)
+
+    return await contractFetch(turnsContract.listTurns, {
+      params: {
+        projectId: params.projectId,
+        sessionId: params.sessionId,
+      },
+      query: {
+        limit: params.limit?.toString() ?? '20',
+        offset: params.offset?.toString() ?? '0',
+      },
       fetch: workspaceFetch,
     })
   })
@@ -104,19 +128,19 @@ export const sendMessage$ = command(
 export const sessionUpdates = function (params: {
   projectId: string
   sessionId: string
-  state: string
+  lastBlockId?: string
   timeout?: string
 }) {
-  return computed((get) => {
+  return computed(async (get) => {
     const workspaceFetch = get(fetch$)
 
-    return contractFetch(projectDetailContract.getSessionUpdates, {
+    return await contractFetch(projectDetailContract.getSessionUpdates, {
       params: {
         projectId: params.projectId,
         sessionId: params.sessionId,
       },
       query: {
-        state: params.state,
+        lastBlockId: params.lastBlockId,
         timeout: params.timeout ?? '30000',
       },
       fetch: workspaceFetch,
@@ -125,20 +149,20 @@ export const sessionUpdates = function (params: {
 }
 
 export const githubRepository = function (projectId: string) {
-  return computed((get) => {
+  return computed(async (get) => {
     const workspaceFetch = get(fetch$)
 
-    return contractFetch(projectDetailContract.getGitHubRepository, {
+    return await contractFetch(projectDetailContract.getGitHubRepository, {
       params: { projectId },
       fetch: workspaceFetch,
     })
   })
 }
 
-export const githubInstallations$ = computed((get) => {
+export const githubInstallations$ = computed(async (get) => {
   const workspaceFetch = get(fetch$)
 
-  return contractFetch(projectDetailContract.listGitHubInstallations, {
+  return await contractFetch(projectDetailContract.listGitHubInstallations, {
     fetch: workspaceFetch,
   })
 })

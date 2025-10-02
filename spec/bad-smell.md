@@ -154,3 +154,21 @@ This document defines code quality issues and anti-patterns to identify during c
   }
   ```
 
+## 15. Avoid Bad Tests
+- **Fake tests** - Tests that don't actually execute the code under test, but instead test mock implementations
+  - These tests may pass while the real code is broken
+  - Example: Mocking a function and then testing the mock's behavior instead of the real implementation
+- **Duplicating implementation in tests** - Copying implementation logic into test assertions
+  - When implementation changes, tests won't catch regressions
+  - Tests should verify behavior, not replicate code
+- **Over-testing error responses** - Excessive boilerplate tests for HTTP status codes
+  - Don't write repetitive tests for every 401/404/400 scenario
+  - Focus on meaningful error handling, not HTTP status code validation
+- **Over-testing schema validation** - Redundant validation tests for Zod schemas
+  - Zod already validates at runtime - no need to test that Zod works
+  - Trust the schema library; test business logic instead
+- **Over-mocking** - Mocking too many dependencies
+  - Reduces confidence that integrated components work together
+  - Prefer integration tests with real dependencies when possible
+  - Only mock external services, network calls, or slow operations
+

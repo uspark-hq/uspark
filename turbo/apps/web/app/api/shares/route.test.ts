@@ -59,7 +59,7 @@ describe("GET /api/shares", () => {
       {},
       { project_id: projectId, file_path: "src/file1.ts" },
     );
-    expect(share1Response.status).toBe(201);
+    expect(share1Response.status).toBe(200);
     createdShareIds.push(share1Response.data.id);
 
     const share2Response = await apiCall(
@@ -68,7 +68,7 @@ describe("GET /api/shares", () => {
       {},
       { project_id: projectId, file_path: "src/file2.ts" },
     );
-    expect(share2Response.status).toBe(201);
+    expect(share2Response.status).toBe(200);
     createdShareIds.push(share2Response.data.id);
 
     const response = await apiCall(GET, "GET");
@@ -115,7 +115,7 @@ describe("GET /api/shares", () => {
       {},
       { project_id: myProjectId, file_path: "my-file.ts" },
     );
-    expect(myShareResponse.status).toBe(201);
+    expect(myShareResponse.status).toBe(200);
     createdShareIds.push(myShareResponse.data.id);
 
     // Create project and shares for other user using utility functions

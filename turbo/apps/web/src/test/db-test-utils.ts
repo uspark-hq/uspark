@@ -175,20 +175,6 @@ export async function cleanupTestProjects(projectIds: string[]) {
 }
 
 /**
- * Cleans up test GitHub installations.
- */
-export async function cleanupTestGitHubInstallations(
-  installationIds: number[],
-) {
-  if (installationIds.length === 0) return;
-
-  initServices();
-  await globalThis.services.db
-    .delete(githubInstallations)
-    .where(inArray(githubInstallations.installationId, installationIds));
-}
-
-/**
  * Updates a device code status for testing.
  * Use this ONLY for testing device code flows.
  */

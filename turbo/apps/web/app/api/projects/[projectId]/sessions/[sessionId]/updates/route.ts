@@ -8,15 +8,12 @@ import {
   BLOCKS_TBL,
 } from "../../../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
-import { eq, and, asc } from "drizzle-orm";
+import { eq, and, asc, gte, ne } from "drizzle-orm";
 import { projectDetailContract } from "@uspark/core";
 
 // Extract types from contract
 type SessionUpdateResponse = z.infer<
   (typeof projectDetailContract.getSessionUpdates.responses)[200]
->;
-type UnauthorizedResponse = z.infer<
-  (typeof projectDetailContract.getSessionUpdates.responses)[401]
 >;
 
 /**
@@ -33,11 +30,13 @@ export async function GET(
   const { userId } = await auth();
 
   if (!userId) {
-    const error: UnauthorizedResponse = {
-      error: "unauthorized",
-      error_description: "Authentication required",
-    };
-    return NextResponse.json(error, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "unauthorized",
+        error_description: "Authentication required",
+      },
+      { status: 401 },
+    );
   }
 
   initServices();
@@ -46,24 +45,13 @@ export async function GET(
   // Parse query parameters
   const url = new URL(request.url);
 
-  // Client sends their current state as: turn1:blockCount1,turn2:blockCount2
-  // Example: "turn_abc:3,turn_def:5"
-  const clientState = url.searchParams.get("state") || "";
+  // Client sends the last block ID they've seen
+  // If empty, return all data
+  const lastBlockId = url.searchParams.get("lastBlockId") || "";
   const timeout = Math.min(
     parseInt(url.searchParams.get("timeout") || "30000"),
     60000, // Max 60 seconds
   );
-
-  // Parse client state into a map
-  const clientTurnStates = new Map<string, number>();
-  if (clientState) {
-    clientState.split(",").forEach((part) => {
-      const [turnId, count] = part.split(":");
-      if (turnId && count) {
-        clientTurnStates.set(turnId, parseInt(count, 10));
-      }
-    });
-  }
 
   // Verify project exists and belongs to user
   const [project] = await globalThis.services.db
@@ -100,6 +88,20 @@ export async function GET(
     );
   }
 
+  // Get the timestamp of the last block the client has seen
+  let lastBlockTimestamp: Date | null = null;
+  if (lastBlockId) {
+    const [lastBlock] = await globalThis.services.db
+      .select({ createdAt: BLOCKS_TBL.createdAt })
+      .from(BLOCKS_TBL)
+      .where(eq(BLOCKS_TBL.id, lastBlockId))
+      .limit(1);
+
+    if (lastBlock) {
+      lastBlockTimestamp = lastBlock.createdAt;
+    }
+  }
+
   // Long polling implementation
   const startTime = Date.now();
   const pollInterval = 100; // Check every 100ms
@@ -107,43 +109,73 @@ export async function GET(
 
   while (firstCheck || Date.now() - startTime < timeout) {
     firstCheck = false;
-    // Get all turns for the session
-    const turns = await globalThis.services.db
-      .select()
-      .from(TURNS_TBL)
-      .where(eq(TURNS_TBL.sessionId, sessionId))
-      .orderBy(asc(TURNS_TBL.createdAt));
 
-    // Get blocks for each turn and check for updates
-    let hasUpdates = false;
-    const turnsWithBlocks = await Promise.all(
-      turns.map(async (turn) => {
-        const blocks = await globalThis.services.db
-          .select()
-          .from(BLOCKS_TBL)
-          .where(eq(BLOCKS_TBL.turnId, turn.id))
-          .orderBy(asc(BLOCKS_TBL.sequenceNumber));
+    // Check if there are new blocks after the last one
+    let hasNewBlocks = false;
+    if (lastBlockId && lastBlockTimestamp) {
+      // Check for blocks created at or after the last block's timestamp, excluding the last block itself
+      // Using gte instead of gt to handle cases where multiple blocks have the same timestamp
+      const newBlocks = await globalThis.services.db
+        .select({ id: BLOCKS_TBL.id })
+        .from(BLOCKS_TBL)
+        .innerJoin(TURNS_TBL, eq(BLOCKS_TBL.turnId, TURNS_TBL.id))
+        .where(
+          and(
+            eq(TURNS_TBL.sessionId, sessionId),
+            gte(BLOCKS_TBL.createdAt, lastBlockTimestamp),
+            ne(BLOCKS_TBL.id, lastBlockId), // Exclude the last block itself
+          ),
+        )
+        .limit(1);
 
-        const currentBlockCount = blocks.length;
-        const clientBlockCount = clientTurnStates.get(turn.id);
+      hasNewBlocks = newBlocks.length > 0;
+    } else if (lastBlockId && !lastBlockTimestamp) {
+      // lastBlockId was provided but not found - treat as if we haven't seen anything
+      const anyBlocks = await globalThis.services.db
+        .select({ id: BLOCKS_TBL.id })
+        .from(BLOCKS_TBL)
+        .innerJoin(TURNS_TBL, eq(BLOCKS_TBL.turnId, TURNS_TBL.id))
+        .where(eq(TURNS_TBL.sessionId, sessionId))
+        .limit(1);
 
-        // Check if this turn is new or has new blocks
-        if (
-          clientBlockCount === undefined ||
-          currentBlockCount > clientBlockCount
-        ) {
-          hasUpdates = true;
-        }
+      hasNewBlocks = anyBlocks.length > 0;
+    } else {
+      // No lastBlockId provided, check if there are any blocks at all
+      const anyBlocks = await globalThis.services.db
+        .select({ id: BLOCKS_TBL.id })
+        .from(BLOCKS_TBL)
+        .innerJoin(TURNS_TBL, eq(BLOCKS_TBL.turnId, TURNS_TBL.id))
+        .where(eq(TURNS_TBL.sessionId, sessionId))
+        .limit(1);
 
-        return {
-          ...turn,
-          blocks,
-        };
-      }),
-    );
+      hasNewBlocks = anyBlocks.length > 0;
+    }
 
-    // If there are updates, return immediately
-    if (hasUpdates) {
+    // If there are new blocks, return all turns with their blocks
+    if (hasNewBlocks) {
+      // Get all turns for the session
+      const turns = await globalThis.services.db
+        .select()
+        .from(TURNS_TBL)
+        .where(eq(TURNS_TBL.sessionId, sessionId))
+        .orderBy(asc(TURNS_TBL.createdAt));
+
+      // Get blocks for each turn
+      const turnsWithBlocks = await Promise.all(
+        turns.map(async (turn) => {
+          const blocks = await globalThis.services.db
+            .select()
+            .from(BLOCKS_TBL)
+            .where(eq(BLOCKS_TBL.turnId, turn.id))
+            .orderBy(asc(BLOCKS_TBL.sequenceNumber));
+
+          return {
+            ...turn,
+            blocks,
+          };
+        }),
+      );
+
       const response: SessionUpdateResponse = {
         session: {
           id: sessionId,
@@ -172,9 +204,18 @@ export async function GET(
     }
 
     // Check if there are any active turns
-    const hasActiveTurns = turns.some(
-      (turn) => turn.status === "in_progress" || turn.status === "pending",
-    );
+    const activeTurns = await globalThis.services.db
+      .select({ id: TURNS_TBL.id })
+      .from(TURNS_TBL)
+      .where(
+        and(
+          eq(TURNS_TBL.sessionId, sessionId),
+          eq(TURNS_TBL.status, "in_progress"),
+        ),
+      )
+      .limit(1);
+
+    const hasActiveTurns = activeTurns.length > 0;
 
     // If no active turns and no updates, return immediately to avoid unnecessary waiting
     if (!hasActiveTurns) {

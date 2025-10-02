@@ -91,7 +91,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
 
   describe("GET /api/projects/:projectId/sessions/:sessionId/updates", () => {
     it("should return updates when there are new turns", async () => {
-      // Create 2 turns
+      // Create 2 turns with blocks
       const [turn1] = await globalThis.services.db
         .insert(TURNS_TBL)
         .values({
@@ -99,6 +99,17 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
           sessionId,
           userPrompt: "Question 1",
           status: "completed",
+        })
+        .returning();
+
+      const [block1] = await globalThis.services.db
+        .insert(BLOCKS_TBL)
+        .values({
+          id: `block_1_${Date.now()}`,
+          turnId: turn1!.id,
+          type: "content",
+          content: { text: "Answer 1" },
+          sequenceNumber: 0,
         })
         .returning();
 
@@ -112,11 +123,23 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         })
         .returning();
 
-      createdTurnIds.push(turn1!.id, turn2!.id);
+      const [block2] = await globalThis.services.db
+        .insert(BLOCKS_TBL)
+        .values({
+          id: `block_2_${Date.now()}`,
+          turnId: turn2!.id,
+          type: "content",
+          content: { text: "Answer 2" },
+          sequenceNumber: 0,
+        })
+        .returning();
 
-      // Client has only seen turn1 with 0 blocks
+      createdTurnIds.push(turn1!.id, turn2!.id);
+      createdBlockIds.push(block1!.id, block2!.id);
+
+      // Client has only seen block1
       const request = new NextRequest(
-        `http://localhost:3000?state=${turn1!.id}:0&timeout=0`,
+        `http://localhost:3000?lastBlockId=${block1!.id}&timeout=0`,
       );
       const context = { params: Promise.resolve({ projectId, sessionId }) };
 
@@ -140,7 +163,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
           id: `turn_blocks_${Date.now()}`,
           sessionId,
           userPrompt: "Question",
-          status: "running",
+          status: "in_progress",
         })
         .returning();
 
@@ -169,9 +192,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
       createdTurnIds.push(turn!.id);
       createdBlockIds.push(block1!.id, block2!.id);
 
-      // Client has seen turn but only 1 block
+      // Client has seen block1 but not block2
       const request = new NextRequest(
-        `http://localhost:3000?state=${turn!.id}:1&timeout=0`,
+        `http://localhost:3000?lastBlockId=${block1!.id}&timeout=0`,
       );
       const context = { params: Promise.resolve({ projectId, sessionId }) };
 
@@ -221,9 +244,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
       createdTurnIds.push(turn!.id);
       createdBlockIds.push(block1!.id, block2!.id);
 
-      // Client is up to date (has seen turn with 2 blocks)
+      // Client is up to date (has seen both blocks)
       const request = new NextRequest(
-        `http://localhost:3000?state=${turn!.id}:2&timeout=0`,
+        `http://localhost:3000?lastBlockId=${block2!.id}&timeout=0`,
       );
       const context = { params: Promise.resolve({ projectId, sessionId }) };
 
@@ -232,7 +255,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
       expect(response.status).toBe(204); // No content
     });
 
-    it("should handle multiple turns in client state", async () => {
+    it("should detect new turns after last seen block", async () => {
       // Create 3 turns
       const [turn1] = await globalThis.services.db
         .insert(TURNS_TBL)
@@ -241,6 +264,17 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
           sessionId,
           userPrompt: "First",
           status: "completed",
+        })
+        .returning();
+
+      const [block1] = await globalThis.services.db
+        .insert(BLOCKS_TBL)
+        .values({
+          id: `block1_${Date.now()}`,
+          turnId: turn1!.id,
+          type: "content",
+          content: { text: "Response 1" },
+          sequenceNumber: 0,
         })
         .returning();
 
@@ -254,6 +288,17 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         })
         .returning();
 
+      const [block2] = await globalThis.services.db
+        .insert(BLOCKS_TBL)
+        .values({
+          id: `block2_${Date.now()}`,
+          turnId: turn2!.id,
+          type: "content",
+          content: { text: "Response 2" },
+          sequenceNumber: 0,
+        })
+        .returning();
+
       const [turn3] = await globalThis.services.db
         .insert(TURNS_TBL)
         .values({
@@ -264,24 +309,23 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         })
         .returning();
 
-      // Add blocks to turn2
-      const [block] = await globalThis.services.db
+      const [block3] = await globalThis.services.db
         .insert(BLOCKS_TBL)
         .values({
-          id: `block_${Date.now()}`,
-          turnId: turn2!.id,
+          id: `block3_${Date.now()}`,
+          turnId: turn3!.id,
           type: "content",
-          content: { text: "Response" },
+          content: { text: "Response 3" },
           sequenceNumber: 0,
         })
         .returning();
 
       createdTurnIds.push(turn1!.id, turn2!.id, turn3!.id);
-      createdBlockIds.push(block!.id);
+      createdBlockIds.push(block1!.id, block2!.id, block3!.id);
 
-      // Client has seen turn1 and turn2 (with 1 block)
+      // Client has only seen up to block2
       const request = new NextRequest(
-        `http://localhost:3000?state=${turn1!.id}:0,${turn2!.id}:1&timeout=0`,
+        `http://localhost:3000?lastBlockId=${block2!.id}&timeout=0`,
       );
       const context = { params: Promise.resolve({ projectId, sessionId }) };
 
@@ -289,12 +333,12 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
 
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data.turns).toHaveLength(3); // All turns (turn3 is new)
+      expect(data.turns).toHaveLength(3); // All turns returned
       expect(data.turns[2].id).toBe(turn3!.id);
     });
 
-    it("should handle empty client state", async () => {
-      // Create a turn
+    it("should return all data when no lastBlockId provided", async () => {
+      // Create a turn with blocks
       const [turn] = await globalThis.services.db
         .insert(TURNS_TBL)
         .values({
@@ -305,10 +349,22 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         })
         .returning();
 
-      createdTurnIds.push(turn!.id);
+      const [block] = await globalThis.services.db
+        .insert(BLOCKS_TBL)
+        .values({
+          id: `block_${Date.now()}`,
+          turnId: turn!.id,
+          type: "content",
+          content: { text: "Answer" },
+          sequenceNumber: 0,
+        })
+        .returning();
 
-      // Empty client state
-      const request = new NextRequest("http://localhost:3000?state=&timeout=0");
+      createdTurnIds.push(turn!.id);
+      createdBlockIds.push(block!.id);
+
+      // No lastBlockId provided - should return all data
+      const request = new NextRequest("http://localhost:3000?timeout=0");
       const context = { params: Promise.resolve({ projectId, sessionId }) };
 
       const response = await GET(request, context);
@@ -319,8 +375,8 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
       expect(data.turns[0].id).toBe(turn!.id);
     });
 
-    it("should parse client state correctly with malformed input", async () => {
-      // Create a turn
+    it("should handle invalid lastBlockId gracefully", async () => {
+      // Create a turn with block
       const [turn] = await globalThis.services.db
         .insert(TURNS_TBL)
         .values({
@@ -331,44 +387,36 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         })
         .returning();
 
-      createdTurnIds.push(turn!.id);
+      const [block] = await globalThis.services.db
+        .insert(BLOCKS_TBL)
+        .values({
+          id: `block_${Date.now()}`,
+          turnId: turn!.id,
+          type: "content",
+          content: { text: "Answer" },
+          sequenceNumber: 0,
+        })
+        .returning();
 
-      // Malformed state string
+      createdTurnIds.push(turn!.id);
+      createdBlockIds.push(block!.id);
+
+      // Invalid block ID (doesn't exist)
       const request = new NextRequest(
-        "http://localhost:3000?state=invalid:,,:5,turn:abc&timeout=0",
+        "http://localhost:3000?lastBlockId=invalid-block-id&timeout=0",
       );
       const context = { params: Promise.resolve({ projectId, sessionId }) };
 
       const response = await GET(request, context);
 
+      // Should return all data since invalid lastBlockId is treated as not found
       expect(response.status).toBe(200);
       const data = await response.json();
-      // Should still return the turn since malformed state is treated as not seen
       expect(data.turns).toHaveLength(1);
     });
 
-    it("should handle active turns correctly", async () => {
-      // Create mix of turn statuses
-      const [pendingTurn] = await globalThis.services.db
-        .insert(TURNS_TBL)
-        .values({
-          id: `turn_pending_${Date.now()}`,
-          sessionId,
-          userPrompt: "Pending",
-          status: "pending",
-        })
-        .returning();
-
-      const [runningTurn] = await globalThis.services.db
-        .insert(TURNS_TBL)
-        .values({
-          id: `turn_running_${Date.now()}`,
-          sessionId,
-          userPrompt: "Running",
-          status: "in_progress",
-        })
-        .returning();
-
+    it("should return 204 when client is up to date but turn is in progress", async () => {
+      // Create completed turn with block
       const [completedTurn] = await globalThis.services.db
         .insert(TURNS_TBL)
         .values({
@@ -379,19 +427,42 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         })
         .returning();
 
-      createdTurnIds.push(pendingTurn!.id, runningTurn!.id, completedTurn!.id);
+      const [block1] = await globalThis.services.db
+        .insert(BLOCKS_TBL)
+        .values({
+          id: `block1_${Date.now()}`,
+          turnId: completedTurn!.id,
+          type: "content",
+          content: { text: "Done" },
+          sequenceNumber: 0,
+        })
+        .returning();
 
-      // Client has seen all turns (no updates)
+      // Create in-progress turn (no blocks yet)
+      const [runningTurn] = await globalThis.services.db
+        .insert(TURNS_TBL)
+        .values({
+          id: `turn_running_${Date.now()}`,
+          sessionId,
+          userPrompt: "Running",
+          status: "in_progress",
+        })
+        .returning();
+
+      createdTurnIds.push(completedTurn!.id, runningTurn!.id);
+      createdBlockIds.push(block1!.id);
+
+      // Client has seen block1, which is the latest block
+      // Even though there's an in_progress turn, there are no new blocks after block1
       const request = new NextRequest(
-        `http://localhost:3000?state=${pendingTurn!.id}:0,${runningTurn!.id}:0,${completedTurn!.id}:0&timeout=0`,
+        `http://localhost:3000?lastBlockId=${block1!.id}&timeout=0`,
       );
       const context = { params: Promise.resolve({ projectId, sessionId }) };
 
       const response = await GET(request, context);
 
-      // Should not return 204 because there are active turns
-      // The long polling would continue checking for updates
-      // But with timeout=0 it returns current state
+      // With timeout=0 and no new blocks, should return 204
+      // (In real usage, it would poll if there are active turns)
       expect(response.status).toBe(204);
     });
   });

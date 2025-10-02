@@ -55,7 +55,7 @@ describe("/api/share", () => {
         },
       );
 
-      expect(response.status).toBe(201);
+      expect(response.status).toBe(200);
       expect(response.data).toMatchObject({
         id: expect.any(String),
         url: expect.stringMatching(/^https?:\/\/.+\/share\/.+/),

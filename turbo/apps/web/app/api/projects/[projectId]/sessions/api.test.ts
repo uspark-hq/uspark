@@ -242,31 +242,30 @@ describe("Claude Session Management API Integration", () => {
       const initialState = await apiCallWithQuery(
         getUpdates,
         { projectId, sessionId },
-        { state: "", timeout: "0" },
+        { timeout: "0" },
       );
 
-      // Should return 204 No Content when no turns exist
+      // Should return 204 No Content when no blocks exist
       expect(initialState.status).toBe(204);
 
-      // Create a turn
-      const turnResponse = await apiCall(
+      // Create a turn (ClaudeExecutor is mocked, so no blocks will be created)
+      await apiCall(
         createTurn,
         "POST",
         { projectId, sessionId },
         { user_message: "New message" },
       );
 
-      // Poll for updates with empty state - should see the new turn
+      // Poll for updates without lastBlockId - should still return 204 since no blocks
+      // (Turn exists but ClaudeExecutor is mocked so no blocks are created)
       const updates = await apiCallWithQuery(
         getUpdates,
         { projectId, sessionId },
-        { state: "", timeout: "0" },
+        { timeout: "0" },
       );
 
-      expect(updates.status).toBe(200);
-      expect(updates.data.turns).toHaveLength(1);
-      expect(updates.data.turns[0].id).toBe(turnResponse.data.id);
-      expect(updates.data.session.id).toBe(sessionId);
+      // Since ClaudeExecutor is mocked and doesn't create blocks, return is 204
+      expect(updates.status).toBe(204);
     });
   });
 });

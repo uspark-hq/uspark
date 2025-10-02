@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import {
-  createProjectRepository,
   getProjectRepository,
   hasInstallationAccess,
   linkExistingRepository,
@@ -56,9 +55,9 @@ export async function GET(
 /**
  * POST /api/projects/[projectId]/github/repository
  *
- * Creates a new GitHub repository for a project or links an existing one
+ * Links an existing GitHub repository to a project
  *
- * Body: { installationId: number, repositoryId?: number, repositoryName?: string, owner?: string }
+ * Body: { installationId: number, repositoryId: number, repositoryName: string, owner?: string }
  */
 export async function POST(
   request: NextRequest,
@@ -81,6 +80,20 @@ export async function POST(
     );
   }
 
+  if (!repositoryId || typeof repositoryId !== "number") {
+    return NextResponse.json(
+      { error: "repository_id_required" },
+      { status: 400 },
+    );
+  }
+
+  if (!repositoryName || typeof repositoryName !== "string") {
+    return NextResponse.json(
+      { error: "repository_name_required" },
+      { status: 400 },
+    );
+  }
+
   // Verify user has access to this installation
   const hasAccess = await hasInstallationAccess(userId, installationId);
   if (!hasAccess) {
@@ -88,29 +101,12 @@ export async function POST(
   }
 
   try {
-    // If repositoryId is provided, link existing repository
-    if (repositoryId && repositoryName) {
-      if (
-        typeof repositoryId !== "number" ||
-        typeof repositoryName !== "string"
-      ) {
-        return NextResponse.json(
-          { error: "invalid_repository_parameters" },
-          { status: 400 },
-        );
-      }
-
-      const repository = await linkExistingRepository(
-        projectId,
-        installationId,
-        repositoryId,
-        repositoryName,
-      );
-      return NextResponse.json({ repository }, { status: 201 });
-    }
-
-    // Otherwise, create a new repository
-    const repository = await createProjectRepository(projectId, installationId);
+    const repository = await linkExistingRepository(
+      projectId,
+      installationId,
+      repositoryId,
+      repositoryName,
+    );
     return NextResponse.json({ repository }, { status: 201 });
   } catch (error) {
     if (error instanceof Error) {

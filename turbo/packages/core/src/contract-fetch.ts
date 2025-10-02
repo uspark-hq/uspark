@@ -1,23 +1,19 @@
 import type { AppRoute } from "@ts-rest/core";
+import type { z } from "zod";
 
 // DOM 类型定义（用于 Node.js 环境）
 type HeadersInit = Record<string, string> | Headers;
 
 /**
  * 从合约响应中推断成功响应类型
+ * 只处理 200 状态码,对于 z.any() (二进制响应) 返回 ArrayBuffer
  */
-type InferSuccessResponse<T extends AppRoute> = T["responses"] extends {
-  200?: infer R200;
-  201?: infer R201;
-  204?: infer R204;
-}
-  ? R200 extends object
-    ? R200
-    : R201 extends object
-      ? R201
-      : R204 extends object
-        ? R204
-        : never
+type InferSuccessResponse<T extends AppRoute> = 200 extends keyof T["responses"]
+  ? T["responses"][200] extends z.ZodAny
+    ? ArrayBuffer
+    : T["responses"][200] extends z.ZodTypeAny
+      ? z.infer<T["responses"][200]>
+      : never
   : never;
 
 /**
@@ -157,7 +153,7 @@ export async function contractFetch<T extends AppRoute>(
     if (!contentType || !contentType.includes("application/json")) {
       // 对于二进制响应（如 YJS 数据），直接返回 ArrayBuffer
       // 对于二进制响应，返回 ArrayBuffer，类型系统会处理
-      return (await response.arrayBuffer()) as InferSuccessResponse<T>;
+      return (await response.arrayBuffer()) as unknown as InferSuccessResponse<T>;
     }
 
     // JSON 响应

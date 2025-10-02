@@ -8,9 +8,6 @@ import { env } from "../../../src/env";
 type BlobStoreResponse = z.infer<
   (typeof projectDetailContract.getBlobStore.responses)[200]
 >;
-type UnauthorizedResponse = z.infer<
-  (typeof projectDetailContract.getBlobStore.responses)[401]
->;
 
 /**
  * GET /api/blob-store
@@ -23,11 +20,13 @@ export async function GET() {
   const userId = await getUserId();
 
   if (!userId) {
-    const response: UnauthorizedResponse = {
-      error: "unauthorized",
-      error_description: "Authentication required",
-    };
-    return NextResponse.json(response, { status: 401 });
+    return NextResponse.json(
+      {
+        error: "unauthorized",
+        error_description: "Authentication required",
+      },
+      { status: 401 },
+    );
   }
 
   const readWriteToken = env().BLOB_READ_WRITE_TOKEN;
