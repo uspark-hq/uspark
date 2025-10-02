@@ -58,7 +58,7 @@ describe("/api/share/:token", () => {
           file_path: testFilePath,
         },
       );
-      expect(shareResponse.status).toBe(201);
+      expect(shareResponse.status).toBe(200);
       shareToken = shareResponse.data.token;
       createdShareIds.push(shareResponse.data.id);
     });
