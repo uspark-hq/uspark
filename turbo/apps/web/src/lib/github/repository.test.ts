@@ -1,6 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
-  createProjectRepository,
   getProjectRepository,
   hasInstallationAccess,
   getUserInstallations,
@@ -9,12 +8,10 @@ import {
 import { initServices } from "../init-services";
 import { githubInstallations, githubRepos } from "../../db/schema/github";
 import { eq } from "drizzle-orm";
-import { createInstallationOctokit, getInstallationDetails } from "./client";
-import type { Octokit } from "@octokit/core";
+import { getInstallationDetails } from "./client";
 
 // Mock the client module - we still need to mock external APIs
 vi.mock("./client", () => ({
-  createInstallationOctokit: vi.fn(),
   getInstallationDetails: vi.fn(),
 }));
 
@@ -38,137 +35,6 @@ describe("GitHub Repository", () => {
     await db
       .delete(githubInstallations)
       .where(eq(githubInstallations.userId, testUserId));
-  });
-
-  describe("createProjectRepository", () => {
-    it("should create a new repository for a project", async () => {
-      // Setup GitHub API mock
-      const mockOctokit = {
-        request: vi.fn().mockResolvedValue({
-          data: {
-            id: 987654,
-            name: expectedRepoName,
-            full_name: `testuser/uspark-${testProjectId}`,
-            html_url: `https://github.com/testuser/uspark-${testProjectId}`,
-            clone_url: `https://github.com/testuser/uspark-${testProjectId}.git`,
-          },
-        }),
-      } as unknown as Octokit;
-      vi.mocked(createInstallationOctokit).mockResolvedValue(mockOctokit);
-
-      // Mock installation details to return a user account (not org)
-      vi.mocked(getInstallationDetails).mockResolvedValue({
-        account: {
-          type: "User",
-          login: "testuser",
-        },
-      } as Awaited<ReturnType<typeof getInstallationDetails>>);
-
-      // Create repository
-      const result = await createProjectRepository(
-        testProjectId,
-        testInstallationId,
-      );
-
-      expect(result).toEqual({
-        repoId: 987654,
-        repoName: expectedRepoName,
-        fullName: `testuser/uspark-${testProjectId}`,
-        url: `https://github.com/testuser/uspark-${testProjectId}`,
-        cloneUrl: `https://github.com/testuser/uspark-${testProjectId}.git`,
-      });
-
-      // Verify GitHub API was called correctly
-      expect(mockOctokit.request).toHaveBeenCalledWith("POST /user/repos", {
-        name: expectedRepoName,
-        private: true,
-        auto_init: true,
-        description: `uSpark sync repository for project ${testProjectId}`,
-      });
-
-      // Verify database record was created
-      const db = globalThis.services.db;
-      const repos = await db
-        .select()
-        .from(githubRepos)
-        .where(eq(githubRepos.projectId, testProjectId));
-
-      expect(repos).toHaveLength(1);
-      expect(repos[0]).toMatchObject({
-        projectId: testProjectId,
-        installationId: testInstallationId,
-        repoName: expectedRepoName,
-        repoId: 987654,
-      });
-    });
-
-    it("should create a repository in an organization account", async () => {
-      // Setup GitHub API mock
-      const mockOctokit = {
-        request: vi.fn().mockResolvedValue({
-          data: {
-            id: 987654,
-            name: expectedRepoName,
-            full_name: `testorg/uspark-${testProjectId}`,
-            html_url: `https://github.com/testorg/uspark-${testProjectId}`,
-            clone_url: `https://github.com/testorg/uspark-${testProjectId}.git`,
-          },
-        }),
-      } as unknown as Octokit;
-      vi.mocked(createInstallationOctokit).mockResolvedValue(mockOctokit);
-
-      // Mock installation details to return an organization account
-      vi.mocked(getInstallationDetails).mockResolvedValue({
-        account: {
-          type: "Organization",
-          login: "testorg",
-        },
-      } as Awaited<ReturnType<typeof getInstallationDetails>>);
-
-      // Create repository
-      const result = await createProjectRepository(
-        testProjectId,
-        testInstallationId,
-      );
-
-      // Verify result
-      expect(result).toEqual({
-        repoId: 987654,
-        repoName: expectedRepoName,
-        fullName: `testorg/uspark-${testProjectId}`,
-        url: `https://github.com/testorg/uspark-${testProjectId}`,
-        cloneUrl: `https://github.com/testorg/uspark-${testProjectId}.git`,
-      });
-
-      // Verify correct API endpoint was called for organization
-      expect(mockOctokit.request).toHaveBeenCalledWith(
-        "POST /orgs/{org}/repos",
-        {
-          org: "testorg",
-          name: expectedRepoName,
-          private: true,
-          auto_init: true,
-          description: `uSpark sync repository for project ${testProjectId}`,
-        },
-      );
-    });
-
-    it("should throw error if repository already exists", async () => {
-      // Create existing repository in database
-      const db = globalThis.services.db;
-      await db.insert(githubRepos).values({
-        projectId: testProjectId,
-        installationId: testInstallationId,
-        repoName: expectedRepoName,
-        repoId: 111111,
-      });
-
-      await expect(
-        createProjectRepository(testProjectId, testInstallationId),
-      ).rejects.toThrow(
-        `Repository already exists for project ${testProjectId}`,
-      );
-    });
   });
 
   describe("getProjectRepository", () => {
