@@ -4,23 +4,6 @@ import { z } from "zod";
 const c = initContract();
 
 // ============ Common Schemas ============
-const BlockSchema = z.object({
-  id: z.string(),
-  type: z.string(),
-  content: z.record(z.string(), z.unknown()),
-  sequenceNumber: z.number(),
-});
-
-const TurnSchema = z.object({
-  id: z.string(),
-  userPrompt: z.string(),
-  status: z.enum(["pending", "in_progress", "completed", "failed"]),
-  startedAt: z.string().nullable(),
-  completedAt: z.string().nullable(),
-  errorMessage: z.string().nullable().optional(),
-  blocks: z.array(BlockSchema),
-});
-
 const SessionSchema = z.object({
   id: z.string(),
   title: z.string().nullable(),
@@ -58,14 +41,6 @@ const SessionsResponseSchema = z.object({
   total: z.number(),
 });
 
-const ProjectSessionUpdateResponseSchema = z.object({
-  session: z.object({
-    id: z.string(),
-    updatedAt: z.string(),
-  }),
-  turns: z.array(TurnSchema),
-});
-
 const GitHubRepositoryResponseSchema = z.object({
   repository: GitHubRepositorySchema,
 });
@@ -79,12 +54,7 @@ const GitHubSyncResponseSchema = z.object({
 });
 
 // ============ Type Exports ============
-export type ProjectBlock = z.infer<typeof BlockSchema>;
-export type ProjectTurn = z.infer<typeof TurnSchema>;
 export type ProjectSession = z.infer<typeof SessionSchema>;
-export type ProjectSessionUpdate = z.infer<
-  typeof ProjectSessionUpdateResponseSchema
->;
 export type GitHubRepository = z.infer<typeof GitHubRepositorySchema>;
 export type GitHubInstallation = z.infer<typeof GitHubInstallationSchema>;
 
@@ -171,24 +141,21 @@ export const projectDetailContract = c.router({
     description: "Sends a message to Claude in a session",
   },
 
-  getSessionUpdates: {
+  getLastBlockId: {
     method: "GET",
-    path: "/api/projects/:projectId/sessions/:sessionId/updates",
+    path: "/api/projects/:projectId/sessions/:sessionId/last-block-id",
     pathParams: z.object({
       projectId: z.string(),
       sessionId: z.string(),
     }),
-    query: z.object({
-      lastBlockId: z.string().optional(),
-      timeout: z.string().optional(),
-    }),
     responses: {
-      200: ProjectSessionUpdateResponseSchema,
-      204: z.void(), // No content - no updates
+      200: z.object({
+        lastBlockId: z.string().nullable(),
+      }),
     },
-    summary: "Get session updates",
+    summary: "Get last block ID",
     description:
-      "Long polling endpoint for session updates. Pass lastBlockId to get only new blocks after that ID.",
+      "Returns the ID of the most recent block in the session, or null if no blocks exist.",
   },
 
   // GitHub Integration

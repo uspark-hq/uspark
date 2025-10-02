@@ -9,7 +9,7 @@ import {
 } from "./[sessionId]/turns/route";
 import { GET as getTurn } from "./[sessionId]/turns/[turnId]/route";
 import { POST as interruptSession } from "./[sessionId]/interrupt/route";
-import { GET as getUpdates } from "./[sessionId]/updates/route";
+import { GET as getLastBlockId } from "./[sessionId]/last-block-id/route";
 import { POST as createProject } from "../../route";
 import { initServices } from "../../../../../src/lib/init-services";
 import { CLAUDE_TOKENS_TBL } from "../../../../../src/db/schema/claude-tokens";
@@ -237,35 +237,15 @@ describe("Claude Session Management API Integration", () => {
       sessionId = sessionResponse.data.id;
     });
 
-    it("should detect new turns through polling API", async () => {
-      // Initial state - no turns
-      const initialState = await apiCallWithQuery(
-        getUpdates,
-        { projectId, sessionId },
-        { timeout: "0" },
-      );
+    it("should get last block ID", async () => {
+      // Initial state - no blocks
+      const response = await apiCall(getLastBlockId, "GET", {
+        projectId,
+        sessionId,
+      });
 
-      // Should return 204 No Content when no blocks exist
-      expect(initialState.status).toBe(204);
-
-      // Create a turn (ClaudeExecutor is mocked, so no blocks will be created)
-      await apiCall(
-        createTurn,
-        "POST",
-        { projectId, sessionId },
-        { user_message: "New message" },
-      );
-
-      // Poll for updates without lastBlockId - should still return 204 since no blocks
-      // (Turn exists but ClaudeExecutor is mocked so no blocks are created)
-      const updates = await apiCallWithQuery(
-        getUpdates,
-        { projectId, sessionId },
-        { timeout: "0" },
-      );
-
-      // Since ClaudeExecutor is mocked and doesn't create blocks, return is 204
-      expect(updates.status).toBe(204);
+      expect(response.status).toBe(200);
+      expect(response.data).toEqual({ lastBlockId: null });
     });
   });
 });
