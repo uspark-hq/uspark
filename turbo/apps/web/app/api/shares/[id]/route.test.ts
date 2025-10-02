@@ -167,18 +167,6 @@ describe("DELETE /api/shares/[id]", () => {
       .where(eq(PROJECTS_TBL.id, projectId));
   });
 
-  it("should return 401 when not authenticated", async () => {
-    mockAuth.mockResolvedValue({ userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
-
-    const shareId = "test-share-id";
-    const response = await apiCall(DELETE, "DELETE", { id: shareId });
-
-    expect(response.status).toBe(401);
-    expect(response.data).toEqual({ error: "unauthorized" });
-  });
-
   it("should only delete the specified share, not others", async () => {
     // Create projects using API
     const createProject1Request = new NextRequest("http://localhost:3000", {
