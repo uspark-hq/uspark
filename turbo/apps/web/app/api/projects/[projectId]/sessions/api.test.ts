@@ -239,14 +239,13 @@ describe("Claude Session Management API Integration", () => {
 
     it("should get last block ID", async () => {
       // Initial state - no blocks
-      const initialState = await apiCall(getLastBlockId, "GET", {
+      const response = await apiCall(getLastBlockId, "GET", {
         projectId,
         sessionId,
       });
 
-      expect(initialState.status).toBe(200);
-      const data = await initialState.json();
-      expect(data).toEqual({ lastBlockId: null });
+      expect(response.status).toBe(200);
+      expect(response.data).toEqual({ lastBlockId: null });
     });
   });
 });
