@@ -277,6 +277,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         })
         .returning();
 
+      // Add small delay to ensure different timestamps
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       const [block2] = await globalThis.services.db
         .insert(BLOCKS_TBL)
         .values({
@@ -290,6 +293,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
 
       createdTurnIds.push(turn!.id);
       createdBlockIds.push(block1!.id, block2!.id);
+
+      // Wait to ensure block2 timestamp is set
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Client is up to date (has seen both blocks)
       const request = new NextRequest(
@@ -485,6 +491,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
         })
         .returning();
 
+      // Add small delay to ensure timestamp separation
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
       // Create in-progress turn (no blocks yet)
       const [runningTurn] = await globalThis.services.db
         .insert(TURNS_TBL)
@@ -498,6 +507,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/updates", () => {
 
       createdTurnIds.push(completedTurn!.id, runningTurn!.id);
       createdBlockIds.push(block1!.id);
+
+      // Wait to ensure block1 timestamp is set
+      await new Promise((resolve) => setTimeout(resolve, 10));
 
       // Client has seen block1, which is the latest block
       // Even though there's an in_progress turn, there are no new blocks after block1
