@@ -1,18 +1,41 @@
-import { useLastResolved } from 'ccstate-react'
+import { useLastResolved, useSet } from 'ccstate-react'
 import {
   projectSessions$,
   selectedSession$,
+  selectSession$,
   turns$,
 } from '../../signals/project/project'
+import { ChatInput } from './chat-input'
 
 export function ChatWindow() {
   const projectSessions = useLastResolved(projectSessions$)
   const selectedSession = useLastResolved(selectedSession$)
   const turns = useLastResolved(turns$)
+  const handleSelectSession = useSet(selectSession$)
 
   return (
     <div className="flex h-full flex-col border-l border-gray-200">
-      <div className="border-b border-gray-200 p-4 font-semibold">Chat</div>
+      <div className="flex items-center justify-between border-b border-gray-200 p-4">
+        <div className="font-semibold">Chat</div>
+        {projectSessions && projectSessions.sessions.length > 0 && (
+          <select
+            value={selectedSession?.id ?? ''}
+            onChange={(e) => {
+              if (e.target.value) {
+                handleSelectSession(e.target.value)
+              }
+            }}
+            className="rounded border border-gray-300 px-2 py-1 text-sm"
+          >
+            <option value="">Select session</option>
+            {projectSessions.sessions.map((session) => (
+              <option key={session.id} value={session.id}>
+                {session.title ?? 'Untitled Session'}
+              </option>
+            ))}
+          </select>
+        )}
+      </div>
 
       <div className="flex-1 overflow-y-auto">
         {!selectedSession && (
@@ -64,11 +87,7 @@ export function ChatWindow() {
         )}
       </div>
 
-      <div className="border-t border-gray-200 p-4">
-        <div className="text-xs text-gray-500">
-          {projectSessions?.sessions.length ?? 0} session(s)
-        </div>
-      </div>
+      <ChatInput />
     </div>
   )
 }

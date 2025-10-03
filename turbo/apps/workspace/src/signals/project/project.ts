@@ -2,9 +2,11 @@ import type { FileItem } from '@uspark/core/yjs-filesystem'
 import { command, computed, state } from 'ccstate'
 import {
   blobStore$,
+  createSession$,
   getFileContentUrl,
   projectFiles,
   projectSessions,
+  sendMessage$,
   sessionTurns,
   turnDetail,
 } from '../external/project-detail'
@@ -104,6 +106,15 @@ export const selectFile$ = command(({ get, set }, filePath: string) => {
   set(updateSearchParams$, newSearchParams)
 })
 
+export const selectSession$ = command(({ get, set }, sessionId: string) => {
+  const currentSearchParams = get(searchParams$)
+  const newSearchParams = new URLSearchParams(currentSearchParams)
+
+  newSearchParams.set('sessionId', sessionId)
+
+  set(updateSearchParams$, newSearchParams)
+})
+
 export const projectSessions$ = computed((get) => {
   const projectId = get(projectId$)
   if (!projectId) {
@@ -167,3 +178,53 @@ export const turns$ = computed(async (get) => {
     }),
   )
 })
+
+const internalChatInput$ = state('')
+
+export const chatInput$ = computed((get) => get(internalChatInput$))
+
+export const updateChatInput$ = command(({ set }, value: string) => {
+  set(internalChatInput$, value)
+})
+
+export const sendChatMessage$ = command(
+  async ({ get, set }, signal: AbortSignal) => {
+    const projectId = get(projectId$)
+    let session = await get(selectedSession$)
+    signal.throwIfAborted()
+
+    const message = get(internalChatInput$)
+
+    if (!projectId || !message.trim()) {
+      return
+    }
+
+    if (!session) {
+      const newSession = await set(
+        createSession$,
+        { projectId, title: '' },
+        signal,
+      )
+
+      const searchParams = get(searchParams$)
+      const newSearchParams = new URLSearchParams(searchParams)
+      newSearchParams.set('sessionId', newSession.id)
+      set(updateSearchParams$, newSearchParams)
+
+      session = newSession
+    }
+
+    await set(
+      sendMessage$,
+      {
+        projectId,
+        sessionId: session.id,
+        userMessage: message.trim(),
+      },
+      signal,
+    )
+
+    set(internalChatInput$, '')
+    set(internalReloadTurn$, (x) => x + 1)
+  },
+)
