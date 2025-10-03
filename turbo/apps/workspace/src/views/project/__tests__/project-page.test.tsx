@@ -502,3 +502,259 @@ describe('projectPage - auto-create session', () => {
     })
   })
 })
+
+describe('projectPage - turn and blocks rendering', () => {
+  const projectId = 'test-project-blocks'
+  const sessionId = 'session-blocks-123'
+  const turnId = 'turn-blocks-456'
+
+  beforeEach(async () => {
+    await setupProjectPage(
+      `/projects/${projectId}?sessionId=${sessionId}`,
+      context,
+      {
+        projectId,
+        files: [
+          {
+            path: 'README.md',
+            hash: 'readme-hash',
+            content: '# README',
+          },
+        ],
+        sessions: [
+          {
+            id: sessionId,
+            title: 'Test Session',
+          },
+        ],
+        turns: {},
+      },
+      [
+        // Mock turn detail with blocks
+        http.get(
+          `*/api/projects/${projectId}/sessions/${sessionId}/turns/${turnId}`,
+          () => {
+            return HttpResponse.json({
+              id: turnId,
+              session_id: sessionId,
+              user_prompt: 'Show me the files',
+              status: 'completed',
+              started_at: new Date().toISOString(),
+              completed_at: new Date().toISOString(),
+              created_at: new Date().toISOString(),
+              blocks: [
+                {
+                  id: 'block-1',
+                  turnId: turnId,
+                  type: 'thinking',
+                  content: { text: 'Let me check the files...' },
+                  sequenceNumber: 0,
+                  createdAt: new Date().toISOString(),
+                },
+                {
+                  id: 'block-2',
+                  turnId: turnId,
+                  type: 'content',
+                  content: { text: 'Here are the files in your project' },
+                  sequenceNumber: 1,
+                  createdAt: new Date().toISOString(),
+                },
+                {
+                  id: 'block-3',
+                  turnId: turnId,
+                  type: 'tool_use',
+                  content: {
+                    tool_name: 'list_files',
+                    parameters: { directory: '.' },
+                    tool_use_id: 'tool-use-123',
+                  },
+                  sequenceNumber: 2,
+                  createdAt: new Date().toISOString(),
+                },
+                {
+                  id: 'block-4',
+                  turnId: turnId,
+                  type: 'tool_result',
+                  content: {
+                    tool_use_id: 'tool-use-123',
+                    result: 'README.md\npackage.json',
+                    error: null,
+                  },
+                  sequenceNumber: 3,
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+            })
+          },
+        ),
+        // Mock turn list
+        http.get(
+          `*/api/projects/${projectId}/sessions/${sessionId}/turns`,
+          () => {
+            return HttpResponse.json({
+              turns: [
+                {
+                  id: turnId,
+                  user_prompt: 'Show me the files',
+                  status: 'completed',
+                  started_at: new Date().toISOString(),
+                  completed_at: new Date().toISOString(),
+                  created_at: new Date().toISOString(),
+                  block_count: 4,
+                  block_ids: ['block-1', 'block-2', 'block-3', 'block-4'],
+                },
+              ],
+              total: 1,
+            })
+          },
+        ),
+      ],
+    )
+  })
+
+  afterEach(() => {
+    server.resetHandlers()
+  })
+
+  it('fetches and displays turn with all block types', async () => {
+    // Wait for turn to load - verifies turns$ signal fetches turnDetail
+    await expect(
+      screen.findByText('Show me the files'),
+    ).resolves.toBeInTheDocument()
+
+    // Verify all block types are rendered
+    // This tests that turns$ correctly calls turnDetail and includes blocks
+    await expect(
+      screen.findByText('Let me check the files...'),
+    ).resolves.toBeInTheDocument()
+    await expect(
+      screen.findByText('Here are the files in your project'),
+    ).resolves.toBeInTheDocument()
+    await expect(
+      screen.findByText((content) => {
+        return content.includes('README.md') && content.includes('package.json')
+      }),
+    ).resolves.toBeInTheDocument()
+  })
+})
+
+describe('projectPage - turn status display', () => {
+  const projectId = 'test-project-status'
+  const sessionId = 'session-status-123'
+
+  afterEach(() => {
+    server.resetHandlers()
+  })
+
+  it('handles turn with pending status', async () => {
+    await setupProjectPage(
+      `/projects/${projectId}?sessionId=${sessionId}`,
+      context,
+      {
+        projectId,
+        files: [{ path: 'test.md', hash: 'hash', content: 'test' }],
+        sessions: [{ id: sessionId, title: 'Test' }],
+        turns: {},
+      },
+      [
+        http.get(
+          `*/api/projects/${projectId}/sessions/${sessionId}/turns/turn-status`,
+          () => {
+            return HttpResponse.json({
+              id: 'turn-status',
+              session_id: sessionId,
+              user_prompt: 'Test status',
+              status: 'pending',
+              started_at: null,
+              completed_at: null,
+              created_at: new Date().toISOString(),
+              blocks: [],
+            })
+          },
+        ),
+        http.get(
+          `*/api/projects/${projectId}/sessions/${sessionId}/turns`,
+          () => {
+            return HttpResponse.json({
+              turns: [
+                {
+                  id: 'turn-status',
+                  user_prompt: 'Test status',
+                  status: 'pending',
+                  started_at: null,
+                  completed_at: null,
+                  created_at: new Date().toISOString(),
+                  block_count: 0,
+                  block_ids: [],
+                },
+              ],
+              total: 1,
+            })
+          },
+        ),
+      ],
+    )
+
+    // Verify pending status is rendered through turns$ signal
+    await expect(screen.findByText('Test status')).resolves.toBeInTheDocument()
+    const statusBadge = screen.getByTestId('turn-status')
+    expect(statusBadge).toHaveTextContent('Pending')
+  })
+
+  it('handles turn with failed status', async () => {
+    await setupProjectPage(
+      `/projects/${projectId}?sessionId=${sessionId}`,
+      context,
+      {
+        projectId,
+        files: [{ path: 'test.md', hash: 'hash', content: 'test' }],
+        sessions: [{ id: sessionId, title: 'Test' }],
+        turns: {},
+      },
+      [
+        http.get(
+          `*/api/projects/${projectId}/sessions/${sessionId}/turns/turn-failed`,
+          () => {
+            return HttpResponse.json({
+              id: 'turn-failed',
+              session_id: sessionId,
+              user_prompt: 'Failed message',
+              status: 'failed',
+              started_at: new Date().toISOString(),
+              completed_at: new Date().toISOString(),
+              created_at: new Date().toISOString(),
+              blocks: [],
+            })
+          },
+        ),
+        http.get(
+          `*/api/projects/${projectId}/sessions/${sessionId}/turns`,
+          () => {
+            return HttpResponse.json({
+              turns: [
+                {
+                  id: 'turn-failed',
+                  user_prompt: 'Failed message',
+                  status: 'failed',
+                  started_at: new Date().toISOString(),
+                  completed_at: new Date().toISOString(),
+                  created_at: new Date().toISOString(),
+                  block_count: 0,
+                  block_ids: [],
+                },
+              ],
+              total: 1,
+            })
+          },
+        ),
+      ],
+    )
+
+    // Verify failed status is handled through turns$ signal
+    await expect(
+      screen.findByText('Failed message'),
+    ).resolves.toBeInTheDocument()
+    const statusBadge = screen.getByTestId('turn-status')
+    expect(statusBadge).toHaveTextContent('Failed')
+  })
+})

@@ -6,6 +6,7 @@ import {
   turns$,
 } from '../../signals/project/project'
 import { ChatInput } from './chat-input'
+import { TurnDisplay } from './turn-display'
 
 export function ChatWindow() {
   const projectSessions = useLastResolved(projectSessions$)
@@ -62,26 +63,13 @@ export function ChatWindow() {
             </div>
 
             <div className="space-y-4">
-              {turns?.map((turn) => (
-                <div key={turn.id} className="space-y-2">
-                  {turn.userMessage && (
-                    <div className="rounded bg-blue-50 p-3">
-                      <div className="mb-1 text-xs text-gray-600">User</div>
-                      <div className="text-sm">{turn.userMessage}</div>
-                    </div>
-                  )}
-                  {turn.assistantMessage && (
-                    <div className="rounded bg-gray-50 p-3">
-                      <div className="mb-1 text-xs text-gray-600">
-                        Assistant
-                      </div>
-                      <div className="text-sm whitespace-pre-wrap">
-                        {turn.assistantMessage}
-                      </div>
-                    </div>
-                  )}
+              {turns && turns.length > 0 ? (
+                turns.map((turn) => <TurnDisplay key={turn.id} turn={turn} />)
+              ) : (
+                <div className="text-sm text-gray-500">
+                  No conversation yet. Send a message to start.
                 </div>
-              ))}
+              )}
             </div>
           </div>
         )}
