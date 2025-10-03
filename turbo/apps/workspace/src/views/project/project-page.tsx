@@ -1,37 +1,24 @@
-import { useLastResolved, useLoadable } from 'ccstate-react'
-import {
-  projectFiles$,
-  projectSessions$,
-  selectedFileContent$,
-  selectedSession$,
-  turns$,
-} from '../../signals/project/project'
-import { Link } from '../router/navigate'
+import { ChatWindow } from './chat-window'
+import { FileContent } from './file-content'
+import { FileTree } from './file-tree'
 
 export function ProjectPage() {
-  const projectFiles = useLoadable(projectFiles$)
-  const projectSessions = useLastResolved(projectSessions$)
-  const selectedSession = useLastResolved(selectedSession$)
-  const turns = useLastResolved(turns$)
-  const fileContent = useLastResolved(selectedFileContent$)
-
-  if (projectFiles.state === 'loading') {
-    return <div>Loading...</div>
-  }
-
-  if (projectFiles.state === 'hasError' || !projectFiles.data) {
-    return <div>Error loading project files</div>
-  }
-
   return (
-    <>
-      <div>Project Page</div>
-      <pre>{JSON.stringify(projectFiles.data, null, 4)}</pre>
-      <pre>{JSON.stringify(projectSessions)}</pre>
-      <pre>{JSON.stringify(selectedSession)}</pre>
-      <pre>turns: {JSON.stringify(turns, null, 4)}</pre>
-      <pre>file content: {fileContent}</pre>
-      <Link pathname="/">Go to Workspace</Link>
-    </>
+    <div className="flex h-screen">
+      {/* Left sidebar - File tree */}
+      <div className="w-64 flex-shrink-0">
+        <FileTree />
+      </div>
+
+      {/* Center panel - File content */}
+      <div className="flex-1">
+        <FileContent />
+      </div>
+
+      {/* Right sidebar - Chat window */}
+      <div className="w-96 flex-shrink-0">
+        <ChatWindow />
+      </div>
+    </div>
   )
 }
