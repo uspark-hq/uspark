@@ -4,6 +4,7 @@ import {
   selectedSession$,
   turns$,
 } from '../../signals/project/project'
+import { ChatInput } from './chat-input'
 
 export function ChatWindow() {
   const projectSessions = useLastResolved(projectSessions$)
@@ -64,11 +65,7 @@ export function ChatWindow() {
         )}
       </div>
 
-      <div className="border-t border-gray-200 p-4">
-        <div className="text-xs text-gray-500">
-          {projectSessions?.sessions.length ?? 0} session(s)
-        </div>
-      </div>
+      <ChatInput />
     </div>
   )
 }
