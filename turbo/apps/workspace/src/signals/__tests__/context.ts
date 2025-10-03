@@ -11,7 +11,7 @@ import { enableDebugLogger } from './utils'
 
 const L = logger('Test')
 
-interface TestFixtureConfig {
+export interface TestFixtureConfig {
   store: Store
   signal: AbortSignal
 

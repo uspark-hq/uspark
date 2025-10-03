@@ -2,11 +2,10 @@ import { screen, waitFor } from '@testing-library/react'
 import user from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import * as Y from 'yjs'
 import { server } from '../../../mocks/node'
-import { setupPage, testContext } from '../../../signals/__tests__/context'
-import { clerk$ } from '../../../signals/auth'
-import { getMockClerk, setupMock } from '../../../signals/test-utils'
+import { testContext } from '../../../signals/__tests__/context'
+import { setupMock } from '../../../signals/test-utils'
+import { setupProjectPage } from '../test-helpers'
 
 // Setup Clerk mock
 setupMock()
@@ -18,58 +17,16 @@ describe('projectPage - file content display', () => {
   const fileContent = '# Test README\n\nThis is a test document'
 
   beforeEach(async () => {
-    // Set up authenticated user
-    await context.store.get(clerk$)
-    const mockClerk = getMockClerk()
-    if (mockClerk) {
-      mockClerk.setUser({
-        id: 'test-user-123',
-        emailAddresses: [
-          {
-            emailAddress: 'test@example.com',
-          },
-        ],
-        fullName: 'Test User',
-      })
-      mockClerk.setSession({
-        getToken: () => Promise.resolve('test-token').catch(() => null),
-      })
-    }
-
-    // Create YJS document with a test file
-    const ydoc = new Y.Doc()
-    const filesMap = ydoc.getMap('files')
-    const blobsMap = ydoc.getMap('blobs')
-
-    filesMap.set('README.md', { hash: 'readme-hash-123', mtime: Date.now() })
-    blobsMap.set('readme-hash-123', { size: 100 })
-
-    const yjsData = Y.encodeStateAsUpdate(ydoc)
-
-    // Mock all required APIs
-    server.use(
-      http.get('*/api/blob-store', () => {
-        return HttpResponse.json({ storeId: 'test-store' })
-      }),
-      http.get(`*/api/projects/${projectId}`, () => {
-        return HttpResponse.arrayBuffer(yjsData.buffer, {
-          headers: {
-            'Content-Type': 'application/octet-stream',
-          },
-        })
-      }),
-      http.get(
-        `https://test-store.public.blob.vercel-storage.com/projects/${projectId}/readme-hash-123`,
-        () => {
-          return new HttpResponse(fileContent)
+    await setupProjectPage(`/projects/${projectId}`, context, {
+      projectId,
+      files: [
+        {
+          path: 'README.md',
+          hash: 'readme-hash-123',
+          content: fileContent,
         },
-      ),
-      http.get(`*/api/projects/${projectId}/sessions`, () => {
-        return HttpResponse.json({ sessions: [], total: 0 })
-      }),
-    )
-
-    await setupPage(`/projects/${projectId}`, context)
+      ],
+    })
   })
 
   afterEach(() => {
@@ -95,69 +52,22 @@ describe('projectPage - file selection', () => {
   const guideContent = '# Guide\n\nUser guide content'
 
   beforeEach(async () => {
-    // Set up authenticated user
-    await context.store.get(clerk$)
-    const mockClerk = getMockClerk()
-    if (mockClerk) {
-      mockClerk.setUser({
-        id: 'test-user-123',
-        emailAddresses: [
-          {
-            emailAddress: 'test@example.com',
-          },
-        ],
-        fullName: 'Test User',
-      })
-      mockClerk.setSession({
-        getToken: () => Promise.resolve('test-token').catch(() => null),
-      })
-    }
-
-    // Create YJS document with two files
-    const ydoc = new Y.Doc()
-    const filesMap = ydoc.getMap('files')
-    const blobsMap = ydoc.getMap('blobs')
-
-    filesMap.set('README.md', { hash: 'readme-hash', mtime: Date.now() })
-    filesMap.set('docs/guide.md', {
-      hash: 'guide-hash',
-      mtime: Date.now(),
+    await setupProjectPage(`/projects/${projectId}`, context, {
+      projectId,
+      files: [
+        {
+          path: 'README.md',
+          hash: 'readme-hash',
+          content: readmeContent,
+        },
+        {
+          path: 'docs/guide.md',
+          hash: 'guide-hash',
+          content: guideContent,
+          size: 200,
+        },
+      ],
     })
-    blobsMap.set('readme-hash', { size: 100 })
-    blobsMap.set('guide-hash', { size: 200 })
-
-    const yjsData = Y.encodeStateAsUpdate(ydoc)
-
-    // Mock APIs
-    server.use(
-      http.get('*/api/blob-store', () => {
-        return HttpResponse.json({ storeId: 'test-store' })
-      }),
-      http.get(`*/api/projects/${projectId}`, () => {
-        return HttpResponse.arrayBuffer(yjsData.buffer, {
-          headers: {
-            'Content-Type': 'application/octet-stream',
-          },
-        })
-      }),
-      http.get(
-        `https://test-store.public.blob.vercel-storage.com/projects/${projectId}/readme-hash`,
-        () => {
-          return new HttpResponse(readmeContent)
-        },
-      ),
-      http.get(
-        `https://test-store.public.blob.vercel-storage.com/projects/${projectId}/guide-hash`,
-        () => {
-          return new HttpResponse(guideContent)
-        },
-      ),
-      http.get(`*/api/projects/${projectId}/sessions`, () => {
-        return HttpResponse.json({ sessions: [], total: 0 })
-      }),
-    )
-
-    await setupPage(`/projects/${projectId}`, context)
   })
 
   afterEach(() => {
@@ -208,83 +118,39 @@ describe('projectPage - chat input', () => {
   const sessionId = 'test-session-123'
 
   beforeEach(async () => {
-    // Set up authenticated user
-    await context.store.get(clerk$)
-    const mockClerk = getMockClerk()
-    if (mockClerk) {
-      mockClerk.setUser({
-        id: 'test-user-123',
-        emailAddresses: [
+    await setupProjectPage(
+      `/projects/${projectId}?sessionId=${sessionId}`,
+      context,
+      {
+        projectId,
+        files: [
           {
-            emailAddress: 'test@example.com',
+            path: 'README.md',
+            hash: 'readme-hash',
+            content: '# README',
           },
         ],
-        fullName: 'Test User',
-      })
-      mockClerk.setSession({
-        getToken: () => Promise.resolve('test-token').catch(() => null),
-      })
-    }
-
-    // Create YJS document with a test file
-    const ydoc = new Y.Doc()
-    const filesMap = ydoc.getMap('files')
-    const blobsMap = ydoc.getMap('blobs')
-
-    filesMap.set('README.md', { hash: 'readme-hash', mtime: Date.now() })
-    blobsMap.set('readme-hash', { size: 100 })
-
-    const yjsData = Y.encodeStateAsUpdate(ydoc)
-
-    // Mock APIs
-    server.use(
-      http.get('*/api/blob-store', () => {
-        return HttpResponse.json({ storeId: 'test-store' })
-      }),
-      http.get(`*/api/projects/${projectId}`, () => {
-        return HttpResponse.arrayBuffer(yjsData.buffer, {
-          headers: {
-            'Content-Type': 'application/octet-stream',
+        sessions: [
+          {
+            id: sessionId,
+            title: 'Test Session',
           },
-        })
-      }),
-      http.get(
-        `https://test-store.public.blob.vercel-storage.com/projects/${projectId}/readme-hash`,
-        () => {
-          return new HttpResponse('# README')
-        },
-      ),
-      http.get(`*/api/projects/${projectId}/sessions`, () => {
-        return HttpResponse.json({
-          sessions: [
-            {
-              id: sessionId,
-              title: 'Test Session',
+        ],
+        turns: {},
+      },
+      [
+        http.post(
+          `*/api/projects/${projectId}/sessions/${sessionId}/turns`,
+          () => {
+            return HttpResponse.json({
+              id: 'turn-123',
+              userMessage: 'Hello',
               createdAt: new Date().toISOString(),
-            },
-          ],
-          total: 1,
-        })
-      }),
-      http.get(
-        `*/api/projects/${projectId}/sessions/${sessionId}/turns`,
-        () => {
-          return HttpResponse.json({ turns: [] })
-        },
-      ),
-      http.post(
-        `*/api/projects/${projectId}/sessions/${sessionId}/turns`,
-        () => {
-          return HttpResponse.json({
-            id: 'turn-123',
-            userMessage: 'Hello',
-            createdAt: new Date().toISOString(),
-          })
-        },
-      ),
+            })
+          },
+        ),
+      ],
     )
-
-    await setupPage(`/projects/${projectId}?sessionId=${sessionId}`, context)
   })
 
   afterEach(() => {
@@ -374,122 +240,46 @@ describe('projectPage - session selector', () => {
   const session2Id = 'session-222'
 
   beforeEach(async () => {
-    // Set up authenticated user
-    await context.store.get(clerk$)
-    const mockClerk = getMockClerk()
-    if (mockClerk) {
-      mockClerk.setUser({
-        id: 'test-user-123',
-        emailAddresses: [
+    await setupProjectPage(
+      `/projects/${projectId}?sessionId=${session1Id}`,
+      context,
+      {
+        projectId,
+        files: [
           {
-            emailAddress: 'test@example.com',
+            path: 'README.md',
+            hash: 'readme-hash',
+            content: '# README',
           },
         ],
-        fullName: 'Test User',
-      })
-      mockClerk.setSession({
-        getToken: () => Promise.resolve('test-token').catch(() => null),
-      })
-    }
-
-    // Create YJS document
-    const ydoc = new Y.Doc()
-    const filesMap = ydoc.getMap('files')
-    const blobsMap = ydoc.getMap('blobs')
-
-    filesMap.set('README.md', { hash: 'readme-hash', mtime: Date.now() })
-    blobsMap.set('readme-hash', { size: 100 })
-
-    const yjsData = Y.encodeStateAsUpdate(ydoc)
-
-    // Mock APIs
-    server.use(
-      http.get('*/api/blob-store', () => {
-        return HttpResponse.json({ storeId: 'test-store' })
-      }),
-      http.get(`*/api/projects/${projectId}`, () => {
-        return HttpResponse.arrayBuffer(yjsData.buffer, {
-          headers: {
-            'Content-Type': 'application/octet-stream',
+        sessions: [
+          {
+            id: session1Id,
+            title: 'First Session',
           },
-        })
-      }),
-      http.get(
-        `https://test-store.public.blob.vercel-storage.com/projects/${projectId}/readme-hash`,
-        () => {
-          return new HttpResponse('# README')
-        },
-      ),
-      http.get(`*/api/projects/${projectId}/sessions`, () => {
-        return HttpResponse.json({
-          sessions: [
+          {
+            id: session2Id,
+            title: '',
+          },
+        ],
+        turns: {
+          [session1Id]: [
             {
-              id: session1Id,
-              title: 'First Session',
-              createdAt: new Date().toISOString(),
-            },
-            {
-              id: session2Id,
-              title: '',
-              createdAt: new Date().toISOString(),
+              id: 'turn-1',
+              userMessage: 'First message',
+              assistantMessage: 'First response',
             },
           ],
-          total: 2,
-        })
-      }),
-      http.get(
-        `*/api/projects/${projectId}/sessions/${session1Id}/turns`,
-        () => {
-          return HttpResponse.json({
-            turns: [
-              {
-                id: 'turn-1',
-                userMessage: 'First message',
-                createdAt: new Date().toISOString(),
-              },
-            ],
-          })
+          [session2Id]: [
+            {
+              id: 'turn-2',
+              userMessage: 'Second message',
+              assistantMessage: 'Second response',
+            },
+          ],
         },
-      ),
-      http.get(
-        `*/api/projects/${projectId}/sessions/${session1Id}/turns/turn-1`,
-        () => {
-          return HttpResponse.json({
-            id: 'turn-1',
-            userMessage: 'First message',
-            assistantMessage: 'First response',
-            createdAt: new Date().toISOString(),
-          })
-        },
-      ),
-      http.get(
-        `*/api/projects/${projectId}/sessions/${session2Id}/turns`,
-        () => {
-          return HttpResponse.json({
-            turns: [
-              {
-                id: 'turn-2',
-                userMessage: 'Second message',
-                createdAt: new Date().toISOString(),
-              },
-            ],
-          })
-        },
-      ),
-      http.get(
-        `*/api/projects/${projectId}/sessions/${session2Id}/turns/turn-2`,
-        () => {
-          return HttpResponse.json({
-            id: 'turn-2',
-            userMessage: 'Second message',
-            assistantMessage: 'Second response',
-            createdAt: new Date().toISOString(),
-          })
-        },
-      ),
+      },
     )
-
-    await setupPage(`/projects/${projectId}?sessionId=${session1Id}`, context)
   })
 
   afterEach(() => {
@@ -545,61 +335,17 @@ describe('projectPage - no sessions', () => {
   const projectId = 'test-project-no-sessions'
 
   beforeEach(async () => {
-    // Set up authenticated user
-    await context.store.get(clerk$)
-    const mockClerk = getMockClerk()
-    if (mockClerk) {
-      mockClerk.setUser({
-        id: 'test-user-123',
-        emailAddresses: [
-          {
-            emailAddress: 'test@example.com',
-          },
-        ],
-        fullName: 'Test User',
-      })
-      mockClerk.setSession({
-        getToken: () => Promise.resolve('test-token').catch(() => null),
-      })
-    }
-
-    // Create YJS document
-    const ydoc = new Y.Doc()
-    const filesMap = ydoc.getMap('files')
-    const blobsMap = ydoc.getMap('blobs')
-
-    filesMap.set('README.md', { hash: 'readme-hash', mtime: Date.now() })
-    blobsMap.set('readme-hash', { size: 100 })
-
-    const yjsData = Y.encodeStateAsUpdate(ydoc)
-
-    // Mock APIs with empty sessions
-    server.use(
-      http.get('*/api/blob-store', () => {
-        return HttpResponse.json({ storeId: 'test-store' })
-      }),
-      http.get(`*/api/projects/${projectId}`, () => {
-        return HttpResponse.arrayBuffer(yjsData.buffer, {
-          headers: {
-            'Content-Type': 'application/octet-stream',
-          },
-        })
-      }),
-      http.get(
-        `https://test-store.public.blob.vercel-storage.com/projects/${projectId}/readme-hash`,
-        () => {
-          return new HttpResponse('# README')
+    await setupProjectPage(`/projects/${projectId}`, context, {
+      projectId,
+      files: [
+        {
+          path: 'README.md',
+          hash: 'readme-hash',
+          content: '# README',
         },
-      ),
-      http.get(`*/api/projects/${projectId}/sessions`, () => {
-        return HttpResponse.json({
-          sessions: [],
-          total: 0,
-        })
-      }),
-    )
-
-    await setupPage(`/projects/${projectId}`, context)
+      ],
+      sessions: [],
+    })
   })
 
   afterEach(() => {
@@ -623,96 +369,65 @@ describe('projectPage - auto-create session', () => {
   const newSessionId = 'new-session-123'
 
   beforeEach(async () => {
-    // Set up authenticated user
-    await context.store.get(clerk$)
-    const mockClerk = getMockClerk()
-    if (mockClerk) {
-      mockClerk.setUser({
-        id: 'test-user-123',
-        emailAddresses: [
-          {
-            emailAddress: 'test@example.com',
-          },
-        ],
-        fullName: 'Test User',
-      })
-      mockClerk.setSession({
-        getToken: () => Promise.resolve('test-token').catch(() => null),
-      })
-    }
-
-    // Create YJS document
-    const ydoc = new Y.Doc()
-    const filesMap = ydoc.getMap('files')
-    const blobsMap = ydoc.getMap('blobs')
-
-    filesMap.set('README.md', { hash: 'readme-hash', mtime: Date.now() })
-    blobsMap.set('readme-hash', { size: 100 })
-
-    const yjsData = Y.encodeStateAsUpdate(ydoc)
-
     // Track session creation state
     let sessionCreated = false
 
-    // Mock APIs
-    server.use(
-      http.get('*/api/blob-store', () => {
-        return HttpResponse.json({ storeId: 'test-store' })
-      }),
-      http.get(`*/api/projects/${projectId}`, () => {
-        return HttpResponse.arrayBuffer(yjsData.buffer, {
-          headers: {
-            'Content-Type': 'application/octet-stream',
+    await setupProjectPage(
+      `/projects/${projectId}`,
+      context,
+      {
+        projectId,
+        files: [
+          {
+            path: 'README.md',
+            hash: 'readme-hash',
+            content: '# README',
           },
-        })
-      }),
-      http.get(
-        `https://test-store.public.blob.vercel-storage.com/projects/${projectId}/readme-hash`,
-        () => {
-          return new HttpResponse('# README')
-        },
-      ),
-      http.get(`*/api/projects/${projectId}/sessions`, () => {
-        return HttpResponse.json({
-          sessions: sessionCreated
-            ? [
-                {
-                  id: newSessionId,
-                  title: '',
-                  createdAt: new Date().toISOString(),
-                },
-              ]
-            : [],
-          total: sessionCreated ? 1 : 0,
-        })
-      }),
-      http.post(`*/api/projects/${projectId}/sessions`, () => {
-        sessionCreated = true
-        return HttpResponse.json({
-          id: newSessionId,
-          title: '',
-          createdAt: new Date().toISOString(),
-        })
-      }),
-      http.get(
-        `*/api/projects/${projectId}/sessions/${newSessionId}/turns`,
-        () => {
-          return HttpResponse.json({ turns: [] })
-        },
-      ),
-      http.post(
-        `*/api/projects/${projectId}/sessions/${newSessionId}/turns`,
-        () => {
+        ],
+        sessions: [],
+      },
+      [
+        // Dynamic session list based on creation state
+        http.get(`*/api/projects/${projectId}/sessions`, () => {
           return HttpResponse.json({
-            id: 'turn-123',
-            userMessage: 'Hello',
+            sessions: sessionCreated
+              ? [
+                  {
+                    id: newSessionId,
+                    title: '',
+                    createdAt: new Date().toISOString(),
+                  },
+                ]
+              : [],
+            total: sessionCreated ? 1 : 0,
+          })
+        }),
+        http.post(`*/api/projects/${projectId}/sessions`, () => {
+          sessionCreated = true
+          return HttpResponse.json({
+            id: newSessionId,
+            title: '',
             createdAt: new Date().toISOString(),
           })
-        },
-      ),
+        }),
+        http.get(
+          `*/api/projects/${projectId}/sessions/${newSessionId}/turns`,
+          () => {
+            return HttpResponse.json({ turns: [] })
+          },
+        ),
+        http.post(
+          `*/api/projects/${projectId}/sessions/${newSessionId}/turns`,
+          () => {
+            return HttpResponse.json({
+              id: 'turn-123',
+              userMessage: 'Hello',
+              createdAt: new Date().toISOString(),
+            })
+          },
+        ),
+      ],
     )
-
-    await setupPage(`/projects/${projectId}`, context)
   })
 
   afterEach(() => {
