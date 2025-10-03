@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react'
 import { http, HttpResponse } from 'msw'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import * as Y from 'yjs'
 import { server } from '../../../mocks/node'
 import { setupPage, testContext } from '../../../signals/__tests__/context'
@@ -14,10 +14,9 @@ const context = testContext()
 
 describe('projectPage', () => {
   beforeEach(async () => {
-    // Set up a logged-in user BEFORE initializing clerk
+    // Set up authenticated user
     const mockClerk = getMockClerk()
     if (!mockClerk) {
-      // Initialize clerk first to create the mock instance
       await context.store.get(clerk$)
       const newMockClerk = getMockClerk()
       if (newMockClerk) {
@@ -36,20 +35,21 @@ describe('projectPage', () => {
       }
     }
 
-    // For now, mock fetch to fail since we can't easily create valid YJS data in tests
-    // This will cause the project page to show an error, which we'll test for
-    vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('Test error')))
+    // Use MSW to mock API failure instead of stubbing fetch
+    server.use(
+      http.get('*/api/projects/:projectId', () => {
+        return HttpResponse.error()
+      }),
+    )
 
     await setupPage('/projects/1a2b3c4d', context)
   })
 
   afterEach(() => {
-    vi.restoreAllMocks()
-    vi.unstubAllGlobals()
+    server.resetHandlers()
   })
 
   it('renders project page with error when fetch fails', async () => {
-    // Since we're mocking fetch to fail, the page should show an error
     const errorMessage = await screen.findByText('Error loading files')
     expect(errorMessage).toBeInTheDocument()
   })
@@ -60,10 +60,7 @@ describe('projectPage - file content display', () => {
   const fileContent = '# Test README\n\nThis is a test document'
 
   beforeEach(async () => {
-    // Restore fetch from previous test's stubGlobal
-    vi.unstubAllGlobals()
-
-    // Always reinitialize clerk for clean state
+    // Set up authenticated user
     await context.store.get(clerk$)
     const mockClerk = getMockClerk()
     if (mockClerk) {
