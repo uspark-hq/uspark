@@ -1,6 +1,10 @@
 import type { FileItem } from '@uspark/core/yjs-filesystem'
-import { useLoadable } from 'ccstate-react'
-import { projectFiles$ } from '../../signals/project/project'
+import { useLastResolved, useLoadable, useSet } from 'ccstate-react'
+import {
+  projectFiles$,
+  selectedFileItem$,
+  selectFile$,
+} from '../../signals/project/project'
 
 interface FileTreeItemProps {
   item: FileItem
@@ -9,6 +13,15 @@ interface FileTreeItemProps {
 
 function FileTreeItem({ item, level }: FileTreeItemProps) {
   const indent = level * 16
+  const selectFile = useSet(selectFile$)
+  const selectedFile = useLastResolved(selectedFileItem$)
+  const isSelected = selectedFile?.path === item.path
+
+  const handleClick = () => {
+    if (item.type === 'file') {
+      selectFile(item.path)
+    }
+  }
 
   if (item.type === 'directory') {
     return (
@@ -28,8 +41,11 @@ function FileTreeItem({ item, level }: FileTreeItemProps) {
 
   return (
     <div
+      onClick={handleClick}
       style={{ paddingLeft: indent }}
-      className="cursor-pointer px-2 py-1 hover:bg-gray-100"
+      className={`cursor-pointer px-2 py-1 ${
+        isSelected ? 'bg-blue-100' : 'hover:bg-gray-100'
+      }`}
     >
       📄 {item.path.split('/').pop()}
     </div>
