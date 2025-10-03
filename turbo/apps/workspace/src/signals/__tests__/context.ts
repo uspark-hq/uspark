@@ -81,10 +81,13 @@ export function testContext() {
 export async function setupPage(url: string, config: TestFixtureConfig) {
   config.store.set(prepareFixture$, config)
 
+  // Parse URL to extract pathname and search params
+  const [pathname, search] = url.split('?')
+
   mockLocation(
     {
-      pathname: url,
-      search: '',
+      pathname: pathname,
+      search: search ? `?${search}` : '',
     },
     config.signal,
   )

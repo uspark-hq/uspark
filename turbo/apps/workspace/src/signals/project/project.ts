@@ -115,7 +115,11 @@ export const selectSession$ = command(({ get, set }, sessionId: string) => {
   set(updateSearchParams$, newSearchParams)
 })
 
+const internalReloadSessions$ = state(0)
+
 export const projectSessions$ = computed((get) => {
+  get(internalReloadSessions$)
+
   const projectId = get(projectId$)
   if (!projectId) {
     return Promise.resolve(undefined)
@@ -210,6 +214,8 @@ export const sendChatMessage$ = command(
       const newSearchParams = new URLSearchParams(searchParams)
       newSearchParams.set('sessionId', newSession.id)
       set(updateSearchParams$, newSearchParams)
+
+      set(internalReloadSessions$, (x) => x + 1)
 
       session = newSession
     }
