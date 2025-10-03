@@ -1,5 +1,5 @@
 import type { FileItem } from '@uspark/core/yjs-filesystem'
-import { computed, state } from 'ccstate'
+import { command, computed, state } from 'ccstate'
 import {
   blobStore$,
   getFileContentUrl,
@@ -8,7 +8,7 @@ import {
   sessionTurns,
   turnDetail,
 } from '../external/project-detail'
-import { pathParams$, searchParams$ } from '../route'
+import { pathParams$, searchParams$, updateSearchParams$ } from '../route'
 
 function findFileInTree(
   files: FileItem[],
@@ -62,12 +62,7 @@ const selectedFile$ = computed((get) => {
   return searchParams.get('file') ?? undefined
 })
 
-export const selectedFileContent$ = computed(async (get) => {
-  const projectId = get(projectId$)
-  if (!projectId) {
-    return undefined
-  }
-
+export const selectedFileItem$ = computed(async (get) => {
   const files = await get(projectFiles$)
   if (!files) {
     return undefined
@@ -79,6 +74,17 @@ export const selectedFileContent$ = computed(async (get) => {
     ? findFileInTree(files.files, filePath)
     : findFirstFile(files.files)
 
+  return file
+})
+
+export const selectedFileContent$ = computed(async (get) => {
+  const projectId = get(projectId$)
+  if (!projectId) {
+    return undefined
+  }
+
+  const file = await get(selectedFileItem$)
+
   if (!file?.hash || file.type === 'directory') {
     return undefined
   }
@@ -87,6 +93,15 @@ export const selectedFileContent$ = computed(async (get) => {
   const contentUrl = getFileContentUrl(store.storeId, projectId, file.hash)
   const resp = await fetch(contentUrl)
   return await resp.text()
+})
+
+export const selectFile$ = command(({ get, set }, filePath: string) => {
+  const currentSearchParams = get(searchParams$)
+  const newSearchParams = new URLSearchParams(currentSearchParams)
+
+  newSearchParams.set('file', filePath)
+
+  set(updateSearchParams$, newSearchParams)
 })
 
 export const projectSessions$ = computed((get) => {
