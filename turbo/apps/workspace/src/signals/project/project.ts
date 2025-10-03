@@ -1,11 +1,47 @@
-import { computed } from 'ccstate'
+import type { FileItem } from '@uspark/core/yjs-filesystem'
+import { computed, state } from 'ccstate'
 import {
+  blobStore$,
+  getFileContentUrl,
   projectFiles,
   projectSessions,
   sessionTurns,
   turnDetail,
 } from '../external/project-detail'
 import { pathParams$, searchParams$ } from '../route'
+
+function findFileInTree(
+  files: FileItem[],
+  targetPath: string,
+): FileItem | undefined {
+  for (const file of files) {
+    if (file.path === targetPath) {
+      return file
+    }
+    if (file.type === 'directory' && file.children) {
+      const found = findFileInTree(file.children, targetPath)
+      if (found) {
+        return found
+      }
+    }
+  }
+  return undefined
+}
+
+function findFirstFile(files: FileItem[]): FileItem | undefined {
+  for (const item of files) {
+    if (item.type === 'file') {
+      return item
+    }
+    if (item.children) {
+      const found = findFirstFile(item.children)
+      if (found) {
+        return found
+      }
+    }
+  }
+  return undefined
+}
 
 const projectId$ = computed((get) => {
   const pathParams = get(pathParams$)
@@ -19,6 +55,38 @@ export const projectFiles$ = computed((get) => {
   }
 
   return get(projectFiles(projectId))
+})
+
+const selectedFile$ = computed((get) => {
+  const searchParams = get(searchParams$)
+  return searchParams.get('file') ?? undefined
+})
+
+export const selectedFileContent$ = computed(async (get) => {
+  const projectId = get(projectId$)
+  if (!projectId) {
+    return undefined
+  }
+
+  const files = await get(projectFiles$)
+  if (!files) {
+    return undefined
+  }
+
+  const filePath = get(selectedFile$)
+
+  const file = filePath
+    ? findFileInTree(files.files, filePath)
+    : findFirstFile(files.files)
+
+  if (!file?.hash || file.type === 'directory') {
+    return undefined
+  }
+
+  const store = await get(blobStore$)
+  const contentUrl = getFileContentUrl(store.storeId, projectId, file.hash)
+  const resp = await fetch(contentUrl)
+  return await resp.text()
 })
 
 export const projectSessions$ = computed((get) => {
@@ -51,7 +119,11 @@ export const selectedSession$ = computed(async (get) => {
   return sessions.find((s) => s.id === sessionId)
 })
 
+const internalReloadTurn$ = state(0)
+
 export const turns$ = computed(async (get) => {
+  get(internalReloadTurn$)
+
   const session = await get(selectedSession$)
   if (!session) {
     return undefined

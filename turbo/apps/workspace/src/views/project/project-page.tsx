@@ -2,6 +2,7 @@ import { useLastResolved, useLoadable } from 'ccstate-react'
 import {
   projectFiles$,
   projectSessions$,
+  selectedFileContent$,
   selectedSession$,
   turns$,
 } from '../../signals/project/project'
@@ -12,6 +13,7 @@ export function ProjectPage() {
   const projectSessions = useLastResolved(projectSessions$)
   const selectedSession = useLastResolved(selectedSession$)
   const turns = useLastResolved(turns$)
+  const fileContent = useLastResolved(selectedFileContent$)
 
   if (projectFiles.state === 'loading') {
     return <div>Loading...</div>
@@ -28,6 +30,7 @@ export function ProjectPage() {
       <pre>{JSON.stringify(projectSessions)}</pre>
       <pre>{JSON.stringify(selectedSession)}</pre>
       <pre>turns: {JSON.stringify(turns, null, 4)}</pre>
+      <pre>file content: {fileContent}</pre>
       <Link pathname="/">Go to Workspace</Link>
     </>
   )
