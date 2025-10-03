@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.7.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.6.0...workspace-v1.7.0) (2025-10-03)
+
+
+### Features
+
+* add chat input component with auto-session creation ([#436](https://github.com/uspark-hq/uspark/issues/436)) ([f83f703](https://github.com/uspark-hq/uspark/commit/f83f70301c92fda64c741d390cb6f7d0090b974f))
+* add file selection and highlighting in file tree ([#434](https://github.com/uspark-hq/uspark/issues/434)) ([7426e23](https://github.com/uspark-hq/uspark/commit/7426e23c81d4111ef552a70beac4b943f29bb954))
+* add nested file navigation and content display ([#431](https://github.com/uspark-hq/uspark/issues/431)) ([92bb33e](https://github.com/uspark-hq/uspark/commit/92bb33e11460c9055636831c6923b47b39be086b))
+* add turn and block display components with comprehensive tests ([#438](https://github.com/uspark-hq/uspark/issues/438)) ([27a0a1b](https://github.com/uspark-hq/uspark/commit/27a0a1b58e0bb087836a741a69c33f65e4091114))
+* split project page into three-column layout components ([#433](https://github.com/uspark-hq/uspark/issues/433)) ([f0ffe00](https://github.com/uspark-hq/uspark/commit/f0ffe0009d5bfd2c7f15d7a106781184ea01debb))
+
 ## [1.6.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.5.0...workspace-v1.6.0) (2025-09-30)
 
 
