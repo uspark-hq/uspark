@@ -106,6 +106,15 @@ export const selectFile$ = command(({ get, set }, filePath: string) => {
   set(updateSearchParams$, newSearchParams)
 })
 
+export const selectSession$ = command(({ get, set }, sessionId: string) => {
+  const currentSearchParams = get(searchParams$)
+  const newSearchParams = new URLSearchParams(currentSearchParams)
+
+  newSearchParams.set('sessionId', sessionId)
+
+  set(updateSearchParams$, newSearchParams)
+})
+
 export const projectSessions$ = computed((get) => {
   const projectId = get(projectId$)
   if (!projectId) {
