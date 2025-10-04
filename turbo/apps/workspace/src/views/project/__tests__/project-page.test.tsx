@@ -35,9 +35,7 @@ describe('projectPage - file content display', () => {
 
   it('displays file content when file is loaded', async () => {
     // Wait for file tree to load
-    await expect(
-      screen.findByText('📄 README.md', {}, { timeout: 5000 }),
-    ).resolves.toBeInTheDocument()
+    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
 
     // Verify file content is displayed
     const content = await screen.findByText(/Test README/)
