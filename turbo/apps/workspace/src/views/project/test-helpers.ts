@@ -25,6 +25,7 @@ interface TurnSpec {
   id: string
   userMessage: string
   assistantMessage?: string
+  status?: 'pending' | 'in_progress' | 'completed' | 'failed' | 'interrupted'
   createdAt?: string
 }
 
@@ -112,9 +113,15 @@ function mockProjectApis(config: MockProjectConfig) {
             return HttpResponse.json({
               turns: sessionTurns.map((t) => ({
                 id: t.id,
-                userMessage: t.userMessage,
-                createdAt: t.createdAt ?? new Date().toISOString(),
+                user_prompt: t.userMessage,
+                status: t.status ?? 'completed',
+                started_at: t.createdAt ?? new Date().toISOString(),
+                completed_at: t.createdAt ?? new Date().toISOString(),
+                created_at: t.createdAt ?? new Date().toISOString(),
+                block_count: t.assistantMessage ? 1 : 0,
+                block_ids: t.assistantMessage ? [`block_${t.id}_1`] : [],
               })),
+              total: sessionTurns.length,
             })
           },
         ),
@@ -124,9 +131,24 @@ function mockProjectApis(config: MockProjectConfig) {
             () => {
               return HttpResponse.json({
                 id: turn.id,
-                userMessage: turn.userMessage,
-                assistantMessage: turn.assistantMessage,
-                createdAt: turn.createdAt ?? new Date().toISOString(),
+                session_id: session.id,
+                user_prompt: turn.userMessage,
+                status: turn.status ?? 'completed',
+                started_at: turn.createdAt ?? new Date().toISOString(),
+                completed_at: turn.createdAt ?? new Date().toISOString(),
+                created_at: turn.createdAt ?? new Date().toISOString(),
+                blocks: turn.assistantMessage
+                  ? [
+                      {
+                        id: `block_${turn.id}_1`,
+                        turnId: turn.id,
+                        type: 'text',
+                        content: turn.assistantMessage,
+                        sequenceNumber: 0,
+                        createdAt: turn.createdAt ?? new Date().toISOString(),
+                      },
+                    ]
+                  : [],
               })
             },
           ),
