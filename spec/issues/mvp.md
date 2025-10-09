@@ -9,21 +9,20 @@ This document defines the mid-term goals and user stories for the MVP release of
 ### Story 1: GitHub One-Way Synchronization (For Human Users)
 
 **As a** technical CEO/founder or developer
-**I want to** push uSpark documents to my existing GitHub repository's `/spec` directory
-**So that** AI coding tools can access project context and specs alongside my codebase
+**I want to** push uSpark documents to a dedicated GitHub repository
+**So that** I can version control my project documentation and share it with my team
 
 #### Acceptance Criteria
 
 - [x] One-click GitHub App installation ✅
-- [ ] ❌ Select existing repository from user's repos (currently creates dedicated repo)
-- [ ] ❌ Sync to `/spec` directory in existing repo (currently mirrors entire project to new repo)
+- [x] Auto-create dedicated `uspark-{projectId}` repository ✅
+- [x] Full project mirror to dedicated repository ✅
 - [x] Web edits can be manually synced to GitHub via sync button ✅
 - [x] Sync completes within 5 seconds ✅
 - [x] Full file content pushed to GitHub ✅
 - [x] Settings UI for GitHub connection management ✅
 - [x] Sync status indicator showing last sync time ✅
 - [x] Basic sync lock to prevent concurrent operations ✅
-- [ ] ❌ Preserve existing files outside `/spec` directory (currently replaces entire repo)
 
 #### Technical Requirements
 

@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import {
+  createProjectRepository,
   getProjectRepository,
   hasInstallationAccess,
   getUserInstallations,
-  linkExistingRepository,
 } from "./repository";
 import { initServices } from "../init-services";
 import { githubInstallations, githubRepos } from "../../db/schema/github";
@@ -13,6 +13,7 @@ import { getInstallationDetails } from "./client";
 // Mock the client module - we still need to mock external APIs
 vi.mock("./client", () => ({
   getInstallationDetails: vi.fn(),
+  createInstallationOctokit: vi.fn(),
 }));
 
 describe("GitHub Repository", () => {
@@ -168,12 +169,27 @@ describe("GitHub Repository", () => {
     });
   });
 
-  describe("linkExistingRepository", () => {
-    it("should link an existing repository to a project", async () => {
-      const existingRepoId = 123456;
-      const existingRepoName = "my-existing-repo";
+  describe("createProjectRepository", () => {
+    it("should create a new repository for a project", async () => {
+      const { createInstallationOctokit } = await import("./client");
 
-      // Mock getInstallationDetails
+      // Mock GitHub API responses
+      const mockOctokit = {
+        request: vi.fn().mockResolvedValue({
+          data: {
+            id: 123456,
+            name: expectedRepoName,
+            full_name: `testuser/${expectedRepoName}`,
+            html_url: `https://github.com/testuser/${expectedRepoName}`,
+            clone_url: `https://github.com/testuser/${expectedRepoName}.git`,
+          },
+        }),
+      };
+
+      vi.mocked(createInstallationOctokit).mockResolvedValue(
+        mockOctokit as never,
+      );
+
       vi.mocked(getInstallationDetails).mockResolvedValue({
         account: {
           type: "User",
@@ -181,18 +197,17 @@ describe("GitHub Repository", () => {
         },
       } as Awaited<ReturnType<typeof getInstallationDetails>>);
 
-      // Link the existing repository
-      const result = await linkExistingRepository(
+      const result = await createProjectRepository(
         testProjectId,
         testInstallationId,
-        existingRepoId,
-        existingRepoName,
       );
 
       expect(result).toEqual({
-        repoId: existingRepoId,
-        repoName: existingRepoName,
-        fullName: `testuser/${existingRepoName}`,
+        repoId: 123456,
+        repoName: expectedRepoName,
+        fullName: `testuser/${expectedRepoName}`,
+        url: `https://github.com/testuser/${expectedRepoName}`,
+        cloneUrl: `https://github.com/testuser/${expectedRepoName}.git`,
       });
 
       // Verify database record was created
@@ -206,63 +221,23 @@ describe("GitHub Repository", () => {
       expect(repos[0]).toMatchObject({
         projectId: testProjectId,
         installationId: testInstallationId,
-        repoName: existingRepoName,
-        repoId: existingRepoId,
-      });
-    });
-
-    it("should link repository for organization account", async () => {
-      const existingRepoId = 654321;
-      const existingRepoName = "org-repo";
-
-      // Mock getInstallationDetails for organization
-      vi.mocked(getInstallationDetails).mockResolvedValue({
-        account: {
-          type: "Organization",
-          login: "testorg",
-        },
-      } as Awaited<ReturnType<typeof getInstallationDetails>>);
-
-      const result = await linkExistingRepository(
-        testProjectId,
-        testInstallationId,
-        existingRepoId,
-        existingRepoName,
-      );
-
-      expect(result).toEqual({
-        repoId: existingRepoId,
-        repoName: existingRepoName,
-        fullName: `testorg/${existingRepoName}`,
+        repoName: expectedRepoName,
+        repoId: 123456,
       });
     });
 
     it("should throw error when repository already exists for project", async () => {
-      // Create existing repository link
+      // Create existing repository
       const db = globalThis.services.db;
       await db.insert(githubRepos).values({
         projectId: testProjectId,
         installationId: testInstallationId,
-        repoName: "existing-repo",
+        repoName: expectedRepoName,
         repoId: 111111,
       });
 
-      // Mock getInstallationDetails
-      vi.mocked(getInstallationDetails).mockResolvedValue({
-        account: {
-          type: "User",
-          login: "testuser",
-        },
-      } as Awaited<ReturnType<typeof getInstallationDetails>>);
-
-      // Attempt to link another repository
       await expect(
-        linkExistingRepository(
-          testProjectId,
-          testInstallationId,
-          222222,
-          "another-repo",
-        ),
+        createProjectRepository(testProjectId, testInstallationId),
       ).rejects.toThrow(
         `Repository already exists for project ${testProjectId}`,
       );
