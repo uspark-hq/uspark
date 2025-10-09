@@ -83,76 +83,72 @@ export async function watchClaudeCommand(options: {
     // Always pass through the output transparently
     console.log(line);
 
-    try {
-      // Try to parse as JSON to detect Claude events
-      const event: ClaudeEvent = JSON.parse(line);
+    // Parse JSON line - all input should be valid JSON from Claude CLI
+    const event: ClaudeEvent = JSON.parse(line);
 
-      // Step 1: Track tool_use events for file modification tools
-      if (event.type === "assistant" && event.message?.content) {
-        for (const contentItem of event.message.content) {
-          if (
-            contentItem.type === "tool_use" &&
-            contentItem.name &&
-            contentItem.input &&
-            contentItem.id
-          ) {
-            const toolName = contentItem.name;
-            const toolInput = contentItem.input;
+    // Step 1: Track tool_use events for file modification tools
+    if (event.type === "assistant" && event.message?.content) {
+      for (const contentItem of event.message.content) {
+        if (
+          contentItem.type === "tool_use" &&
+          contentItem.name &&
+          contentItem.input &&
+          contentItem.id
+        ) {
+          const toolName = contentItem.name;
+          const toolInput = contentItem.input;
 
-            // Check for file modification tools
-            if (isFileModificationTool(toolName, toolInput)) {
-              const filePath = extractFilePath(toolName, toolInput);
+          // Check for file modification tools
+          if (isFileModificationTool(toolName, toolInput)) {
+            const filePath = extractFilePath(toolName, toolInput);
 
-              if (filePath) {
-                // Store for later sync after tool_result
-                pendingFileOps.set(contentItem.id, filePath);
-              }
+            if (filePath) {
+              // Store for later sync after tool_result
+              pendingFileOps.set(contentItem.id, filePath);
             }
           }
         }
       }
+    }
 
-      // Step 2: Sync files after tool_result (file is now created/modified)
-      if (event.type === "tool_result" && event.tool_use_id) {
-        const filePath = pendingFileOps.get(event.tool_use_id);
+    // Step 2: Sync files after tool_result (file is now created/modified)
+    if (event.type === "tool_result" && event.tool_use_id) {
+      const filePath = pendingFileOps.get(event.tool_use_id);
 
-        if (filePath) {
-          // Create a sync promise and track it
-          const syncPromise = (async () => {
-            try {
-              // File was successfully modified, sync it now
-              await syncFile(context, options.projectId, filePath);
+      if (filePath) {
+        // Create a sync promise and track it
+        const syncPromise = (async () => {
+          try {
+            // File was successfully modified, sync it now
+            await syncFile(context, options.projectId, filePath);
 
-              // Log sync success (to stderr to not interfere with stdout)
-              console.error(chalk.dim(`[uspark] ✓ Synced ${filePath}`));
-            } catch (error) {
-              console.error(
-                chalk.red(
-                  `[uspark] ✗ Failed to sync ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
-                ),
-              );
-            } finally {
-              // Remove from pending regardless of success
-              if (event.tool_use_id) {
-                pendingFileOps.delete(event.tool_use_id);
-              }
+            // Log sync success (to stderr to not interfere with stdout)
+            console.error(chalk.dim(`[uspark] ✓ Synced ${filePath}`));
+          } catch (error) {
+            console.error(
+              chalk.red(
+                `[uspark] ✗ Failed to sync ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
+              ),
+            );
+          } finally {
+            // Remove from pending regardless of success
+            if (event.tool_use_id) {
+              pendingFileOps.delete(event.tool_use_id);
             }
-          })();
+          }
+        })();
 
-          // Track the sync promise
-          pendingSyncs.push(syncPromise);
+        // Track the sync promise
+        pendingSyncs.push(syncPromise);
 
-          // Remove from tracking once complete
-          syncPromise.finally(() => {
-            const index = pendingSyncs.indexOf(syncPromise);
-            if (index > -1) {
-              pendingSyncs.splice(index, 1);
-            }
-          });
-        }
+        // Remove from tracking once complete
+        syncPromise.finally(() => {
+          const index = pendingSyncs.indexOf(syncPromise);
+          if (index > -1) {
+            pendingSyncs.splice(index, 1);
+          }
+        });
       }
-    } catch {
-      // Silently skip non-JSON lines
     }
   });
 
