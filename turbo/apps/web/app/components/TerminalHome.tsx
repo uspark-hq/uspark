@@ -1,11 +1,13 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
 import Terminal from "react-console-emulator";
 import styles from "./TerminalHome.module.css";
 
 export function TerminalHome() {
   const router = useRouter();
+  const { isSignedIn } = useAuth();
 
   const commands = {
     about: {
@@ -32,6 +34,10 @@ Type 'login' to get started or 'signup' to join the waitlist.
     login: {
       description: "Sign in to your account",
       fn: () => {
+        if (isSignedIn) {
+          router.push("/projects");
+          return "Already signed in. Redirecting to projects...";
+        }
         router.push("/sign-in");
         return "Redirecting to login...";
       },
@@ -69,7 +75,7 @@ Type 'help' to see command descriptions or 'login' to get started.
       <Terminal
         commands={commands}
         welcomeMessage={welcomeMessage}
-        promptLabel="visitor@uspark:~$"
+        promptLabel={isSignedIn ? "user@uspark:~$" : "visitor@uspark:~$"}
         style={{
           backgroundColor: "#0a0a0a",
           minHeight: "100vh",

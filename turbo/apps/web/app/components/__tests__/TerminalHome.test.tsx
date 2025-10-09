@@ -1,11 +1,17 @@
 import { render, screen } from "@testing-library/react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@clerk/nextjs";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { TerminalHome } from "../TerminalHome";
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
   useRouter: vi.fn(),
+}));
+
+// Mock Clerk authentication
+vi.mock("@clerk/nextjs", () => ({
+  useAuth: vi.fn(),
 }));
 
 // Mock react-console-emulator
@@ -53,6 +59,10 @@ describe("TerminalHome", () => {
     });
     // Mock window.open
     global.window.open = mockOpen;
+    // Default to not signed in
+    (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({
+      isSignedIn: false,
+    });
   });
 
   it("renders terminal with welcome message", () => {
@@ -65,11 +75,22 @@ describe("TerminalHome", () => {
     );
   });
 
-  it("displays correct prompt label", () => {
+  it("displays visitor prompt label when not signed in", () => {
     render(<TerminalHome />);
 
     const promptLabel = screen.getByTestId("prompt-label");
     expect(promptLabel.textContent).toBe("visitor@uspark:~$");
+  });
+
+  it("displays user prompt label when signed in", () => {
+    (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({
+      isSignedIn: true,
+    });
+
+    render(<TerminalHome />);
+
+    const promptLabel = screen.getByTestId("prompt-label");
+    expect(promptLabel.textContent).toBe("user@uspark:~$");
   });
 
   it("shows available commands in welcome message", () => {
@@ -89,7 +110,7 @@ describe("TerminalHome", () => {
     expect(aboutCommand.textContent).toContain("Learn about uSpark");
   });
 
-  it("has login command that navigates to sign-in page", () => {
+  it("login command navigates to sign-in page when not signed in", () => {
     render(<TerminalHome />);
 
     const loginCommand = screen.getByTestId("command-login");
@@ -97,6 +118,19 @@ describe("TerminalHome", () => {
 
     loginCommand.click();
     expect(mockPush).toHaveBeenCalledWith("/sign-in");
+  });
+
+  it("login command navigates to projects page when already signed in", () => {
+    (useAuth as ReturnType<typeof vi.fn>).mockReturnValue({
+      isSignedIn: true,
+    });
+
+    render(<TerminalHome />);
+
+    const loginCommand = screen.getByTestId("command-login");
+    loginCommand.click();
+
+    expect(mockPush).toHaveBeenCalledWith("/projects");
   });
 
   it("has signup command that navigates to sign-up page", () => {
