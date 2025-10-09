@@ -254,10 +254,23 @@ export class ProjectSync {
       // Upload blob using exact path that matches the token
       const blobPath = `projects/${projectId}/${localHash}`;
 
-      await put(blobPath, content, {
-        access: "public",
-        token: blobToken,
-      });
+      try {
+        await put(blobPath, content, {
+          access: "public",
+          token: blobToken,
+        });
+      } catch (error) {
+        // If blob already exists, skip it (this is OK)
+        if (
+          error instanceof Error &&
+          error.message.includes("blob already exists")
+        ) {
+          // Blob already exists in storage, no need to re-upload
+        } else {
+          // Re-throw other errors
+          throw error;
+        }
+      }
 
       // Store locally as well
       this.fs.setBlob(localHash, content);
@@ -337,12 +350,14 @@ export class ProjectSync {
     }
 
     // Get existing remote hashes to avoid re-uploading
+    // If a hash exists in YJS, it means the blob was already uploaded
     const existingRemoteHashes = new Set<string>();
     for (const [, remoteHash] of remoteFiles) {
       existingRemoteHashes.add(remoteHash);
     }
 
-    // Only upload blobs that don't already exist in remote
+    // Only upload blobs that don't already exist in remote YJS
+    // This prevents re-uploading the same content
     const blobsToActuallyUpload = new Set<string>();
     for (const hash of blobsToUpload) {
       if (!existingRemoteHashes.has(hash)) {
@@ -379,10 +394,23 @@ export class ProjectSync {
       // Upload blob using exact path that matches the token
       const blobPath = `projects/${projectId}/${hash}`;
 
-      await put(blobPath, content, {
-        access: "public",
-        token: blobToken,
-      });
+      try {
+        await put(blobPath, content, {
+          access: "public",
+          token: blobToken,
+        });
+      } catch (error) {
+        // If blob already exists, skip it (this is OK)
+        if (
+          error instanceof Error &&
+          error.message.includes("blob already exists")
+        ) {
+          // Blob already exists in storage, no need to re-upload
+          continue;
+        }
+        // Re-throw other errors
+        throw error;
+      }
     }
 
     // 6. Apply changes to FileSystem
