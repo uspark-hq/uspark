@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import {
   Button,
   Card,
@@ -25,13 +24,20 @@ import {
 import { Navigation } from "../components/navigation";
 
 export default function ProjectsListPage() {
-  const router = useRouter();
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [creating, setCreating] = useState(false);
+
+  // Navigate to project in app subdomain (workspace)
+  const navigateToProject = (projectId: string) => {
+    const currentUrl = new URL(window.location.href);
+    const newUrl =
+      currentUrl.origin.replace("www.", "app.") + `/projects/${projectId}`;
+    window.location.href = newUrl;
+  };
 
   // Load projects from API
   useEffect(() => {
@@ -87,7 +93,7 @@ export default function ProjectsListPage() {
       setShowCreateDialog(false);
 
       // Navigate to the new project
-      router.push(`/projects/${newProject.id}`);
+      navigateToProject(newProject.id);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create project");
     } finally {
@@ -240,7 +246,7 @@ export default function ProjectsListPage() {
             <Card key={project.id} className="transition-all hover:shadow-lg">
               <div
                 className="cursor-pointer"
-                onClick={() => router.push(`/projects/${project.id}`)}
+                onClick={() => navigateToProject(project.id)}
               >
                 <CardHeader>
                   <div className="flex items-center justify-between">
