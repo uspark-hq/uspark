@@ -42,8 +42,8 @@ interface MockProjectConfig {
  */
 function createYjsDocument(files: FileSpec[]): Uint8Array {
   const ydoc = new Y.Doc()
-  const filesMap = ydoc.getMap('files')
-  const blobsMap = ydoc.getMap('blobs')
+  const filesMap = ydoc.getMap<{ hash: string; mtime: number }>('files')
+  const blobsMap = ydoc.getMap<{ size: number }>('blobs')
 
   for (const file of files) {
     filesMap.set(file.path, { hash: file.hash, mtime: Date.now() })
