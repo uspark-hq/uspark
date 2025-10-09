@@ -265,4 +265,3 @@ export async function getUserInstallations(userId: string) {
     .from(githubInstallations)
     .where(eq(githubInstallations.userId, userId));
 }
-
