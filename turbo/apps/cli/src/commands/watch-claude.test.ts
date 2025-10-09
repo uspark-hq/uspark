@@ -95,10 +95,11 @@ describe("watch-claude", () => {
       projectId: "test-project-id",
     });
 
-    // Wait a bit for events to be processed
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    // Use nextTick to ensure event loop processes line events before close
+    await new Promise((resolve) => process.nextTick(resolve));
 
     // Close stdin to trigger command completion
+    // Readline will process all queued lines before firing close event
     mockStdin.push(null);
 
     // Wait for command to complete
@@ -161,7 +162,6 @@ describe("watch-claude", () => {
       projectId: "test-project-id",
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
     mockStdin.push(null);
     await commandPromise.catch(() => {});
 
@@ -228,7 +228,6 @@ describe("watch-claude", () => {
       projectId: "test-project-id",
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
     mockStdin.push(null);
     await commandPromise.catch(() => {});
 
