@@ -21,14 +21,14 @@
 
 The MVP focuses on one-way synchronization from Web to GitHub:
 1. **Install GitHub App** - One-click GitHub App installation ✅
-2. **Select existing repository** - Choose from user's existing repos ❌ (currently creates new repo)
-3. **Web → GitHub sync to `/spec` directory** - Manual push to existing repo's `/spec` path ❌ (currently mirrors to dedicated repo)
+2. **Auto-create repository** - Automatically create uspark-{project.id} repo ✅
+3. **Web → GitHub sync** - Manual push to dedicated repository ✅
 4. **UI feedback** - Show sync status and prevent duplicate clicks via UI ✅
 
 **Current Implementation Status**:
 - ✅ GitHub App installation works correctly
-- ❌ Creates dedicated `uspark-{project.id}` repo (should select existing repo)
-- ❌ Full project mirror (should sync to `/spec` directory only)
+- ✅ Creates dedicated `uspark-{project.id}` repo automatically
+- ✅ Full project mirror to dedicated repository
 - ✅ Sync button and UI feedback works
 
 **Out of Scope for MVP:**

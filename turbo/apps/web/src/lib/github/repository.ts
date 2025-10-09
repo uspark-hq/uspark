@@ -4,6 +4,17 @@ import { githubRepos, githubInstallations } from "../../db/schema/github";
 import { eq, and } from "drizzle-orm";
 
 /**
+ * Repository creation result
+ */
+type CreateRepositoryResult = {
+  repoId: number;
+  repoName: string;
+  fullName: string;
+  url: string;
+  cloneUrl: string;
+};
+
+/**
  * Repository information
  */
 type RepositoryInfo = {
@@ -20,6 +31,135 @@ type RepositoryInfo = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+/**
+ * Creates a GitHub repository for a project
+ *
+ * @param projectId - The project ID
+ * @param installationId - The GitHub App installation ID
+ * @returns Repository creation result
+ */
+export async function createProjectRepository(
+  projectId: string,
+  installationId: number,
+): Promise<CreateRepositoryResult> {
+  initServices();
+  const db = globalThis.services.db;
+
+  // Check if repository already exists for this project
+  const existingRepo = await db
+    .select()
+    .from(githubRepos)
+    .where(eq(githubRepos.projectId, projectId))
+    .limit(1);
+
+  if (existingRepo.length > 0) {
+    throw new Error(`Repository already exists for project ${projectId}`);
+  }
+
+  // Get installation Octokit client
+  const octokit = await createInstallationOctokit(installationId);
+
+  // Get installation details to determine if it's an organization or user
+  const installation = await getInstallationDetails(installationId);
+
+  // Handle both user and organization account types
+  const accountType = installation.account
+    ? "type" in installation.account
+      ? installation.account.type
+      : "Organization"
+    : "unknown";
+  const accountLogin = installation.account
+    ? "login" in installation.account
+      ? installation.account.login
+      : installation.account.slug || installation.account.name
+    : "unknown";
+
+  // Generate repository name using first 8 characters of UUID for brevity
+  const repoName = `uspark-${projectId.substring(0, 8)}`;
+
+  // Create repository on GitHub - use appropriate endpoint based on account type
+  let repo;
+
+  try {
+    if (accountType === "Organization") {
+      // Create repository in organization
+      const { data } = await octokit.request("POST /orgs/{org}/repos", {
+        org: accountLogin,
+        name: repoName,
+        private: true,
+        auto_init: true,
+        description: `uSpark sync repository for project ${projectId}`,
+      });
+      repo = data;
+    } else {
+      // For user accounts, use the user endpoint
+      const { data } = await octokit.request("POST /user/repos", {
+        name: repoName,
+        private: true,
+        auto_init: true,
+        description: `uSpark sync repository for project ${projectId}`,
+      });
+      repo = data;
+    }
+  } catch (error: unknown) {
+    if (error instanceof Error && "status" in error) {
+      const githubError = error as {
+        status: number;
+        message: string;
+        response?: { data?: unknown };
+      };
+
+      // 404 can mean either wrong endpoint or missing permissions
+      if (githubError.status === 404) {
+        if (accountType !== "Organization") {
+          // For user accounts, this might be a GitHub App limitation
+          throw new Error(
+            `Cannot create repository for user account. GitHub Apps may have limited permissions for personal accounts. ` +
+              `Please ensure: 1) The GitHub App is installed on your personal account, 2) The App has 'Administration: write' and 'Contents: write' permissions for repositories.`,
+          );
+        } else {
+          throw new Error(
+            `GitHub API endpoint not found for organization ${accountLogin}. Please check the GitHub App installation.`,
+          );
+        }
+      }
+
+      // 403 means permission denied
+      if (githubError.status === 403) {
+        throw new Error(
+          `Permission denied. Please ensure the GitHub App has 'Administration: write' and 'Contents: write' permissions. ` +
+            `Error: ${githubError.message}`,
+        );
+      }
+
+      // 422 means validation error (e.g., repo already exists on GitHub)
+      if (githubError.status === 422) {
+        throw new Error(
+          `Repository creation failed. The repository name '${repoName}' may already exist on GitHub.`,
+        );
+      }
+    }
+
+    throw error;
+  }
+
+  // Store repository information in database
+  await db.insert(githubRepos).values({
+    projectId,
+    installationId,
+    repoName,
+    repoId: repo.id,
+  });
+
+  return {
+    repoId: repo.id,
+    repoName: repo.name,
+    fullName: repo.full_name,
+    url: repo.html_url,
+    cloneUrl: repo.clone_url,
+  };
+}
 
 /**
  * Gets repository information for a project
@@ -124,114 +264,4 @@ export async function getUserInstallations(userId: string) {
     .select()
     .from(githubInstallations)
     .where(eq(githubInstallations.userId, userId));
-}
-
-/**
- * Repository information from GitHub API
- */
-export type GitHubRepository = {
-  id: number;
-  name: string;
-  full_name: string;
-  private: boolean;
-  owner: {
-    login: string;
-    type: string;
-  };
-  description: string | null;
-  updated_at: string | null;
-  permissions?: {
-    admin: boolean;
-    push: boolean;
-    pull: boolean;
-    maintain?: boolean;
-    triage?: boolean;
-  };
-};
-
-/**
- * Gets all repositories accessible by an installation
- *
- * @param installationId - The GitHub App installation ID
- * @returns List of repositories
- */
-export async function getInstallationRepositories(
-  installationId: number,
-): Promise<GitHubRepository[]> {
-  const octokit = await createInstallationOctokit(installationId);
-
-  // Get all repositories accessible to this installation
-  const { data } = await octokit.request("GET /installation/repositories", {
-    per_page: 100,
-  });
-
-  // Map to our GitHubRepository type
-  return data.repositories.map((repo) => ({
-    id: repo.id,
-    name: repo.name,
-    full_name: repo.full_name,
-    private: repo.private,
-    owner: {
-      login: repo.owner.login,
-      type: repo.owner.type,
-    },
-    description: repo.description,
-    updated_at: repo.updated_at,
-    permissions: repo.permissions,
-  }));
-}
-
-/**
- * Links an existing GitHub repository to a project
- *
- * @param projectId - The project ID
- * @param installationId - The GitHub App installation ID
- * @param repoId - The GitHub repository ID
- * @param repoName - The repository name
- * @returns Repository information
- */
-export async function linkExistingRepository(
-  projectId: string,
-  installationId: number,
-  repoId: number,
-  repoName: string,
-): Promise<{ repoId: number; repoName: string; fullName: string }> {
-  initServices();
-  const db = globalThis.services.db;
-
-  // Check if repository already exists for this project
-  const existingRepo = await db
-    .select()
-    .from(githubRepos)
-    .where(eq(githubRepos.projectId, projectId))
-    .limit(1);
-
-  if (existingRepo.length > 0) {
-    throw new Error(`Repository already exists for project ${projectId}`);
-  }
-
-  // Get installation details to build full name
-  const installation = await getInstallationDetails(installationId);
-
-  const accountLogin = installation.account
-    ? "login" in installation.account
-      ? installation.account.login
-      : installation.account.slug || installation.account.name
-    : "unknown";
-
-  const fullName = `${accountLogin}/${repoName}`;
-
-  // Store repository link in database
-  await db.insert(githubRepos).values({
-    projectId,
-    installationId,
-    repoName,
-    repoId,
-  });
-
-  return {
-    repoId,
-    repoName,
-    fullName,
-  };
 }
