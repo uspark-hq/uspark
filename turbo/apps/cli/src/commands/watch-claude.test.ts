@@ -19,11 +19,9 @@ vi.mock("chalk", () => ({
 
 describe("watch-claude", () => {
   let mockStdin: Readable;
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     // Mock process.exit to prevent actual exit and Vitest errors
     vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
   });
@@ -121,11 +119,6 @@ describe("watch-claude", () => {
       },
       "test-project-id",
       "spec/test-time.md", // Should be relative path
-    );
-
-    // Verify sync message was logged
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("[uspark] ✓ Synced spec/test-time.md"),
     );
   });
 

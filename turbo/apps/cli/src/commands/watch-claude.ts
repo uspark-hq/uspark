@@ -133,13 +133,11 @@ export async function watchClaudeCommand(options: {
               try {
                 // File was successfully modified, sync it now
                 await syncFile(context, options.projectId, filePath);
-
-                // Log sync success (to stderr to not interfere with stdout)
-                console.error(chalk.dim(`[uspark] ✓ Synced ${filePath}`));
               } catch (error) {
+                // Only output errors to stderr
                 console.error(
                   chalk.red(
-                    `[uspark] ✗ Failed to sync ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
+                    `[uspark] Failed to sync ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
                   ),
                 );
               } finally {
