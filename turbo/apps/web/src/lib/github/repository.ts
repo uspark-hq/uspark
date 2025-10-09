@@ -75,13 +75,6 @@ export async function createProjectRepository(
       : installation.account.slug || installation.account.name
     : "unknown";
 
-  console.log("Installation details:", {
-    installationId,
-    account: installation.account,
-    accountType,
-    accountLogin,
-  });
-
   // Generate repository name using first 8 characters of UUID for brevity
   const repoName = `uspark-${projectId.substring(0, 8)}`;
 
@@ -91,12 +84,6 @@ export async function createProjectRepository(
   try {
     if (accountType === "Organization") {
       // Create repository in organization
-      console.log("Creating org repository:", {
-        endpoint: "POST /orgs/{org}/repos",
-        org: accountLogin,
-        name: repoName,
-      });
-
       const { data } = await octokit.request("POST /orgs/{org}/repos", {
         org: accountLogin,
         name: repoName,
@@ -107,13 +94,6 @@ export async function createProjectRepository(
       repo = data;
     } else {
       // For user accounts, use the user endpoint
-      console.log("Creating user repository:", {
-        endpoint: "POST /user/repos",
-        name: repoName,
-        accountType,
-        accountLogin,
-      });
-
       const { data } = await octokit.request("POST /user/repos", {
         name: repoName,
         private: true,
