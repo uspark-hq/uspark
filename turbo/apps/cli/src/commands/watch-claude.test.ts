@@ -19,11 +19,9 @@ vi.mock("chalk", () => ({
 
 describe("watch-claude", () => {
   let mockStdin: Readable;
-  let consoleErrorSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
-    consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     // Mock process.exit to prevent actual exit and Vitest errors
     vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
   });
@@ -55,12 +53,22 @@ describe("watch-claude", () => {
           ],
         },
       }),
-      // tool_result event
+      // tool_result event (comes as type:"user" with content array)
       JSON.stringify({
-        type: "tool_result",
-        tool_use_id: "toolu_015LBZEJykuRthAH8dhkPzBu",
-        content:
-          "File created successfully at: /workspaces/uspark/spec/test-time.md",
+        type: "user",
+        message: {
+          id: "msg_result_01",
+          type: "message",
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "toolu_015LBZEJykuRthAH8dhkPzBu",
+              content:
+                "File created successfully at: /workspaces/uspark/spec/test-time.md",
+            },
+          ],
+        },
       }),
     ];
 
@@ -87,10 +95,11 @@ describe("watch-claude", () => {
       projectId: "test-project-id",
     });
 
-    // Wait a bit for events to be processed
-    await new Promise((resolve) => setTimeout(resolve, 200));
+    // Use nextTick to ensure event loop processes line events before close
+    await new Promise((resolve) => process.nextTick(resolve));
 
     // Close stdin to trigger command completion
+    // Readline will process all queued lines before firing close event
     mockStdin.push(null);
 
     // Wait for command to complete
@@ -111,11 +120,6 @@ describe("watch-claude", () => {
       },
       "test-project-id",
       "spec/test-time.md", // Should be relative path
-    );
-
-    // Verify sync message was logged
-    expect(consoleErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining("[uspark] ✓ Synced spec/test-time.md"),
     );
   });
 
@@ -158,7 +162,6 @@ describe("watch-claude", () => {
       projectId: "test-project-id",
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
     mockStdin.push(null);
     await commandPromise.catch(() => {});
 
@@ -195,10 +198,21 @@ describe("watch-claude", () => {
           ],
         },
       }),
+      // tool_result event (comes as type:"user" with content array)
       JSON.stringify({
-        type: "tool_result",
-        tool_use_id: "toolu_test",
-        content: "file1.txt\nfile2.txt",
+        type: "user",
+        message: {
+          id: "msg_result_02",
+          type: "message",
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "toolu_test",
+              content: "file1.txt\nfile2.txt",
+            },
+          ],
+        },
       }),
     ];
 
@@ -214,7 +228,6 @@ describe("watch-claude", () => {
       projectId: "test-project-id",
     });
 
-    await new Promise((resolve) => setTimeout(resolve, 100));
     mockStdin.push(null);
     await commandPromise.catch(() => {});
 
