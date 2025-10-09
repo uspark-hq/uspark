@@ -24,6 +24,8 @@ describe("watch-claude", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+    // Mock process.exit to prevent actual exit and Vitest errors
+    vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
   });
 
   it("should detect Write tool_use and sync after tool_result", async () => {
