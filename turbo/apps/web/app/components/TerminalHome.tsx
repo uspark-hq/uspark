@@ -8,20 +8,6 @@ export function TerminalHome() {
   const router = useRouter();
 
   const commands = {
-    help: {
-      description: "Show available commands",
-      fn: () => {
-        return `
-Available commands:
-  help     - Show this help message
-  about    - Learn about uSpark
-  login    - Sign in to your account
-  signup   - Join the waitlist
-  github   - View our GitHub repository
-  clear    - Clear the terminal screen
-        `.trim();
-      },
-    },
     about: {
       description: "Learn about uSpark",
       fn: () => {
@@ -74,7 +60,8 @@ Transform AI coding sessions into structured software projects.
 Orchestrate Claude Code, Cursor, and Windsurf through systematic
 documentation and task management.
 
-Type 'help' for available commands or 'login' to get started.
+Available commands: about, login, signup, github, help, clear
+Type 'help' to see command descriptions or 'login' to get started.
   `.trim();
 
   return (
@@ -98,6 +85,7 @@ Type 'help' for available commands or 'login' to get started.
           color: "#ffffff",
         }}
         autoFocus
+        noDefaults={false}
       />
     </div>
   );
