@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.1](https://github.com/uspark-hq/uspark/compare/cli-v0.11.0...cli-v0.11.1) (2025-10-09)
+
+
+### Bug Fixes
+
+* improve CLI sync reliability and CORS handling ([#441](https://github.com/uspark-hq/uspark/issues/441)) ([eeb2ec1](https://github.com/uspark-hq/uspark/commit/eeb2ec14aad4c69cf2cb4272501800302483f2ee))
+
 ## [0.11.0](https://github.com/uspark-hq/uspark/compare/cli-v0.10.5...cli-v0.11.0) (2025-09-30)
 
 

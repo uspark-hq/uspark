@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.35.2](https://github.com/uspark-hq/uspark/compare/web-v0.35.1...web-v0.35.2) (2025-10-09)
+
+
+### Bug Fixes
+
+* improve CLI sync reliability and CORS handling ([#441](https://github.com/uspark-hq/uspark/issues/441)) ([eeb2ec1](https://github.com/uspark-hq/uspark/commit/eeb2ec14aad4c69cf2cb4272501800302483f2ee))
+
 ## [0.35.1](https://github.com/uspark-hq/uspark/compare/web-v0.35.0...web-v0.35.1) (2025-10-01)
 
 
