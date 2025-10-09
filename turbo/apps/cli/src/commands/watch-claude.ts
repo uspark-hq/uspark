@@ -3,20 +3,22 @@ import chalk from "chalk";
 import { requireAuth, syncFile } from "./shared";
 
 interface ClaudeEvent {
-  type: "system" | "assistant" | "user" | "result";
+  type: "system" | "assistant" | "user" | "result" | "tool_result";
   subtype?: string;
   message?: {
     id: string;
     type: "message";
     role: "assistant" | "user";
     content: Array<{
-      type: "text" | "tool_use";
+      type: "text" | "tool_use" | "tool_result";
       text?: string;
       id?: string;
       name?: string;
       input?: Record<string, unknown>;
     }>;
   };
+  tool_use_id?: string;
+  content?: string;
 }
 
 function isFileModificationTool(
@@ -65,6 +67,9 @@ export async function watchClaudeCommand(options: {
 }): Promise<void> {
   const context = await requireAuth();
 
+  // Track pending file operations: tool_use_id -> file_path
+  const pendingFileOps = new Map<string, string>();
+
   // Create readline interface to process stdin line by line
   const rl = createInterface({
     input: process.stdin,
@@ -78,13 +83,14 @@ export async function watchClaudeCommand(options: {
     // Try to parse as JSON to detect Claude events
     const event: ClaudeEvent = JSON.parse(line);
 
-    // Check if this is an assistant message with tool use
+    // Step 1: Track tool_use events for file modification tools
     if (event.type === "assistant" && event.message?.content) {
       for (const contentItem of event.message.content) {
         if (
           contentItem.type === "tool_use" &&
           contentItem.name &&
-          contentItem.input
+          contentItem.input &&
+          contentItem.id
         ) {
           const toolName = contentItem.name;
           const toolInput = contentItem.input;
@@ -94,14 +100,27 @@ export async function watchClaudeCommand(options: {
             const filePath = extractFilePath(toolName, toolInput);
 
             if (filePath) {
-              // Trigger push operation in background
-              await syncFile(context, options.projectId, filePath);
-
-              // Log sync success (to stderr to not interfere with stdout)
-              console.error(chalk.dim(`[uspark] ✓ Synced ${filePath}`));
+              // Store for later sync after tool_result
+              pendingFileOps.set(contentItem.id, filePath);
             }
           }
         }
+      }
+    }
+
+    // Step 2: Sync files after tool_result (file is now created/modified)
+    if (event.type === "tool_result" && event.tool_use_id) {
+      const filePath = pendingFileOps.get(event.tool_use_id);
+
+      if (filePath) {
+        // File was successfully modified, sync it now
+        await syncFile(context, options.projectId, filePath);
+
+        // Log sync success (to stderr to not interfere with stdout)
+        console.error(chalk.dim(`[uspark] ✓ Synced ${filePath}`));
+
+        // Remove from pending
+        pendingFileOps.delete(event.tool_use_id);
       }
     }
   });
