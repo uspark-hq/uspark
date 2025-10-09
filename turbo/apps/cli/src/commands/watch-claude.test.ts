@@ -55,12 +55,22 @@ describe("watch-claude", () => {
           ],
         },
       }),
-      // tool_result event
+      // tool_result event (comes as type:"user" with content array)
       JSON.stringify({
-        type: "tool_result",
-        tool_use_id: "toolu_015LBZEJykuRthAH8dhkPzBu",
-        content:
-          "File created successfully at: /workspaces/uspark/spec/test-time.md",
+        type: "user",
+        message: {
+          id: "msg_result_01",
+          type: "message",
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "toolu_015LBZEJykuRthAH8dhkPzBu",
+              content:
+                "File created successfully at: /workspaces/uspark/spec/test-time.md",
+            },
+          ],
+        },
       }),
     ];
 
@@ -195,10 +205,21 @@ describe("watch-claude", () => {
           ],
         },
       }),
+      // tool_result event (comes as type:"user" with content array)
       JSON.stringify({
-        type: "tool_result",
-        tool_use_id: "toolu_test",
-        content: "file1.txt\nfile2.txt",
+        type: "user",
+        message: {
+          id: "msg_result_02",
+          type: "message",
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "toolu_test",
+              content: "file1.txt\nfile2.txt",
+            },
+          ],
+        },
       }),
     ];
 
