@@ -13,6 +13,15 @@ const isPublicRoute = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
+  // Handle CORS preflight (OPTIONS) requests BEFORE any other processing
+  // This prevents redirects from interfering with CORS preflight
+  if (
+    request.method === "OPTIONS" &&
+    request.nextUrl.pathname.startsWith("/api/")
+  ) {
+    return handleCors(request);
+  }
+
   // Handle CORS for API routes
   if (request.nextUrl.pathname.startsWith("/api/")) {
     return handleCors(request);
