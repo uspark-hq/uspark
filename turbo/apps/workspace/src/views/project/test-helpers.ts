@@ -1,5 +1,5 @@
 import { http, HttpResponse, type RequestHandler } from 'msw'
-import * as Y from 'yjs'
+import { Doc, encodeStateAsUpdate, Map as YMap } from 'yjs'
 import { server } from '../../mocks/node'
 import {
   setupPage,
@@ -41,16 +41,16 @@ interface MockProjectConfig {
  * Create YJS document with files
  */
 function createYjsDocument(files: FileSpec[]): Uint8Array {
-  const ydoc = new Y.Doc()
-  const filesMap = ydoc.getMap<{ hash: string; mtime: number }>('files')
-  const blobsMap = ydoc.getMap<{ size: number }>('blobs')
+  const ydoc: Doc = new Doc()
+  const filesMap: YMap<{ hash: string; mtime: number }> = ydoc.getMap('files')
+  const blobsMap: YMap<{ size: number }> = ydoc.getMap('blobs')
 
   for (const file of files) {
     filesMap.set(file.path, { hash: file.hash, mtime: Date.now() })
     blobsMap.set(file.hash, { size: file.size ?? 100 })
   }
 
-  return Y.encodeStateAsUpdate(ydoc)
+  return encodeStateAsUpdate(ydoc)
 }
 
 /**
