@@ -166,6 +166,12 @@ function throwIfNotAbort(e: unknown) {
   }
 }
 
+export function throwIfAbort(e: unknown) {
+  if (isAbortError(e)) {
+    throw e
+  }
+}
+
 type GeometryStyle = Pick<
   CSSProperties,
   | 'width'
