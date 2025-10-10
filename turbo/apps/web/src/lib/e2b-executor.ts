@@ -97,19 +97,39 @@ export class E2BExecutor {
     const sandboxToken = await this.generateSandboxToken(userId, sessionId);
     console.log(`Generated sandbox CLI token for session ${sessionId}`);
 
-    const sandbox = await Sandbox.create(this.TEMPLATE_ID, {
+    console.log(
+      `[E2B] Calling Sandbox.create with template ${this.TEMPLATE_ID}`,
+    );
+    console.log(`[E2B] Sandbox config:`, {
       timeoutMs: this.SANDBOX_TIMEOUT * 1000,
-      metadata: {
-        sessionId,
-        projectId,
-        userId,
-      } as Record<string, string>,
-      envs: {
-        PROJECT_ID: projectId,
-        USPARK_TOKEN: sandboxToken, // Use sandbox-specific CLI token
-        CLAUDE_CODE_OAUTH_TOKEN: claudeToken,
-      },
+      metadata: { sessionId, projectId, userId },
     });
+
+    let sandbox: Sandbox;
+    try {
+      sandbox = await Sandbox.create(this.TEMPLATE_ID, {
+        timeoutMs: this.SANDBOX_TIMEOUT * 1000,
+        metadata: {
+          sessionId,
+          projectId,
+          userId,
+        } as Record<string, string>,
+        envs: {
+          PROJECT_ID: projectId,
+          USPARK_TOKEN: sandboxToken,
+          CLAUDE_CODE_OAUTH_TOKEN: claudeToken,
+        },
+      });
+    } catch (error) {
+      console.error(`[E2B] Failed to create sandbox:`, error);
+      console.error(`[E2B] Error details:`, {
+        message: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      throw new Error(
+        `Failed to create E2B sandbox: ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
 
     console.log(
       `Created new sandbox ${sandbox.sandboxId} for session ${sessionId}`,

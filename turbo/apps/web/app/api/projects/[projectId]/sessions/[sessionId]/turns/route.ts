@@ -13,6 +13,9 @@ import { randomUUID } from "crypto";
 import { turnsContract } from "@uspark/core";
 import { ClaudeExecutor } from "../../../../../../../src/lib/claude-executor";
 
+// Configure route segment - increase timeout for E2B sandbox creation
+export const maxDuration = 60; // 60 seconds (requires Vercel Pro plan or higher)
+
 // Extract types from contract
 type CreateTurnResponse = z.infer<
   (typeof turnsContract.createTurn.responses)[200]

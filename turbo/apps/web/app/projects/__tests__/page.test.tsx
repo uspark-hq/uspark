@@ -6,10 +6,14 @@ import { server, http, HttpResponse } from "../../../src/test/msw-setup";
 
 // Mock window.location
 delete (window as { location?: Location }).location;
-window.location = {
-  href: "http://www.uspark.com/projects",
-  origin: "http://www.uspark.com",
-} as Location;
+Object.defineProperty(window, "location", {
+  value: {
+    href: "http://www.uspark.com/projects",
+    origin: "http://www.uspark.com",
+  },
+  writable: true,
+  configurable: true,
+});
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
