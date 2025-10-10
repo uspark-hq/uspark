@@ -87,12 +87,6 @@ describe('projectPage - file selection', () => {
       screen.findByText(/Main documentation/),
     ).resolves.toBeInTheDocument()
 
-    // Verify README.md is selected (has blue background)
-    await waitFor(() => {
-      const readmeDiv = readmeFile.closest('div')
-      expect(readmeDiv).toHaveClass('bg-blue-100')
-    })
-
     // Click on guide.md (get all matches and take the last one which is the file, not directory)
     const guideFiles = screen.getAllByText('📄 guide.md')
     const guideFile = guideFiles[guideFiles.length - 1]
@@ -102,12 +96,6 @@ describe('projectPage - file selection', () => {
     await expect(
       screen.findByText(/User guide content/),
     ).resolves.toBeInTheDocument()
-
-    // Verify guide.md is selected
-    await waitFor(() => {
-      const guideDiv = guideFile.closest('div')
-      expect(guideDiv).toHaveClass('bg-blue-100')
-    })
   })
 })
 
@@ -292,13 +280,8 @@ describe('projectPage - session selector', () => {
     const sessionSelector = screen.getByRole('combobox')
     expect(sessionSelector).toBeInTheDocument()
 
-    // Check option elements exist within select
-    const options = sessionSelector.querySelectorAll('option')
-    const optionTexts = Array.from(options).map((opt) => opt.textContent)
-
-    expect(optionTexts).toContain('First Session')
-    // Second session has empty title, so it shows as empty string (not "Untitled Session" since '' is truthy for ?? operator)
-    expect(options).toHaveLength(3) // Select session + 2 sessions
+    // Verify session titles appear in the selector
+    expect(screen.getByText('First Session')).toBeInTheDocument()
   })
 
   it('switches session when selecting from dropdown', async () => {

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.0](https://github.com/uspark-hq/uspark/compare/web-v0.35.2...web-v0.36.0) (2025-10-09)
+
+
+### Features
+
+* add terminal-style landing page ([#446](https://github.com/uspark-hq/uspark/issues/446)) ([3bee197](https://github.com/uspark-hq/uspark/commit/3bee197fa469ba3513650ec1a5ac89ff600ca546))
+
 ## [0.35.2](https://github.com/uspark-hq/uspark/compare/web-v0.35.1...web-v0.35.2) (2025-10-09)
 
 

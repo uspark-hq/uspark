@@ -1,9 +1,15 @@
 import React from "react";
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
-import { useRouter } from "next/navigation";
 import ProjectsListPage from "../page";
 import { server, http, HttpResponse } from "../../../src/test/msw-setup";
+
+// Mock window.location
+delete (window as { location?: Location }).location;
+window.location = {
+  href: "http://www.uspark.com/projects",
+  origin: "http://www.uspark.com",
+} as Location;
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({
@@ -12,12 +18,13 @@ vi.mock("next/navigation", () => ({
 }));
 
 describe("Projects List Page", () => {
-  const mockPush = vi.fn();
-
   beforeEach(() => {
     vi.clearAllMocks();
-    (useRouter as ReturnType<typeof vi.fn>).mockReturnValue({
-      push: mockPush,
+
+    // Reset location href
+    Object.defineProperty(window.location, "href", {
+      writable: true,
+      value: "http://www.uspark.com/projects",
     });
 
     // Set up default handlers for this test suite
@@ -130,7 +137,7 @@ describe("Projects List Page", () => {
     expect(screen.getAllByText("0 B")).toHaveLength(3);
   });
 
-  it("navigates to project detail when clicking on project card", async () => {
+  it("navigates to workspace when clicking on project card", async () => {
     render(<ProjectsListPage />);
 
     await waitFor(() => {
@@ -144,7 +151,10 @@ describe("Projects List Page", () => {
 
     fireEvent.click(demoProject!);
 
-    expect(mockPush).toHaveBeenCalledWith("/projects/demo-project-123");
+    // Should navigate to workspace subdomain
+    expect(window.location.href).toBe(
+      "http://app.uspark.com/projects/demo-project-123",
+    );
   });
 
   it("opens create project dialog", async () => {
@@ -172,7 +182,7 @@ describe("Projects List Page", () => {
     ).toBeInTheDocument();
   });
 
-  it("handles project creation with API", async () => {
+  it("handles project creation and navigates to workspace", async () => {
     render(<ProjectsListPage />);
 
     // Wait for initial load
@@ -198,10 +208,10 @@ describe("Projects List Page", () => {
 
     fireEvent.click(createButton);
 
-    // Wait for API call and navigation
+    // Wait for API call and navigation to workspace
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalledWith(
-        expect.stringMatching(/^\/projects\/project-\d+$/),
+      expect(window.location.href).toMatch(
+        /^http:\/\/app\.uspark\.com\/projects\/project-\d+$/,
       );
     });
   });
@@ -282,7 +292,7 @@ describe("Projects List Page", () => {
     expect(screen.queryByText("Create New Project")).not.toBeInTheDocument();
   });
 
-  it("submits on enter key", async () => {
+  it("submits on enter key and navigates to workspace", async () => {
     render(<ProjectsListPage />);
 
     // Wait for loading to complete
@@ -304,9 +314,11 @@ describe("Projects List Page", () => {
     // Press enter
     fireEvent.keyDown(nameInput, { key: "Enter" });
 
-    // Wait for API call and navigation
+    // Wait for API call and navigation to workspace
     await waitFor(() => {
-      expect(mockPush).toHaveBeenCalled();
+      expect(window.location.href).toMatch(
+        /^http:\/\/app\.uspark\.com\/projects\/project-\d+$/,
+      );
     });
   });
 });

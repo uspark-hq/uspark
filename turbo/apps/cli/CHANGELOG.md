@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.11.2](https://github.com/uspark-hq/uspark/compare/cli-v0.11.1...cli-v0.11.2) (2025-10-09)
+
+
+### Bug Fixes
+
+* correct tool_result event parsing in watch-claude ([#449](https://github.com/uspark-hq/uspark/issues/449)) ([bd8e795](https://github.com/uspark-hq/uspark/commit/bd8e7959882015bf933f43d439b91f925718c44d))
+* ensure watch-claude waits for async file syncs to complete ([#444](https://github.com/uspark-hq/uspark/issues/444)) ([5cd7aa5](https://github.com/uspark-hq/uspark/commit/5cd7aa52c1137952a66f8159b86fe13a909a95f8))
+
 ## [0.11.1](https://github.com/uspark-hq/uspark/compare/cli-v0.11.0...cli-v0.11.1) (2025-10-09)
 
 

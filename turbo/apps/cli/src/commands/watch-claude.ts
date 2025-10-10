@@ -15,6 +15,7 @@ interface ClaudeEvent {
       id?: string;
       name?: string;
       input?: Record<string, unknown>;
+      tool_use_id?: string; // For tool_result items
     }>;
   };
   tool_use_id?: string;
@@ -70,6 +71,9 @@ export async function watchClaudeCommand(options: {
   // Track pending file operations: tool_use_id -> file_path
   const pendingFileOps = new Map<string, string>();
 
+  // Track pending sync promises to wait for them before exiting
+  const pendingSyncs: Array<Promise<void>> = [];
+
   // Create readline interface to process stdin line by line
   const rl = createInterface({
     input: process.stdin,
@@ -80,7 +84,7 @@ export async function watchClaudeCommand(options: {
     // Always pass through the output transparently
     console.log(line);
 
-    // Try to parse as JSON to detect Claude events
+    // Parse JSON line - all input should be valid JSON from Claude CLI
     const event: ClaudeEvent = JSON.parse(line);
 
     // Step 1: Track tool_use events for file modification tools
@@ -109,24 +113,61 @@ export async function watchClaudeCommand(options: {
     }
 
     // Step 2: Sync files after tool_result (file is now created/modified)
-    if (event.type === "tool_result" && event.tool_use_id) {
-      const filePath = pendingFileOps.get(event.tool_use_id);
+    // tool_result events come as type:"user" with content containing tool_result items
+    if (event.type === "user" && event.message?.content) {
+      for (const contentItem of event.message.content) {
+        // Check if this content item is a tool_result with a tool_use_id
+        const toolUseId =
+          contentItem.type === "tool_result" &&
+          "tool_use_id" in contentItem &&
+          typeof contentItem.tool_use_id === "string"
+            ? contentItem.tool_use_id
+            : null;
 
-      if (filePath) {
-        // File was successfully modified, sync it now
-        await syncFile(context, options.projectId, filePath);
+        if (toolUseId) {
+          const filePath = pendingFileOps.get(toolUseId);
 
-        // Log sync success (to stderr to not interfere with stdout)
-        console.error(chalk.dim(`[uspark] ✓ Synced ${filePath}`));
+          if (filePath) {
+            // Create a sync promise and track it
+            const syncPromise = (async () => {
+              try {
+                // File was successfully modified, sync it now
+                await syncFile(context, options.projectId, filePath);
+              } catch (error) {
+                // Only output errors to stderr
+                console.error(
+                  chalk.red(
+                    `[uspark] Failed to sync ${filePath}: ${error instanceof Error ? error.message : String(error)}`,
+                  ),
+                );
+              } finally {
+                // Remove from pending regardless of success
+                pendingFileOps.delete(toolUseId);
+              }
+            })();
 
-        // Remove from pending
-        pendingFileOps.delete(event.tool_use_id);
+            // Track the sync promise
+            pendingSyncs.push(syncPromise);
+
+            // Remove from tracking once complete
+            syncPromise.finally(() => {
+              const index = pendingSyncs.indexOf(syncPromise);
+              if (index > -1) {
+                pendingSyncs.splice(index, 1);
+              }
+            });
+          }
+        }
       }
     }
   });
 
   // Handle process termination
-  rl.on("close", () => {
+  rl.on("close", async () => {
+    // Wait for all pending syncs to complete before exiting
+    if (pendingSyncs.length > 0) {
+      await Promise.all(pendingSyncs);
+    }
     process.exit(0);
   });
 }
