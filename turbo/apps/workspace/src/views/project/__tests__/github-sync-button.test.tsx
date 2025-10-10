@@ -57,8 +57,8 @@ describe('github sync button - no repository', () => {
   })
 
   it('displays account selector when no repository exists', async () => {
-    // Wait for page to load
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    // Wait for page to load - check for Explorer header
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Should show account selector
     const selector = await screen.findByRole('combobox')
@@ -75,7 +75,7 @@ describe('github sync button - no repository', () => {
   it('enables create button when account is selected', async () => {
     const userEvent = user.setup()
 
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     const selector = await screen.findByRole('combobox')
     const createButton = screen.getByRole('button', {
@@ -126,7 +126,7 @@ describe('github sync button - with repository', () => {
   })
 
   it('displays repository info and sync button', async () => {
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Should show repository name
     await expect(
@@ -140,7 +140,7 @@ describe('github sync button - with repository', () => {
   })
 
   it('does not show account selector when repository exists', async () => {
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Wait for GitHub data to load
     await expect(
@@ -149,6 +149,64 @@ describe('github sync button - with repository', () => {
 
     // Should NOT show account selector
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+  })
+})
+
+describe('github sync button - repository is null', () => {
+  const projectId = 'test-project-null'
+
+  beforeEach(async () => {
+    // Mock API returning { repository: null } instead of 404
+    // This is the edge case that caused the production bug
+    server.use(
+      http.get(`*/api/projects/${projectId}/github/repository`, () => {
+        return HttpResponse.json({
+          repository: null,
+        })
+      }),
+      http.get('*/api/github/installations', () => {
+        return HttpResponse.json({
+          installations: [
+            {
+              id: 'inst-1',
+              installationId: 99_999,
+              accountName: 'test-org',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          ],
+        })
+      }),
+    )
+
+    await setupProjectPage(`/projects/${projectId}`, context, {
+      projectId,
+      files: [
+        {
+          path: 'README.md',
+          hash: 'readme-hash',
+          content: '# README',
+        },
+      ],
+    })
+  })
+
+  afterEach(() => {
+    server.resetHandlers()
+  })
+
+  it('treats null repository same as no repository', async () => {
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
+
+    // Should show account selector (same as when no repository exists)
+    const selector = await screen.findByRole('combobox')
+    expect(selector).toBeInTheDocument()
+
+    // Should show create button
+    const createButton = screen.getByRole('button', {
+      name: /Create & Sync Repository/,
+    })
+    expect(createButton).toBeInTheDocument()
   })
 })
 
@@ -185,7 +243,7 @@ describe('github sync button - no installations', () => {
   })
 
   it('shows message to connect GitHub account', async () => {
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Should show message about connecting account
     await expect(

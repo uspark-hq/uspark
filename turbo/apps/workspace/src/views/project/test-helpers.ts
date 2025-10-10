@@ -41,21 +41,18 @@ interface MockProjectConfig {
  * Create YJS document with files
  */
 function createYjsDocument(files: FileSpec[]): Uint8Array {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
   const ydoc: Doc = new Doc()
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
   const filesMap: YMap<{ hash: string; mtime: number }> = ydoc.getMap('files')
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
   const blobsMap: YMap<{ size: number }> = ydoc.getMap('blobs')
 
   for (const file of files) {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     filesMap.set(file.path, { hash: file.hash, mtime: Date.now() })
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+
     blobsMap.set(file.hash, { size: file.size ?? 100 })
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
   return encodeStateAsUpdate(ydoc)
 }
 
