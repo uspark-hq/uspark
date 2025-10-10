@@ -1,10 +1,14 @@
-import { contractFetch } from '@uspark/core/contract-fetch'
-import { projectDetailContract } from '@uspark/core/contracts/project-detail.contract'
+import { contractFetch, ContractFetchError } from '@uspark/core/contract-fetch'
+import {
+  projectDetailContract,
+  type GitHubRepository,
+} from '@uspark/core/contracts/project-detail.contract'
 import { projectsContract } from '@uspark/core/contracts/projects.contract'
 import { turnsContract } from '@uspark/core/contracts/turns.contract'
 import { parseYjsFileSystem, type FileItem } from '@uspark/core/yjs-filesystem'
 import { command, computed } from 'ccstate'
 import { fetch$ } from '../fetch'
+import { throwIfAbort } from '../utils'
 
 interface ProjectFilesData {
   files: FileItem[]
@@ -162,14 +166,26 @@ export const lastBlockId = function (params: {
 }
 
 export const githubRepository = function (projectId: string) {
-  return computed(async (get) => {
-    const workspaceFetch = get(fetch$)
+  return computed(
+    async (get): Promise<{ repository: GitHubRepository | null }> => {
+      const workspaceFetch = get(fetch$)
 
-    return await contractFetch(projectDetailContract.getGitHubRepository, {
-      params: { projectId },
-      fetch: workspaceFetch,
-    })
-  })
+      try {
+        return await contractFetch(projectDetailContract.getGitHubRepository, {
+          params: { projectId },
+          fetch: workspaceFetch,
+        })
+      } catch (error) {
+        throwIfAbort(error)
+        // 404 means repository doesn't exist yet - this is a normal state, not an error
+        if (error instanceof ContractFetchError && error.status === 404) {
+          return { repository: null }
+        }
+        // Re-throw other errors (network issues, auth errors, etc)
+        throw error
+      }
+    },
+  )
 }
 
 export const githubInstallations$ = computed(async (get) => {
