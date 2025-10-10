@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.8.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.7.0...workspace-v1.8.0) (2025-10-10)
+
+
+### Features
+
+* **workspace:** redesign project page with dark editor theme ([#453](https://github.com/uspark-hq/uspark/issues/453)) ([190683f](https://github.com/uspark-hq/uspark/commit/190683f05e871d4764931c7aca9540a841f54255))
+
+
+### Bug Fixes
+
+* resolve type safety errors in workspace test helpers ([#451](https://github.com/uspark-hq/uspark/issues/451)) ([f81d14e](https://github.com/uspark-hq/uspark/commit/f81d14ef84f46b9cb8789fe6718e78a02558bf11))
+
 ## [1.7.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.6.0...workspace-v1.7.0) (2025-10-03)
 
 
