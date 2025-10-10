@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.9.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.8.0...workspace-v1.9.0) (2025-10-10)
+
+
+### Features
+
+* **workspace:** add github sync button component ([#455](https://github.com/uspark-hq/uspark/issues/455)) ([ababed0](https://github.com/uspark-hq/uspark/commit/ababed064189f0568ba85b1fd3c978074fa3cea5))
+
 ## [1.8.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.7.0...workspace-v1.8.0) (2025-10-10)
 
 
