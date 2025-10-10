@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.10.0...workspace-v1.10.1) (2025-10-10)
+
+
+### Bug Fixes
+
+* **workspace:** prevent null reference error in github sync button ([#464](https://github.com/uspark-hq/uspark/issues/464)) ([c414fb3](https://github.com/uspark-hq/uspark/commit/c414fb393852cb396b6ec1e146408514a3aacc99))
+
 ## [1.10.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.9.0...workspace-v1.10.0) (2025-10-10)
 
 
