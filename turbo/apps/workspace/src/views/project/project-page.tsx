@@ -1,18 +1,13 @@
 import { ChatWindow } from './chat-window'
 import { FileContent } from './file-content'
 import { FileTree } from './file-tree'
-import { GitHubSyncButton } from './github-sync-button'
+import { Statusbar } from './statusbar'
 
 export function ProjectPage() {
   return (
     <div className="flex h-screen flex-col bg-[#1e1e1e] text-[#cccccc]">
-      {/* Top toolbar - GitHub sync */}
-      <div className="border-b border-[#3e3e42]">
-        <GitHubSyncButton />
-      </div>
-
       {/* Main content */}
-      <div className="flex flex-1">
+      <div className="flex min-h-0 flex-1">
         {/* Left sidebar - File tree */}
         <div className="w-64 flex-shrink-0 border-r border-[#3e3e42]">
           <FileTree />
@@ -28,6 +23,9 @@ export function ProjectPage() {
           <ChatWindow />
         </div>
       </div>
+
+      {/* Bottom statusbar */}
+      <Statusbar />
     </div>
   )
 }
