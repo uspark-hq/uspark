@@ -115,6 +115,8 @@ describe("sync commands", () => {
       await fs.writeFile("node_modules/test.js", "should be ignored");
       await fs.mkdir(".git");
       await fs.writeFile(".git/config", "should be ignored");
+      await fs.writeFile(".DS_Store", "should be ignored");
+      await fs.writeFile("subdir/.DS_Store", "should be ignored");
 
       await pushCommand(undefined, {
         projectId: "proj-123",
@@ -128,6 +130,8 @@ describe("sync commands", () => {
         false,
       );
       expect(mockServer.hasFile("proj-123", ".git/config")).toBe(false);
+      expect(mockServer.hasFile("proj-123", ".DS_Store")).toBe(false);
+      expect(mockServer.hasFile("proj-123", "subdir/.DS_Store")).toBe(false);
 
       // Verify total file count
       const allFiles = mockServer.getAllFiles("proj-123");

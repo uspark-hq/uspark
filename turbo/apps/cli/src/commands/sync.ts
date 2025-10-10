@@ -78,6 +78,11 @@ export async function pushCommand(
           }
           files.push(...(await getAllFiles(fullPath)));
         } else {
+          // Skip system files
+          if (entry.name === ".DS_Store") {
+            continue;
+          }
+
           // Get relative path from current directory
           const relativePath = fullPath.startsWith("./")
             ? fullPath.slice(2)

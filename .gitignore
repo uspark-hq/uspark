@@ -143,6 +143,9 @@ dist
 
 # End of https://www.toptal.com/developers/gitignore/api/node
 
+# macOS system files
+.DS_Store
+
 settings.local.json
 
 .pnpm-store
