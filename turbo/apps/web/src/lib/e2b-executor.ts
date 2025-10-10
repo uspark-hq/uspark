@@ -164,98 +164,42 @@ export class E2BExecutor {
   }
 
   /**
-   * Execute Claude command in sandbox
+   * Execute Claude command in sandbox (async - does not wait for completion)
    */
   static async executeClaude(
     sandbox: Sandbox,
     prompt: string,
     projectId: string,
-    onBlock?: (block: Record<string, unknown>) => Promise<void>,
+    turnId: string,
+    sessionId: string,
   ): Promise<ExecutionResult> {
-    try {
-      console.log(`Executing Claude with prompt length: ${prompt.length}`);
+    console.log(`Executing Claude with prompt length: ${prompt.length}`);
 
-      // Create a temporary file for the prompt to handle special characters
-      const promptFile = `/tmp/prompt_${Date.now()}.txt`;
-      await sandbox.files.write(promptFile, prompt);
+    // Create a temporary file for the prompt to handle special characters
+    const promptFile = `/tmp/prompt_${Date.now()}.txt`;
+    await sandbox.files.write(promptFile, prompt);
 
-      const blocks: Array<Record<string, unknown>> = [];
-      let buffer = "";
+    // Pipeline: prompt → claude (skip permissions) → watch-claude (sync files + callback API)
+    const command = `cat "${promptFile}" | claude --print --verbose --output-format stream-json --dangerously-skip-permissions | uspark watch-claude --project-id ${projectId} --turn-id ${turnId} --session-id ${sessionId}`;
 
-      // Use pipe method with real-time streaming
-      // Pipeline: prompt → claude (skip permissions) → watch-claude (sync files)
-      const command = `cat "${promptFile}" | claude --print --verbose --output-format stream-json --dangerously-skip-permissions | uspark watch-claude --project-id ${projectId}`;
+    // Run in background - command continues in sandbox even after client disconnects
+    await sandbox.commands.run(command, {
+      background: true,
+      onStdout: (data: string) => {
+        console.log(`[Turn ${turnId}] stdout:`, data.substring(0, 100));
+      },
+      onStderr: (data: string) => {
+        console.error(`[Turn ${turnId}] stderr:`, data);
+      },
+    });
 
-      const result = await sandbox.commands.run(command, {
-        onStdout: async (data: string) => {
-          // Buffer and process complete JSON lines
-          buffer += data;
-          const lines = buffer.split("\n");
+    // Clean up prompt file
+    await sandbox.commands.run(`rm -f "${promptFile}"`);
 
-          // Keep potentially incomplete last line
-          buffer = lines[lines.length - 1] || "";
-
-          // Process complete lines
-          for (let i = 0; i < lines.length - 1; i++) {
-            const line = lines[i]?.trim();
-            if (line) {
-              try {
-                const block = JSON.parse(line);
-                blocks.push(block);
-
-                // Real-time callback
-                if (onBlock) {
-                  await onBlock(block);
-                }
-
-                console.log(`[BLOCK] Type: ${block.type}`);
-              } catch {
-                console.error("Failed to parse JSON line:", line);
-              }
-            }
-          }
-        },
-        onStderr: (data: string) => {
-          console.error("Claude stderr:", data);
-        },
-      });
-
-      // Process any remaining buffer
-      if (buffer.trim()) {
-        try {
-          const block = JSON.parse(buffer);
-          blocks.push(block);
-          if (onBlock) {
-            await onBlock(block);
-          }
-        } catch {
-          // Ignore incomplete final buffer
-        }
-      }
-
-      // Clean up prompt file
-      await sandbox.commands.run(`rm -f "${promptFile}"`);
-
-      // Extract result from blocks
-      const resultBlock = blocks.find((b) => b.type === "result");
-
-      return {
-        success: result.exitCode === 0,
-        output: result.stdout,
-        error: result.stderr,
-        exitCode: result.exitCode,
-        blocks: blocks,
-        totalCost: resultBlock?.total_cost_usd as number | undefined,
-        usage: resultBlock?.usage as Record<string, unknown> | undefined,
-      };
-    } catch (error) {
-      console.error("Claude execution error:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-        blocks: [],
-      };
-    }
+    return {
+      success: true,
+      output: `Background execution started for turn ${turnId}`,
+    };
   }
 
   /**

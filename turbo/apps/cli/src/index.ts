@@ -129,9 +129,17 @@ program
   .command("watch-claude")
   .description("Watch Claude's JSON output and sync file changes in real-time")
   .requiredOption("--project-id <projectId>", "Project ID to sync changes to")
-  .action(async (options: { projectId: string }) => {
-    await watchClaudeCommand(options);
-  });
+  .requiredOption("--turn-id <turnId>", "Turn ID for callback API")
+  .requiredOption("--session-id <sessionId>", "Session ID for callback API")
+  .action(
+    async (options: {
+      projectId: string;
+      turnId: string;
+      sessionId: string;
+    }) => {
+      await watchClaudeCommand(options);
+    },
+  );
 
 // Export for testing
 export { program };

@@ -14,16 +14,27 @@ vi.mock("./shared", () => ({
 vi.mock("chalk", () => ({
   default: {
     dim: (str: string) => str,
+    red: (str: string) => str,
   },
 }));
 
+// Mock global fetch
+global.fetch = vi.fn();
+
 describe("watch-claude", () => {
   let mockStdin: Readable;
+  const mockFetch = vi.mocked(global.fetch);
 
   beforeEach(() => {
     vi.clearAllMocks();
     // Mock process.exit to prevent actual exit and Vitest errors
     vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+    // Mock fetch to return success
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ ok: true }),
+    } as Response);
   });
 
   it("should detect Write tool_use and sync after tool_result", async () => {
@@ -94,6 +105,8 @@ describe("watch-claude", () => {
     // Run the command - it sets up readline and returns immediately
     watchClaudeCommand({
       projectId: "test-project-id",
+      turnId: "turn_test",
+      sessionId: "sess_test",
     });
 
     // Wait for syncFile to be called
@@ -124,6 +137,19 @@ describe("watch-claude", () => {
       },
       "test-project-id",
       "spec/test-time.md", // Should be relative path
+    );
+
+    // Verify fetch was called to send stdout callbacks
+    expect(mockFetch).toHaveBeenCalled();
+    expect(mockFetch).toHaveBeenCalledWith(
+      "https://www.uspark.ai/api/projects/test-project-id/sessions/sess_test/turns/turn_test/on-claude-stdout",
+      expect.objectContaining({
+        method: "POST",
+        headers: expect.objectContaining({
+          "Content-Type": "application/json",
+          Authorization: "Bearer test-token",
+        }),
+      }),
     );
   });
 
@@ -165,6 +191,8 @@ describe("watch-claude", () => {
     const { watchClaudeCommand } = await import("./watch-claude");
     const commandPromise = watchClaudeCommand({
       projectId: "test-project-id",
+      turnId: "turn_test",
+      sessionId: "sess_test",
     });
 
     // Wait for command to complete (no delays needed)
@@ -232,6 +260,8 @@ describe("watch-claude", () => {
     const { watchClaudeCommand } = await import("./watch-claude");
     const commandPromise = watchClaudeCommand({
       projectId: "test-project-id",
+      turnId: "turn_test",
+      sessionId: "sess_test",
     });
 
     // Wait for command to complete (no delays needed)

@@ -65,6 +65,8 @@ function extractFilePath(
 
 export async function watchClaudeCommand(options: {
   projectId: string;
+  turnId: string;
+  sessionId: string;
 }): Promise<void> {
   const context = await requireAuth();
 
@@ -86,6 +88,16 @@ export async function watchClaudeCommand(options: {
 
     // Parse JSON line - all input should be valid JSON from Claude CLI
     const event: ClaudeEvent = JSON.parse(line);
+
+    // Send stdout line to callback API (non-blocking)
+    sendStdoutCallback(context, options, line).catch((error) => {
+      // Only log errors to stderr, don't affect main flow
+      console.error(
+        chalk.red(
+          `[uspark] Failed to send stdout callback: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+      );
+    });
 
     // Step 1: Track tool_use events for file modification tools
     if (event.type === "assistant" && event.message?.content) {
@@ -170,4 +182,31 @@ export async function watchClaudeCommand(options: {
     }
     process.exit(0);
   });
+}
+
+/**
+ * Send stdout line to callback API
+ */
+async function sendStdoutCallback(
+  context: { token: string; apiUrl: string },
+  options: { projectId: string; turnId: string; sessionId: string },
+  line: string,
+): Promise<void> {
+  const response = await fetch(
+    `${context.apiUrl}/api/projects/${options.projectId}/sessions/${options.sessionId}/turns/${options.turnId}/on-claude-stdout`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${context.token}`,
+      },
+      body: JSON.stringify({ line }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      `API returned ${response.status}: ${response.statusText}`,
+    );
+  }
 }
