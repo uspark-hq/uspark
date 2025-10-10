@@ -30,9 +30,6 @@ function FileTreeItem({ item, level }: FileTreeItemProps) {
           style={{ paddingLeft: indent + 8 }}
           className="flex cursor-pointer items-center overflow-hidden py-0.5 pr-2 text-[#cccccc] transition-colors hover:bg-[#2a2d2e]"
         >
-          <span className="mr-1.5 flex-shrink-0 text-xs text-[#c5c5c5]">
-            📁
-          </span>
           <span className="truncate text-[13px]">
             {item.path.split('/').pop()}
           </span>
@@ -54,7 +51,6 @@ function FileTreeItem({ item, level }: FileTreeItemProps) {
           : 'text-[#cccccc] hover:bg-[#2a2d2e]'
       }`}
     >
-      <span className="mr-1.5 flex-shrink-0 text-xs text-[#c5c5c5]">📄</span>
       <span className="truncate">{item.path.split('/').pop()}</span>
     </div>
   )

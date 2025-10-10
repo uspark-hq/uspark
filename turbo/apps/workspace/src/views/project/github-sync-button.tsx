@@ -41,7 +41,7 @@ export function GitHubSyncButton() {
   }
 
   // Has repository - show sync button
-  if (repository.data) {
+  if (repository.data?.repository) {
     return (
       <div className="flex items-center gap-2 px-2 py-0.5">
         <div className="flex items-center gap-1.5 rounded bg-white/10 px-2 py-0.5 text-[11px] text-white">

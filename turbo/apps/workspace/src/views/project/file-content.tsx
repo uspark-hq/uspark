@@ -12,7 +12,6 @@ export function FileContent() {
     return (
       <div className="flex h-full items-center justify-center bg-[#1e1e1e] text-[#969696]">
         <div className="text-center">
-          <div className="mb-2 text-3xl">📄</div>
           <div className="text-[13px]">Select a file to view its content</div>
         </div>
       </div>
@@ -22,7 +21,6 @@ export function FileContent() {
   return (
     <div className="h-full overflow-y-auto bg-[#1e1e1e]">
       <div className="flex items-center gap-1.5 border-b border-[#3e3e42] px-3 py-1.5 text-[13px] text-[#cccccc]">
-        <span className="text-xs text-[#c5c5c5]">📄</span>
         <span>{selectedFile?.path.split('/').pop() ?? 'File'}</span>
       </div>
       <div className="p-3">

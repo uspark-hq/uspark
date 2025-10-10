@@ -1,4 +1,4 @@
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import user from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -35,7 +35,7 @@ describe('projectPage - file content display', () => {
 
   it('displays file content when file is loaded', async () => {
     // Wait for file tree to load
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Verify file content is displayed
     const content = await screen.findByText(/Test README/)
@@ -76,10 +76,10 @@ describe('projectPage - file selection', () => {
     const userEvent = user.setup()
 
     // Wait for files to load
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Click on README.md
-    const readmeFile = screen.getByText('📄 README.md')
+    const readmeFile = screen.getByText('README.md')
     await userEvent.click(readmeFile)
 
     // Verify README content is displayed
@@ -88,7 +88,7 @@ describe('projectPage - file selection', () => {
     ).resolves.toBeInTheDocument()
 
     // Click on guide.md (get all matches and take the last one which is the file, not directory)
-    const guideFiles = screen.getAllByText('📄 guide.md')
+    const guideFiles = screen.getAllByText('guide.md')
     const guideFile = guideFiles[guideFiles.length - 1]
     await userEvent.click(guideFile)
 
@@ -147,7 +147,7 @@ describe('projectPage - chat input', () => {
     const userEvent = user.setup()
 
     // Wait for page to load
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Find textarea and send button
     const textarea = screen.getByPlaceholderText(/Type a message/)
@@ -167,7 +167,7 @@ describe('projectPage - chat input', () => {
     const userEvent = user.setup()
 
     // Wait for page to load
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Find textarea and send button
     const textarea = screen.getByPlaceholderText(/Type a message/)
@@ -187,7 +187,7 @@ describe('projectPage - chat input', () => {
     const userEvent = user.setup()
 
     // Wait for page to load
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Find textarea
     const textarea = screen.getByPlaceholderText(/Type a message/)
@@ -205,7 +205,7 @@ describe('projectPage - chat input', () => {
     const userEvent = user.setup()
 
     // Wait for page to load
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Find textarea
     const textarea = screen.getByPlaceholderText(/Type a message/)
@@ -274,21 +274,23 @@ describe('projectPage - session selector', () => {
 
   it('displays session selector with multiple sessions', async () => {
     // Wait for page to load
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Find session selector
     const sessionSelector = screen.getByRole('combobox')
     expect(sessionSelector).toBeInTheDocument()
 
-    // Verify session titles appear in the selector
-    expect(screen.getByText('First Session')).toBeInTheDocument()
+    // Verify session titles appear in the selector (use within to scope to select element)
+    expect(
+      within(sessionSelector).getByText('First Session'),
+    ).toBeInTheDocument()
   })
 
   it('switches session when selecting from dropdown', async () => {
     const userEvent = user.setup()
 
     // Wait for page to load
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Wait for first session content to load
     await expect(
@@ -335,7 +337,7 @@ describe('projectPage - no sessions', () => {
 
   it('does not show selector when no sessions exist', async () => {
     // Wait for page to load
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Session selector should not exist
     expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
@@ -419,7 +421,7 @@ describe('projectPage - auto-create session', () => {
     const userEvent = user.setup()
 
     // Wait for page to load
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Should show "no sessions" message initially
     expect(screen.getByText(/No sessions yet/)).toBeInTheDocument()
@@ -470,7 +472,7 @@ describe('projectPage - auto-create session', () => {
     )
 
     // Wait for page to load
-    await expect(screen.findByText('📄 README.md')).resolves.toBeInTheDocument()
+    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
     // Send message
     const textarea = screen.getByPlaceholderText(/Type a message/)
