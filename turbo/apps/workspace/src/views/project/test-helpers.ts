@@ -1,5 +1,5 @@
 import { http, HttpResponse, type RequestHandler } from 'msw'
-import * as Y from 'yjs'
+import { Doc, encodeStateAsUpdate, Map as YMap } from 'yjs'
 import { server } from '../../mocks/node'
 import {
   setupPage,
@@ -41,12 +41,12 @@ interface MockProjectConfig {
  * Create YJS document with files
  */
 function createYjsDocument(files: FileSpec[]): Uint8Array {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call
+  const ydoc: Doc = new Doc()
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  const ydoc = new Y.Doc()
+  const filesMap: YMap<{ hash: string; mtime: number }> = ydoc.getMap('files')
   // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  const filesMap = ydoc.getMap<{ hash: string; mtime: number }>('files')
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  const blobsMap = ydoc.getMap<{ size: number }>('blobs')
+  const blobsMap: YMap<{ size: number }> = ydoc.getMap('blobs')
 
   for (const file of files) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
@@ -55,8 +55,8 @@ function createYjsDocument(files: FileSpec[]): Uint8Array {
     blobsMap.set(file.hash, { size: file.size ?? 100 })
   }
 
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-  return Y.encodeStateAsUpdate(ydoc)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+  return encodeStateAsUpdate(ydoc)
 }
 
 /**

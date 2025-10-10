@@ -15,9 +15,11 @@ export function ChatWindow() {
   const handleSelectSession = useSet(selectSession$)
 
   return (
-    <div className="flex h-full flex-col border-l border-gray-200">
-      <div className="flex items-center justify-between border-b border-gray-200 p-4">
-        <div className="font-semibold">Chat</div>
+    <div className="flex h-full flex-col bg-[#1e1e1e]">
+      <div className="flex items-center justify-between border-b border-[#3e3e42] px-3 py-1.5">
+        <div className="text-[11px] font-semibold tracking-wide text-[#cccccc] uppercase">
+          Assistant
+        </div>
         {projectSessions && projectSessions.sessions.length > 0 && (
           <select
             value={selectedSession?.id ?? ''}
@@ -26,7 +28,7 @@ export function ChatWindow() {
                 handleSelectSession(e.target.value)
               }
             }}
-            className="rounded border border-gray-300 px-2 py-1 text-sm"
+            className="rounded border border-[#3e3e42] bg-[#3c3c3c] px-2 py-0.5 text-[11px] text-[#cccccc] transition-colors hover:bg-[#505050] focus:border-[#007acc] focus:outline-none"
           >
             <option value="">Select session</option>
             {projectSessions.sessions.map((session) => (
@@ -40,34 +42,41 @@ export function ChatWindow() {
 
       <div className="flex-1 overflow-y-auto">
         {!selectedSession && (
-          <div className="p-4 text-gray-500">
+          <div className="p-3 text-[13px] text-[#969696]">
             {projectSessions?.sessions.length === 0 ? (
-              <div>
-                No sessions yet. Create a new session to start chatting.
+              <div className="py-12 text-center">
+                <div className="mb-2 text-3xl">💬</div>
+                <div>
+                  No sessions yet. Create a new session to start chatting.
+                </div>
               </div>
             ) : (
-              <div>Select a session to view the conversation</div>
+              <div className="py-12 text-center">
+                <div className="mb-2 text-3xl">💬</div>
+                <div>Select a session to view the conversation</div>
+              </div>
             )}
           </div>
         )}
 
         {selectedSession && (
-          <div className="p-4">
-            <div className="mb-4 border-b border-gray-200 pb-2">
-              <div className="font-semibold">
+          <div className="p-3">
+            <div className="mb-3 border-b border-[#3e3e42] pb-2">
+              <div className="text-[13px] font-medium text-[#ffffff]">
                 {selectedSession.title ?? 'Untitled Session'}
               </div>
-              <div className="text-xs text-gray-500">
+              <div className="mt-0.5 text-[11px] text-[#969696]">
                 {new Date(selectedSession.createdAt).toLocaleString()}
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               {turns && turns.length > 0 ? (
                 turns.map((turn) => <TurnDisplay key={turn.id} turn={turn} />)
               ) : (
-                <div className="text-sm text-gray-500">
-                  No conversation yet. Send a message to start.
+                <div className="py-12 text-center text-[13px] text-[#969696]">
+                  <div className="mb-2 text-3xl">✨</div>
+                  <div>No conversation yet. Send a message to start.</div>
                 </div>
               )}
             </div>

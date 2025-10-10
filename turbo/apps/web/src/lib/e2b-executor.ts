@@ -183,7 +183,8 @@ export class E2BExecutor {
       let buffer = "";
 
       // Use pipe method with real-time streaming
-      const command = `cat "${promptFile}" | claude --print --verbose --output-format stream-json`;
+      // Pipeline: prompt → claude (skip permissions) → watch-claude (sync files)
+      const command = `cat "${promptFile}" | claude --print --verbose --output-format stream-json --dangerously-skip-permissions | uspark watch-claude --project-id ${projectId}`;
 
       const result = await sandbox.commands.run(command, {
         onStdout: async (data: string) => {

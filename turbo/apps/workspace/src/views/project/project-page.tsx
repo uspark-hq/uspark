@@ -5,21 +5,21 @@ import { GitHubSyncButton } from './github-sync-button'
 
 export function ProjectPage() {
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col bg-[#1e1e1e] text-[#cccccc]">
       {/* Top toolbar - GitHub sync */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-[#3e3e42]">
         <GitHubSyncButton />
       </div>
 
       {/* Main content */}
       <div className="flex flex-1">
         {/* Left sidebar - File tree */}
-        <div className="w-64 flex-shrink-0">
+        <div className="w-64 flex-shrink-0 border-r border-[#3e3e42]">
           <FileTree />
         </div>
 
         {/* Center panel - File content */}
-        <div className="flex-1">
+        <div className="flex-1 border-r border-[#3e3e42]">
           <FileContent />
         </div>
 
