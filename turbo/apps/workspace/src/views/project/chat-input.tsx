@@ -31,7 +31,10 @@ export function ChatInput() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="border-t border-[#3e3e42] p-2 bg-[#252526]">
+    <form
+      onSubmit={handleSubmit}
+      className="border-t border-[#3e3e42] bg-[#252526] p-2"
+    >
       <div className="flex gap-1.5">
         <textarea
           value={input}
@@ -40,13 +43,13 @@ export function ChatInput() {
           }}
           onKeyDown={handleKeyDown}
           placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
-          className="flex-1 resize-none rounded bg-[#3c3c3c] border border-[#3e3e42] px-2 py-1.5 text-[#cccccc] text-[13px] placeholder-[#6a6a6a] focus:border-[#007acc] focus:outline-none"
+          className="flex-1 resize-none rounded border border-[#3e3e42] bg-[#3c3c3c] px-2 py-1.5 text-[13px] text-[#cccccc] placeholder-[#6a6a6a] focus:border-[#007acc] focus:outline-none"
           rows={2}
         />
         <button
           type="submit"
           disabled={!input.trim()}
-          className="self-end rounded bg-[#0e639c] px-3 py-1.5 text-[#ffffff] text-[13px] font-medium hover:bg-[#1177bb] disabled:cursor-not-allowed disabled:bg-[#3e3e42] disabled:text-[#6a6a6a] transition-colors"
+          className="self-end rounded bg-[#0e639c] px-3 py-1.5 text-[13px] font-medium text-[#ffffff] transition-colors hover:bg-[#1177bb] disabled:cursor-not-allowed disabled:bg-[#3e3e42] disabled:text-[#6a6a6a]"
         >
           Send
         </button>

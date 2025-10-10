@@ -21,7 +21,7 @@ function TurnStatusBadge({ status }: { status: GetTurnResponse['status'] }) {
     },
     failed: {
       label: '❌ Failed',
-      className: 'bg-[#4b2b2b] text-[#f48771]'
+      className: 'bg-[#4b2b2b] text-[#f48771]',
     },
     interrupted: {
       label: '⚠️ Interrupted',
@@ -47,12 +47,12 @@ export function TurnDisplay({ turn }: TurnDisplayProps) {
   return (
     <div className="space-y-2">
       {/* User message */}
-      <div className="rounded bg-[#094771] border border-[#0d5a8c] p-2">
+      <div className="rounded border border-[#0d5a8c] bg-[#094771] p-2">
         <div className="mb-1 flex items-center justify-between">
-          <div className="text-[11px] text-[#9cdcfe] font-medium">User</div>
+          <div className="text-[11px] font-medium text-[#9cdcfe]">User</div>
           <TurnStatusBadge status={turn.status} />
         </div>
-        <div className="text-[13px] text-[#e3e3e3] whitespace-pre-wrap leading-[1.5]">
+        <div className="text-[13px] leading-[1.5] whitespace-pre-wrap text-[#e3e3e3]">
           {turn.user_prompt}
         </div>
       </div>
@@ -65,7 +65,7 @@ export function TurnDisplay({ turn }: TurnDisplayProps) {
           ))}
         </div>
       ) : turn.status === 'pending' || turn.status === 'in_progress' ? (
-        <div className="rounded bg-[#2d2d30] border border-[#3e3e42] p-2 pl-5">
+        <div className="rounded border border-[#3e3e42] bg-[#2d2d30] p-2 pl-5">
           <div className="flex items-center gap-2 text-[13px] text-[#969696]">
             <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#3e3e42] border-t-[#007acc]" />
             <span>
@@ -76,7 +76,7 @@ export function TurnDisplay({ turn }: TurnDisplayProps) {
           </div>
         </div>
       ) : turn.status === 'failed' ? (
-        <div className="rounded bg-[#4b2b2b] border border-[#6b3a3a] p-2 pl-5">
+        <div className="rounded border border-[#6b3a3a] bg-[#4b2b2b] p-2 pl-5">
           <div className="text-[13px] text-[#f48771]">
             Turn execution failed. Please try again.
           </div>
