@@ -73,6 +73,7 @@ describe("watch-claude", () => {
     ];
 
     // Create a readable stream from the events
+    // Readable.from automatically ends the stream after all events are consumed
     mockStdin = Readable.from(events.map((e) => e + "\n"));
 
     // Mock process.stdin and process.cwd
@@ -90,20 +91,23 @@ describe("watch-claude", () => {
     // Import and run the watch command
     const { watchClaudeCommand } = await import("./watch-claude");
 
-    // Run the command in the background
-    const commandPromise = watchClaudeCommand({
+    // Run the command - it sets up readline and returns immediately
+    watchClaudeCommand({
       projectId: "test-project-id",
     });
 
-    // Use nextTick to ensure event loop processes line events before close
-    await new Promise((resolve) => process.nextTick(resolve));
-
-    // Close stdin to trigger command completion
-    // Readline will process all queued lines before firing close event
-    mockStdin.push(null);
-
-    // Wait for command to complete
-    await commandPromise.catch(() => {}); // Ignore exit errors
+    // Wait for syncFile to be called
+    // Readable.from sends data asynchronously, so we need to wait for
+    // the readline to process events and trigger the sync operation
+    await vi.waitFor(
+      () => {
+        expect(syncFile).toHaveBeenCalled();
+      },
+      {
+        timeout: 1000,
+        interval: 10,
+      },
+    );
 
     // Restore stdin and cwd
     Object.defineProperty(process, "stdin", {
@@ -150,6 +154,7 @@ describe("watch-claude", () => {
       }),
     ];
 
+    // Create stream that auto-ends after events
     mockStdin = Readable.from(events.map((e) => e + "\n"));
     const originalStdin = process.stdin;
     Object.defineProperty(process, "stdin", {
@@ -162,7 +167,7 @@ describe("watch-claude", () => {
       projectId: "test-project-id",
     });
 
-    mockStdin.push(null);
+    // Wait for command to complete (no delays needed)
     await commandPromise.catch(() => {});
 
     Object.defineProperty(process, "stdin", {
@@ -216,6 +221,7 @@ describe("watch-claude", () => {
       }),
     ];
 
+    // Create stream that auto-ends after events
     mockStdin = Readable.from(events.map((e) => e + "\n"));
     const originalStdin = process.stdin;
     Object.defineProperty(process, "stdin", {
@@ -228,7 +234,7 @@ describe("watch-claude", () => {
       projectId: "test-project-id",
     });
 
-    mockStdin.push(null);
+    // Wait for command to complete (no delays needed)
     await commandPromise.catch(() => {});
 
     Object.defineProperty(process, "stdin", {
