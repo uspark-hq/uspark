@@ -29,9 +29,9 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
     case 'text':
     case 'content': {
       return (
-        <div className="rounded bg-gray-50 p-3">
-          <div className="mb-1 text-xs text-gray-600">Assistant</div>
-          <div className="text-sm whitespace-pre-wrap">
+        <div className="rounded bg-[#2d2d30] border border-[#3e3e42] p-2">
+          <div className="mb-1 text-[11px] text-[#4ec9b0] font-medium">Assistant</div>
+          <div className="text-[13px] text-[#d4d4d4] whitespace-pre-wrap leading-[1.5]">
             {getTextContent(block.content)}
           </div>
         </div>
@@ -40,9 +40,9 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
 
     case 'thinking': {
       return (
-        <div className="rounded bg-purple-50 p-3">
-          <div className="mb-1 text-xs text-purple-600">💭 Thinking</div>
-          <div className="text-sm whitespace-pre-wrap text-gray-700">
+        <div className="rounded bg-[#3d2d47] border border-[#5c4461] p-2">
+          <div className="mb-1 text-[11px] text-[#c586c0] font-medium">💭 Thinking</div>
+          <div className="text-[13px] text-[#d4d4d4] whitespace-pre-wrap leading-[1.5]">
             {getTextContent(block.content)}
           </div>
         </div>
@@ -62,13 +62,13 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
           : {}
 
       return (
-        <div className="rounded bg-blue-50 p-3">
-          <div className="mb-1 text-xs text-blue-600">🔧 Tool: {toolName}</div>
-          <details className="text-sm">
-            <summary className="cursor-pointer text-gray-600">
+        <div className="rounded bg-[#1e3a5f] border border-[#2d4f7c] p-2">
+          <div className="mb-1 text-[11px] text-[#569cd6] font-medium">🔧 Tool: {toolName}</div>
+          <details className="text-[13px]">
+            <summary className="cursor-pointer text-[#9cdcfe] hover:text-[#569cd6] transition-colors">
               Parameters
             </summary>
-            <pre className="mt-2 overflow-x-auto rounded bg-white p-2 text-xs">
+            <pre className="mt-1.5 overflow-x-auto rounded bg-[#1e1e1e] border border-[#3e3e42] p-1.5 text-[11px] text-[#ce9178]">
               {JSON.stringify(parameters, null, 2)}
             </pre>
           </details>
@@ -91,14 +91,14 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
 
       return (
         <div
-          className={`rounded p-3 ${hasError ? 'bg-red-50' : 'bg-green-50'}`}
+          className={`rounded border p-2 ${hasError ? 'bg-[#4b2b2b] border-[#6b3a3a]' : 'bg-[#1e4620] border-[#2d5f30]'}`}
         >
           <div
-            className={`mb-1 text-xs ${hasError ? 'text-red-600' : 'text-green-600'}`}
+            className={`mb-1 text-[11px] font-medium ${hasError ? 'text-[#f48771]' : 'text-[#89d185]'}`}
           >
             {hasError ? '❌ Tool Error' : '✅ Tool Result'}
           </div>
-          <pre className="overflow-x-auto text-xs whitespace-pre-wrap">
+          <pre className="overflow-x-auto text-[11px] text-[#d4d4d4] whitespace-pre-wrap">
             {error || result || JSON.stringify(block.content)}
           </pre>
         </div>
@@ -111,9 +111,9 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
           ? block.content
           : JSON.stringify(block.content)
       return (
-        <div className="rounded bg-gray-900 p-3">
-          <div className="mb-1 text-xs text-gray-400">Code</div>
-          <pre className="overflow-x-auto text-xs text-green-400">
+        <div className="rounded bg-[#1e1e1e] border border-[#3e3e42] p-2">
+          <div className="mb-1 text-[11px] text-[#4ec9b0] font-medium">Code</div>
+          <pre className="overflow-x-auto text-[11px] text-[#ce9178] font-mono leading-[1.5]">
             <code>{codeContent}</code>
           </pre>
         </div>
@@ -126,9 +126,9 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
           ? block.content
           : JSON.stringify(block.content)
       return (
-        <div className="rounded bg-red-50 p-3">
-          <div className="mb-1 text-xs text-red-600">⚠️ Error</div>
-          <div className="text-sm whitespace-pre-wrap text-red-700">
+        <div className="rounded bg-[#4b2b2b] border border-[#6b3a3a] p-2">
+          <div className="mb-1 text-[11px] text-[#f48771] font-medium">⚠️ Error</div>
+          <div className="text-[13px] text-[#f48771] whitespace-pre-wrap leading-[1.5]">
             {errorContent}
           </div>
         </div>
@@ -141,11 +141,11 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
           ? block.content
           : JSON.stringify(block.content)
       return (
-        <div className="rounded bg-gray-100 p-3">
-          <div className="mb-1 text-xs text-gray-600">
+        <div className="rounded bg-[#2d2d30] border border-[#3e3e42] p-2">
+          <div className="mb-1 text-[11px] text-[#969696] font-medium">
             Unknown block type: {block.type}
           </div>
-          <div className="text-sm whitespace-pre-wrap">{unknownContent}</div>
+          <div className="text-[13px] text-[#d4d4d4] whitespace-pre-wrap">{unknownContent}</div>
         </div>
       )
     }

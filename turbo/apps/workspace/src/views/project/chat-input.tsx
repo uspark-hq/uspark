@@ -31,8 +31,8 @@ export function ChatInput() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="border-t border-gray-200 p-4">
-      <div className="flex gap-2">
+    <form onSubmit={handleSubmit} className="border-t border-[#3e3e42] p-2 bg-[#252526]">
+      <div className="flex gap-1.5">
         <textarea
           value={input}
           onChange={(e) => {
@@ -40,13 +40,13 @@ export function ChatInput() {
           }}
           onKeyDown={handleKeyDown}
           placeholder="Type a message... (Enter to send, Shift+Enter for new line)"
-          className="flex-1 resize-none rounded border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-          rows={3}
+          className="flex-1 resize-none rounded bg-[#3c3c3c] border border-[#3e3e42] px-2 py-1.5 text-[#cccccc] text-[13px] placeholder-[#6a6a6a] focus:border-[#007acc] focus:outline-none"
+          rows={2}
         />
         <button
           type="submit"
           disabled={!input.trim()}
-          className="self-end rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:cursor-not-allowed disabled:bg-gray-300"
+          className="self-end rounded bg-[#0e639c] px-3 py-1.5 text-[#ffffff] text-[13px] font-medium hover:bg-[#1177bb] disabled:cursor-not-allowed disabled:bg-[#3e3e42] disabled:text-[#6a6a6a] transition-colors"
         >
           Send
         </button>

@@ -12,7 +12,7 @@ interface FileTreeItemProps {
 }
 
 function FileTreeItem({ item, level }: FileTreeItemProps) {
-  const indent = level * 16
+  const indent = level * 12
   const selectFile = useSet(selectFile$)
   const selectedFile = useLastResolved(selectedFileItem$)
   const isSelected = selectedFile?.path === item.path
@@ -27,10 +27,11 @@ function FileTreeItem({ item, level }: FileTreeItemProps) {
     return (
       <div>
         <div
-          style={{ paddingLeft: indent }}
-          className="cursor-pointer px-2 py-1 hover:bg-gray-100"
+          style={{ paddingLeft: indent + 8 }}
+          className="cursor-pointer pr-2 py-0.5 text-[#cccccc] hover:bg-[#2a2d2e] transition-colors flex items-center overflow-hidden"
         >
-          📁 {item.path.split('/').pop()}
+          <span className="mr-1.5 text-[#c5c5c5] text-xs flex-shrink-0">📁</span>
+          <span className="text-[13px] truncate">{item.path.split('/').pop()}</span>
         </div>
         {item.children?.map((child) => (
           <FileTreeItem key={child.path} item={child} level={level + 1} />
@@ -42,12 +43,15 @@ function FileTreeItem({ item, level }: FileTreeItemProps) {
   return (
     <div
       onClick={handleClick}
-      style={{ paddingLeft: indent }}
-      className={`cursor-pointer px-2 py-1 ${
-        isSelected ? 'bg-blue-100' : 'hover:bg-gray-100'
+      style={{ paddingLeft: indent + 8 }}
+      className={`cursor-pointer pr-2 py-0.5 text-[13px] transition-colors flex items-center overflow-hidden ${
+        isSelected
+          ? 'bg-[#37373d] text-[#ffffff] border-l border-[#007acc]'
+          : 'text-[#cccccc] hover:bg-[#2a2d2e]'
       }`}
     >
-      📄 {item.path.split('/').pop()}
+      <span className="mr-1.5 text-[#c5c5c5] text-xs flex-shrink-0">📄</span>
+      <span className="truncate">{item.path.split('/').pop()}</span>
     </div>
   )
 }
@@ -56,17 +60,27 @@ export function FileTree() {
   const projectFiles = useLoadable(projectFiles$)
 
   if (projectFiles.state === 'loading') {
-    return <div className="p-4">Loading files...</div>
+    return (
+      <div className="h-full bg-[#252526]">
+        <div className="px-3 py-2 text-[#969696] text-[13px]">Loading files...</div>
+      </div>
+    )
   }
 
   if (projectFiles.state === 'hasError' || !projectFiles.data) {
-    return <div className="p-4 text-red-600">Error loading files</div>
+    return (
+      <div className="h-full bg-[#252526]">
+        <div className="px-3 py-2 text-[#f48771] text-[13px]">Error loading files</div>
+      </div>
+    )
   }
 
   return (
-    <div className="h-full overflow-y-auto border-r border-gray-200">
-      <div className="border-b border-gray-200 p-4 font-semibold">Files</div>
-      <div className="py-2">
+    <div className="h-full overflow-y-auto bg-[#252526]">
+      <div className="border-b border-[#3e3e42] px-3 py-1.5 font-semibold text-[#cccccc] text-[11px] uppercase tracking-wide">
+        Explorer
+      </div>
+      <div className="py-0.5">
         {projectFiles.data.files.map((item) => (
           <FileTreeItem key={item.path} item={item} level={0} />
         ))}
