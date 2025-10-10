@@ -41,15 +41,21 @@ interface MockProjectConfig {
  * Create YJS document with files
  */
 function createYjsDocument(files: FileSpec[]): Uint8Array {
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   const ydoc = new Y.Doc()
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   const filesMap = ydoc.getMap<{ hash: string; mtime: number }>('files')
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   const blobsMap = ydoc.getMap<{ size: number }>('blobs')
 
   for (const file of files) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     filesMap.set(file.path, { hash: file.hash, mtime: Date.now() })
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     blobsMap.set(file.hash, { size: file.size ?? 100 })
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   return Y.encodeStateAsUpdate(ydoc)
 }
 
