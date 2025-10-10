@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.36.1](https://github.com/uspark-hq/uspark/compare/web-v0.36.0...web-v0.36.1) (2025-10-10)
+
+
+### Bug Fixes
+
+* add permissions skip and file sync to e2b executor ([#452](https://github.com/uspark-hq/uspark/issues/452)) ([f2faad2](https://github.com/uspark-hq/uspark/commit/f2faad26a6df6fd79de2e65dacc619de5d2abe95))
+
 ## [0.36.0](https://github.com/uspark-hq/uspark/compare/web-v0.35.2...web-v0.36.0) (2025-10-09)
 
 
