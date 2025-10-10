@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.37.0](https://github.com/uspark-hq/uspark/compare/web-v0.36.1...web-v0.37.0) (2025-10-10)
+
+
+### Features
+
+* **web:** add verbose logging for e2b sandbox initialization ([#463](https://github.com/uspark-hq/uspark/issues/463)) ([35ed253](https://github.com/uspark-hq/uspark/commit/35ed253b5ab16c5676b917550940920f8683141e))
+
 ## [0.36.1](https://github.com/uspark-hq/uspark/compare/web-v0.36.0...web-v0.36.1) (2025-10-10)
 
 

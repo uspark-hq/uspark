@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.10.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.9.0...workspace-v1.10.0) (2025-10-10)
+
+
+### Features
+
+* **workspace:** handle github repository 404 as normal state ([#461](https://github.com/uspark-hq/uspark/issues/461)) ([1d7c8e1](https://github.com/uspark-hq/uspark/commit/1d7c8e135c9efa173f05c25f3e4718448cfe6798))
+
 ## [1.9.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.8.0...workspace-v1.9.0) (2025-10-10)
 
 
