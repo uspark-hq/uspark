@@ -3,6 +3,15 @@ set -e
 
 echo "🚀 Initializing E2B container for Claude Code execution..."
 
+# Ensure workspace directory exists and is writable
+if [ ! -w /workspace ]; then
+  echo "⚠️ Warning: /workspace is not writable, attempting to fix permissions..."
+  # Try to fix permissions if running as root or with sudo
+  if [ "$EUID" -eq 0 ] || sudo -n true 2>/dev/null; then
+    sudo chown -R "$(id -u):$(id -g)" /workspace 2>/dev/null || true
+  fi
+fi
+
 # Verify required environment variables
 if [ -z "$PROJECT_ID" ]; then
   echo "❌ Error: PROJECT_ID environment variable is required"
@@ -14,26 +23,16 @@ if [ -z "$USPARK_TOKEN" ]; then
   exit 1
 fi
 
-if [ -z "$CLAUDE_API_KEY" ]; then
-  echo "❌ Error: CLAUDE_API_KEY environment variable is required"
+if [ -z "$CLAUDE_CODE_OAUTH_TOKEN" ]; then
+  echo "❌ Error: CLAUDE_CODE_OAUTH_TOKEN environment variable is required"
   exit 1
 fi
 
 echo "✅ Environment variables validated"
 echo "📁 Project ID: $PROJECT_ID"
 
-# Pull project files from uSpark
-echo "📥 Pulling project files..."
-if uspark pull --project-id "$PROJECT_ID"; then
-  echo "✅ Project files pulled successfully"
-else
-  echo "❌ Failed to pull project files"
-  exit 1
-fi
-
-# List pulled files for verification
-echo "📋 Project files:"
-find /workspace -type f -name "*.md" | head -10
+# Note: Project files will be pulled by the E2B executor
+# This init script just validates the environment
 
 echo "🎯 Container initialized successfully. Ready for Claude Code execution."
 
