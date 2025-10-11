@@ -50,7 +50,6 @@ export class ClaudeExecutor {
     console.log(`Turn ${turnId} execution started in background`);
   }
 
-
   /**
    * Interrupt a running turn
    */

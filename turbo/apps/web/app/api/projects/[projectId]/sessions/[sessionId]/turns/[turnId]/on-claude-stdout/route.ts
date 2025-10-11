@@ -169,7 +169,6 @@ async function saveBlock(
   blockData: Record<string, unknown>,
   sequenceNumber: number,
 ): Promise<void> {
-
   let blockType: string;
   let blockContent: Record<string, unknown>;
 

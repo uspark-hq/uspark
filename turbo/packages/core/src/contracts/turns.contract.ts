@@ -107,7 +107,9 @@ export type OnClaudeStdoutRequest = z.infer<typeof OnClaudeStdoutRequestSchema>;
 export const OnClaudeStdoutResponseSchema = z.object({
   ok: z.boolean(),
 });
-export type OnClaudeStdoutResponse = z.infer<typeof OnClaudeStdoutResponseSchema>;
+export type OnClaudeStdoutResponse = z.infer<
+  typeof OnClaudeStdoutResponseSchema
+>;
 
 // Error response
 export const TurnErrorResponseSchema = z.object({
