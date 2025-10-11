@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.39.1](https://github.com/uspark-hq/uspark/compare/web-v0.39.0...web-v0.39.1) (2025-10-11)
+
+
+### Bug Fixes
+
+* **e2b:** disable timeout for sandbox command execution ([#486](https://github.com/uspark-hq/uspark/issues/486)) ([e53b0db](https://github.com/uspark-hq/uspark/commit/e53b0dba7a7824998db0af6c5cd17b56cd163680))
+
 ## [0.39.0](https://github.com/uspark-hq/uspark/compare/web-v0.38.4...web-v0.39.0) (2025-10-11)
 
 
