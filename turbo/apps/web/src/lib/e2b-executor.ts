@@ -4,6 +4,7 @@ import { CLAUDE_TOKENS_TBL } from "../db/schema/claude-tokens";
 import { CLI_TOKENS_TBL } from "../db/schema/cli-tokens";
 import { eq, and, lt } from "drizzle-orm";
 import { decryptClaudeToken } from "./claude-token-crypto";
+import { env } from "../env";
 
 /**
  * E2B Executor for Claude Code
@@ -112,20 +113,47 @@ export class E2BExecutor {
       throw new Error("User has not configured Claude OAuth token");
     }
 
-    // Generate temporary CLI access token for this sandbox
-    const sandboxToken = await this.generateSandboxToken(userId, sessionId);
-    console.log(`Generated sandbox CLI token for session ${sessionId}`);
+    // Check if we're in development mode
+    const isDevelopment = process.env.NODE_ENV === "development";
+
+    // Get sandbox token and effective project ID based on environment
+    let sandboxToken: string;
+    let effectiveProjectId: string;
+
+    if (isDevelopment) {
+      const devToken = env().USPARK_TOKEN_FOR_DEV;
+      const devProjectId = env().PROJECT_ID_FOR_DEV;
+
+      if (!devToken) {
+        throw new Error(
+          "USPARK_TOKEN_FOR_DEV environment variable is required in development mode",
+        );
+      }
+      if (!devProjectId) {
+        throw new Error(
+          "PROJECT_ID_FOR_DEV environment variable is required in development mode",
+        );
+      }
+
+      sandboxToken = devToken;
+      effectiveProjectId = devProjectId;
+      console.log("Using development USPARK_TOKEN and PROJECT_ID for sandbox");
+    } else {
+      sandboxToken = await this.generateSandboxToken(userId, sessionId);
+      effectiveProjectId = projectId;
+      console.log(`Generated sandbox CLI token for session ${sessionId}`);
+    }
 
     const sandbox = await Sandbox.create(this.TEMPLATE_ID, {
       timeoutMs: this.SANDBOX_TIMEOUT * 1000,
       metadata: {
         sessionId,
-        projectId,
+        projectId: effectiveProjectId,
         userId,
       } as Record<string, string>,
       envs: {
-        PROJECT_ID: projectId,
-        USPARK_TOKEN: sandboxToken, // Use sandbox-specific CLI token
+        PROJECT_ID: effectiveProjectId,
+        USPARK_TOKEN: sandboxToken,
         CLAUDE_CODE_OAUTH_TOKEN: claudeToken,
       },
     });
@@ -135,31 +163,20 @@ export class E2BExecutor {
     );
 
     // Initialize sandbox (pull project files)
-    await this.initializeSandbox(sandbox, projectId);
+    await this.initializeSandbox(sandbox, effectiveProjectId);
 
     return sandbox;
   }
 
   /**
    * Initialize sandbox with project files
+   * @param projectId - The effective project ID (already resolved for dev/prod)
    */
   private static async initializeSandbox(
     sandbox: Sandbox,
     projectId: string,
   ): Promise<void> {
     console.log(`Initializing sandbox for project ${projectId}`);
-
-    // Skip initialization in non-production and preview environments
-    const vercelEnv = process.env.VERCEL_ENV;
-    const isProductionDeployment = vercelEnv === "production";
-    const isDevelopment = process.env.NODE_ENV === "development";
-
-    if (!isProductionDeployment || isDevelopment) {
-      console.log(
-        `Skipping uspark CLI initialization (VERCEL_ENV: ${vercelEnv}, NODE_ENV: ${process.env.NODE_ENV})`,
-      );
-      return;
-    }
 
     // Pull all project files using uspark CLI
     const result = await sandbox.commands.run(
@@ -200,21 +217,66 @@ export class E2BExecutor {
   ): Promise<ExecutionResult> {
     console.log(`Executing Claude with prompt length: ${prompt.length}`);
 
+    // Check if we're in development mode
+    const isDevelopment = process.env.NODE_ENV === "development";
+
+    // Use dev IDs in development
+    let effectiveProjectId: string;
+    let effectiveTurnId: string;
+    let effectiveSessionId: string;
+
+    if (isDevelopment) {
+      const devProjectId = env().PROJECT_ID_FOR_DEV;
+      const devTurnId = env().TURN_ID_FOR_DEV;
+      const devSessionId = env().SESSION_ID_FOR_DEV;
+
+      if (!devProjectId) {
+        throw new Error(
+          "PROJECT_ID_FOR_DEV environment variable is required in development mode",
+        );
+      }
+      if (!devTurnId) {
+        throw new Error(
+          "TURN_ID_FOR_DEV environment variable is required in development mode",
+        );
+      }
+      if (!devSessionId) {
+        throw new Error(
+          "SESSION_ID_FOR_DEV environment variable is required in development mode",
+        );
+      }
+
+      effectiveProjectId = devProjectId;
+      effectiveTurnId = devTurnId;
+      effectiveSessionId = devSessionId;
+    } else {
+      effectiveProjectId = projectId;
+      effectiveTurnId = turnId;
+      effectiveSessionId = sessionId;
+    }
+
+    console.log(
+      `Using IDs - Project: ${effectiveProjectId}, Turn: ${effectiveTurnId}, Session: ${effectiveSessionId}`,
+    );
+
     // Create a temporary file for the prompt to handle special characters
     const promptFile = `/tmp/prompt_${Date.now()}.txt`;
     await sandbox.files.write(promptFile, prompt);
 
     // Pipeline: prompt → claude (skip permissions) → watch-claude (sync files + callback API)
-    const command = `cat "${promptFile}" | claude --print --verbose --output-format stream-json --dangerously-skip-permissions | uspark watch-claude --project-id ${projectId} --turn-id ${turnId} --session-id ${sessionId}`;
+    const command = `cat "${promptFile}" | claude --print --verbose --output-format stream-json --dangerously-skip-permissions | uspark watch-claude --project-id ${effectiveProjectId} --turn-id ${effectiveTurnId} --session-id ${effectiveSessionId}`;
 
     // Run in background - command continues in sandbox even after client disconnects
     await sandbox.commands.run(command, {
       background: true,
       onStdout: (data: string) => {
-        console.log(`[Turn ${turnId}] stdout:`, data.substring(0, 100));
+        console.log(
+          `[Turn ${effectiveTurnId}] stdout:`,
+          data.substring(0, 100),
+        );
       },
       onStderr: (data: string) => {
-        console.error(`[Turn ${turnId}] stderr:`, data);
+        console.error(`[Turn ${effectiveTurnId}] stderr:`, data);
       },
     });
 
@@ -223,7 +285,7 @@ export class E2BExecutor {
 
     return {
       success: true,
-      output: `Background execution started for turn ${turnId}`,
+      output: `Background execution started for turn ${effectiveTurnId}`,
     };
   }
 
