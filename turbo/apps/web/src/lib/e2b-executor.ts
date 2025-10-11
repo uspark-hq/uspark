@@ -2,7 +2,7 @@ import { Sandbox, SandboxPaginator, SandboxInfo } from "e2b";
 import { initServices } from "./init-services";
 import { CLAUDE_TOKENS_TBL } from "../db/schema/claude-tokens";
 import { CLI_TOKENS_TBL } from "../db/schema/cli-tokens";
-import { eq } from "drizzle-orm";
+import { eq, and, lt } from "drizzle-orm";
 import { decryptClaudeToken } from "./claude-token-crypto";
 
 /**
@@ -33,6 +33,9 @@ export class E2BExecutor {
   ): Promise<string> {
     initServices();
 
+    // Clean up expired tokens before creating new one
+    await this.cleanupExpiredTokens(userId);
+
     // Generate secure token same as regular CLI tokens
     const randomBytes = await import("crypto").then((m) => m.randomBytes(32));
     const token = `usp_live_${randomBytes.toString("base64url")}`;
@@ -50,6 +53,22 @@ export class E2BExecutor {
     });
 
     return token;
+  }
+
+  /**
+   * Clean up expired sandbox tokens for a user
+   */
+  private static async cleanupExpiredTokens(userId: string): Promise<void> {
+    initServices();
+
+    await globalThis.services.db
+      .delete(CLI_TOKENS_TBL)
+      .where(
+        and(
+          eq(CLI_TOKENS_TBL.userId, userId),
+          lt(CLI_TOKENS_TBL.expiresAt, new Date()),
+        ),
+      );
   }
 
   /**
