@@ -8,7 +8,7 @@ if [ ! -w /workspace ]; then
   echo "⚠️ Warning: /workspace is not writable, attempting to fix permissions..."
   # Try to fix permissions if running as root or with sudo
   if [ "$EUID" -eq 0 ] || sudo -n true 2>/dev/null; then
-    sudo chown -R $(id -u):$(id -g) /workspace 2>/dev/null || true
+    sudo chown -R "$(id -u):$(id -g)" /workspace 2>/dev/null || true
   fi
 fi
 
