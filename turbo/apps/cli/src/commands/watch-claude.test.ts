@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Readable } from "stream";
+import { http, HttpResponse } from "msw";
+import { server } from "../test/setup";
 
 // Mock the shared module
 vi.mock("./shared", () => ({
@@ -14,16 +16,30 @@ vi.mock("./shared", () => ({
 vi.mock("chalk", () => ({
   default: {
     dim: (str: string) => str,
+    red: (str: string) => str,
   },
 }));
 
 describe("watch-claude", () => {
   let mockStdin: Readable;
+  let stdoutCallbackSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     // Mock process.exit to prevent actual exit and Vitest errors
     vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
+
+    // Set up MSW handler for stdout callback API
+    stdoutCallbackSpy = vi.fn();
+    server.use(
+      http.post(
+        "https://www.uspark.ai/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-stdout",
+        async ({ request }) => {
+          stdoutCallbackSpy(await request.json());
+          return HttpResponse.json({ ok: true });
+        },
+      ),
+    );
   });
 
   it("should detect Write tool_use and sync after tool_result", async () => {
@@ -94,14 +110,17 @@ describe("watch-claude", () => {
     // Run the command - it sets up readline and returns immediately
     watchClaudeCommand({
       projectId: "test-project-id",
+      turnId: "turn_test",
+      sessionId: "sess_test",
     });
 
-    // Wait for syncFile to be called
+    // Wait for both syncFile and stdout callback to be called
     // Readable.from sends data asynchronously, so we need to wait for
-    // the readline to process events and trigger the sync operation
+    // the readline to process events and trigger both sync and callback operations
     await vi.waitFor(
       () => {
         expect(syncFile).toHaveBeenCalled();
+        expect(stdoutCallbackSpy).toHaveBeenCalled();
       },
       {
         timeout: 1000,
@@ -125,6 +144,15 @@ describe("watch-claude", () => {
       "test-project-id",
       "spec/test-time.md", // Should be relative path
     );
+
+    // Verify stdout callback was called with both event lines
+    expect(stdoutCallbackSpy).toHaveBeenCalledTimes(2);
+    expect(stdoutCallbackSpy).toHaveBeenCalledWith({
+      line: events[0],
+    });
+    expect(stdoutCallbackSpy).toHaveBeenCalledWith({
+      line: events[1],
+    });
   });
 
   it("should handle tool_use without matching tool_result", async () => {
@@ -165,6 +193,8 @@ describe("watch-claude", () => {
     const { watchClaudeCommand } = await import("./watch-claude");
     const commandPromise = watchClaudeCommand({
       projectId: "test-project-id",
+      turnId: "turn_test",
+      sessionId: "sess_test",
     });
 
     // Wait for command to complete (no delays needed)
@@ -232,6 +262,8 @@ describe("watch-claude", () => {
     const { watchClaudeCommand } = await import("./watch-claude");
     const commandPromise = watchClaudeCommand({
       projectId: "test-project-id",
+      turnId: "turn_test",
+      sessionId: "sess_test",
     });
 
     // Wait for command to complete (no delays needed)

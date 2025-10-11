@@ -97,6 +97,20 @@ export const DeleteTurnResponseSchema = z.object({
 });
 export type DeleteTurnResponse = z.infer<typeof DeleteTurnResponseSchema>;
 
+// On Claude stdout request (from watch-claude)
+export const OnClaudeStdoutRequestSchema = z.object({
+  line: z.string(), // Single line of JSON from Claude stdout
+});
+export type OnClaudeStdoutRequest = z.infer<typeof OnClaudeStdoutRequestSchema>;
+
+// On Claude stdout response
+export const OnClaudeStdoutResponseSchema = z.object({
+  ok: z.boolean(),
+});
+export type OnClaudeStdoutResponse = z.infer<
+  typeof OnClaudeStdoutResponseSchema
+>;
+
 // Error response
 export const TurnErrorResponseSchema = z.object({
   error: z.string(),
@@ -172,5 +186,23 @@ export const turnsContract = c.router({
       404: TurnErrorResponseSchema,
     },
     summary: "Delete a turn",
+  },
+
+  onClaudeStdout: {
+    method: "POST",
+    path: "/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-stdout",
+    pathParams: z.object({
+      projectId: z.string().uuid(),
+      sessionId: z.string().startsWith("sess_"),
+      turnId: z.string().startsWith("turn_"),
+    }),
+    body: OnClaudeStdoutRequestSchema,
+    responses: {
+      200: OnClaudeStdoutResponseSchema,
+      401: TurnErrorResponseSchema,
+      404: TurnErrorResponseSchema,
+      500: TurnErrorResponseSchema,
+    },
+    summary: "Receive Claude stdout from watch-claude (CLI token auth)",
   },
 });

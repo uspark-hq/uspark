@@ -1,0 +1,1 @@
+ALTER TABLE "blocks" ADD CONSTRAINT "blocks_turn_id_sequence_number_unique" UNIQUE("turn_id","sequence_number");
