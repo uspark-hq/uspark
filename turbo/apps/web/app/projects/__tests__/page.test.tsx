@@ -5,11 +5,25 @@ import ProjectsListPage from "../page";
 import { server, http, HttpResponse } from "../../../src/test/msw-setup";
 
 // Mock window.location
-delete (window as { location?: Location }).location;
-window.location = {
+const mockLocation = {
   href: "http://www.uspark.com/projects",
   origin: "http://www.uspark.com",
+  protocol: "http:",
+  host: "www.uspark.com",
+  hostname: "www.uspark.com",
+  port: "",
+  pathname: "/projects",
+  search: "",
+  hash: "",
+  assign: vi.fn(),
+  reload: vi.fn(),
+  replace: vi.fn(),
+  toString: () => "http://www.uspark.com/projects",
+  ancestorOrigins: {} as DOMStringList,
 } as Location;
+
+delete (window as { location?: Location }).location;
+(window as { location: Location }).location = mockLocation;
 
 // Mock Next.js router
 vi.mock("next/navigation", () => ({

@@ -11,6 +11,11 @@ export const PROJECTS_TBL = pgTable("projects", {
   version: integer("version").notNull().default(0), // Optimistic lock version
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  // GitHub repository onboarding fields
+  sourceRepoUrl: text("source_repo_url"), // Format: "owner/repo"
+  sourceRepoInstallationId: integer("source_repo_installation_id"), // GitHub App installation ID for access
+  initialScanStatus: text("initial_scan_status"), // 'pending' | 'running' | 'completed' | 'failed' | null
+  initialScanSessionId: text("initial_scan_session_id"), // Links to scanning session
 });
 
 export type Project = typeof PROJECTS_TBL.$inferSelect;

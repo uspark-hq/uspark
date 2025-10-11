@@ -713,12 +713,14 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
       tool_use_id: "toolu_01Cy4woYq9zaAz56Uz79fPtv",
       error: null,
     });
-    expect(blocks[2]!.content.result).toContain("total 124");
+    expect((blocks[2]!.content as { result: string }).result).toContain(
+      "total 124",
+    );
     expect(blocks[2]!.sequenceNumber).toBe(2);
 
     // Verify fourth block (final response)
     expect(blocks[3]!.type).toBe("content");
-    expect(blocks[3]!.content.text).toContain(
+    expect((blocks[3]!.content as { text: string }).text).toContain(
       "The workspace contains several markdown",
     );
     expect(blocks[3]!.sequenceNumber).toBe(3);

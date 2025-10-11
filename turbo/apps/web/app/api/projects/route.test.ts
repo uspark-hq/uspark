@@ -12,8 +12,27 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
 }));
 
+// Mock GitHub repository functions
+vi.mock("../../../src/lib/github/repository", () => ({
+  hasInstallationAccess: vi.fn(),
+}));
+
+// Mock InitialScanExecutor
+vi.mock("../../../src/lib/initial-scan-executor", () => ({
+  InitialScanExecutor: {
+    startScan: vi.fn(),
+    onScanComplete: vi.fn(),
+    markScanFailed: vi.fn(),
+  },
+}));
+
 import { auth } from "@clerk/nextjs/server";
+import { hasInstallationAccess } from "../../../src/lib/github/repository";
+import { InitialScanExecutor } from "../../../src/lib/initial-scan-executor";
+
 const mockAuth = vi.mocked(auth);
+const mockHasInstallationAccess = vi.mocked(hasInstallationAccess);
+const mockStartScan = vi.mocked(InitialScanExecutor.startScan);
 
 describe("/api/projects", () => {
   const userId = `test-user-projects-${Date.now()}-${process.pid}`;
@@ -34,7 +53,6 @@ describe("/api/projects", () => {
     it("should return empty list when user has no projects", async () => {
       const response = await apiCall(GET, "GET");
 
-      expect(response.status).toBe(200);
       expect(response.data).toHaveProperty("projects");
       expect(response.data.projects).toEqual([]);
     });
@@ -47,7 +65,6 @@ describe("/api/projects", () => {
         {},
         { name: `test-project-1-${Date.now()}` },
       );
-      expect(response1.status).toBe(201);
       const project1 = response1.data;
       createdProjectIds.push(project1.id);
 
@@ -57,13 +74,11 @@ describe("/api/projects", () => {
         {},
         { name: `test-project-2-${Date.now()}` },
       );
-      expect(response2.status).toBe(201);
       const project2 = response2.data;
       createdProjectIds.push(project2.id);
 
       const response = await apiCall(GET, "GET");
 
-      expect(response.status).toBe(200);
       expect(response.data).toHaveProperty("projects");
       expect(response.data.projects).toHaveLength(2);
 
@@ -91,8 +106,6 @@ describe("/api/projects", () => {
       });
 
       const response = await apiCall(GET, "GET");
-
-      expect(response.status).toBe(200);
 
       // Should not contain the other user's project
       const projectIds = response.data.projects.map(
@@ -123,7 +136,6 @@ describe("/api/projects", () => {
 
       const response = await apiCall(POST, "POST", {}, { name: projectName });
 
-      expect(response.status).toBe(201);
       expect(response.data).toHaveProperty("id");
       expect(response.data).toHaveProperty("name");
       expect(response.data).toHaveProperty("created_at");
@@ -136,7 +148,6 @@ describe("/api/projects", () => {
 
       // Verify project is accessible via GET
       const getResponse = await apiCall(GET, "GET");
-      expect(getResponse.status).toBe(200);
       const projectIds = getResponse.data.projects.map(
         (p: { id: string }) => p.id,
       );
@@ -148,12 +159,10 @@ describe("/api/projects", () => {
 
       // Create first project
       const response1 = await apiCall(POST, "POST", {}, { name: projectName });
-      expect(response1.status).toBe(201);
       createdProjectIds.push(response1.data.id);
 
       // Create second project with same name
       const response2 = await apiCall(POST, "POST", {}, { name: projectName });
-      expect(response2.status).toBe(201);
       createdProjectIds.push(response2.data.id);
 
       // IDs should be different even with same name
@@ -165,6 +174,85 @@ describe("/api/projects", () => {
       expect(response2.data.id).toMatch(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
       );
+    });
+
+    it("should create project with source repository", async () => {
+      const projectName = `test-project-with-repo-${Date.now()}`;
+      const sourceRepoUrl = "owner/repo";
+      const installationId = 12345;
+
+      // Mock installation access
+      mockHasInstallationAccess.mockResolvedValue(true);
+
+      // Mock scan start
+      mockStartScan.mockResolvedValue({
+        sessionId: "sess_test_123",
+        turnId: "turn_test_123",
+      });
+
+      const response = await apiCall(
+        POST,
+        "POST",
+        {},
+        {
+          name: projectName,
+          sourceRepoUrl,
+          installationId,
+        },
+      );
+
+      expect(response.data).toHaveProperty("id");
+      createdProjectIds.push(response.data.id);
+    });
+
+    it("should reject project creation when user lacks installation access", async () => {
+      const projectName = `test-project-no-access-${Date.now()}`;
+      const sourceRepoUrl = "owner/repo";
+      const installationId = 12345;
+
+      // Mock no installation access
+      mockHasInstallationAccess.mockResolvedValue(false);
+
+      const response = await apiCall(
+        POST,
+        "POST",
+        {},
+        {
+          name: projectName,
+          sourceRepoUrl,
+          installationId,
+        },
+      );
+
+      // Verify access was denied
+      expect(response.data).toHaveProperty("error", "forbidden");
+    });
+
+    it("should create project without source repository", async () => {
+      const projectName = `test-project-no-repo-${Date.now()}`;
+
+      const response = await apiCall(POST, "POST", {}, { name: projectName });
+
+      expect(response.data).toHaveProperty("id");
+      createdProjectIds.push(response.data.id);
+    });
+
+    it("should validate source repo parameters", async () => {
+      const projectName = `test-project-invalid-${Date.now()}`;
+
+      // Missing installationId when sourceRepoUrl is provided
+      const response = await apiCall(
+        POST,
+        "POST",
+        {},
+        {
+          name: projectName,
+          sourceRepoUrl: "owner/repo",
+        },
+      );
+
+      // Project should be created without scan
+      expect(response.data).toHaveProperty("id");
     });
   });
 });

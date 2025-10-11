@@ -22,6 +22,14 @@ export const CreateProjectRequestSchema = z.object({
     .min(1, "Project name is required")
     .max(100, "Project name must be under 100 characters")
     .describe("Name for the new project"),
+  sourceRepoUrl: z
+    .string()
+    .optional()
+    .describe("GitHub repository URL in 'owner/repo' format for initial scan"),
+  installationId: z
+    .number()
+    .optional()
+    .describe("GitHub App installation ID for repository access"),
 });
 
 /**

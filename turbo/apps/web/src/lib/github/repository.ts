@@ -265,3 +265,55 @@ export async function getUserInstallations(userId: string) {
     .from(githubInstallations)
     .where(eq(githubInstallations.userId, userId));
 }
+
+/**
+ * Repository list item
+ */
+type UserRepository = {
+  id: number;
+  name: string;
+  fullName: string;
+  installationId: number;
+  private: boolean;
+  url: string;
+};
+
+/**
+ * Gets all repositories accessible by user across their installations
+ *
+ * @param userId - The user ID (Clerk)
+ * @returns List of repositories from all user installations
+ */
+export async function getUserRepositories(
+  userId: string,
+): Promise<UserRepository[]> {
+  const installations = await getUserInstallations(userId);
+
+  const allRepos: UserRepository[] = [];
+
+  // Fetch repositories from each installation
+  for (const installation of installations) {
+    const octokit = await createInstallationOctokit(
+      installation.installationId,
+    );
+
+    // List repositories accessible to the installation
+    const { data } = await octokit.request("GET /installation/repositories", {
+      per_page: 100, // Get up to 100 repos per installation
+    });
+
+    // Transform and add to results
+    const repos = data.repositories.map((repo) => ({
+      id: repo.id,
+      name: repo.name,
+      fullName: repo.full_name,
+      installationId: installation.installationId,
+      private: repo.private,
+      url: repo.html_url,
+    }));
+
+    allRepos.push(...repos);
+  }
+
+  return allRepos;
+}
