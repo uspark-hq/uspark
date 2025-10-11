@@ -22,6 +22,10 @@ import {
   type CreateProjectResponse,
 } from "@uspark/core/contracts/projects.contract";
 import { Navigation } from "../components/navigation";
+import {
+  GitHubRepoSelector,
+  type Repository,
+} from "../components/github-repo-selector";
 
 export default function ProjectsListPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -30,6 +34,10 @@ export default function ProjectsListPage() {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [newProjectName, setNewProjectName] = useState("");
   const [creating, setCreating] = useState(false);
+  const [selectedRepo, setSelectedRepo] = useState<{
+    repo: Repository;
+    installationId: number;
+  } | null>(null);
 
   // Navigate to project in app subdomain (workspace)
   const navigateToProject = (projectId: string) => {
@@ -67,12 +75,24 @@ export default function ProjectsListPage() {
     setCreating(true);
 
     try {
+      const requestBody: {
+        name: string;
+        sourceRepoUrl?: string;
+        installationId?: number;
+      } = { name: newProjectName.trim() };
+
+      // Add source repository if selected
+      if (selectedRepo) {
+        requestBody.sourceRepoUrl = selectedRepo.repo.fullName;
+        requestBody.installationId = selectedRepo.installationId;
+      }
+
       const response = await fetch("/api/projects", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ name: newProjectName.trim() }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -90,6 +110,7 @@ export default function ProjectsListPage() {
         ...prev,
       ]);
       setNewProjectName("");
+      setSelectedRepo(null);
       setShowCreateDialog(false);
 
       // Navigate to the new project
@@ -311,7 +332,8 @@ export default function ProjectsListPage() {
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
             <DialogDescription>
-              Give your project a name to get started.
+              Create a new project from scratch or bootstrap from an existing
+              GitHub repository.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -333,6 +355,34 @@ export default function ProjectsListPage() {
                 }}
                 autoFocus
               />
+            </div>
+            <div className="grid gap-2">
+              <label htmlFor="repo" className="text-sm font-medium">
+                Source Repository (Optional)
+              </label>
+              <GitHubRepoSelector
+                onSelect={(repo, installationId) => {
+                  if (repo && installationId) {
+                    setSelectedRepo({ repo, installationId });
+                  } else {
+                    setSelectedRepo(null);
+                  }
+                }}
+                value={
+                  selectedRepo
+                    ? {
+                        repoUrl: selectedRepo.repo.fullName,
+                        installationId: selectedRepo.installationId,
+                      }
+                    : null
+                }
+              />
+              {selectedRepo && (
+                <p className="text-xs text-muted-foreground">
+                  uSpark will analyze this repository and generate initial
+                  documentation (takes 2-5 minutes).
+                </p>
+              )}
             </div>
           </div>
           <DialogFooter>
