@@ -26,7 +26,39 @@ export function GitHubRepoSelector({
   const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
+
+    const fetchRepositories = async () => {
+      try {
+        const response = await fetch("/api/github/repositories");
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error("Please sign in to access GitHub repositories");
+          }
+          throw new Error("Failed to fetch repositories");
+        }
+        const data = await response.json();
+        if (isMounted) {
+          setRepositories(data.repositories || []);
+        }
+      } catch (err) {
+        if (isMounted) {
+          setError(
+            err instanceof Error ? err.message : "Failed to load repositories",
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
+      }
+    };
+
     fetchRepositories();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -42,26 +74,6 @@ export function GitHubRepoSelector({
       }
     }
   }, [value, repositories]);
-
-  const fetchRepositories = async () => {
-    try {
-      const response = await fetch("/api/github/repositories");
-      if (!response.ok) {
-        if (response.status === 401) {
-          throw new Error("Please sign in to access GitHub repositories");
-        }
-        throw new Error("Failed to fetch repositories");
-      }
-      const data = await response.json();
-      setRepositories(data.repositories || []);
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to load repositories",
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleRepoChange = (repoFullName: string) => {
     if (!repoFullName) {
