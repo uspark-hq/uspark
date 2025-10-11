@@ -18,6 +18,7 @@ export class ClaudeExecutor {
     projectId: string,
     userPrompt: string,
     userId: string,
+    extraEnvs?: Record<string, string>,
   ): Promise<void> {
     initServices();
     const db = globalThis.services.db;
@@ -31,11 +32,12 @@ export class ClaudeExecutor {
       })
       .where(eq(TURNS_TBL.id, turnId));
 
-    // Get or create sandbox for this session
+    // Get or create sandbox for this session (with optional extra envs)
     const sandbox = await E2BExecutor.getSandboxForSession(
       sessionId,
       projectId,
       userId,
+      extraEnvs,
     );
 
     // Start async execution (returns immediately)

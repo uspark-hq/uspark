@@ -10,6 +10,8 @@ import {
   CreateProjectRequestSchema,
   CreateProjectResponseSchema,
 } from "@uspark/core";
+import { hasInstallationAccess } from "../../../src/lib/github/repository";
+import { InitialScanExecutor } from "../../../src/lib/initial-scan-executor";
 
 /**
  * GET /api/projects
@@ -74,6 +76,23 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  const { sourceRepoUrl, installationId } = parseResult.data;
+
+  // Validate installation access if source repo is provided
+  if (sourceRepoUrl && installationId) {
+    const hasAccess = await hasInstallationAccess(userId, installationId);
+    if (!hasAccess) {
+      return NextResponse.json(
+        {
+          error: "forbidden",
+          error_description:
+            "You do not have access to this GitHub installation",
+        },
+        { status: 403 },
+      );
+    }
+  }
+
   // Note: We validate the name but don't use it in the ID generation
   // The project ID is system-generated to ensure uniqueness
 
@@ -93,6 +112,9 @@ export async function POST(request: NextRequest) {
       userId,
       ydocData: base64Data,
       version: 0,
+      sourceRepoUrl: sourceRepoUrl || null,
+      sourceRepoInstallationId: installationId || null,
+      initialScanStatus: sourceRepoUrl ? "pending" : null,
     })
     .returning({
       id: PROJECTS_TBL.id,
@@ -102,6 +124,26 @@ export async function POST(request: NextRequest) {
 
   if (!newProjectData) {
     throw new Error("Failed to create project");
+  }
+
+  // Trigger initial scan if source repo is provided
+  if (sourceRepoUrl && installationId) {
+    // Start scan asynchronously (don't wait for completion)
+    InitialScanExecutor.startScan(
+      projectId,
+      sourceRepoUrl,
+      installationId,
+      userId,
+    ).catch((error) => {
+      console.error(
+        `Initial scan failed for project ${projectId}:`,
+        error,
+      );
+      // Update project status to failed
+      InitialScanExecutor.onScanComplete(projectId, projectId, false).catch(
+        console.error,
+      );
+    });
   }
 
   // Convert date to ISO string for schema validation

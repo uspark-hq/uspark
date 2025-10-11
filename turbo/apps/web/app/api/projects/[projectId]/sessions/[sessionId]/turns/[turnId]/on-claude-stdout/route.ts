@@ -11,6 +11,7 @@ import { eq, and, max } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { turnsContract } from "@uspark/core";
 import { getUserId } from "../../../../../../../../../src/lib/auth/get-user-id";
+import { InitialScanExecutor } from "../../../../../../../../../src/lib/initial-scan-executor";
 
 type OnClaudeStdoutResponse = z.infer<
   (typeof turnsContract.onClaudeStdout.responses)[200]
@@ -153,6 +154,22 @@ export async function POST(
           completedAt: new Date(),
         })
         .where(eq(TURNS_TBL.id, turnId));
+
+      // Check if this is an initial scan session
+      const [projectData] = await tx
+        .select()
+        .from(PROJECTS_TBL)
+        .where(
+          and(
+            eq(PROJECTS_TBL.id, projectId),
+            eq(PROJECTS_TBL.initialScanSessionId, sessionId),
+          ),
+        );
+
+      // If this session is an initial scan, update scan status
+      if (projectData) {
+        await InitialScanExecutor.onScanComplete(projectId, sessionId, true);
+      }
     }
   });
 

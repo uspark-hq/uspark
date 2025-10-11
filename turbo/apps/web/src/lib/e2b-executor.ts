@@ -79,6 +79,7 @@ export class E2BExecutor {
     sessionId: string,
     projectId: string,
     userId: string,
+    extraEnvs?: Record<string, string>,
   ): Promise<Sandbox> {
     // 1. Try to find existing sandbox
     const paginator: SandboxPaginator = await Sandbox.list();
@@ -155,6 +156,7 @@ export class E2BExecutor {
         PROJECT_ID: effectiveProjectId,
         USPARK_TOKEN: sandboxToken,
         CLAUDE_CODE_OAUTH_TOKEN: claudeToken,
+        ...extraEnvs, // Merge any extra environment variables
       },
     });
 
