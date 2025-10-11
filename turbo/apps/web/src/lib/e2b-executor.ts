@@ -114,8 +114,8 @@ export class E2BExecutor {
       throw new Error("User has not configured Claude OAuth token");
     }
 
-    // Check if we're in development mode
-    const isDevelopment = process.env.NODE_ENV === "development";
+    // Check if we're in development mode by checking if dev token is configured
+    const isDevelopment = !!env().USPARK_TOKEN_FOR_DEV;
 
     // Get sandbox token and effective project ID based on environment
     let sandboxToken: string;
@@ -220,8 +220,8 @@ export class E2BExecutor {
   ): Promise<ExecutionResult> {
     console.log(`Executing Claude with prompt length: ${prompt.length}`);
 
-    // Check if we're in development mode
-    const isDevelopment = process.env.NODE_ENV === "development";
+    // Check if we're in development mode by checking if dev token is configured
+    const isDevelopment = !!env().USPARK_TOKEN_FOR_DEV;
 
     // Use dev IDs in development
     let effectiveProjectId: string;
