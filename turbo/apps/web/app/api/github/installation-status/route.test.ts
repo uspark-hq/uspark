@@ -17,6 +17,8 @@ describe("GET /api/github/installation-status", () => {
   const baseInstallationId = Math.floor(Date.now() / 1000); // Use timestamp as base for unique IDs
 
   beforeEach(async () => {
+    vi.clearAllMocks();
+
     // Initialize real database connection
     initServices();
 

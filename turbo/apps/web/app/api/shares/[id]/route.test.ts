@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "../../../../src/test/setup";
 import { DELETE } from "./route";
 import { POST as createProject } from "../../projects/route";
+import { POST as createShare } from "../../share/route";
 import { initServices } from "../../../../src/lib/init-services";
 import { apiCall } from "../../../../src/test/api-helpers";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
@@ -64,8 +65,6 @@ describe("DELETE /api/shares/[id]", () => {
   });
 
   it("should successfully delete user's own share", async () => {
-    const shareId = `test-share-id-${Date.now()}`;
-
     // Create project using API
     const createProjectRequest = new NextRequest("http://localhost:3000", {
       method: "POST",
@@ -76,14 +75,18 @@ describe("DELETE /api/shares/[id]", () => {
     const projectData = await projectResponse.json();
     const projectId = projectData.id;
 
-    // Create a share owned by the user
-    await globalThis.services.db.insert(SHARE_LINKS_TBL).values({
-      id: shareId,
-      token: `test-token-${Date.now()}`,
-      projectId,
-      filePath: "test.ts",
-      userId,
+    // Create a share using API
+    const createShareRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({
+        project_id: projectId,
+        file_path: "test.ts",
+      }),
     });
+    const shareResponse = await createShare(createShareRequest);
+    expect(shareResponse.status).toBe(200);
+    const shareData = await shareResponse.json();
+    const shareId = shareData.id;
 
     // Verify share exists
     const [shareBefore] = await globalThis.services.db
@@ -189,36 +192,42 @@ describe("DELETE /api/shares/[id]", () => {
     const project3Data = await project3Response.json();
     const project3 = project3Data.id;
 
-    // Create multiple shares for the same user
-    const timestamp = Date.now();
-    const shares = [
-      {
-        id: `share-1-${timestamp}`,
-        token: `token-1-${timestamp}`,
-        projectId: project1,
-        filePath: "file1.ts",
-        userId,
-      },
-      {
-        id: `share-2-${timestamp}`,
-        token: `token-2-${timestamp}`,
-        projectId: project2,
-        filePath: "file2.ts",
-        userId,
-      },
-      {
-        id: `share-3-${timestamp}`,
-        token: `token-3-${timestamp}`,
-        projectId: project3,
-        filePath: "file3.ts",
-        userId,
-      },
-    ];
+    // Create multiple shares using API
+    const createShare1Request = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({
+        project_id: project1,
+        file_path: "file1.ts",
+      }),
+    });
+    const share1Response = await createShare(createShare1Request);
+    expect(share1Response.status).toBe(200);
+    const share1Data = await share1Response.json();
 
-    await globalThis.services.db.insert(SHARE_LINKS_TBL).values(shares);
+    const createShare2Request = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({
+        project_id: project2,
+        file_path: "file2.ts",
+      }),
+    });
+    const share2Response = await createShare(createShare2Request);
+    expect(share2Response.status).toBe(200);
+    const share2Data = await share2Response.json();
+
+    const createShare3Request = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({
+        project_id: project3,
+        file_path: "file3.ts",
+      }),
+    });
+    const share3Response = await createShare(createShare3Request);
+    expect(share3Response.status).toBe(200);
+    const share3Data = await share3Response.json();
 
     // Delete share-2
-    const shareToDelete = `share-2-${timestamp}`;
+    const shareToDelete = share2Data.id;
     const response = await apiCall(DELETE, "DELETE", { id: shareToDelete });
 
     expect(response.status).toBe(200);
@@ -230,10 +239,9 @@ describe("DELETE /api/shares/[id]", () => {
       .where(eq(SHARE_LINKS_TBL.userId, userId));
 
     expect(remainingShares).toHaveLength(2);
-    expect(remainingShares.map((s) => s.id).sort()).toEqual([
-      `share-1-${timestamp}`,
-      `share-3-${timestamp}`,
-    ]);
+    expect(remainingShares.map((s) => s.id).sort()).toEqual(
+      [share1Data.id, share3Data.id].sort(),
+    );
 
     // Clean up
     await globalThis.services.db

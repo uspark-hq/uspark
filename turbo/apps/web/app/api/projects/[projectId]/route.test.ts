@@ -3,6 +3,8 @@ import "../../../../src/test/setup";
 import { NextRequest } from "next/server";
 import { GET, PATCH, DELETE } from "./route";
 import { POST as createProject } from "../route";
+import { POST as createSession } from "./sessions/route";
+import { POST as createShare } from "../../share/route";
 import * as Y from "yjs";
 import { initServices } from "../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
@@ -306,14 +308,21 @@ describe("/api/projects/:projectId", () => {
       const testProjectId = createdProject.id;
 
       // Create related data
-      // 1. Create session
-      await globalThis.services.db.insert(SESSIONS_TBL).values({
-        id: `session-${testProjectId}`,
-        projectId: testProjectId,
-        title: "Test Session",
+      // 1. Create session using API
+      const createSessionRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ title: "Test Session" }),
       });
+      const sessionContext = {
+        params: Promise.resolve({ projectId: testProjectId }),
+      };
+      const sessionResponse = await createSession(
+        createSessionRequest,
+        sessionContext,
+      );
+      expect(sessionResponse.status).toBe(200);
 
-      // 2. Create GitHub repo link
+      // 2. Create GitHub repo link (keep direct DB - no API available)
       await globalThis.services.db.insert(githubRepos).values({
         id: `github-${testProjectId}`,
         projectId: testProjectId,
@@ -322,14 +331,16 @@ describe("/api/projects/:projectId", () => {
         repoId: 67890,
       });
 
-      // 3. Create share link
-      await globalThis.services.db.insert(SHARE_LINKS_TBL).values({
-        id: `share-${testProjectId}`,
-        token: `token-${testProjectId}`,
-        projectId: testProjectId,
-        userId: userId,
-        filePath: "test.md",
+      // 3. Create share link using API
+      const createShareRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({
+          project_id: testProjectId,
+          file_path: "test.md",
+        }),
       });
+      const shareResponse = await createShare(createShareRequest);
+      expect(shareResponse.status).toBe(200);
 
       // 4. Create agent session
       await globalThis.services.db.insert(AGENT_SESSIONS_TBL).values({
