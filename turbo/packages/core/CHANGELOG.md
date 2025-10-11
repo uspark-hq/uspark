@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.15.0](https://github.com/uspark-hq/uspark/compare/core-v0.14.0...core-v0.15.0) (2025-10-11)
+
+
+### Features
+
+* implement github repository initial scan ([#483](https://github.com/uspark-hq/uspark/issues/483)) ([ea34603](https://github.com/uspark-hq/uspark/commit/ea34603b63886a321487ccaef86ecb54dcc4d622))
+
 ## [0.14.0](https://github.com/uspark-hq/uspark/compare/core-v0.13.0...core-v0.14.0) (2025-09-30)
 
 

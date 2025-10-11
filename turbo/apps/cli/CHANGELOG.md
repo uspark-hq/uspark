@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.11.4](https://github.com/uspark-hq/uspark/compare/cli-v0.11.3...cli-v0.11.4) (2025-10-11)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.15.0
+
 ## [0.11.3](https://github.com/uspark-hq/uspark/compare/cli-v0.11.2...cli-v0.11.3) (2025-10-11)
 
 
