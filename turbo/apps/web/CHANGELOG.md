@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.38.0](https://github.com/uspark-hq/uspark/compare/web-v0.37.1...web-v0.38.0) (2025-10-11)
+
+
+### Features
+
+* **e2b:** add development environment configuration support ([#470](https://github.com/uspark-hq/uspark/issues/470)) ([5bef3c0](https://github.com/uspark-hq/uspark/commit/5bef3c05550ff8eadc771acf11e97cabe92f2718))
+
 ## [0.37.1](https://github.com/uspark-hq/uspark/compare/web-v0.37.0...web-v0.37.1) (2025-10-11)
 
 
