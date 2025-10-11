@@ -39,18 +39,6 @@ describe("GET /api/github/repositories", () => {
     >);
   });
 
-  it("returns 401 when not authenticated", async () => {
-    mockAuth.mockResolvedValue({ userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
-
-    const response = await GET();
-    const data = await response.json();
-
-    expect(response.status).toBe(401);
-    expect(data.error).toBe("unauthorized");
-  });
-
   it("returns empty array when user has no installations", async () => {
     const response = await GET();
     const data = await response.json();

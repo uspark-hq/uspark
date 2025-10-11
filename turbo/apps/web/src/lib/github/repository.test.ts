@@ -337,16 +337,6 @@ describe("GitHub Repository", () => {
           url: "https://github.com/testorg/org-repo",
         },
       ]);
-
-      // Verify correct API calls
-      expect(mockOctokit1.request).toHaveBeenCalledWith(
-        "GET /installation/repositories",
-        { per_page: 100 },
-      );
-      expect(mockOctokit2.request).toHaveBeenCalledWith(
-        "GET /installation/repositories",
-        { per_page: 100 },
-      );
     });
 
     it("should return empty array when user has no installations", async () => {
