@@ -84,8 +84,14 @@ export async function authenticate(apiUrl?: string): Promise<void> {
   const maxWaitTime = deviceAuth.expires_in * 1000; // Convert to milliseconds
   const pollInterval = (deviceAuth.interval || 5) * 1000; // Use server-specified interval or default to 5 seconds
 
+  let isFirstPoll = true;
+
   while (Date.now() - startTime < maxWaitTime) {
-    await delay(pollInterval); // Use dynamic polling interval
+    // Skip delay on first poll for faster response
+    if (!isFirstPoll) {
+      await delay(pollInterval); // Use dynamic polling interval
+    }
+    isFirstPoll = false;
 
     const tokenResult = await exchangeToken(
       targetApiUrl,
