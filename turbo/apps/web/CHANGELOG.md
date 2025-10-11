@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.38.1](https://github.com/uspark-hq/uspark/compare/web-v0.38.0...web-v0.38.1) (2025-10-11)
+
+
+### Bug Fixes
+
+* **e2b:** update cli versions and add command logging ([#472](https://github.com/uspark-hq/uspark/issues/472)) ([5c271ff](https://github.com/uspark-hq/uspark/commit/5c271ffddf544d8a6c5912d214d0be6e718b14a4))
+
 ## [0.38.0](https://github.com/uspark-hq/uspark/compare/web-v0.37.1...web-v0.38.0) (2025-10-11)
 
 
