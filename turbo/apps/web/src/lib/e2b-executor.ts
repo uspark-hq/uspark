@@ -181,6 +181,7 @@ export class E2BExecutor {
     // Pull all project files using uspark CLI in home workspace directory
     const result = await sandbox.commands.run(
       `cd ~/workspace && uspark pull --all --project-id "${projectId}" --verbose 2>&1 | tee /tmp/pull.log`,
+      { timeoutMs: 0 },
     );
 
     // Always log the output for debugging
@@ -270,15 +271,7 @@ export class E2BExecutor {
     // Run in background - command continues in sandbox even after client disconnects
     await sandbox.commands.run(command, {
       background: true,
-      onStdout: (data: string) => {
-        console.log(
-          `[Turn ${effectiveTurnId}] stdout:`,
-          data.substring(0, 100),
-        );
-      },
-      onStderr: (data: string) => {
-        console.error(`[Turn ${effectiveTurnId}] stderr:`, data);
-      },
+      timeoutMs: 0,
     });
 
     // Clean up prompt file
