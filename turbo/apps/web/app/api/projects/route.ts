@@ -135,10 +135,7 @@ export async function POST(request: NextRequest) {
       installationId,
       userId,
     ).catch((error) => {
-      console.error(
-        `Initial scan failed for project ${projectId}:`,
-        error,
-      );
+      console.error(`Initial scan failed for project ${projectId}:`, error);
       // Update project status to failed
       InitialScanExecutor.onScanComplete(projectId, projectId, false).catch(
         console.error,

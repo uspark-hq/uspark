@@ -299,12 +299,9 @@ export async function getUserRepositories(
       );
 
       // List repositories accessible to the installation
-      const { data } = await octokit.request(
-        "GET /installation/repositories",
-        {
-          per_page: 100, // Get up to 100 repos per installation
-        },
-      );
+      const { data } = await octokit.request("GET /installation/repositories", {
+        per_page: 100, // Get up to 100 repos per installation
+      });
 
       // Transform and add to results
       const repos = data.repositories.map((repo) => ({
