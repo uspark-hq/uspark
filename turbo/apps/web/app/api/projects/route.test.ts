@@ -12,8 +12,25 @@ vi.mock("@clerk/nextjs/server", () => ({
   auth: vi.fn(),
 }));
 
+// Mock GitHub repository functions
+vi.mock("../../../src/lib/github/repository", () => ({
+  hasInstallationAccess: vi.fn(),
+}));
+
+// Mock InitialScanExecutor
+vi.mock("../../../src/lib/initial-scan-executor", () => ({
+  InitialScanExecutor: {
+    startScan: vi.fn(),
+  },
+}));
+
 import { auth } from "@clerk/nextjs/server";
+import { hasInstallationAccess } from "../../../src/lib/github/repository";
+import { InitialScanExecutor } from "../../../src/lib/initial-scan-executor";
+
 const mockAuth = vi.mocked(auth);
+const mockHasInstallationAccess = vi.mocked(hasInstallationAccess);
+const mockStartScan = vi.mocked(InitialScanExecutor.startScan);
 
 describe("/api/projects", () => {
   const userId = `test-user-projects-${Date.now()}-${process.pid}`;
@@ -165,6 +182,112 @@ describe("/api/projects", () => {
       expect(response2.data.id).toMatch(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
       );
+    });
+
+    it("should create project with source repository", async () => {
+      const projectName = `test-project-with-repo-${Date.now()}`;
+      const sourceRepoUrl = "owner/repo";
+      const installationId = 12345;
+
+      // Mock installation access
+      mockHasInstallationAccess.mockResolvedValue(true);
+
+      // Mock scan start
+      mockStartScan.mockResolvedValue({
+        sessionId: "sess_test_123",
+        turnId: "turn_test_123",
+      });
+
+      const response = await apiCall(
+        POST,
+        "POST",
+        {},
+        {
+          name: projectName,
+          sourceRepoUrl,
+          installationId,
+        },
+      );
+
+      expect(response.status).toBe(201);
+      expect(response.data).toHaveProperty("id");
+      createdProjectIds.push(response.data.id);
+
+      // Verify installation access was checked
+      expect(mockHasInstallationAccess).toHaveBeenCalledWith(
+        userId,
+        installationId,
+      );
+
+      // Verify scan was started
+      expect(mockStartScan).toHaveBeenCalledWith(
+        response.data.id,
+        sourceRepoUrl,
+        installationId,
+        userId,
+      );
+    });
+
+    it("should reject project creation when user lacks installation access", async () => {
+      const projectName = `test-project-no-access-${Date.now()}`;
+      const sourceRepoUrl = "owner/repo";
+      const installationId = 12345;
+
+      // Mock no installation access
+      mockHasInstallationAccess.mockResolvedValue(false);
+
+      const response = await apiCall(
+        POST,
+        "POST",
+        {},
+        {
+          name: projectName,
+          sourceRepoUrl,
+          installationId,
+        },
+      );
+
+      expect(response.status).toBe(403);
+      expect(response.data.error).toBe("forbidden");
+
+      // Verify scan was not started
+      expect(mockStartScan).not.toHaveBeenCalled();
+    });
+
+    it("should create project without source repository", async () => {
+      const projectName = `test-project-no-repo-${Date.now()}`;
+
+      const response = await apiCall(POST, "POST", {}, { name: projectName });
+
+      expect(response.status).toBe(201);
+      expect(response.data).toHaveProperty("id");
+      createdProjectIds.push(response.data.id);
+
+      // Verify installation access was not checked
+      expect(mockHasInstallationAccess).not.toHaveBeenCalled();
+
+      // Verify scan was not started
+      expect(mockStartScan).not.toHaveBeenCalled();
+    });
+
+    it("should validate source repo parameters", async () => {
+      const projectName = `test-project-invalid-${Date.now()}`;
+
+      // Missing installationId when sourceRepoUrl is provided
+      const response = await apiCall(
+        POST,
+        "POST",
+        {},
+        {
+          name: projectName,
+          sourceRepoUrl: "owner/repo",
+        },
+      );
+
+      // Should succeed but not trigger installation check or scan
+      expect(response.status).toBe(201);
+      expect(mockHasInstallationAccess).not.toHaveBeenCalled();
+      expect(mockStartScan).not.toHaveBeenCalled();
     });
   });
 });

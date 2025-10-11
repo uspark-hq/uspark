@@ -4,6 +4,7 @@ import {
   getProjectRepository,
   hasInstallationAccess,
   getUserInstallations,
+  getUserRepositories,
 } from "./repository";
 import { initServices } from "../init-services";
 import { githubInstallations, githubRepos } from "../../db/schema/github";
@@ -241,6 +242,144 @@ describe("GitHub Repository", () => {
       ).rejects.toThrow(
         `Repository already exists for project ${testProjectId}`,
       );
+    });
+  });
+
+  describe("getUserRepositories", () => {
+    it("should return repositories from all user installations", async () => {
+      const { createInstallationOctokit } = await import("./client");
+
+      // Create multiple installations for user
+      const db = globalThis.services.db;
+      await db.insert(githubInstallations).values([
+        {
+          userId: testUserId,
+          installationId: testInstallationId,
+          accountName: "testuser",
+        },
+        {
+          userId: testUserId,
+          installationId: testInstallationId + 1,
+          accountName: "testorg",
+        },
+      ]);
+
+      // Mock GitHub API responses for both installations
+      const mockOctokit1 = {
+        request: vi.fn().mockResolvedValue({
+          data: {
+            repositories: [
+              {
+                id: 100,
+                name: "repo1",
+                full_name: "testuser/repo1",
+                private: false,
+                html_url: "https://github.com/testuser/repo1",
+              },
+              {
+                id: 101,
+                name: "repo2",
+                full_name: "testuser/repo2",
+                private: true,
+                html_url: "https://github.com/testuser/repo2",
+              },
+            ],
+          },
+        }),
+      };
+
+      const mockOctokit2 = {
+        request: vi.fn().mockResolvedValue({
+          data: {
+            repositories: [
+              {
+                id: 200,
+                name: "org-repo",
+                full_name: "testorg/org-repo",
+                private: false,
+                html_url: "https://github.com/testorg/org-repo",
+              },
+            ],
+          },
+        }),
+      };
+
+      vi.mocked(createInstallationOctokit)
+        .mockResolvedValueOnce(mockOctokit1 as never)
+        .mockResolvedValueOnce(mockOctokit2 as never);
+
+      const result = await getUserRepositories(testUserId);
+
+      expect(result).toHaveLength(3);
+      expect(result).toEqual([
+        {
+          id: 100,
+          name: "repo1",
+          fullName: "testuser/repo1",
+          installationId: testInstallationId,
+          private: false,
+          url: "https://github.com/testuser/repo1",
+        },
+        {
+          id: 101,
+          name: "repo2",
+          fullName: "testuser/repo2",
+          installationId: testInstallationId,
+          private: true,
+          url: "https://github.com/testuser/repo2",
+        },
+        {
+          id: 200,
+          name: "org-repo",
+          fullName: "testorg/org-repo",
+          installationId: testInstallationId + 1,
+          private: false,
+          url: "https://github.com/testorg/org-repo",
+        },
+      ]);
+
+      // Verify correct API calls
+      expect(mockOctokit1.request).toHaveBeenCalledWith(
+        "GET /installation/repositories",
+        { per_page: 100 },
+      );
+      expect(mockOctokit2.request).toHaveBeenCalledWith(
+        "GET /installation/repositories",
+        { per_page: 100 },
+      );
+    });
+
+    it("should return empty array when user has no installations", async () => {
+      const result = await getUserRepositories("user-without-installations");
+      expect(result).toEqual([]);
+    });
+
+    it("should return empty array when installations have no repositories", async () => {
+      const { createInstallationOctokit } = await import("./client");
+
+      // Create installation with no repositories
+      const db = globalThis.services.db;
+      await db.insert(githubInstallations).values({
+        userId: testUserId,
+        installationId: testInstallationId,
+        accountName: "testuser",
+      });
+
+      const mockOctokit = {
+        request: vi.fn().mockResolvedValue({
+          data: {
+            repositories: [],
+          },
+        }),
+      };
+
+      vi.mocked(createInstallationOctokit).mockResolvedValue(
+        mockOctokit as never,
+      );
+
+      const result = await getUserRepositories(testUserId);
+
+      expect(result).toEqual([]);
     });
   });
 });

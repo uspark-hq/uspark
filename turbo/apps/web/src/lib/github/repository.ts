@@ -293,34 +293,26 @@ export async function getUserRepositories(
 
   // Fetch repositories from each installation
   for (const installation of installations) {
-    try {
-      const octokit = await createInstallationOctokit(
-        installation.installationId,
-      );
+    const octokit = await createInstallationOctokit(
+      installation.installationId,
+    );
 
-      // List repositories accessible to the installation
-      const { data } = await octokit.request("GET /installation/repositories", {
-        per_page: 100, // Get up to 100 repos per installation
-      });
+    // List repositories accessible to the installation
+    const { data } = await octokit.request("GET /installation/repositories", {
+      per_page: 100, // Get up to 100 repos per installation
+    });
 
-      // Transform and add to results
-      const repos = data.repositories.map((repo) => ({
-        id: repo.id,
-        name: repo.name,
-        fullName: repo.full_name,
-        installationId: installation.installationId,
-        private: repo.private,
-        url: repo.html_url,
-      }));
+    // Transform and add to results
+    const repos = data.repositories.map((repo) => ({
+      id: repo.id,
+      name: repo.name,
+      fullName: repo.full_name,
+      installationId: installation.installationId,
+      private: repo.private,
+      url: repo.html_url,
+    }));
 
-      allRepos.push(...repos);
-    } catch (error) {
-      console.error(
-        `Failed to fetch repos for installation ${installation.installationId}:`,
-        error,
-      );
-      // Continue with other installations even if one fails
-    }
+    allRepos.push(...repos);
   }
 
   return allRepos;

@@ -128,19 +128,13 @@ export async function POST(request: NextRequest) {
 
   // Trigger initial scan if source repo is provided
   if (sourceRepoUrl && installationId) {
-    // Start scan asynchronously (don't wait for completion)
-    InitialScanExecutor.startScan(
+    // Start scan (wait for startup, but not completion)
+    await InitialScanExecutor.startScan(
       projectId,
       sourceRepoUrl,
       installationId,
       userId,
-    ).catch((error) => {
-      console.error(`Initial scan failed for project ${projectId}:`, error);
-      // Update project status to failed
-      InitialScanExecutor.onScanComplete(projectId, projectId, false).catch(
-        console.error,
-      );
-    });
+    );
   }
 
   // Convert date to ISO string for schema validation
