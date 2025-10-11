@@ -3,14 +3,24 @@ set -e
 
 echo "🚀 Initializing E2B container for Claude Code execution..."
 
-# Ensure workspace directory exists and is writable
-if [ ! -w /workspace ]; then
-  echo "⚠️ Warning: /workspace is not writable, attempting to fix permissions..."
-  # Try to fix permissions if running as root or with sudo
-  if [ "$EUID" -eq 0 ] || sudo -n true 2>/dev/null; then
-    sudo chown -R "$(id -u):$(id -g)" /workspace 2>/dev/null || true
-  fi
+# Use workspace in home directory (always writable for current user)
+WORKSPACE_DIR="$HOME/workspace"
+echo "📁 Using workspace directory: $WORKSPACE_DIR"
+
+# Ensure workspace directory exists
+if [ ! -d "$WORKSPACE_DIR" ]; then
+  echo "⚠️ Creating workspace directory..."
+  mkdir -p "$WORKSPACE_DIR"
 fi
+
+# Verify workspace is writable
+if [ ! -w "$WORKSPACE_DIR" ]; then
+  echo "❌ Error: Workspace directory $WORKSPACE_DIR is not writable!"
+  ls -la "$WORKSPACE_DIR"
+  exit 1
+fi
+
+echo "✅ Workspace is ready at $WORKSPACE_DIR"
 
 # Verify required environment variables
 if [ -z "$PROJECT_ID" ]; then
