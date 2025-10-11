@@ -25,7 +25,7 @@ function initEnv() {
       CLAUDE_TOKEN_ENCRYPTION_KEY: z.string().length(64).optional(), // 32 bytes as hex = 64 chars
       // E2B development environment variables (optional, for local testing only)
       USPARK_TOKEN_FOR_DEV: z.string().optional(),
-      PROJECT_ID_FOR_DEV: z.string().uuid().optional(),
+      PROJECT_ID_FOR_DEV: z.string().min(1).optional(),
       TURN_ID_FOR_DEV: z.string().startsWith("turn_").optional(),
       SESSION_ID_FOR_DEV: z.string().startsWith("sess_").optional(),
     },
