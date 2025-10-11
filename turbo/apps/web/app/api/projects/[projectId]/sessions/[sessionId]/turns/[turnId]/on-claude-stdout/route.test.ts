@@ -60,6 +60,18 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
       ReturnType<typeof auth>
     >);
 
+    // Mock headers to return CLI token (set up early for createProject call)
+    mockHeaders.mockReturnValue(
+      Promise.resolve({
+        get: (name: string) => {
+          if (name === "Authorization") {
+            return `Bearer ${cliToken}`;
+          }
+          return null;
+        },
+      } as Headers),
+    );
+
     // Initialize services
     initServices();
 
@@ -141,18 +153,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
         createdAt: new Date(),
       })
       .onConflictDoNothing();
-
-    // Mock headers to return CLI token
-    mockHeaders.mockReturnValue(
-      Promise.resolve({
-        get: (name: string) => {
-          if (name === "Authorization") {
-            return `Bearer ${cliToken}`;
-          }
-          return null;
-        },
-      } as Headers),
-    );
   });
 
   afterEach(async () => {
@@ -382,11 +382,19 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
   });
 
   it("should reject requests without CLI token", async () => {
+    // Reset and override mocks to simulate no authentication
+    mockHeaders.mockReset();
     mockHeaders.mockReturnValue(
       Promise.resolve({
         get: () => null,
       } as unknown as Headers),
     );
+
+    // Also reset Clerk auth to return null (getUserId falls back to Clerk)
+    mockAuth.mockReset();
+    mockAuth.mockResolvedValue({ userId: null } as Awaited<
+      ReturnType<typeof auth>
+    >);
 
     const line = JSON.stringify({
       type: "assistant",

@@ -121,27 +121,40 @@ export async function POST(
     return NextResponse.json(error, { status: 400 });
   }
 
-  // Get current max sequence number
-  const [maxSeqResult] = await globalThis.services.db
-    .select({ max: max(BLOCKS_TBL.sequenceNumber) })
-    .from(BLOCKS_TBL)
-    .where(eq(BLOCKS_TBL.turnId, turnId));
+  // Use transaction with row-level locking to prevent race conditions in sequence number assignment
+  await globalThis.services.db.transaction(async (tx) => {
+    // Lock the turn row to prevent concurrent sequence number conflicts
+    // This ensures only one transaction can assign sequence numbers at a time for this turn
+    await tx
+      .select()
+      .from(TURNS_TBL)
+      .where(eq(TURNS_TBL.id, turnId))
+      .for("update");
 
-  const sequenceNumber = (maxSeqResult?.max ?? -1) + 1;
+    // Get current max sequence number
+    // Note: Cannot use FOR UPDATE with aggregate functions in PostgreSQL
+    // The turn row lock above is sufficient to prevent race conditions
+    const [maxSeqResult] = await tx
+      .select({ max: max(BLOCKS_TBL.sequenceNumber) })
+      .from(BLOCKS_TBL)
+      .where(eq(BLOCKS_TBL.turnId, turnId));
 
-  // Save block based on type (logic from ClaudeExecutor.saveBlock)
-  await saveBlock(turnId, block, sequenceNumber);
+    const sequenceNumber = (maxSeqResult?.max ?? -1) + 1;
 
-  // If this is a result block, mark turn as completed
-  if (block.type === "result") {
-    await globalThis.services.db
-      .update(TURNS_TBL)
-      .set({
-        status: "completed",
-        completedAt: new Date(),
-      })
-      .where(eq(TURNS_TBL.id, turnId));
-  }
+    // Save block based on type (logic from ClaudeExecutor.saveBlock)
+    await saveBlock(tx, turnId, block, sequenceNumber);
+
+    // If this is a result block, mark turn as completed
+    if (block.type === "result") {
+      await tx
+        .update(TURNS_TBL)
+        .set({
+          status: "completed",
+          completedAt: new Date(),
+        })
+        .where(eq(TURNS_TBL.id, turnId));
+    }
+  });
 
   const response: OnClaudeStdoutResponse = { ok: true };
   return NextResponse.json(response);
@@ -151,11 +164,11 @@ export async function POST(
  * Save a block to the database (moved from ClaudeExecutor)
  */
 async function saveBlock(
+  tx: Parameters<Parameters<typeof globalThis.services.db.transaction>[0]>[0],
   turnId: string,
   blockData: Record<string, unknown>,
   sequenceNumber: number,
 ): Promise<void> {
-  const db = globalThis.services.db;
 
   let blockType: string;
   let blockContent: Record<string, unknown>;
@@ -200,7 +213,7 @@ async function saveBlock(
     return;
   }
 
-  await db.insert(BLOCKS_TBL).values({
+  await tx.insert(BLOCKS_TBL).values({
     id: `block_${randomUUID()}`,
     turnId,
     type: blockType,
