@@ -178,9 +178,9 @@ export class E2BExecutor {
   ): Promise<void> {
     console.log(`Initializing sandbox for project ${projectId}`);
 
-    // Pull all project files using uspark CLI
+    // Pull all project files using uspark CLI in /workspace directory
     const result = await sandbox.commands.run(
-      `uspark pull --all --project-id "${projectId}" --verbose 2>&1 | tee /tmp/pull.log`,
+      `cd /workspace && uspark pull --all --project-id "${projectId}" --verbose 2>&1 | tee /tmp/pull.log`,
     );
 
     // Always log the output for debugging
@@ -264,7 +264,8 @@ export class E2BExecutor {
     await sandbox.files.write(promptFile, prompt);
 
     // Pipeline: prompt → claude (skip permissions) → watch-claude (sync files + callback API)
-    const command = `cat "${promptFile}" | claude --print --verbose --output-format stream-json --dangerously-skip-permissions | uspark watch-claude --project-id ${effectiveProjectId} --turn-id ${effectiveTurnId} --session-id ${effectiveSessionId} 2>&1 | tee /tmp/claude_exec.log`;
+    // Execute in /workspace directory where project files are located
+    const command = `cd /workspace && cat "${promptFile}" | claude --print --verbose --output-format stream-json --dangerously-skip-permissions | uspark watch-claude --project-id ${effectiveProjectId} --turn-id ${effectiveTurnId} --session-id ${effectiveSessionId} 2>&1 | tee /tmp/claude_exec.log`;
 
     // Run in background - command continues in sandbox even after client disconnects
     await sandbox.commands.run(command, {
