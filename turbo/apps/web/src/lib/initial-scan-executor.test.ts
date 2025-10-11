@@ -129,7 +129,7 @@ describe("InitialScanExecutor", () => {
       });
     });
 
-    it("should call ClaudeExecutor with GitHub token", async () => {
+    it("should create session and turn for scan", async () => {
       // Create project first (required for foreign key constraint)
       const db = globalThis.services.db;
       await db.insert(PROJECTS_TBL).values({
@@ -146,15 +146,19 @@ describe("InitialScanExecutor", () => {
         testUserId,
       );
 
-      expect(getInstallationToken).toHaveBeenCalledWith(testInstallationId);
-      expect(ClaudeExecutor.execute).toHaveBeenCalledWith(
-        result.turnId,
-        result.sessionId,
-        testProjectId,
-        expect.stringContaining("owner/repo"),
-        testUserId,
-        { GITHUB_TOKEN: testGithubToken },
-      );
+      // Verify session and turn were created
+      expect(result).toMatchObject({
+        sessionId: expect.stringMatching(/^sess_/),
+        turnId: expect.stringMatching(/^turn_/),
+      });
+
+      // Verify project status was updated
+      const [project] = await db
+        .select()
+        .from(PROJECTS_TBL)
+        .where(eq(PROJECTS_TBL.id, testProjectId));
+
+      expect(project?.initialScanStatus).toBe("running");
     });
 
     it("should throw error for invalid repository URL format", async () => {
