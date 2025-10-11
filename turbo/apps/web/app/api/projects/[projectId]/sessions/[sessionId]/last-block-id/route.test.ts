@@ -52,7 +52,10 @@ describe("/api/projects/:projectId/sessions/:sessionId/last-block-id", () => {
       body: JSON.stringify({ title: "Test Session for Last Block ID" }),
     });
     const sessionContext = { params: Promise.resolve({ projectId }) };
-    const sessionResponse = await createSession(createSessionRequest, sessionContext);
+    const sessionResponse = await createSession(
+      createSessionRequest,
+      sessionContext,
+    );
     expect(sessionResponse.status).toBe(200);
     const sessionData = await sessionResponse.json();
     sessionId = sessionData.id;

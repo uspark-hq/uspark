@@ -53,7 +53,10 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
       body: JSON.stringify({ title: "Test Session" }),
     });
     const sessionContext = { params: Promise.resolve({ projectId }) };
-    const sessionResponse = await createSession(createSessionRequest, sessionContext);
+    const sessionResponse = await createSession(
+      createSessionRequest,
+      sessionContext,
+    );
     expect(sessionResponse.status).toBe(200);
     const sessionData = await sessionResponse.json();
     sessionId = sessionData.id;
@@ -122,8 +125,13 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
         method: "POST",
         body: JSON.stringify({ user_message: "Manual test prompt" }),
       });
-      const manualTurnContext = { params: Promise.resolve({ projectId, sessionId }) };
-      const manualTurnResponse = await createTurn(manualTurnRequest, manualTurnContext);
+      const manualTurnContext = {
+        params: Promise.resolve({ projectId, sessionId }),
+      };
+      const manualTurnResponse = await createTurn(
+        manualTurnRequest,
+        manualTurnContext,
+      );
       expect(manualTurnResponse.status).toBe(200);
       const manualTurnData = await manualTurnResponse.json();
       const manualTurnId = manualTurnData.id;

@@ -313,8 +313,13 @@ describe("/api/projects/:projectId", () => {
         method: "POST",
         body: JSON.stringify({ title: "Test Session" }),
       });
-      const sessionContext = { params: Promise.resolve({ projectId: testProjectId }) };
-      const sessionResponse = await createSession(createSessionRequest, sessionContext);
+      const sessionContext = {
+        params: Promise.resolve({ projectId: testProjectId }),
+      };
+      const sessionResponse = await createSession(
+        createSessionRequest,
+        sessionContext,
+      );
       expect(sessionResponse.status).toBe(200);
 
       // 2. Create GitHub repo link (keep direct DB - no API available)

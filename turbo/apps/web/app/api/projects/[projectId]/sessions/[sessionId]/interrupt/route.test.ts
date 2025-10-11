@@ -50,7 +50,10 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
       body: JSON.stringify({ title: "Test Session for Interrupt" }),
     });
     const sessionContext = { params: Promise.resolve({ projectId }) };
-    const sessionResponse = await createSession(createSessionRequest, sessionContext);
+    const sessionResponse = await createSession(
+      createSessionRequest,
+      sessionContext,
+    );
     expect(sessionResponse.status).toBe(200);
     const sessionData = await sessionResponse.json();
     sessionId = sessionData.id;
@@ -254,12 +257,18 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
       createdTurnIds.push(runningTurn!.id);
 
       // Create another session with running turn using API
-      const createOtherSessionRequest = new NextRequest("http://localhost:3000", {
-        method: "POST",
-        body: JSON.stringify({ title: "Other Session" }),
-      });
+      const createOtherSessionRequest = new NextRequest(
+        "http://localhost:3000",
+        {
+          method: "POST",
+          body: JSON.stringify({ title: "Other Session" }),
+        },
+      );
       const otherSessionContext = { params: Promise.resolve({ projectId }) };
-      const otherSessionResponse = await createSession(createOtherSessionRequest, otherSessionContext);
+      const otherSessionResponse = await createSession(
+        createOtherSessionRequest,
+        otherSessionContext,
+      );
       expect(otherSessionResponse.status).toBe(200);
       const otherSessionData = await otherSessionResponse.json();
       const otherSessionId = otherSessionData.id;

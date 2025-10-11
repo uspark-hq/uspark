@@ -239,10 +239,9 @@ describe("DELETE /api/shares/[id]", () => {
       .where(eq(SHARE_LINKS_TBL.userId, userId));
 
     expect(remainingShares).toHaveLength(2);
-    expect(remainingShares.map((s) => s.id).sort()).toEqual([
-      share1Data.id,
-      share3Data.id,
-    ].sort());
+    expect(remainingShares.map((s) => s.id).sort()).toEqual(
+      [share1Data.id, share3Data.id].sort(),
+    );
 
     // Clean up
     await globalThis.services.db
