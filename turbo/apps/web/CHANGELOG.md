@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.38.2](https://github.com/uspark-hq/uspark/compare/web-v0.38.1...web-v0.38.2) (2025-10-11)
+
+
+### Bug Fixes
+
+* **e2b:** fix workspace directory permissions and execution context ([#474](https://github.com/uspark-hq/uspark/issues/474)) ([1ca2e99](https://github.com/uspark-hq/uspark/commit/1ca2e99cc88d78ff9c518189c1739c8ba5b5661a))
+
 ## [0.38.1](https://github.com/uspark-hq/uspark/compare/web-v0.38.0...web-v0.38.1) (2025-10-11)
 
 
