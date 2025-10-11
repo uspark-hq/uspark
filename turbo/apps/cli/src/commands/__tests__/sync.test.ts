@@ -23,6 +23,8 @@ describe("sync commands", () => {
   let tempDir: string;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
+
     // Create temporary directory for real file system operations
     tempDir = await fs.mkdtemp(path.join(tmpdir(), "uspark-test-"));
     process.chdir(tempDir);

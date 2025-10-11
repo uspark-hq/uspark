@@ -20,6 +20,8 @@ describe("POST /api/github/disconnect", () => {
   const testUserId = `test-user-gh-disconnect-${Date.now()}-${process.pid}`;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
+
     // Each test gets a fresh database, so no cleanup needed
     initServices();
 
