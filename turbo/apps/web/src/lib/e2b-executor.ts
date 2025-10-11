@@ -116,19 +116,31 @@ export class E2BExecutor {
     // Check if we're in development mode
     const isDevelopment = process.env.NODE_ENV === "development";
 
-    // Get sandbox token based on environment
+    // Get sandbox token and effective project ID based on environment
     let sandboxToken: string;
+    let effectiveProjectId: string;
+
     if (isDevelopment) {
       const devToken = env().USPARK_TOKEN_FOR_DEV;
+      const devProjectId = env().PROJECT_ID_FOR_DEV;
+
       if (!devToken) {
         throw new Error(
           "USPARK_TOKEN_FOR_DEV environment variable is required in development mode",
         );
       }
+      if (!devProjectId) {
+        throw new Error(
+          "PROJECT_ID_FOR_DEV environment variable is required in development mode",
+        );
+      }
+
       sandboxToken = devToken;
-      console.log("Using development USPARK_TOKEN for sandbox");
+      effectiveProjectId = devProjectId;
+      console.log("Using development USPARK_TOKEN and PROJECT_ID for sandbox");
     } else {
       sandboxToken = await this.generateSandboxToken(userId, sessionId);
+      effectiveProjectId = projectId;
       console.log(`Generated sandbox CLI token for session ${sessionId}`);
     }
 
@@ -136,11 +148,11 @@ export class E2BExecutor {
       timeoutMs: this.SANDBOX_TIMEOUT * 1000,
       metadata: {
         sessionId,
-        projectId,
+        projectId: effectiveProjectId,
         userId,
       } as Record<string, string>,
       envs: {
-        PROJECT_ID: projectId,
+        PROJECT_ID: effectiveProjectId,
         USPARK_TOKEN: sandboxToken,
         CLAUDE_CODE_OAUTH_TOKEN: claudeToken,
       },
@@ -151,13 +163,14 @@ export class E2BExecutor {
     );
 
     // Initialize sandbox (pull project files)
-    await this.initializeSandbox(sandbox, projectId);
+    await this.initializeSandbox(sandbox, effectiveProjectId);
 
     return sandbox;
   }
 
   /**
    * Initialize sandbox with project files
+   * @param projectId - The effective project ID (already resolved for dev/prod)
    */
   private static async initializeSandbox(
     sandbox: Sandbox,
@@ -165,30 +178,9 @@ export class E2BExecutor {
   ): Promise<void> {
     console.log(`Initializing sandbox for project ${projectId}`);
 
-    // Check if we're in development mode
-    const isDevelopment = process.env.NODE_ENV === "development";
-
-    // In development, use the dev project ID
-    let effectiveProjectId: string;
-    if (isDevelopment) {
-      const devProjectId = env().PROJECT_ID_FOR_DEV;
-      if (!devProjectId) {
-        throw new Error(
-          "PROJECT_ID_FOR_DEV environment variable is required in development mode",
-        );
-      }
-      effectiveProjectId = devProjectId;
-    } else {
-      effectiveProjectId = projectId;
-    }
-
-    console.log(
-      `Environment: ${isDevelopment ? "development" : "production"}, Project: ${effectiveProjectId}`,
-    );
-
     // Pull all project files using uspark CLI
     const result = await sandbox.commands.run(
-      `uspark pull --all --project-id ${effectiveProjectId} --verbose`,
+      `uspark pull --all --project-id ${projectId} --verbose`,
     );
 
     // Always log the output for debugging
@@ -202,7 +194,7 @@ export class E2BExecutor {
         exitCode: result.exitCode,
         stdout: result.stdout,
         stderr: result.stderr,
-        projectId: effectiveProjectId,
+        projectId,
       };
       console.error("Failed to initialize sandbox:", errorDetails);
       throw new Error(
