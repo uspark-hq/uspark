@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.39.0](https://github.com/uspark-hq/uspark/compare/web-v0.38.4...web-v0.39.0) (2025-10-11)
+
+
+### Features
+
+* implement github repository initial scan ([#483](https://github.com/uspark-hq/uspark/issues/483)) ([ea34603](https://github.com/uspark-hq/uspark/commit/ea34603b63886a321487ccaef86ecb54dcc4d622))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.15.0
+
 ## [0.38.4](https://github.com/uspark-hq/uspark/compare/web-v0.38.3...web-v0.38.4) (2025-10-11)
 
 
