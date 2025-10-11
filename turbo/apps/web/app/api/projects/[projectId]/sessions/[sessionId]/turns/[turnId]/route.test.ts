@@ -3,6 +3,8 @@ import "../../../../../../../../src/test/setup";
 import { NextRequest } from "next/server";
 import { GET } from "./route";
 import { POST as createTurn } from "../route";
+import { POST as createProject } from "../../../../../route";
+import { POST as createSession } from "../../../route";
 import { initServices } from "../../../../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../../../../src/db/schema/projects";
 import {
@@ -11,7 +13,6 @@ import {
   BLOCKS_TBL,
 } from "../../../../../../../../src/db/schema/sessions";
 import { eq } from "drizzle-orm";
-import * as Y from "yjs";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -22,8 +23,8 @@ import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 
 describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
-  const projectId = `turn_detail-${Date.now()}`;
-  const sessionId = `sess_turn_detail_${Date.now()}`;
+  let projectId: string;
+  let sessionId: string;
   let turnId: string;
   const userId = `test-user-turn-detail-${Date.now()}-${process.pid}`;
   let createdBlockIds: string[] = [];
@@ -36,41 +37,28 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
     // Initialize services
     initServices();
 
-    // Clean up any existing test data in correct order (child tables first)
-    await globalThis.services.db
-      .delete(BLOCKS_TBL)
-      .where(eq(BLOCKS_TBL.turnId, turnId));
-    await globalThis.services.db
-      .delete(TURNS_TBL)
-      .where(eq(TURNS_TBL.sessionId, sessionId));
-    await globalThis.services.db
-      .delete(SESSIONS_TBL)
-      .where(eq(SESSIONS_TBL.projectId, projectId));
-    await globalThis.services.db
-      .delete(PROJECTS_TBL)
-      .where(eq(PROJECTS_TBL.id, projectId));
-
-    // Create test project directly with desired ID
-    const ydoc = new Y.Doc();
-    const ydocData = Buffer.from(Y.encodeStateAsUpdate(ydoc)).toString(
-      "base64",
-    );
-
-    await globalThis.services.db.insert(PROJECTS_TBL).values({
-      id: projectId,
-      userId,
-      ydocData,
-      version: 0,
+    // Create test project using API
+    const createProjectRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: "Test Project for Turn Detail" }),
     });
+    const projectResponse = await createProject(createProjectRequest);
+    expect(projectResponse.status).toBe(201);
+    const projectData = await projectResponse.json();
+    projectId = projectData.id;
 
-    // Create test session directly with desired ID
-    await globalThis.services.db.insert(SESSIONS_TBL).values({
-      id: sessionId,
-      projectId,
-      title: "Test Session",
+    // Create test session using API
+    const createSessionRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ title: "Test Session" }),
     });
+    const sessionContext = { params: Promise.resolve({ projectId }) };
+    const sessionResponse = await createSession(createSessionRequest, sessionContext);
+    expect(sessionResponse.status).toBe(200);
+    const sessionData = await sessionResponse.json();
+    sessionId = sessionData.id;
 
-    // Create test turn using API (this can use the API since we don't need to change its ID)
+    // Create test turn using API
     const createTurnRequest = new NextRequest("http://localhost:3000", {
       method: "POST",
       body: JSON.stringify({ user_message: "Test prompt" }),
@@ -129,14 +117,16 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
     });
 
     it("should return turn details with blocks in sequence order", async () => {
-      // Create a new turn directly without triggering mock executor
-      const manualTurnId = `turn_manual_${Date.now()}`;
-      await globalThis.services.db.insert(TURNS_TBL).values({
-        id: manualTurnId,
-        sessionId,
-        userPrompt: "Manual test prompt",
-        status: "completed",
+      // Create a new turn using API
+      const manualTurnRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ user_message: "Manual test prompt" }),
       });
+      const manualTurnContext = { params: Promise.resolve({ projectId, sessionId }) };
+      const manualTurnResponse = await createTurn(manualTurnRequest, manualTurnContext);
+      expect(manualTurnResponse.status).toBe(200);
+      const manualTurnData = await manualTurnResponse.json();
+      const manualTurnId = manualTurnData.id;
 
       // Create blocks for this manual turn
       const [block1] = await globalThis.services.db

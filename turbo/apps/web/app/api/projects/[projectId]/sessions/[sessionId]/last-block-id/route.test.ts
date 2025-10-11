@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
 import "../../../../../../../src/test/setup";
 import { NextRequest } from "next/server";
 import { GET } from "./route";
+import { POST as createProject } from "../../../../route";
+import { POST as createSession } from "../../route";
 import { initServices } from "../../../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
 import {
@@ -10,7 +12,6 @@ import {
   BLOCKS_TBL,
 } from "../../../../../../../src/db/schema/sessions";
 import { eq } from "drizzle-orm";
-import * as Y from "yjs";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -21,8 +22,8 @@ import { auth } from "@clerk/nextjs/server";
 const mockAuth = vi.mocked(auth);
 
 describe("/api/projects/:projectId/sessions/:sessionId/last-block-id", () => {
-  const projectId = `lastblock-${Date.now()}`;
-  const sessionId = `sess_lastblock_${Date.now()}`;
+  let projectId: string;
+  let sessionId: string;
   const userId = `test-user-lastblock-${Date.now()}-${process.pid}`;
   let createdTurnIds: string[] = [];
   let createdBlockIds: string[] = [];
@@ -35,29 +36,26 @@ describe("/api/projects/:projectId/sessions/:sessionId/last-block-id", () => {
     // Initialize services
     initServices();
 
-    // Clean up any existing test data
-    await globalThis.services.db
-      .delete(PROJECTS_TBL)
-      .where(eq(PROJECTS_TBL.id, projectId));
-
-    // Create test project
-    const ydoc = new Y.Doc();
-    const state = Y.encodeStateAsUpdate(ydoc);
-    const base64Data = Buffer.from(state).toString("base64");
-
-    await globalThis.services.db.insert(PROJECTS_TBL).values({
-      id: projectId,
-      userId,
-      ydocData: base64Data,
-      version: 0,
+    // Create test project using API
+    const createProjectRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: "Test Project for Last Block ID" }),
     });
+    const projectResponse = await createProject(createProjectRequest);
+    expect(projectResponse.status).toBe(201);
+    const projectData = await projectResponse.json();
+    projectId = projectData.id;
 
-    // Create test session
-    await globalThis.services.db.insert(SESSIONS_TBL).values({
-      id: sessionId,
-      projectId,
-      title: "Test Session for Last Block ID",
+    // Create test session using API
+    const createSessionRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ title: "Test Session for Last Block ID" }),
     });
+    const sessionContext = { params: Promise.resolve({ projectId }) };
+    const sessionResponse = await createSession(createSessionRequest, sessionContext);
+    expect(sessionResponse.status).toBe(200);
+    const sessionData = await sessionResponse.json();
+    sessionId = sessionData.id;
 
     createdTurnIds = [];
     createdBlockIds = [];
