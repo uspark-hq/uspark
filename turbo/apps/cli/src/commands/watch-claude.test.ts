@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Readable } from "stream";
+import { http, HttpResponse } from "msw";
+import { server } from "../test/setup";
 
 // Mock the shared module
 vi.mock("./shared", () => ({
@@ -18,23 +20,26 @@ vi.mock("chalk", () => ({
   },
 }));
 
-// Mock global fetch
-global.fetch = vi.fn();
-
 describe("watch-claude", () => {
   let mockStdin: Readable;
-  const mockFetch = vi.mocked(global.fetch);
+  let stdoutCallbackSpy: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     vi.clearAllMocks();
     // Mock process.exit to prevent actual exit and Vitest errors
     vi.spyOn(process, "exit").mockImplementation(() => undefined as never);
-    // Mock fetch to return success
-    mockFetch.mockResolvedValue({
-      ok: true,
-      status: 200,
-      json: async () => ({ ok: true }),
-    } as Response);
+
+    // Set up MSW handler for stdout callback API
+    stdoutCallbackSpy = vi.fn();
+    server.use(
+      http.post(
+        "https://www.uspark.ai/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-stdout",
+        async ({ request }) => {
+          stdoutCallbackSpy(await request.json());
+          return HttpResponse.json({ ok: true });
+        },
+      ),
+    );
   });
 
   it("should detect Write tool_use and sync after tool_result", async () => {
@@ -109,12 +114,13 @@ describe("watch-claude", () => {
       sessionId: "sess_test",
     });
 
-    // Wait for syncFile to be called
+    // Wait for both syncFile and stdout callback to be called
     // Readable.from sends data asynchronously, so we need to wait for
-    // the readline to process events and trigger the sync operation
+    // the readline to process events and trigger both sync and callback operations
     await vi.waitFor(
       () => {
         expect(syncFile).toHaveBeenCalled();
+        expect(stdoutCallbackSpy).toHaveBeenCalled();
       },
       {
         timeout: 1000,
@@ -139,18 +145,14 @@ describe("watch-claude", () => {
       "spec/test-time.md", // Should be relative path
     );
 
-    // Verify fetch was called to send stdout callbacks
-    expect(mockFetch).toHaveBeenCalled();
-    expect(mockFetch).toHaveBeenCalledWith(
-      "https://www.uspark.ai/api/projects/test-project-id/sessions/sess_test/turns/turn_test/on-claude-stdout",
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          "Content-Type": "application/json",
-          Authorization: "Bearer test-token",
-        }),
-      }),
-    );
+    // Verify stdout callback was called with both event lines
+    expect(stdoutCallbackSpy).toHaveBeenCalledTimes(2);
+    expect(stdoutCallbackSpy).toHaveBeenCalledWith({
+      line: events[0],
+    });
+    expect(stdoutCallbackSpy).toHaveBeenCalledWith({
+      line: events[1],
+    });
   });
 
   it("should handle tool_use without matching tool_result", async () => {
