@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.37.1](https://github.com/uspark-hq/uspark/compare/web-v0.37.0...web-v0.37.1) (2025-10-11)
+
+
+### Bug Fixes
+
+* **cli,web:** improve E2B reliability and token management ([#468](https://github.com/uspark-hq/uspark/issues/468)) ([5ff2da6](https://github.com/uspark-hq/uspark/commit/5ff2da639637e22909e5e115688dae38f283a6ec))
+
 ## [0.37.0](https://github.com/uspark-hq/uspark/compare/web-v0.36.1...web-v0.37.0) (2025-10-10)
 
 

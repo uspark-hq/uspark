@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.3](https://github.com/uspark-hq/uspark/compare/cli-v0.11.2...cli-v0.11.3) (2025-10-11)
+
+
+### Bug Fixes
+
+* **cli,web:** improve E2B reliability and token management ([#468](https://github.com/uspark-hq/uspark/issues/468)) ([5ff2da6](https://github.com/uspark-hq/uspark/commit/5ff2da639637e22909e5e115688dae38f283a6ec))
+
 ## [0.11.2](https://github.com/uspark-hq/uspark/compare/cli-v0.11.1...cli-v0.11.2) (2025-10-09)
 
 
