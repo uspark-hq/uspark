@@ -87,7 +87,14 @@ export async function watchClaudeCommand(options: {
     console.log(line);
 
     // Parse JSON line - all input should be valid JSON from Claude CLI
-    const event: ClaudeEvent = JSON.parse(line);
+    let event: ClaudeEvent;
+    try {
+      event = JSON.parse(line);
+    } catch {
+      // Skip non-JSON lines silently (e.g., debug output, warnings)
+      // Don't send to callback API if not valid JSON
+      return;
+    }
 
     // Send stdout line to callback API (non-blocking)
     sendStdoutCallback(context, options, line).catch((error) => {
@@ -192,19 +199,27 @@ async function sendStdoutCallback(
   options: { projectId: string; turnId: string; sessionId: string },
   line: string,
 ): Promise<void> {
-  const response = await fetch(
-    `${context.apiUrl}/api/projects/${options.projectId}/sessions/${options.sessionId}/turns/${options.turnId}/on-claude-stdout`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${context.token}`,
-      },
-      body: JSON.stringify({ line }),
-    },
-  );
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 10000); // 10 second timeout
 
-  if (!response.ok) {
-    throw new Error(`API returned ${response.status}: ${response.statusText}`);
+  try {
+    const response = await fetch(
+      `${context.apiUrl}/api/projects/${options.projectId}/sessions/${options.sessionId}/turns/${options.turnId}/on-claude-stdout`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${context.token}`,
+        },
+        body: JSON.stringify({ line }),
+        signal: controller.signal,
+      },
+    );
+
+    if (!response.ok) {
+      throw new Error(`API returned ${response.status}: ${response.statusText}`);
+    }
+  } finally {
+    clearTimeout(timeout);
   }
 }
