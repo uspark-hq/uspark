@@ -107,4 +107,22 @@ export class InitialScanExecutor {
       `Initial scan ${success ? "completed" : "failed"} for project ${projectId}`,
     );
   }
+
+  /**
+   * Mark scan as failed without requiring sessionId match
+   * Used when scan fails during startup before session is fully initialized
+   */
+  static async markScanFailed(projectId: string): Promise<void> {
+    initServices();
+    const db = globalThis.services.db;
+
+    await db
+      .update(PROJECTS_TBL)
+      .set({
+        initialScanStatus: "failed",
+      })
+      .where(eq(PROJECTS_TBL.id, projectId));
+
+    console.log(`Initial scan startup failed for project ${projectId}`);
+  }
 }

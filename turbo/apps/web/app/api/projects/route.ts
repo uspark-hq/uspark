@@ -128,13 +128,37 @@ export async function POST(request: NextRequest) {
 
   // Trigger initial scan if source repo is provided
   if (sourceRepoUrl && installationId) {
-    // Start scan (wait for startup, but not completion)
-    await InitialScanExecutor.startScan(
-      projectId,
-      sourceRepoUrl,
-      installationId,
-      userId,
-    );
+    try {
+      // Start scan and capture sessionId
+      await InitialScanExecutor.startScan(
+        projectId,
+        sourceRepoUrl,
+        installationId,
+        userId,
+      );
+    } catch (error) {
+      // Scan startup failed - need to mark it as failed
+      console.error(`Initial scan failed for project ${projectId}:`, error);
+
+      // Check if a session was created before failure
+      const [project] = await globalThis.services.db
+        .select({ initialScanSessionId: PROJECTS_TBL.initialScanSessionId })
+        .from(PROJECTS_TBL)
+        .where(eq(PROJECTS_TBL.id, projectId))
+        .limit(1);
+
+      const sessionId = project?.initialScanSessionId;
+
+      if (sessionId) {
+        // Session was created, use proper completion flow
+        await InitialScanExecutor.onScanComplete(projectId, sessionId, false);
+      } else {
+        // Session wasn't created, just mark project as failed
+        await InitialScanExecutor.markScanFailed(projectId);
+      }
+
+      // Don't throw - let project creation succeed even if scan fails
+    }
   }
 
   // Convert date to ISO string for schema validation

@@ -167,6 +167,40 @@ describe("InitialScanExecutor", () => {
         ),
       ).rejects.toThrow("Invalid repository URL format");
     });
+
+    it("should throw error when GitHub token retrieval fails", async () => {
+      // Create project first
+      const db = globalThis.services.db;
+      await db.insert(PROJECTS_TBL).values({
+        id: testProjectId,
+        userId: testUserId,
+        ydocData: "test-data",
+        version: 0,
+      });
+
+      // Mock token failure
+      vi.mocked(getInstallationToken).mockRejectedValue(
+        new Error("Invalid installation"),
+      );
+
+      await expect(
+        InitialScanExecutor.startScan(
+          testProjectId,
+          testSourceRepoUrl,
+          testInstallationId,
+          testUserId,
+        ),
+      ).rejects.toThrow("Invalid installation");
+
+      // Verify session was created (so sessionId exists for error recovery)
+      const [project] = await db
+        .select()
+        .from(PROJECTS_TBL)
+        .where(eq(PROJECTS_TBL.id, testProjectId));
+
+      expect(project?.initialScanSessionId).toMatch(/^sess_/);
+      expect(project?.initialScanStatus).toBe("running");
+    });
   });
 
   describe("onScanComplete", () => {
@@ -264,6 +298,31 @@ describe("InitialScanExecutor", () => {
 
       // Clean up
       await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.id, projectId2));
+    });
+  });
+
+  describe("markScanFailed", () => {
+    it("should mark scan as failed without requiring sessionId", async () => {
+      const db = globalThis.services.db;
+
+      // Create project without session (startup failure scenario)
+      await db.insert(PROJECTS_TBL).values({
+        id: testProjectId,
+        userId: testUserId,
+        ydocData: "test-data",
+        version: 0,
+        initialScanStatus: "pending",
+      });
+
+      await InitialScanExecutor.markScanFailed(testProjectId);
+
+      // Verify status updated
+      const projects = await db
+        .select()
+        .from(PROJECTS_TBL)
+        .where(eq(PROJECTS_TBL.id, testProjectId));
+
+      expect(projects[0]?.initialScanStatus).toBe("failed");
     });
   });
 });

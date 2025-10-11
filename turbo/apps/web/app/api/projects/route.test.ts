@@ -21,6 +21,8 @@ vi.mock("../../../src/lib/github/repository", () => ({
 vi.mock("../../../src/lib/initial-scan-executor", () => ({
   InitialScanExecutor: {
     startScan: vi.fn(),
+    onScanComplete: vi.fn(),
+    markScanFailed: vi.fn(),
   },
 }));
 
@@ -31,6 +33,8 @@ import { InitialScanExecutor } from "../../../src/lib/initial-scan-executor";
 const mockAuth = vi.mocked(auth);
 const mockHasInstallationAccess = vi.mocked(hasInstallationAccess);
 const mockStartScan = vi.mocked(InitialScanExecutor.startScan);
+const mockOnScanComplete = vi.mocked(InitialScanExecutor.onScanComplete);
+const mockMarkScanFailed = vi.mocked(InitialScanExecutor.markScanFailed);
 
 describe("/api/projects", () => {
   const userId = `test-user-projects-${Date.now()}-${process.pid}`;
@@ -288,6 +292,52 @@ describe("/api/projects", () => {
       // Should not trigger installation check or scan when params incomplete
       expect(mockHasInstallationAccess).not.toHaveBeenCalled();
       expect(mockStartScan).not.toHaveBeenCalled();
+    });
+
+    it("should create project successfully even when scan startup fails", async () => {
+      const projectName = `test-project-scan-fail-${Date.now()}`;
+      const sourceRepoUrl = "owner/repo";
+      const installationId = 12345;
+
+      // Mock installation access
+      mockHasInstallationAccess.mockResolvedValue(true);
+
+      // Mock scan startup failure
+      mockStartScan.mockRejectedValue(new Error("Scan startup failed"));
+
+      // Mock error recovery methods
+      mockMarkScanFailed.mockResolvedValue();
+
+      const response = await apiCall(
+        POST,
+        "POST",
+        {},
+        {
+          name: projectName,
+          sourceRepoUrl,
+          installationId,
+        },
+      );
+
+      // Project should still be created successfully
+      expect(response.status).toBe(201);
+      expect(response.data).toHaveProperty("id");
+      createdProjectIds.push(response.data.id);
+
+      // Verify scan was attempted
+      expect(mockStartScan).toHaveBeenCalledWith(
+        response.data.id,
+        sourceRepoUrl,
+        installationId,
+        userId,
+      );
+
+      // Verify error recovery was triggered
+      // (Either markScanFailed or onScanComplete should be called)
+      expect(
+        mockMarkScanFailed.mock.calls.length +
+          mockOnScanComplete.mock.calls.length,
+      ).toBeGreaterThan(0);
     });
   });
 });
