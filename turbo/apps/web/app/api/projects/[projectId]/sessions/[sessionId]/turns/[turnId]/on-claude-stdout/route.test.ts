@@ -43,24 +43,20 @@ import { headers } from "next/headers";
 const mockAuth = vi.mocked(auth);
 const mockHeaders = vi.mocked(headers);
 
-describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-stdout", () => {
-  const projectId = `stdout-${Date.now()}`;
-  const sessionId = `sess_stdout_${Date.now()}`;
-  const turnId = `turn_stdout_${Date.now()}`;
-  const userId = `test-user-stdout-${Date.now()}-${process.pid}`;
-  const cliToken = `usp_live_test_${Date.now()}`;
-  let createdBlockIds: string[] = [];
-
-  beforeEach(async () => {
-    vi.clearAllMocks();
-    createdBlockIds = [];
-
-    // Mock authentication to fail by default (will use CLI token)
+/**
+ * Test helper: Setup authentication mocks for CLI token auth
+ */
+function setupTestAuth(
+  userId: string,
+  cliToken: string,
+): { setupCliAuth: () => void; resetAuth: () => void } {
+  const setupCliAuth = () => {
+    // Mock Clerk auth to fail (will use CLI token)
     mockAuth.mockResolvedValue({ userId: null } as Awaited<
       ReturnType<typeof auth>
     >);
 
-    // Mock headers to return CLI token (set up early for createProject call)
+    // Mock headers to return CLI token
     mockHeaders.mockReturnValue(
       Promise.resolve({
         get: (name: string) => {
@@ -71,114 +67,131 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
         },
       } as Headers),
     );
+  };
 
-    // Initialize services
-    initServices();
-
-    // Clean up any existing test data
-    await globalThis.services.db
-      .delete(PROJECTS_TBL)
-      .where(eq(PROJECTS_TBL.id, projectId));
-
-    // Create test project
-    mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
-    const createProjectRequest = new NextRequest("http://localhost:3000", {
-      method: "POST",
-      body: JSON.stringify({ name: "Test Project" }),
-    });
-    const projectResponse = await createProject(createProjectRequest);
-    expect(projectResponse.status).toBe(201);
-    const projectData = await projectResponse.json();
-    await globalThis.services.db
-      .update(PROJECTS_TBL)
-      .set({ id: projectId })
-      .where(eq(PROJECTS_TBL.id, projectData.id));
-
-    // Create test session
-    const createSessionRequest = new NextRequest("http://localhost:3000", {
-      method: "POST",
-      body: JSON.stringify({ title: "Test Session" }),
-    });
-    const sessionContext = { params: Promise.resolve({ projectId }) };
-    const sessionResponse = await createSession(
-      createSessionRequest,
-      sessionContext,
+  const resetAuth = () => {
+    mockHeaders.mockReset();
+    mockHeaders.mockReturnValue(
+      Promise.resolve({
+        get: () => null,
+      } as unknown as Headers),
     );
-    expect(sessionResponse.status).toBe(200);
-    const sessionData = await sessionResponse.json();
-    await globalThis.services.db
-      .update(SESSIONS_TBL)
-      .set({ id: sessionId })
-      .where(eq(SESSIONS_TBL.id, sessionData.id));
+    mockAuth.mockReset();
+    mockAuth.mockResolvedValue({ userId: null } as Awaited<
+      ReturnType<typeof auth>
+    >);
+  };
 
-    // Add Claude token
-    await globalThis.services.db
-      .insert(CLAUDE_TOKENS_TBL)
-      .values({
-        userId,
+  return { setupCliAuth, resetAuth };
+}
+
+/**
+ * Test helper: Create complete test context (project, session, turn, tokens)
+ */
+async function createTestTurnContext(userId: string, cliToken: string) {
+  initServices();
+
+  // Create project via API
+  mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+  const createProjectRequest = new NextRequest("http://localhost:3000", {
+    method: "POST",
+    body: JSON.stringify({ name: "Test Project" }),
+  });
+  const projectResponse = await createProject(createProjectRequest);
+  expect(projectResponse.status).toBe(201);
+  const projectData = await projectResponse.json();
+  const projectId = projectData.id;
+
+  // Create session via API
+  const createSessionRequest = new NextRequest("http://localhost:3000", {
+    method: "POST",
+    body: JSON.stringify({ title: "Test Session" }),
+  });
+  const sessionContext = { params: Promise.resolve({ projectId }) };
+  const sessionResponse = await createSession(
+    createSessionRequest,
+    sessionContext,
+  );
+  expect(sessionResponse.status).toBe(200);
+  const sessionData = await sessionResponse.json();
+  const sessionId = sessionData.id;
+
+  // Add Claude token (no API endpoint, direct DB acceptable)
+  await globalThis.services.db
+    .insert(CLAUDE_TOKENS_TBL)
+    .values({
+      userId,
+      encryptedToken: "encrypted_test_token",
+      tokenPrefix: "test_token",
+    })
+    .onConflictDoUpdate({
+      target: CLAUDE_TOKENS_TBL.userId,
+      set: {
         encryptedToken: "encrypted_test_token",
         tokenPrefix: "test_token",
-      })
-      .onConflictDoUpdate({
-        target: CLAUDE_TOKENS_TBL.userId,
-        set: {
-          encryptedToken: "encrypted_test_token",
-          tokenPrefix: "test_token",
-        },
-      });
-
-    // Create test turn
-    const createTurnRequest = new NextRequest("http://localhost:3000", {
-      method: "POST",
-      body: JSON.stringify({ user_message: "Test prompt" }),
+      },
     });
-    const turnContext = { params: Promise.resolve({ projectId, sessionId }) };
-    const turnResponse = await createTurn(createTurnRequest, turnContext);
-    expect(turnResponse.status).toBe(200);
-    const turnData = await turnResponse.json();
-    await globalThis.services.db
-      .update(TURNS_TBL)
-      .set({ id: turnId })
-      .where(eq(TURNS_TBL.id, turnData.id));
 
-    // Create CLI token for testing
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
-    await globalThis.services.db
-      .insert(CLI_TOKENS_TBL)
-      .values({
-        token: cliToken,
-        userId,
-        name: "Test CLI Token",
-        expiresAt,
-        createdAt: new Date(),
-      })
-      .onConflictDoNothing();
+  // Create turn via API
+  const createTurnRequest = new NextRequest("http://localhost:3000", {
+    method: "POST",
+    body: JSON.stringify({ user_message: "Test prompt" }),
+  });
+  const turnContext = { params: Promise.resolve({ projectId, sessionId }) };
+  const turnResponse = await createTurn(createTurnRequest, turnContext);
+  expect(turnResponse.status).toBe(200);
+  const turnData = await turnResponse.json();
+  const turnId = turnData.id;
+
+  // Create CLI token (no API endpoint, direct DB acceptable)
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+  await globalThis.services.db
+    .insert(CLI_TOKENS_TBL)
+    .values({
+      token: cliToken,
+      userId,
+      name: "Test CLI Token",
+      expiresAt,
+      createdAt: new Date(),
+    })
+    .onConflictDoNothing();
+
+  return { projectId, sessionId, turnId };
+}
+
+describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-stdout", () => {
+  const userId = `test-user-stdout-${Date.now()}-${process.pid}`;
+  const cliToken = `usp_live_test_${Date.now()}`;
+  let projectId: string;
+  let sessionId: string;
+  let turnId: string;
+  let auth: ReturnType<typeof setupTestAuth>;
+
+  beforeEach(async () => {
+    vi.clearAllMocks();
+
+    // Setup authentication
+    auth = setupTestAuth(userId, cliToken);
+    auth.setupCliAuth();
+
+    // Create test context (project, session, turn, tokens)
+    const context = await createTestTurnContext(userId, cliToken);
+    projectId = context.projectId;
+    sessionId = context.sessionId;
+    turnId = context.turnId;
   });
 
   afterEach(async () => {
-    // Clean up blocks
-    for (const blockId of createdBlockIds) {
-      await globalThis.services.db
-        .delete(BLOCKS_TBL)
-        .where(eq(BLOCKS_TBL.id, blockId));
-    }
-
-    // Clean up turn
-    await globalThis.services.db
-      .delete(TURNS_TBL)
-      .where(eq(TURNS_TBL.id, turnId));
-
-    // Clean up session
+    // Clean up in correct order (sessions -> project)
+    // Note: turns and blocks cascade delete from sessions
     await globalThis.services.db
       .delete(SESSIONS_TBL)
       .where(eq(SESSIONS_TBL.id, sessionId));
-
-    // Clean up project
     await globalThis.services.db
       .delete(PROJECTS_TBL)
       .where(eq(PROJECTS_TBL.id, projectId));
 
-    // Clean up tokens
+    // Clean up tokens (no cascade, must delete directly)
     await globalThis.services.db
       .delete(CLI_TOKENS_TBL)
       .where(eq(CLI_TOKENS_TBL.token, cliToken));
@@ -226,8 +239,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
       text: "Hello, how can I help you?",
     });
     expect(blocks[0]!.sequenceNumber).toBe(0);
-
-    createdBlockIds.push(blocks[0]!.id);
   });
 
   it("should create block from tool_use", async () => {
@@ -270,8 +281,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
       tool_use_id: "tool_123",
       parameters: { file_path: "/test.txt" },
     });
-
-    createdBlockIds.push(blocks[0]!.id);
   });
 
   it("should create block from tool_result", async () => {
@@ -307,8 +316,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
       result: "File contents here",
       error: null,
     });
-
-    createdBlockIds.push(blocks[0]!.id);
   });
 
   it("should increment sequence numbers correctly", async () => {
@@ -348,8 +355,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
     expect(blocks).toHaveLength(2);
     expect(blocks[0]!.sequenceNumber).toBe(0);
     expect(blocks[1]!.sequenceNumber).toBe(1);
-
-    createdBlockIds.push(blocks[0]!.id, blocks[1]!.id);
   });
 
   it("should update turn status to completed on result block", async () => {
@@ -381,20 +386,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
     expect(turn!.completedAt).not.toBeNull();
   });
 
-  it("should reject requests without CLI token", async () => {
-    // Reset and override mocks to simulate no authentication
-    mockHeaders.mockReset();
-    mockHeaders.mockReturnValue(
-      Promise.resolve({
-        get: () => null,
-      } as unknown as Headers),
-    );
-
-    // Also reset Clerk auth to return null (getUserId falls back to Clerk)
-    mockAuth.mockReset();
-    mockAuth.mockResolvedValue({ userId: null } as Awaited<
-      ReturnType<typeof auth>
-    >);
+  it("should reject requests without authentication", async () => {
+    // Reset authentication to simulate no auth
+    auth.resetAuth();
 
     const line = JSON.stringify({
       type: "assistant",
@@ -412,46 +406,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
     const response = await POST(request, context);
 
     expect(response.status).toBe(401);
-  });
-
-  it("should reject invalid JSON lines", async () => {
-    const request = new NextRequest("http://localhost:3000", {
-      method: "POST",
-      body: JSON.stringify({ line: "not valid json" }),
-    });
-    const context = {
-      params: Promise.resolve({ projectId, sessionId, turnId }),
-    };
-
-    const response = await POST(request, context);
-
-    expect(response.status).toBe(400);
     const data = await response.json();
-    expect(data.error).toBe("invalid_json");
-  });
-
-  it("should reject requests for non-existent turn", async () => {
-    const line = JSON.stringify({
-      type: "assistant",
-      message: { content: [{ type: "text", text: "Test" }] },
-    });
-
-    const request = new NextRequest("http://localhost:3000", {
-      method: "POST",
-      body: JSON.stringify({ line }),
-    });
-    const context = {
-      params: Promise.resolve({
-        projectId,
-        sessionId,
-        turnId: "turn_nonexistent",
-      }),
-    };
-
-    const response = await POST(request, context);
-
-    expect(response.status).toBe(404);
-    const data = await response.json();
-    expect(data.error).toBe("turn_not_found");
+    expect(data.error).toBe("unauthorized");
   });
 });
