@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.38.3](https://github.com/uspark-hq/uspark/compare/web-v0.38.2...web-v0.38.3) (2025-10-11)
+
+
+### Bug Fixes
+
+* **e2b:** use home directory workspace to avoid permission issues ([#476](https://github.com/uspark-hq/uspark/issues/476)) ([bf8328a](https://github.com/uspark-hq/uspark/commit/bf8328aaedd0ee0ace8c52997b249dcf008d946b))
+
 ## [0.38.2](https://github.com/uspark-hq/uspark/compare/web-v0.38.1...web-v0.38.2) (2025-10-11)
 
 
