@@ -193,6 +193,24 @@ async function saveBlock(
       // Skip unknown assistant content types
       return;
     }
+  } else if (blockData.type === "user") {
+    // User message with tool results
+    const message = blockData.message as {
+      content?: Array<Record<string, unknown>>;
+    };
+    const content = message?.content?.[0];
+
+    if (content?.type === "tool_result") {
+      blockType = "tool_result";
+      blockContent = {
+        tool_use_id: content.tool_use_id as string,
+        result: content.content,
+        error: content.is_error ? content.content : null,
+      };
+    } else {
+      // Skip unknown user content types
+      return;
+    }
   } else if (blockData.type === "tool_result") {
     // Tool execution result
     blockType = "tool_result";
