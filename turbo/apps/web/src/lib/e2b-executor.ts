@@ -180,7 +180,7 @@ export class E2BExecutor {
 
     // Pull all project files using uspark CLI
     const result = await sandbox.commands.run(
-      `uspark pull --all --project-id ${projectId} --verbose 2>&1 | tee /tmp/pull.log`,
+      `uspark pull --all --project-id "${projectId}" --verbose 2>&1 | tee /tmp/pull.log`,
     );
 
     // Always log the output for debugging
