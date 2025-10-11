@@ -23,6 +23,11 @@ function initEnv() {
       GH_APP_PRIVATE_KEY: z.string().min(1),
       GH_WEBHOOK_SECRET: z.string().min(1),
       CLAUDE_TOKEN_ENCRYPTION_KEY: z.string().length(64).optional(), // 32 bytes as hex = 64 chars
+      // E2B development environment variables (optional, for local testing only)
+      USPARK_TOKEN_FOR_DEV: z.string().optional(),
+      PROJECT_ID_FOR_DEV: z.string().uuid().optional(),
+      TURN_ID_FOR_DEV: z.string().startsWith("turn_").optional(),
+      SESSION_ID_FOR_DEV: z.string().startsWith("sess_").optional(),
     },
     client: {
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: z.string().min(1),
@@ -49,6 +54,10 @@ function initEnv() {
       CLAUDE_TOKEN_ENCRYPTION_KEY: isTest
         ? "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
         : process.env.CLAUDE_TOKEN_ENCRYPTION_KEY,
+      USPARK_TOKEN_FOR_DEV: process.env.USPARK_TOKEN_FOR_DEV,
+      PROJECT_ID_FOR_DEV: process.env.PROJECT_ID_FOR_DEV,
+      TURN_ID_FOR_DEV: process.env.TURN_ID_FOR_DEV,
+      SESSION_ID_FOR_DEV: process.env.SESSION_ID_FOR_DEV,
       NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: isTest
         ? "pk_test_mock_instance.clerk.accounts.dev$"
         : process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY,
