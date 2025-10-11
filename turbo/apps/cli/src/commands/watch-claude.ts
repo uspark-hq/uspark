@@ -217,7 +217,9 @@ async function sendStdoutCallback(
     );
 
     if (!response.ok) {
-      throw new Error(`API returned ${response.status}: ${response.statusText}`);
+      throw new Error(
+        `API returned ${response.status}: ${response.statusText}`,
+      );
     }
   } finally {
     clearTimeout(timeout);
