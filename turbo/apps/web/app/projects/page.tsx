@@ -2,6 +2,15 @@
 
 import { useState, useEffect } from "react";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  Badge,
   Button,
   Card,
   CardContent,
@@ -14,7 +23,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  Input,
+  Skeleton,
 } from "@uspark/ui";
+import { Trash2, FolderOpen, Plus } from "lucide-react";
 
 import type { Project } from "@uspark/core";
 import {
@@ -38,6 +50,8 @@ export default function ProjectsListPage() {
     repo: Repository;
     installationId: number;
   } | null>(null);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Navigate to project in app subdomain (workspace)
   const navigateToProject = (projectId: string) => {
@@ -122,9 +136,13 @@ export default function ProjectsListPage() {
     }
   };
 
-  const handleDeleteProject = async (project: Project) => {
+  const handleDeleteProject = async () => {
+    if (!projectToDelete) return;
+
+    setDeleting(true);
+
     try {
-      const response = await fetch(`/api/projects/${project.id}`, {
+      const response = await fetch(`/api/projects/${projectToDelete.id}`, {
         method: "DELETE",
       });
 
@@ -133,18 +151,13 @@ export default function ProjectsListPage() {
       }
 
       // Remove from projects list
-      setProjects((prev) => prev.filter((p) => p.id !== project.id));
+      setProjects((prev) => prev.filter((p) => p.id !== projectToDelete.id));
+      setProjectToDelete(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to delete project");
+    } finally {
+      setDeleting(false);
     }
-  };
-
-  const formatFileSize = (bytes: number): string => {
-    if (bytes === 0) return "0 B";
-    const k = 1024;
-    const sizes = ["B", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
   };
 
   const formatDate = (dateStr: string): string => {
@@ -164,75 +177,77 @@ export default function ProjectsListPage() {
     return date.toLocaleDateString();
   };
 
+  // Get project color based on ID
+  const getProjectColor = (projectId: string) => {
+    const colors = [
+      "bg-blue-500",
+      "bg-purple-500",
+      "bg-green-500",
+      "bg-orange-500",
+      "bg-pink-500",
+      "bg-teal-500",
+    ];
+    const hash = projectId.split("").reduce((acc, char) => {
+      return char.charCodeAt(0) + ((acc << 5) - acc);
+    }, 0);
+    return colors[Math.abs(hash) % colors.length];
+  };
+
   if (loading) {
     return (
-      <div
-        style={{
-          height: "100vh",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          fontFamily: "system-ui, -apple-system, sans-serif",
-          color: "rgba(156, 163, 175, 0.7)",
-        }}
-      >
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "32px", marginBottom: "16px" }}>📁</div>
-          <div>Loading your projects...</div>
-        </div>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+
+        <header className="border-b px-6 py-8">
+          <div className="mx-auto max-w-7xl">
+            <Skeleton className="mb-2 h-10 w-64" />
+            <Skeleton className="h-5 w-96" />
+          </div>
+        </header>
+
+        <main className="mx-auto max-w-7xl px-6 py-8">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <div className="flex items-start gap-4">
+                    <Skeleton className="h-12 w-12 rounded-lg" />
+                    <div className="flex-1 space-y-2">
+                      <Skeleton className="h-6 w-32" />
+                      <Skeleton className="h-4 w-24" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-full" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </main>
       </div>
     );
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        fontFamily: "system-ui, -apple-system, sans-serif",
-        backgroundColor: "var(--background)",
-        color: "var(--foreground)",
-      }}
-    >
+    <div className="min-h-screen bg-background">
       <Navigation />
 
       {/* Header */}
-      <header
-        style={{
-          padding: "32px 24px",
-          borderBottom: "1px solid rgba(156, 163, 175, 0.2)",
-        }}
-      >
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-            }}
-          >
+      <header className="border-b px-6 py-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="flex items-center justify-between">
             <div>
-              <h1
-                style={{
-                  fontSize: "32px",
-                  fontWeight: "700",
-                  margin: "0 0 8px 0",
-                }}
-              >
+              <h1 className="mb-2 text-4xl font-bold tracking-tight">
                 Your Projects
               </h1>
-              <p
-                style={{
-                  fontSize: "16px",
-                  color: "rgba(156, 163, 175, 0.8)",
-                  margin: 0,
-                }}
-              >
+              <p className="text-base text-muted-foreground">
                 Manage and collaborate on your projects with Claude Code
               </p>
             </div>
 
             <Button onClick={() => setShowCreateDialog(true)} size="lg">
-              <span>+</span>
+              <Plus className="h-5 w-5" />
               New Project
             </Button>
           </div>
@@ -240,86 +255,75 @@ export default function ProjectsListPage() {
       </header>
 
       {/* Content */}
-      <main style={{ padding: "24px", maxWidth: "1200px", margin: "0 auto" }}>
+      <main className="mx-auto max-w-7xl px-6 py-8">
         {error && (
-          <div
-            style={{
-              padding: "16px",
-              backgroundColor: "rgba(239, 68, 68, 0.1)",
-              border: "1px solid rgba(239, 68, 68, 0.2)",
-              borderRadius: "8px",
-              color: "#ef4444",
-              marginBottom: "24px",
-            }}
-          >
-            {error}
+          <div className="mb-6 rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 dark:border-red-800 dark:bg-red-950 dark:text-red-200">
+            <p className="font-medium">Error</p>
+            <p className="text-sm">{error}</p>
           </div>
         )}
 
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
-            gap: "24px",
-          }}
-        >
-          {projects.map((project) => (
-            <Card key={project.id} className="transition-all hover:shadow-lg">
-              <div
-                className="cursor-pointer"
+        {projects.length > 0 ? (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {projects.map((project) => (
+              <Card
+                key={project.id}
+                className="group cursor-pointer transition-all hover:shadow-lg"
                 onClick={() => navigateToProject(project.id)}
               >
                 <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center">
-                      <div className="text-3xl mr-3">📁</div>
-                      <div>
-                        <CardTitle>{project.name}</CardTitle>
-                        <CardDescription>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className={`flex h-12 w-12 items-center justify-center rounded-lg ${getProjectColor(project.id)} text-2xl text-white`}
+                      >
+                        <FolderOpen className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <CardTitle className="text-xl">
+                          {project.name}
+                        </CardTitle>
+                        <CardDescription className="mt-1">
                           Updated {formatDate(project.updated_at)}
                         </CardDescription>
                       </div>
                     </div>
                     <Button
                       variant="ghost"
-                      size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      size="icon"
+                      className="opacity-0 transition-opacity group-hover:opacity-100"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleDeleteProject(project);
+                        setProjectToDelete(project);
                       }}
                     >
-                      Delete
+                      <Trash2 className="h-4 w-4 text-red-600" />
                     </Button>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex justify-between text-sm text-muted-foreground">
-                    <span>0 files</span>
-                    <span>{formatFileSize(0)}</span>
-                  </div>
-                </CardContent>
-              </div>
-            </Card>
-          ))}
-        </div>
-
-        {projects.length === 0 && (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "64px 24px",
-              color: "rgba(156, 163, 175, 0.6)",
-            }}
-          >
-            <div style={{ fontSize: "64px", marginBottom: "24px" }}>📂</div>
-            <h3 style={{ fontSize: "20px", marginBottom: "12px" }}>
-              No projects yet
-            </h3>
-            <p style={{ fontSize: "16px", marginBottom: "32px" }}>
+                {project.source_repo_url && (
+                  <CardContent>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {project.source_repo_url}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-muted">
+              <FolderOpen className="h-12 w-12 text-muted-foreground" />
+            </div>
+            <h3 className="mb-2 text-2xl font-semibold">No projects yet</h3>
+            <p className="mb-8 max-w-md text-muted-foreground">
               Create your first project to start collaborating with Claude Code
             </p>
             <Button onClick={() => setShowCreateDialog(true)} size="lg">
+              <Plus className="h-5 w-5" />
               Create Project
             </Button>
           </div>
@@ -328,7 +332,7 @@ export default function ProjectsListPage() {
 
       {/* Create Project Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
-        <DialogContent>
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
             <DialogDescription>
@@ -341,13 +345,12 @@ export default function ProjectsListPage() {
               <label htmlFor="name" className="text-sm font-medium">
                 Project Name
               </label>
-              <input
+              <Input
                 id="name"
                 type="text"
                 value={newProjectName}
                 onChange={(e) => setNewProjectName(e.target.value)}
                 placeholder="Enter project name..."
-                className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && !creating) {
                     handleCreateProject();
@@ -402,6 +405,33 @@ export default function ProjectsListPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog
+        open={!!projectToDelete}
+        onOpenChange={(open) => !open && setProjectToDelete(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Project</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete &quot;{projectToDelete?.name}
+              &quot;? This action cannot be undone and all project data will be
+              permanently removed.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteProject}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {deleting ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
