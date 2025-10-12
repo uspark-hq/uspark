@@ -152,8 +152,9 @@ describe("Projects List Page", () => {
     expect(screen.getByText("Web Application")).toBeInTheDocument();
     expect(screen.getByText("API Service")).toBeInTheDocument();
 
-    // Check that relative timestamps are displayed
-    expect(screen.getByText(/h ago|d ago|w ago/i)).toBeInTheDocument();
+    // Check that relative timestamps are displayed (multiple elements expected)
+    const timestamps = screen.getAllByText(/\d+[hdw] ago/i);
+    expect(timestamps.length).toBeGreaterThan(0);
   });
 
   it("navigates to workspace when clicking on project card", async () => {
