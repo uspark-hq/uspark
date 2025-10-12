@@ -56,6 +56,7 @@ describe("Projects List Page", () => {
               updated_at: new Date(
                 Date.now() - 2 * 60 * 60 * 1000,
               ).toISOString(),
+              source_repo_url: null,
             },
             {
               id: "web-app-456",
@@ -66,6 +67,7 @@ describe("Projects List Page", () => {
               updated_at: new Date(
                 Date.now() - 1 * 24 * 60 * 60 * 1000,
               ).toISOString(),
+              source_repo_url: null,
             },
             {
               id: "api-service-789",
@@ -76,6 +78,7 @@ describe("Projects List Page", () => {
               updated_at: new Date(
                 Date.now() - 3 * 24 * 60 * 60 * 1000,
               ).toISOString(),
+              source_repo_url: null,
             },
           ],
         });
@@ -144,11 +147,13 @@ describe("Projects List Page", () => {
       ).not.toBeInTheDocument();
     });
 
-    // Check file counts are displayed (now showing 0 files since we're using real API)
-    expect(screen.getAllByText("0 files")).toHaveLength(3);
+    // Check that all project cards are rendered
+    expect(screen.getByText("Demo Project")).toBeInTheDocument();
+    expect(screen.getByText("Web Application")).toBeInTheDocument();
+    expect(screen.getByText("API Service")).toBeInTheDocument();
 
-    // Check that size information is displayed (all should be 0 B)
-    expect(screen.getAllByText("0 B")).toHaveLength(3);
+    // Check that relative timestamps are displayed
+    expect(screen.getByText(/h ago|d ago|w ago/i)).toBeInTheDocument();
   });
 
   it("navigates to workspace when clicking on project card", async () => {

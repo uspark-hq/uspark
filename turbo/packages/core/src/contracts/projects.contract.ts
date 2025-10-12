@@ -13,6 +13,7 @@ export const ProjectSchema = z.object({
   updated_at: z.string().datetime().describe("Project last update timestamp"),
   source_repo_url: z
     .string()
+    .nullable()
     .optional()
     .describe("GitHub repository URL in 'owner/repo' format"),
 });
