@@ -1,6 +1,6 @@
 # Code Review - October 11, 2025
 
-Total commits: 40
+Total commits: 46
 
 ## Summary
 
@@ -48,6 +48,12 @@ Total commits: 40
 - [9df7d84](./review-9df7d84.md) - refactor: remove code smell violations from initial scan implementation ✓
 - [ea34603](./review-ea34603.md) - feat: implement github repository initial scan (#483)
 - [5d8001d](./review-5d8001d.md) - docs: add comprehensive code review for october 11, 2025 changes (#484)
+- [c62b8a8](./review-c62b8a8.md) - chore: release main (#485)
+- [e53b0db](./review-e53b0db.md) - fix(e2b): disable timeout for sandbox command execution (#486)
+- [9103ac2](./review-9103ac2.md) - chore: release main (#487)
+- [4e80659](./review-4e80659.md) - docs: add comprehensive code review for october 11, 2025 (#488)
+- [8b6c2c0](./review-8b6c2c0.md) - chore: archive spec/issues files as mvp development completes (#489)
+- [ebfb284](./review-ebfb284.md) - fix(e2b): replace direct node_env access with dev token check (#490) ✓
 
 **Legend:**
 - ⚠️ - Issues found requiring attention
