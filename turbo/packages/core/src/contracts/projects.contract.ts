@@ -11,6 +11,10 @@ export const ProjectSchema = z.object({
   name: z.string().describe("Project name (using ID for now)"),
   created_at: z.string().datetime().describe("Project creation timestamp"),
   updated_at: z.string().datetime().describe("Project last update timestamp"),
+  source_repo_url: z
+    .string()
+    .optional()
+    .describe("GitHub repository URL in 'owner/repo' format"),
 });
 
 /**

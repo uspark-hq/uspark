@@ -32,6 +32,7 @@ export async function GET() {
       name: PROJECTS_TBL.id, // Using id as name for now, could add a name field later
       created_at: PROJECTS_TBL.createdAt,
       updated_at: PROJECTS_TBL.updatedAt,
+      source_repo_url: PROJECTS_TBL.sourceRepoUrl,
     })
     .from(PROJECTS_TBL)
     .where(eq(PROJECTS_TBL.userId, userId));
