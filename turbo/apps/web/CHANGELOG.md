@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.40.0](https://github.com/uspark-hq/uspark/compare/web-v0.39.1...web-v0.40.0) (2025-10-13)
+
+
+### Features
+
+* **ui:** improve projects list and create project modal design ([#494](https://github.com/uspark-hq/uspark/issues/494)) ([9512371](https://github.com/uspark-hq/uspark/commit/95123715290e3cd124453f9cae8ee924f3ad7929))
+
+
+### Bug Fixes
+
+* **e2b:** replace direct node_env access with dev token check ([#490](https://github.com/uspark-hq/uspark/issues/490)) ([ebfb284](https://github.com/uspark-hq/uspark/commit/ebfb2840bccee62f71793f6c171063c6da6f5b0a))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.16.0
+
 ## [0.39.1](https://github.com/uspark-hq/uspark/compare/web-v0.39.0...web-v0.39.1) (2025-10-11)
 
 

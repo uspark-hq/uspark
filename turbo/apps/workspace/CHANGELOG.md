@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.10.3](https://github.com/uspark-hq/uspark/compare/workspace-v1.10.2...workspace-v1.10.3) (2025-10-13)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.16.0
+
 ## [1.10.2](https://github.com/uspark-hq/uspark/compare/workspace-v1.10.1...workspace-v1.10.2) (2025-10-11)
 
 
