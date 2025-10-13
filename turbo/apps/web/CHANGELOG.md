@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.40.1](https://github.com/uspark-hq/uspark/compare/web-v0.40.0...web-v0.40.1) (2025-10-13)
+
+
+### Bug Fixes
+
+* **web:** improve projects page ui and import shadcn styles ([#495](https://github.com/uspark-hq/uspark/issues/495)) ([462b78c](https://github.com/uspark-hq/uspark/commit/462b78cfd69eb48e4ce861ae832ef9777909d649))
+
 ## [0.40.0](https://github.com/uspark-hq/uspark/compare/web-v0.39.1...web-v0.40.0) (2025-10-13)
 
 
