@@ -246,10 +246,12 @@ export default function ProjectsListPage() {
               </p>
             </div>
 
-            <Button onClick={() => setShowCreateDialog(true)} size="lg">
-              <Plus className="h-5 w-5" />
-              New Project
-            </Button>
+            {projects.length > 0 && (
+              <Button onClick={() => setShowCreateDialog(true)} size="lg">
+                <Plus className="h-5 w-5" />
+                New Project
+              </Button>
+            )}
           </div>
         </div>
       </header>
