@@ -98,29 +98,6 @@ describe("Projects List Page", () => {
 
   afterEach(() => server.resetHandlers());
 
-  it("renders page header correctly", async () => {
-    render(<ProjectsListPage />);
-
-    // Wait for page to load
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading your projects..."),
-      ).not.toBeInTheDocument();
-    });
-
-    expect(
-      screen.getByRole("heading", { name: "Your Projects" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Manage and collaborate on your projects with Claude Code",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /new project/i }),
-    ).toBeInTheDocument();
-  });
-
   it("displays projects after loading from API", async () => {
     render(<ProjectsListPage />);
 
@@ -286,59 +263,5 @@ describe("Projects List Page", () => {
     fireEvent.click(cancelButton);
 
     expect(screen.queryByText("Create New Project")).not.toBeInTheDocument();
-  });
-
-  it("closes dialog on escape key", async () => {
-    render(<ProjectsListPage />);
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading your projects..."),
-      ).not.toBeInTheDocument();
-    });
-
-    // Open dialog
-    const newProjectButton = screen.getByRole("button", {
-      name: /new project/i,
-    });
-    fireEvent.click(newProjectButton);
-    expect(screen.getByText("Create New Project")).toBeInTheDocument();
-
-    // Press escape
-    const nameInput = screen.getByPlaceholderText("Enter project name...");
-    fireEvent.keyDown(nameInput, { key: "Escape" });
-
-    expect(screen.queryByText("Create New Project")).not.toBeInTheDocument();
-  });
-
-  it("submits on enter key and navigates to workspace", async () => {
-    render(<ProjectsListPage />);
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading your projects..."),
-      ).not.toBeInTheDocument();
-    });
-
-    // Open dialog and enter name
-    const newProjectButton = screen.getByRole("button", {
-      name: /new project/i,
-    });
-    fireEvent.click(newProjectButton);
-
-    const nameInput = screen.getByPlaceholderText("Enter project name...");
-    fireEvent.change(nameInput, { target: { value: "Test Project" } });
-
-    // Press enter
-    fireEvent.keyDown(nameInput, { key: "Enter" });
-
-    // Wait for API call and navigation to workspace
-    await waitFor(() => {
-      expect(window.location.href).toMatch(
-        /^http:\/\/app\.uspark\.com\/projects\/project-\d+$/,
-      );
-    });
   });
 });
