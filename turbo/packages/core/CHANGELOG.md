@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.0](https://github.com/uspark-hq/uspark/compare/core-v0.15.0...core-v0.16.0) (2025-10-13)
+
+
+### Features
+
+* **ui:** improve projects list and create project modal design ([#494](https://github.com/uspark-hq/uspark/issues/494)) ([9512371](https://github.com/uspark-hq/uspark/commit/95123715290e3cd124453f9cae8ee924f3ad7929))
+
 ## [0.15.0](https://github.com/uspark-hq/uspark/compare/core-v0.14.0...core-v0.15.0) (2025-10-11)
 
 
