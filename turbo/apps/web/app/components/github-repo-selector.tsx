@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { Badge, Skeleton } from "@uspark/ui";
+import { Github, ExternalLink, Lock, Globe, AlertCircle } from "lucide-react";
 
 export interface Repository {
   id: number;
@@ -104,10 +106,11 @@ export function GitHubRepoSelector({
 
   if (loading) {
     return (
-      <div className="rounded-md border border-input bg-background px-3 py-2">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <div className="h-4 w-4 animate-spin rounded-full border-2 border-muted border-t-primary" />
-          <span>Loading repositories...</span>
+      <div className="space-y-2">
+        <Skeleton className="h-10 w-full" />
+        <div className="flex gap-2">
+          <Skeleton className="h-4 w-20" />
+          <Skeleton className="h-4 w-32" />
         </div>
       </div>
     );
@@ -115,31 +118,42 @@ export function GitHubRepoSelector({
 
   if (error) {
     return (
-      <div className="rounded-md border border-destructive bg-destructive/10 px-3 py-2">
-        <p className="text-sm text-destructive">{error}</p>
+      <div className="rounded-lg border border-destructive bg-destructive/10 p-4">
+        <div className="flex items-start gap-3">
+          <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-destructive" />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-destructive">{error}</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (repositories.length === 0) {
     return (
-      <div className="rounded-md border border-input bg-background px-3 py-2">
-        <p className="text-sm text-muted-foreground mb-2">
-          No repositories found. Please connect your GitHub account and ensure
-          the uSpark app has access to your repositories.
-        </p>
-        <a
-          href="/settings/github"
-          className="text-sm text-primary hover:underline"
-        >
-          Configure GitHub Settings →
-        </a>
+      <div className="rounded-lg border border-muted bg-muted/20 p-4">
+        <div className="flex items-start gap-3">
+          <Github className="mt-0.5 h-5 w-5 flex-shrink-0 text-muted-foreground" />
+          <div className="flex-1 space-y-2">
+            <p className="text-sm text-muted-foreground">
+              No repositories found. Please connect your GitHub account and
+              ensure the uSpark app has access to your repositories.
+            </p>
+            <a
+              href="/settings/github"
+              className="inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline"
+            >
+              Configure GitHub Settings
+              <ExternalLink className="h-3 w-3" />
+            </a>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="space-y-3">
       <select
         value={selectedRepo?.fullName || ""}
         onChange={(e) => handleRepoChange(e.target.value)}
@@ -158,17 +172,42 @@ export function GitHubRepoSelector({
         ))}
       </select>
       {selectedRepo && (
-        <p className="mt-2 text-xs text-muted-foreground">
-          {selectedRepo.private ? "🔒 Private" : "🌐 Public"} repository •{" "}
-          <a
-            href={selectedRepo.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-primary hover:underline"
-          >
-            View on GitHub →
-          </a>
-        </p>
+        <div className="rounded-lg border bg-muted/30 p-3">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex items-start gap-3">
+              <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-background">
+                <Github className="h-4 w-4" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-medium">{selectedRepo.fullName}</p>
+                <div className="mt-1.5 flex items-center gap-2">
+                  <Badge variant="secondary" className="text-xs">
+                    {selectedRepo.private ? (
+                      <span className="flex items-center gap-1">
+                        <Lock className="h-3 w-3" />
+                        Private
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1">
+                        <Globe className="h-3 w-3" />
+                        Public
+                      </span>
+                    )}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+            <a
+              href={selectedRepo.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          </div>
+        </div>
       )}
     </div>
   );

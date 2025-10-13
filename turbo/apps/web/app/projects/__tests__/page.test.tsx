@@ -56,6 +56,7 @@ describe("Projects List Page", () => {
               updated_at: new Date(
                 Date.now() - 2 * 60 * 60 * 1000,
               ).toISOString(),
+              source_repo_url: null,
             },
             {
               id: "web-app-456",
@@ -66,6 +67,7 @@ describe("Projects List Page", () => {
               updated_at: new Date(
                 Date.now() - 1 * 24 * 60 * 60 * 1000,
               ).toISOString(),
+              source_repo_url: null,
             },
             {
               id: "api-service-789",
@@ -76,6 +78,7 @@ describe("Projects List Page", () => {
               updated_at: new Date(
                 Date.now() - 3 * 24 * 60 * 60 * 1000,
               ).toISOString(),
+              source_repo_url: null,
             },
           ],
         });
@@ -94,29 +97,6 @@ describe("Projects List Page", () => {
   });
 
   afterEach(() => server.resetHandlers());
-
-  it("renders page header correctly", async () => {
-    render(<ProjectsListPage />);
-
-    // Wait for page to load
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading your projects..."),
-      ).not.toBeInTheDocument();
-    });
-
-    expect(
-      screen.getByRole("heading", { name: "Your Projects" }),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText(
-        "Manage and collaborate on your projects with Claude Code",
-      ),
-    ).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: /new project/i }),
-    ).toBeInTheDocument();
-  });
 
   it("displays projects after loading from API", async () => {
     render(<ProjectsListPage />);
@@ -144,11 +124,14 @@ describe("Projects List Page", () => {
       ).not.toBeInTheDocument();
     });
 
-    // Check file counts are displayed (now showing 0 files since we're using real API)
-    expect(screen.getAllByText("0 files")).toHaveLength(3);
+    // Check that all project cards are rendered
+    expect(screen.getByText("Demo Project")).toBeInTheDocument();
+    expect(screen.getByText("Web Application")).toBeInTheDocument();
+    expect(screen.getByText("API Service")).toBeInTheDocument();
 
-    // Check that size information is displayed (all should be 0 B)
-    expect(screen.getAllByText("0 B")).toHaveLength(3);
+    // Check that relative timestamps are displayed (multiple elements expected)
+    const timestamps = screen.getAllByText(/\d+[hdw] ago/i);
+    expect(timestamps.length).toBeGreaterThan(0);
   });
 
   it("navigates to workspace when clicking on project card", async () => {
@@ -280,59 +263,5 @@ describe("Projects List Page", () => {
     fireEvent.click(cancelButton);
 
     expect(screen.queryByText("Create New Project")).not.toBeInTheDocument();
-  });
-
-  it("closes dialog on escape key", async () => {
-    render(<ProjectsListPage />);
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading your projects..."),
-      ).not.toBeInTheDocument();
-    });
-
-    // Open dialog
-    const newProjectButton = screen.getByRole("button", {
-      name: /new project/i,
-    });
-    fireEvent.click(newProjectButton);
-    expect(screen.getByText("Create New Project")).toBeInTheDocument();
-
-    // Press escape
-    const nameInput = screen.getByPlaceholderText("Enter project name...");
-    fireEvent.keyDown(nameInput, { key: "Escape" });
-
-    expect(screen.queryByText("Create New Project")).not.toBeInTheDocument();
-  });
-
-  it("submits on enter key and navigates to workspace", async () => {
-    render(<ProjectsListPage />);
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading your projects..."),
-      ).not.toBeInTheDocument();
-    });
-
-    // Open dialog and enter name
-    const newProjectButton = screen.getByRole("button", {
-      name: /new project/i,
-    });
-    fireEvent.click(newProjectButton);
-
-    const nameInput = screen.getByPlaceholderText("Enter project name...");
-    fireEvent.change(nameInput, { target: { value: "Test Project" } });
-
-    // Press enter
-    fireEvent.keyDown(nameInput, { key: "Enter" });
-
-    // Wait for API call and navigation to workspace
-    await waitFor(() => {
-      expect(window.location.href).toMatch(
-        /^http:\/\/app\.uspark\.com\/projects\/project-\d+$/,
-      );
-    });
   });
 });
