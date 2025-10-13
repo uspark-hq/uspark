@@ -53,6 +53,7 @@ export async function GET(
     // Store in database
     await globalThis.services.db.insert(PROJECTS_TBL).values({
       id: projectId,
+      name: projectId,
       userId,
       ydocData: base64Data,
       version: 0,

@@ -126,6 +126,7 @@ describe("DELETE /api/shares/[id]", () => {
     // Direct DB insert needed here because we need to test with a different userId
     await globalThis.services.db.insert(PROJECTS_TBL).values({
       id: projectId,
+      name: "Test Project",
       userId: otherUserId,
       ydocData: base64Data,
       version: 0,
