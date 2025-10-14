@@ -30,29 +30,34 @@ export default function NewProjectPage() {
   const [tokenInput, setTokenInput] = useState("");
   const [creating, setCreating] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
+  const [error, setError] = useState<string>();
+
+  // Navigate to project in app subdomain (workspace)
+  const navigateToProject = (projectId: string) => {
+    const currentUrl = new URL(window.location.href);
+    const newUrl =
+      currentUrl.origin.replace("www.", "app.") + `/projects/${projectId}`;
+    window.location.href = newUrl;
+  };
 
   // Check GitHub and token status on mount
   useEffect(() => {
     const checkStatus = async () => {
-      try {
-        // Check GitHub installation
-        const githubRes = await fetch("/api/github/installation-status");
-        if (githubRes.ok) {
-          const data = await githubRes.json();
-          setHasGitHub(data.installation !== null);
-        }
-
-        // Check Claude token
-        const tokenRes = await fetch("/api/claude-token");
-        if (tokenRes.ok) {
-          const data = await tokenRes.json();
-          setHasToken(data.token !== null);
-        }
-      } catch (error) {
-        console.error("Failed to check status:", error);
-      } finally {
-        setCheckingStatus(false);
+      // Check GitHub installation
+      const githubRes = await fetch("/api/github/installation-status");
+      if (githubRes.ok) {
+        const data = await githubRes.json();
+        setHasGitHub(data.installation !== null);
       }
+
+      // Check Claude token
+      const tokenRes = await fetch("/api/claude-token");
+      if (tokenRes.ok) {
+        const data = await tokenRes.json();
+        setHasToken(data.token !== null);
+      }
+
+      setCheckingStatus(false);
     };
 
     checkStatus();
@@ -93,19 +98,19 @@ export default function NewProjectPage() {
   const handleTokenSubmit = async () => {
     if (!tokenInput.trim()) return;
 
-    try {
-      const response = await fetch("/api/claude-token", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token: tokenInput }),
-      });
+    setError(undefined);
+    const response = await fetch("/api/claude-token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token: tokenInput }),
+    });
 
-      if (response.ok) {
-        setHasToken(true);
-        setCurrentStep("ready");
-      }
-    } catch (error) {
-      console.error("Failed to save token:", error);
+    if (response.ok) {
+      setHasToken(true);
+      setCurrentStep("ready");
+    } else {
+      const data = await response.json();
+      setError(data.error_description || "Failed to save API key");
     }
   };
 
@@ -113,26 +118,24 @@ export default function NewProjectPage() {
     if (!selectedRepo) return;
 
     setCreating(true);
+    setError(undefined);
 
-    try {
-      const response = await fetch("/api/projects", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: selectedRepo.repo.name,
-          sourceRepoUrl: selectedRepo.repo.fullName,
-          installationId: selectedRepo.installationId,
-        }),
-      });
+    const response = await fetch("/api/projects", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: selectedRepo.repo.name,
+        sourceRepoUrl: selectedRepo.repo.fullName,
+        installationId: selectedRepo.installationId,
+      }),
+    });
 
-      if (response.ok) {
-        const data = await response.json();
-        // Navigate to workspace
-        window.location.href = `http://app.uspark.com/projects/${data.id}`;
-      }
-    } catch (error) {
-      console.error("Failed to create project:", error);
-    } finally {
+    if (response.ok) {
+      const data = await response.json();
+      navigateToProject(data.id);
+    } else {
+      const data = await response.json();
+      setError(data.error_description || "Failed to create project");
       setCreating(false);
     }
   };
@@ -282,6 +285,11 @@ export default function NewProjectPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+                {error && (
+                  <div className="rounded-lg border border-destructive bg-destructive/10 p-3">
+                    <p className="text-sm text-destructive">{error}</p>
+                  </div>
+                )}
                 <div className="rounded-lg border bg-muted/50 p-4">
                   <h4 className="font-medium mb-2">How to get your API key:</h4>
                   <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
@@ -344,6 +352,11 @@ export default function NewProjectPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
+                {error && (
+                  <div className="rounded-lg border border-destructive bg-destructive/10 p-3">
+                    <p className="text-sm text-destructive">{error}</p>
+                  </div>
+                )}
                 <div className="rounded-lg border bg-muted/50 p-4">
                   <h4 className="font-medium mb-3">What happens next:</h4>
                   <ul className="space-y-2 text-sm text-muted-foreground">
