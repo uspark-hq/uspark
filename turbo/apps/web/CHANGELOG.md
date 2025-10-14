@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.41.0](https://github.com/uspark-hq/uspark/compare/web-v0.40.1...web-v0.41.0) (2025-10-14)
+
+
+### Features
+
+* add project name field with unique constraint per user ([#500](https://github.com/uspark-hq/uspark/issues/500)) ([f16f41d](https://github.com/uspark-hq/uspark/commit/f16f41d7d3e7afe74a49e53161f76b5d5e2a87ea))
+* **projects:** optimize new user bootstrap with github-first onboarding ([#503](https://github.com/uspark-hq/uspark/issues/503)) ([a6bccfc](https://github.com/uspark-hq/uspark/commit/a6bccfc64908aa57a903231c4c64d02616b3cb75))
+
 ## [0.40.1](https://github.com/uspark-hq/uspark/compare/web-v0.40.0...web-v0.40.1) (2025-10-13)
 
 
