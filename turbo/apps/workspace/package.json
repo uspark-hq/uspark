@@ -45,7 +45,7 @@
     "eslint-plugin-react-refresh": "^0.4.20",
     "eslint-plugin-testing-library": "^7.3.0",
     "eslint-plugin-vitest": "^0.5.4",
-    "happy-dom": "^18.0.1",
+    "happy-dom": "^20.0.0",
     "knip": "^5.59.1",
     "msw": "^2.9.0",
     "oxlint": "^1.14.0",
@@ -53,7 +53,7 @@
     "tsx": "^4.19.4",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.33.1",
-    "vite": "^6.3.5",
+    "vite": "^7.1.9",
     "vitest": "^3.2.4",
     "yjs": "^13.6.27"
   },
