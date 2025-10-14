@@ -52,6 +52,10 @@ export default function ProjectsListPage() {
   } | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [hasGitHubInstallation, setHasGitHubInstallation] = useState<
+    boolean | null
+  >(null);
+  const [checkingGitHub, setCheckingGitHub] = useState(true);
 
   // Navigate to project in app subdomain (workspace)
   const navigateToProject = (projectId: string) => {
@@ -60,6 +64,27 @@ export default function ProjectsListPage() {
       currentUrl.origin.replace("www.", "app.") + `/projects/${projectId}`;
     window.location.href = newUrl;
   };
+
+  // Check GitHub installation status
+  useEffect(() => {
+    const checkGitHubInstallation = async () => {
+      try {
+        const response = await fetch("/api/github/installation-status");
+        if (!response.ok) {
+          throw new Error("Failed to check GitHub installation");
+        }
+        const data = await response.json();
+        setHasGitHubInstallation(data.installation !== null);
+      } catch (err) {
+        console.error("Failed to check GitHub installation:", err);
+        setHasGitHubInstallation(false);
+      } finally {
+        setCheckingGitHub(false);
+      }
+    };
+
+    checkGitHubInstallation();
+  }, []);
 
   // Load projects from API
   useEffect(() => {
@@ -84,7 +109,14 @@ export default function ProjectsListPage() {
   }, []);
 
   const handleCreateProject = async () => {
-    if (!newProjectName.trim()) return;
+    // Auto-fill project name from repository name if not provided
+    let projectName = newProjectName.trim();
+    if (!projectName && selectedRepo) {
+      // Use repository name (without owner prefix)
+      projectName = selectedRepo.repo.name;
+    }
+
+    if (!projectName) return;
 
     setCreating(true);
 
@@ -93,7 +125,7 @@ export default function ProjectsListPage() {
         name: string;
         sourceRepoUrl?: string;
         installationId?: number;
-      } = { name: newProjectName.trim() };
+      } = { name: projectName };
 
       // Add source repository if selected
       if (selectedRepo) {
@@ -110,6 +142,13 @@ export default function ProjectsListPage() {
       });
 
       if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.error === "duplicate_project_name") {
+          throw new Error(
+            errorData.error_description ||
+              "A project with this name already exists",
+          );
+        }
         throw new Error("Failed to create project");
       }
 
@@ -193,7 +232,7 @@ export default function ProjectsListPage() {
     return colors[Math.abs(hash) % colors.length];
   };
 
-  if (loading) {
+  if (loading || checkingGitHub) {
     return (
       <div className="min-h-screen bg-background">
         <Navigation />
@@ -317,17 +356,140 @@ export default function ProjectsListPage() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-16 text-center">
-            <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-muted">
-              <FolderOpen className="h-12 w-12 text-muted-foreground" />
-            </div>
-            <h3 className="mb-2 text-2xl font-semibold">No projects yet</h3>
-            <p className="mb-8 max-w-md text-muted-foreground">
-              Create your first project to start collaborating with Claude Code
-            </p>
-            <Button onClick={() => setShowCreateDialog(true)} size="lg">
-              <Plus className="h-5 w-5" />
-              Create Project
-            </Button>
+            {/* New user bootstrap flow */}
+            {!hasGitHubInstallation ? (
+              // Case 1: No GitHub installation - guide user to setup
+              <>
+                <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-muted">
+                  <FolderOpen className="h-12 w-12 text-muted-foreground" />
+                </div>
+                <h3 className="mb-2 text-2xl font-semibold">
+                  Welcome to uSpark
+                </h3>
+                <p className="mb-4 max-w-md text-muted-foreground">
+                  To create your first project, connect your GitHub account to
+                  enable repository scanning and analysis.
+                </p>
+                <div className="mb-8 rounded-lg border border-muted bg-muted/20 p-4 max-w-md">
+                  <div className="flex items-start gap-3 text-left">
+                    <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-primary/10">
+                      <span className="text-sm font-semibold text-primary">
+                        1
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Setup GitHub</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Connect uSpark to your GitHub repositories
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 text-left mt-3">
+                    <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-primary/10">
+                      <span className="text-sm font-semibold text-primary">
+                        2
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-medium">Select Repository</p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        Choose a repository to create your first project
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => (window.location.href = "/settings/github")}
+                  size="lg"
+                >
+                  <Plus className="h-5 w-5" />
+                  Setup GitHub
+                </Button>
+              </>
+            ) : (
+              // Case 2: Has GitHub installation - show repository selection
+              <>
+                <div className="mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-muted">
+                  <FolderOpen className="h-12 w-12 text-muted-foreground" />
+                </div>
+                <h3 className="mb-2 text-2xl font-semibold">
+                  Create Your First Project
+                </h3>
+                <p className="mb-8 max-w-md text-muted-foreground">
+                  Select a GitHub repository to bootstrap your project. uSpark
+                  will analyze the repository and generate initial
+                  documentation.
+                </p>
+                <Card className="w-full max-w-2xl text-left">
+                  <CardHeader>
+                    <CardTitle>Select Repository</CardTitle>
+                    <CardDescription>
+                      Choose a repository from your connected GitHub account
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <GitHubRepoSelector
+                      onSelect={(repo, installationId) => {
+                        if (repo && installationId) {
+                          setSelectedRepo({ repo, installationId });
+                          // Auto-fill project name with repository name
+                          setNewProjectName(repo.name);
+                        } else {
+                          setSelectedRepo(null);
+                          setNewProjectName("");
+                        }
+                      }}
+                      value={
+                        selectedRepo
+                          ? {
+                              repoUrl: selectedRepo.repo.fullName,
+                              installationId: selectedRepo.installationId,
+                            }
+                          : null
+                      }
+                    />
+                    {selectedRepo && (
+                      <>
+                        <div className="grid gap-2">
+                          <label htmlFor="name" className="text-sm font-medium">
+                            Project Name
+                          </label>
+                          <Input
+                            id="name"
+                            type="text"
+                            value={newProjectName}
+                            onChange={(e) => setNewProjectName(e.target.value)}
+                            placeholder="Enter project name..."
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            We&apos;ve auto-filled this with your repository
+                            name. You can change it if needed.
+                          </p>
+                        </div>
+                        <div className="flex justify-end gap-3">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setSelectedRepo(null);
+                              setNewProjectName("");
+                            }}
+                            disabled={creating}
+                          >
+                            Cancel
+                          </Button>
+                          <Button
+                            onClick={handleCreateProject}
+                            disabled={!newProjectName.trim() || creating}
+                          >
+                            {creating ? "Creating..." : "Create Project"}
+                          </Button>
+                        </div>
+                      </>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            )}
           </div>
         )}
       </main>
@@ -338,29 +500,11 @@ export default function ProjectsListPage() {
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
             <DialogDescription>
-              Create a new project from scratch or bootstrap from an existing
-              GitHub repository.
+              Select a GitHub repository to bootstrap your project, or create an
+              empty project.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="name" className="text-sm font-medium">
-                Project Name
-              </label>
-              <Input
-                id="name"
-                type="text"
-                value={newProjectName}
-                onChange={(e) => setNewProjectName(e.target.value)}
-                placeholder="Enter project name..."
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" && !creating) {
-                    handleCreateProject();
-                  }
-                }}
-                autoFocus
-              />
-            </div>
             <div className="grid gap-2">
               <label htmlFor="repo" className="text-sm font-medium">
                 Source Repository (Optional)
@@ -369,6 +513,10 @@ export default function ProjectsListPage() {
                 onSelect={(repo, installationId) => {
                   if (repo && installationId) {
                     setSelectedRepo({ repo, installationId });
+                    // Auto-fill project name with repository name if not already set
+                    if (!newProjectName) {
+                      setNewProjectName(repo.name);
+                    }
                   } else {
                     setSelectedRepo(null);
                   }
@@ -389,18 +537,48 @@ export default function ProjectsListPage() {
                 </p>
               )}
             </div>
+            <div className="grid gap-2">
+              <label htmlFor="name" className="text-sm font-medium">
+                Project Name
+              </label>
+              <Input
+                id="name"
+                type="text"
+                value={newProjectName}
+                onChange={(e) => setNewProjectName(e.target.value)}
+                placeholder={
+                  selectedRepo
+                    ? "Auto-filled from repository name"
+                    : "Enter project name..."
+                }
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !creating) {
+                    handleCreateProject();
+                  }
+                }}
+              />
+              {selectedRepo && newProjectName === selectedRepo.repo.name && (
+                <p className="text-xs text-muted-foreground">
+                  Using repository name. You can change it if needed.
+                </p>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setShowCreateDialog(false)}
+              onClick={() => {
+                setShowCreateDialog(false);
+                setNewProjectName("");
+                setSelectedRepo(null);
+              }}
               disabled={creating}
             >
               Cancel
             </Button>
             <Button
               onClick={handleCreateProject}
-              disabled={!newProjectName.trim() || creating}
+              disabled={(!newProjectName.trim() && !selectedRepo) || creating}
             >
               {creating ? "Creating..." : "Create Project"}
             </Button>
