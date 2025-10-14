@@ -142,7 +142,7 @@ describe("/api/projects", () => {
       expect(response.data.id).toMatch(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
       ); // UUID format
-      expect(response.data.name).toBe(response.data.id); // Currently using ID as name
+      expect(response.data.name).toBe(projectName); // Should return the provided name
 
       createdProjectIds.push(response.data.id);
 
@@ -155,17 +155,27 @@ describe("/api/projects", () => {
     });
 
     it("should generate unique project IDs", async () => {
-      const projectName = "duplicate-name";
+      const timestamp = Date.now();
 
       // Create first project
-      const response1 = await apiCall(POST, "POST", {}, { name: projectName });
+      const response1 = await apiCall(
+        POST,
+        "POST",
+        {},
+        { name: `project-1-${timestamp}` },
+      );
       createdProjectIds.push(response1.data.id);
 
-      // Create second project with same name
-      const response2 = await apiCall(POST, "POST", {}, { name: projectName });
+      // Create second project with different name
+      const response2 = await apiCall(
+        POST,
+        "POST",
+        {},
+        { name: `project-2-${timestamp}` },
+      );
       createdProjectIds.push(response2.data.id);
 
-      // IDs should be different even with same name
+      // IDs should be different
       expect(response1.data.id).not.toBe(response2.data.id);
       // Both should be valid UUIDs
       expect(response1.data.id).toMatch(
@@ -174,6 +184,23 @@ describe("/api/projects", () => {
       expect(response2.data.id).toMatch(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
       );
+    });
+
+    it("should reject duplicate project names for the same user", async () => {
+      const projectName = `duplicate-test-${Date.now()}`;
+
+      // Create first project
+      const response1 = await apiCall(POST, "POST", {}, { name: projectName });
+      createdProjectIds.push(response1.data.id);
+      expect(response1.data.name).toBe(projectName);
+
+      // Attempt to create second project with same name
+      const response2 = await apiCall(POST, "POST", {}, { name: projectName });
+
+      // Should return error for duplicate name
+      expect(response2.data).toHaveProperty("error", "duplicate_project_name");
+      expect(response2.data).toHaveProperty("error_description");
+      expect(response2.data.error_description).toContain(projectName);
     });
 
     it("should create project with source repository", async () => {

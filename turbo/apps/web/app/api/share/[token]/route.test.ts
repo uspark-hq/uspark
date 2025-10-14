@@ -42,7 +42,7 @@ describe("/api/share/:token", () => {
         createProject,
         "POST",
         {},
-        { name: "Test Project" },
+        { name: `Test Project ${Date.now()}` },
       );
       expect(projectResponse.status).toBe(201);
       projectId = projectResponse.data.id;

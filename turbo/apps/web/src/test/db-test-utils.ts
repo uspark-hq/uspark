@@ -24,11 +24,17 @@ import { randomUUID } from "crypto";
  */
 export async function createTestProjectForUser(
   userId: string,
-  options: { id?: string; ydocData?: string; version?: number } = {},
+  options: {
+    id?: string;
+    name?: string;
+    ydocData?: string;
+    version?: number;
+  } = {},
 ) {
   initServices();
 
   const projectId = options.id || randomUUID();
+  const projectName = options.name || `Test Project ${projectId.slice(0, 8)}`;
   const ydoc = new Y.Doc();
   const state = Y.encodeStateAsUpdate(ydoc);
   const base64Data = options.ydocData || Buffer.from(state).toString("base64");
@@ -38,6 +44,7 @@ export async function createTestProjectForUser(
     .values({
       id: projectId,
       userId,
+      name: projectName,
       ydocData: base64Data,
       version: options.version ?? 0,
     })

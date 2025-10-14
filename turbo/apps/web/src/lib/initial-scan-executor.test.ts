@@ -20,8 +20,8 @@ vi.mock("./github/auth", () => ({
 }));
 
 describe("InitialScanExecutor", () => {
-  const testProjectId = "test-project-123";
-  const testUserId = "test-user-123";
+  const testProjectId = `test-project-${Date.now()}-${process.pid}`;
+  const testUserId = `test-user-${Date.now()}-${process.pid}`;
   const testInstallationId = 12345;
   const testSourceRepoUrl = "owner/repo";
   const testGithubToken = "ghs_test_token_123";
@@ -53,6 +53,7 @@ describe("InitialScanExecutor", () => {
       const db = globalThis.services.db;
       await db.insert(PROJECTS_TBL).values({
         id: testProjectId,
+        name: `Test Project ${Date.now()}`,
         userId: testUserId,
         ydocData: "test-data",
         version: 0,
@@ -102,6 +103,7 @@ describe("InitialScanExecutor", () => {
       const db = globalThis.services.db;
       await db.insert(PROJECTS_TBL).values({
         id: testProjectId,
+        name: `Test Project ${Date.now()}`,
         userId: testUserId,
         ydocData: "test-data",
         version: 0,
@@ -134,6 +136,7 @@ describe("InitialScanExecutor", () => {
       const db = globalThis.services.db;
       await db.insert(PROJECTS_TBL).values({
         id: testProjectId,
+        name: `Test Project ${Date.now()}`,
         userId: testUserId,
         ydocData: "test-data",
         version: 0,
@@ -177,6 +180,7 @@ describe("InitialScanExecutor", () => {
       const db = globalThis.services.db;
       await db.insert(PROJECTS_TBL).values({
         id: testProjectId,
+        name: `Test Project ${Date.now()}`,
         userId: testUserId,
         ydocData: "test-data",
         version: 0,
@@ -215,6 +219,7 @@ describe("InitialScanExecutor", () => {
       // Create project with initial scan
       await db.insert(PROJECTS_TBL).values({
         id: testProjectId,
+        name: `Test Project ${Date.now()}`,
         userId: testUserId,
         ydocData: "test-data",
         version: 0,
@@ -240,6 +245,7 @@ describe("InitialScanExecutor", () => {
       // Create project with initial scan
       await db.insert(PROJECTS_TBL).values({
         id: testProjectId,
+        name: `Test Project ${Date.now()}`,
         userId: testUserId,
         ydocData: "test-data",
         version: 0,
@@ -268,6 +274,7 @@ describe("InitialScanExecutor", () => {
       await db.insert(PROJECTS_TBL).values([
         {
           id: testProjectId,
+          name: `Test Project 1 ${Date.now()}`,
           userId: testUserId,
           ydocData: "test-data-1",
           version: 0,
@@ -276,6 +283,7 @@ describe("InitialScanExecutor", () => {
         },
         {
           id: projectId2,
+          name: `Test Project 2 ${Date.now()}`,
           userId: testUserId,
           ydocData: "test-data-2",
           version: 0,
@@ -312,6 +320,7 @@ describe("InitialScanExecutor", () => {
       // Create project without session (startup failure scenario)
       await db.insert(PROJECTS_TBL).values({
         id: testProjectId,
+        name: `Test Project ${Date.now()}`,
         userId: testUserId,
         ydocData: "test-data",
         version: 0,

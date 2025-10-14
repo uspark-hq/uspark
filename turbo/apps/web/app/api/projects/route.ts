@@ -29,7 +29,7 @@ export async function GET() {
   const projectsData = await globalThis.services.db
     .select({
       id: PROJECTS_TBL.id,
-      name: PROJECTS_TBL.id, // Using id as name for now, could add a name field later
+      name: PROJECTS_TBL.name,
       created_at: PROJECTS_TBL.createdAt,
       updated_at: PROJECTS_TBL.updatedAt,
       source_repo_url: PROJECTS_TBL.sourceRepoUrl,
@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const { sourceRepoUrl, installationId } = parseResult.data;
+  const { name, sourceRepoUrl, installationId } = parseResult.data;
 
   // Validate installation access if source repo is provided
   if (sourceRepoUrl && installationId) {
@@ -94,9 +94,6 @@ export async function POST(request: NextRequest) {
     }
   }
 
-  // Note: We validate the name but don't use it in the ID generation
-  // The project ID is system-generated to ensure uniqueness
-
   // Generate a secure, unique project ID using UUID v4
   const projectId = randomUUID();
 
@@ -106,22 +103,49 @@ export async function POST(request: NextRequest) {
   const base64Data = Buffer.from(state).toString("base64");
 
   // Insert project into database
-  const [newProjectData] = await globalThis.services.db
-    .insert(PROJECTS_TBL)
-    .values({
-      id: projectId,
-      userId,
-      ydocData: base64Data,
-      version: 0,
-      sourceRepoUrl: sourceRepoUrl || null,
-      sourceRepoInstallationId: installationId || null,
-      initialScanStatus: sourceRepoUrl ? "pending" : null,
-    })
-    .returning({
-      id: PROJECTS_TBL.id,
-      name: PROJECTS_TBL.id, // Using id as name for now
-      created_at: PROJECTS_TBL.createdAt,
-    });
+  let newProjectData;
+  try {
+    [newProjectData] = await globalThis.services.db
+      .insert(PROJECTS_TBL)
+      .values({
+        id: projectId,
+        userId,
+        name,
+        ydocData: base64Data,
+        version: 0,
+        sourceRepoUrl: sourceRepoUrl || null,
+        sourceRepoInstallationId: installationId || null,
+        initialScanStatus: sourceRepoUrl ? "pending" : null,
+      })
+      .returning({
+        id: PROJECTS_TBL.id,
+        name: PROJECTS_TBL.name,
+        created_at: PROJECTS_TBL.createdAt,
+      });
+  } catch (error) {
+    // Handle unique constraint violation for duplicate project names
+    // Drizzle wraps PostgreSQL errors, so check both the error and its cause
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const causeMessage =
+      error instanceof Error && error.cause ? String(error.cause) : "";
+
+    const isUniqueConstraintError =
+      errorMessage.includes("projects_user_id_name_unique") ||
+      errorMessage.includes("duplicate key value") ||
+      causeMessage.includes("projects_user_id_name_unique") ||
+      causeMessage.includes("duplicate key value");
+
+    if (isUniqueConstraintError) {
+      return NextResponse.json(
+        {
+          error: "duplicate_project_name",
+          error_description: `A project named "${name}" already exists. Please choose a different name.`,
+        },
+        { status: 400 },
+      );
+    }
+    throw error;
+  }
 
   if (!newProjectData) {
     throw new Error("Failed to create project");

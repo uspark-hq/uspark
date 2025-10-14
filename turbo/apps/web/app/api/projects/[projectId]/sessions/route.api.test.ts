@@ -26,7 +26,7 @@ describe("/api/projects/:projectId/sessions - API Tests", () => {
       createProject,
       "POST",
       {},
-      { name: "Test Project for Sessions" },
+      { name: `Test Project for Sessions ${Date.now()}` },
     );
     expect(projectResponse.status).toBe(201);
     projectId = projectResponse.data.id;

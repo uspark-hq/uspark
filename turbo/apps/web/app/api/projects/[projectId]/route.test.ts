@@ -84,7 +84,7 @@ describe("/api/projects/:projectId", () => {
       // Create a project using API endpoint first
       const createRequest = new NextRequest("http://localhost:3000", {
         method: "POST",
-        body: JSON.stringify({ name: "test-project" }),
+        body: JSON.stringify({ name: `test-project-existing-${Date.now()}` }),
       });
       const createResponse = await createProject(createRequest);
       const createdProject = await createResponse.json();
@@ -128,7 +128,7 @@ describe("/api/projects/:projectId", () => {
       // Create initial project using API endpoint
       const createRequest = new NextRequest("http://localhost:3000", {
         method: "POST",
-        body: JSON.stringify({ name: "test-project" }),
+        body: JSON.stringify({ name: `test-project-update-${Date.now()}` }),
       });
       const createResponse = await createProject(createRequest);
       const createdProject = await createResponse.json();
@@ -198,7 +198,7 @@ describe("/api/projects/:projectId", () => {
       // Create project using API endpoint
       const createRequest = new NextRequest("http://localhost:3000", {
         method: "POST",
-        body: JSON.stringify({ name: "test-project" }),
+        body: JSON.stringify({ name: `test-project-conflict-${Date.now()}` }),
       });
       const createResponse = await createProject(createRequest);
       const createdProject = await createResponse.json();
@@ -234,7 +234,7 @@ describe("/api/projects/:projectId", () => {
       // Create initial project using API endpoint
       const createRequest = new NextRequest("http://localhost:3000", {
         method: "POST",
-        body: JSON.stringify({ name: "test-project" }),
+        body: JSON.stringify({ name: `test-project-concurrent-${Date.now()}` }),
       });
       const createResponse = await createProject(createRequest);
       const createdProject = await createResponse.json();
