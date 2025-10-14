@@ -125,12 +125,9 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     // Handle unique constraint violation for duplicate project names
     // Drizzle wraps PostgreSQL errors, so check both the error and its cause
-    const errorMessage =
-      error instanceof Error ? error.message : String(error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
     const causeMessage =
-      error instanceof Error && error.cause
-        ? String(error.cause)
-        : "";
+      error instanceof Error && error.cause ? String(error.cause) : "";
 
     const isUniqueConstraintError =
       errorMessage.includes("projects_user_id_name_unique") ||
