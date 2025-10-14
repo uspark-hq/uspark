@@ -93,6 +93,18 @@ describe("Projects List Page", () => {
         };
         return HttpResponse.json(newProject, { status: 201 });
       }),
+      // Handler for GitHub installation status
+      http.get("*/api/github/installation-status", () => {
+        return HttpResponse.json({
+          installation: {
+            id: 12345,
+            account: {
+              login: "test-user",
+              avatar_url: "https://example.com/avatar.png",
+            },
+          },
+        });
+      }),
     );
   });
 
