@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { Badge, Skeleton } from "@uspark/ui";
 import { Github, ExternalLink, Lock, Globe, AlertCircle } from "lucide-react";
 
-export interface Repository {
+interface Repository {
   id: number;
   name: string;
   fullName: string;
