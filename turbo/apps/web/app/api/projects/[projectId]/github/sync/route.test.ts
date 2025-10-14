@@ -131,7 +131,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
       // Insert test data into real database
       await db.insert(PROJECTS_TBL).values({
         id: projectId,
-        name: "Test Project",
+        name: `Test Project ${Date.now()}`,
         userId: testUserId,
         ydocData,
         version: 0,
@@ -180,7 +180,7 @@ describe("/api/projects/[projectId]/github/sync", () => {
 
       await db.insert(PROJECTS_TBL).values({
         id: projectId,
-        name: "Test Project",
+        name: `Test Project ${Date.now()}`,
         userId: testUserId,
         ydocData,
         version: 0,

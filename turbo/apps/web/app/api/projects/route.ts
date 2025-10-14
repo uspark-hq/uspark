@@ -124,7 +124,21 @@ export async function POST(request: NextRequest) {
       });
   } catch (error) {
     // Handle unique constraint violation for duplicate project names
-    if (error instanceof Error && "code" in error && error.code === "23505") {
+    // Drizzle wraps PostgreSQL errors, so check both the error and its cause
+    const errorMessage =
+      error instanceof Error ? error.message : String(error);
+    const causeMessage =
+      error instanceof Error && error.cause
+        ? String(error.cause)
+        : "";
+
+    const isUniqueConstraintError =
+      errorMessage.includes("projects_user_id_name_unique") ||
+      errorMessage.includes("duplicate key value") ||
+      causeMessage.includes("projects_user_id_name_unique") ||
+      causeMessage.includes("duplicate key value");
+
+    if (isUniqueConstraintError) {
       return NextResponse.json(
         {
           error: "duplicate_project_name",

@@ -44,7 +44,7 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
     // Create test project using API
     const createProjectRequest = new NextRequest("http://localhost:3000", {
       method: "POST",
-      body: JSON.stringify({ name: "Test Project" }),
+      body: JSON.stringify({ name: `Test Project ${Date.now()}` }),
     });
     const projectResponse = await createProject(createProjectRequest);
     expect(projectResponse.status).toBe(201);

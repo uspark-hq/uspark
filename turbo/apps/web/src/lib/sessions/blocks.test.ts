@@ -185,7 +185,7 @@ describe("Blocks Database Functions", () => {
 
     await globalThis.services.db.insert(PROJECTS_TBL).values({
       id: projectId,
-      name: "Test Project",
+      name: `Test Project ${Date.now()}`,
       userId,
       ydocData: base64Data,
       version: 0,

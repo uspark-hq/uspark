@@ -23,12 +23,12 @@ describe("/api/projects/:projectId/sessions", () => {
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
 
-    // Create test project using API
+    // Create test project using API with unique name
     const projectResponse = await apiCall(
       createProject,
       "POST",
       {},
-      { name: "Test Project for Sessions" },
+      { name: `Test Project for Sessions ${Date.now()}` },
     );
     expect(projectResponse.status).toBe(201);
     projectId = projectResponse.data.id;
@@ -182,7 +182,7 @@ describe("/api/projects/:projectId/sessions", () => {
         createProject,
         "POST",
         {},
-        { name: "Other Test Project" },
+        { name: `Other Test Project ${Date.now()}` },
       );
       expect(otherProjectResponse.status).toBe(201);
       const otherProjectId = otherProjectResponse.data.id;

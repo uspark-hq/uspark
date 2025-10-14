@@ -46,7 +46,7 @@ describe("GET /api/shares", () => {
       createProject,
       "POST",
       {},
-      { name: "Test Project" },
+      { name: `Test Project ${Date.now()}` },
     );
     expect(projectResponse.status).toBe(201);
     const projectId = projectResponse.data.id;

@@ -94,7 +94,7 @@ async function createTestTurnContext(userId: string, cliToken: string) {
   mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
   const createProjectRequest = new NextRequest("http://localhost:3000", {
     method: "POST",
-    body: JSON.stringify({ name: "Test Project" }),
+    body: JSON.stringify({ name: `Test Project ${Date.now()}` }),
   });
   const projectResponse = await createProject(createProjectRequest);
   expect(projectResponse.status).toBe(201);

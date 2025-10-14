@@ -68,7 +68,7 @@ describe("DELETE /api/shares/[id]", () => {
     // Create project using API
     const createProjectRequest = new NextRequest("http://localhost:3000", {
       method: "POST",
-      body: JSON.stringify({ name: "Test Project" }),
+      body: JSON.stringify({ name: `Test Project ${Date.now()}` }),
     });
     const projectResponse = await createProject(createProjectRequest);
     expect(projectResponse.status).toBe(201);
@@ -126,7 +126,7 @@ describe("DELETE /api/shares/[id]", () => {
     // Direct DB insert needed here because we need to test with a different userId
     await globalThis.services.db.insert(PROJECTS_TBL).values({
       id: projectId,
-      name: "Test Project",
+      name: `Test Project ${Date.now()}`,
       userId: otherUserId,
       ydocData: base64Data,
       version: 0,
