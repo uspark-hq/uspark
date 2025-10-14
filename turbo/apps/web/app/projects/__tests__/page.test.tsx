@@ -166,7 +166,7 @@ describe("Projects List Page", () => {
     );
   });
 
-  it("opens create project dialog", async () => {
+  it("navigates to new project page when clicking New Project button", async () => {
     render(<ProjectsListPage />);
 
     // Wait for loading to complete
@@ -181,99 +181,7 @@ describe("Projects List Page", () => {
     });
     fireEvent.click(newProjectButton);
 
-    expect(screen.getByText("Create New Project")).toBeInTheDocument();
-    expect(
-      screen.getByPlaceholderText("Enter project name..."),
-    ).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Cancel" })).toBeInTheDocument();
-    expect(
-      screen.getByRole("button", { name: "Create Project" }),
-    ).toBeInTheDocument();
-  });
-
-  it("handles project creation and navigates to workspace", async () => {
-    render(<ProjectsListPage />);
-
-    // Wait for initial load
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading your projects..."),
-      ).not.toBeInTheDocument();
-    });
-
-    // Open create dialog
-    const newProjectButton = screen.getByRole("button", {
-      name: /new project/i,
-    });
-    fireEvent.click(newProjectButton);
-
-    // Enter project name
-    const nameInput = screen.getByPlaceholderText("Enter project name...");
-    fireEvent.change(nameInput, { target: { value: "Test Project" } });
-
-    // Click create button
-    const createButton = screen.getByRole("button", { name: "Create Project" });
-    expect(createButton).not.toBeDisabled();
-
-    fireEvent.click(createButton);
-
-    // Wait for API call and navigation to workspace
-    await waitFor(() => {
-      expect(window.location.href).toMatch(
-        /^http:\/\/app\.uspark\.com\/projects\/project-\d+$/,
-      );
-    });
-  });
-
-  it("disables create button when name is empty", async () => {
-    render(<ProjectsListPage />);
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading your projects..."),
-      ).not.toBeInTheDocument();
-    });
-
-    // Open create dialog
-    const newProjectButton = screen.getByRole("button", {
-      name: /new project/i,
-    });
-    fireEvent.click(newProjectButton);
-
-    const createButton = screen.getByRole("button", { name: "Create Project" });
-    expect(createButton).toBeDisabled();
-
-    // Enter and clear name
-    const nameInput = screen.getByPlaceholderText("Enter project name...");
-    fireEvent.change(nameInput, { target: { value: "Test" } });
-    expect(createButton).not.toBeDisabled();
-
-    fireEvent.change(nameInput, { target: { value: "" } });
-    expect(createButton).toBeDisabled();
-  });
-
-  it("closes dialog on cancel", async () => {
-    render(<ProjectsListPage />);
-
-    // Wait for loading to complete
-    await waitFor(() => {
-      expect(
-        screen.queryByText("Loading your projects..."),
-      ).not.toBeInTheDocument();
-    });
-
-    // Open dialog
-    const newProjectButton = screen.getByRole("button", {
-      name: /new project/i,
-    });
-    fireEvent.click(newProjectButton);
-    expect(screen.getByText("Create New Project")).toBeInTheDocument();
-
-    // Cancel
-    const cancelButton = screen.getByRole("button", { name: "Cancel" });
-    fireEvent.click(cancelButton);
-
-    expect(screen.queryByText("Create New Project")).not.toBeInTheDocument();
+    // Should navigate to /projects/new (relative URL)
+    expect(window.location.href).toBe("/projects/new");
   });
 });
