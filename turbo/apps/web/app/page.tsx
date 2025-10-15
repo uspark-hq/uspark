@@ -7,7 +7,6 @@ import styles from "./page.module.css";
 export default function Home() {
   return (
     <div className={styles.container}>
-      {/* Header */}
       <header className={styles.header}>
         <div className={styles.headerContent}>
           <div className={styles.headerLogo}>
@@ -17,7 +16,6 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Terminal Section */}
       <TerminalHome />
     </div>
   );
