@@ -35,6 +35,7 @@ inputs:
   deployment-env:
     description: "Deployment environment name (e.g., web, docs)"
     required: true
+
 runs:
   using: "composite"
   steps:
@@ -59,7 +60,7 @@ runs:
       id: deploy
       shell: bash
       run: |
-        # Build deployment command (build and deploy in one step)
+        # Build deployment command
         DEPLOY_CMD="vercel deploy --token=${{ inputs.vercel-token }}"
 
         # Add production flag if needed
@@ -67,17 +68,20 @@ runs:
           DEPLOY_CMD="$DEPLOY_CMD --prod"
         fi
 
-        # Add environment variables for build and runtime
+        # Add environment variables as --build-env flags for Next.js
         ENV_VARS="${{ inputs.environment-variables }}"
         if [ -n "$ENV_VARS" ]; then
+          echo "Adding environment variables for build..."
           while IFS= read -r line; do
             # Skip empty lines
             line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
             if [ -n "$line" ]; then
-              # Add both --build-env and --env for each variable (quoted to handle special chars)
-              DEPLOY_CMD="$DEPLOY_CMD --build-env \"$line\" --env \"$line\""
+              # Extract key and value
               KEY="${line%%=*}"
-              echo "Adding environment variable: $KEY"
+              VALUE="${line#*=}"
+              echo "Adding build env: $KEY"
+              # Add as build-time environment variable
+              DEPLOY_CMD="$DEPLOY_CMD --build-env $KEY=\"$VALUE\""
             fi
           done <<< "$ENV_VARS"
         fi
