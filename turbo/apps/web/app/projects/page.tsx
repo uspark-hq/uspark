@@ -24,6 +24,10 @@ import { Trash2, FolderOpen, Plus } from "lucide-react";
 import type { Project } from "@uspark/core";
 import { type ListProjectsResponse } from "@uspark/core/contracts/projects.contract";
 import { Navigation } from "../components/navigation";
+import { InitialScanProgress } from "../components/initial-scan-progress";
+
+// Poll interval for checking scan progress (milliseconds)
+const SCAN_POLL_INTERVAL_MS = 3000;
 
 export default function ProjectsListPage() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -67,6 +71,33 @@ export default function ProjectsListPage() {
 
     loadProjects();
   }, []);
+
+  // Poll for updates if any project is scanning
+  useEffect(() => {
+    const hasScanning = projects.some(
+      (p) =>
+        p.initial_scan_status === "pending" ||
+        p.initial_scan_status === "running",
+    );
+
+    if (!hasScanning) {
+      return;
+    }
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch("/api/projects");
+        if (response.ok) {
+          const data: ListProjectsResponse = await response.json();
+          setProjects(data.projects || []);
+        }
+      } catch {
+        // Ignore polling errors
+      }
+    }, SCAN_POLL_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [projects]);
 
   // Redirect to new project page if user has no projects
   useEffect(() => {
@@ -208,58 +239,77 @@ export default function ProjectsListPage() {
         )}
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
-            <Card
-              key={project.id}
-              className="group cursor-pointer transition-all hover:shadow-lg"
-              onClick={() => navigateToProject(project.id)}
-            >
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-4">
-                    <div
-                      className={`flex h-12 w-12 items-center justify-center rounded-lg ${getProjectColor(project.id)} text-2xl text-white`}
-                    >
-                      <FolderOpen className="h-6 w-6" />
-                    </div>
-                    <div className="flex-1">
-                      <CardTitle className="text-xl">{project.name}</CardTitle>
-                      <CardDescription className="mt-1">
-                        Updated {formatDate(project.updated_at)}
-                      </CardDescription>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="opacity-0 transition-opacity group-hover:opacity-100"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setProjectToDelete(project);
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-600" />
-                  </Button>
+          {projects.map((project) => {
+            const isScanning =
+              project.initial_scan_status === "pending" ||
+              project.initial_scan_status === "running";
+
+            if (isScanning) {
+              return (
+                <div key={project.id}>
+                  <InitialScanProgress
+                    progress={project.initial_scan_progress || null}
+                    projectName={project.name}
+                  />
                 </div>
-              </CardHeader>
-              {project.source_repo_url && (
-                <CardContent>
-                  <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-xs">
-                      {project.source_repo_url}
-                    </Badge>
+              );
+            }
+
+            return (
+              <Card
+                key={project.id}
+                className="group cursor-pointer transition-all hover:shadow-lg"
+                onClick={() => navigateToProject(project.id)}
+              >
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start gap-4">
+                      <div
+                        className={`flex h-12 w-12 items-center justify-center rounded-lg ${getProjectColor(project.id)} text-2xl text-white`}
+                      >
+                        <FolderOpen className="h-6 w-6" />
+                      </div>
+                      <div className="flex-1">
+                        <CardTitle className="text-xl">
+                          {project.name}
+                        </CardTitle>
+                        <CardDescription className="mt-1">
+                          Updated {formatDate(project.updated_at)}
+                        </CardDescription>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="opacity-0 transition-opacity group-hover:opacity-100"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setProjectToDelete(project);
+                      }}
+                    >
+                      <Trash2 className="h-4 w-4 text-red-600" />
+                    </Button>
                   </div>
-                </CardContent>
-              )}
-            </Card>
-          ))}
+                </CardHeader>
+                {project.source_repo_url && (
+                  <CardContent>
+                    <div className="flex items-center gap-2">
+                      <Badge variant="secondary" className="text-xs">
+                        {project.source_repo_url}
+                      </Badge>
+                    </div>
+                  </CardContent>
+                )}
+              </Card>
+            );
+          })}
         </div>
       </main>
 
       {/* Delete Confirmation Dialog */}
       <AlertDialog
         open={!!projectToDelete}
-        onOpenChange={(open) => !open && setProjectToDelete(null)}
+        onOpenChange={(open: boolean) => !open && setProjectToDelete(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
