@@ -6,6 +6,15 @@ import {
   createTestProjectForUser,
   cleanupTestProjects,
 } from "../../../src/test/db-test-utils";
+import { initServices } from "../../../src/lib/init-services";
+import { PROJECTS_TBL } from "../../../src/db/schema/projects";
+import {
+  SESSIONS_TBL,
+  TURNS_TBL,
+  BLOCKS_TBL,
+} from "../../../src/db/schema/sessions";
+import { eq } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -280,6 +289,218 @@ describe("/api/projects", () => {
 
       // Project should be created without scan
       expect(response.data).toHaveProperty("id");
+    });
+  });
+
+  describe("GET /api/projects with initial scan progress", () => {
+    it("should return initial_scan_progress with todos from TodoWrite blocks", async () => {
+      initServices();
+      const db = globalThis.services.db;
+
+      // Create project with scan status
+      const projectId = randomUUID();
+      const sessionId = `sess_${randomUUID()}`;
+      const turnId = `turn_${randomUUID()}`;
+
+      await db.insert(PROJECTS_TBL).values({
+        id: projectId,
+        userId,
+        name: `Test Project ${Date.now()}`,
+        ydocData: "test-data",
+        version: 0,
+        sourceRepoUrl: "owner/repo",
+        sourceRepoInstallationId: 12345,
+        initialScanStatus: "running",
+        initialScanSessionId: sessionId,
+      });
+
+      // Create session with type 'initial-scan'
+      await db.insert(SESSIONS_TBL).values({
+        id: sessionId,
+        projectId,
+        title: "Initial Repository Scan",
+        type: "initial-scan",
+      });
+
+      // Create turn
+      await db.insert(TURNS_TBL).values({
+        id: turnId,
+        sessionId,
+        userPrompt: "Scan repository",
+        status: "running",
+      });
+
+      // Create TodoWrite block
+      await db.insert(BLOCKS_TBL).values({
+        id: `block_${randomUUID()}`,
+        turnId,
+        type: "tool_use",
+        content: {
+          tool_name: "TodoWrite",
+          parameters: {
+            todos: [
+              {
+                content: "Clone repository",
+                status: "completed",
+                activeForm: "Cloning repository",
+              },
+              {
+                content: "Analyze codebase",
+                status: "in_progress",
+                activeForm: "Analyzing codebase",
+              },
+              {
+                content: "Generate summary",
+                status: "pending",
+                activeForm: "Generating summary",
+              },
+            ],
+          },
+        },
+        sequenceNumber: 0,
+      });
+
+      const response = await apiCall(GET, "GET");
+
+      const project = response.data.projects.find(
+        (p: { id: string }) => p.id === projectId,
+      );
+
+      expect(project).toBeDefined();
+      expect(project.initial_scan_status).toBe("running");
+      expect(project.initial_scan_progress).toBeDefined();
+      expect(project.initial_scan_progress.todos).toHaveLength(3);
+      expect(project.initial_scan_progress.todos[0]).toMatchObject({
+        content: "Clone repository",
+        status: "completed",
+      });
+      expect(project.initial_scan_progress.todos[1]).toMatchObject({
+        content: "Analyze codebase",
+        status: "in_progress",
+      });
+
+      // Cleanup
+      await db.delete(BLOCKS_TBL).where(eq(BLOCKS_TBL.turnId, turnId));
+      await db.delete(TURNS_TBL).where(eq(TURNS_TBL.id, turnId));
+      await db.delete(SESSIONS_TBL).where(eq(SESSIONS_TBL.id, sessionId));
+      await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.id, projectId));
+    });
+
+    it("should return lastBlock when no TodoWrite blocks exist", async () => {
+      initServices();
+      const db = globalThis.services.db;
+
+      const projectId = randomUUID();
+      const sessionId = `sess_${randomUUID()}`;
+      const turnId = `turn_${randomUUID()}`;
+
+      await db.insert(PROJECTS_TBL).values({
+        id: projectId,
+        userId,
+        name: `Test Project ${Date.now()}`,
+        ydocData: "test-data",
+        version: 0,
+        initialScanStatus: "running",
+        initialScanSessionId: sessionId,
+      });
+
+      await db.insert(SESSIONS_TBL).values({
+        id: sessionId,
+        projectId,
+        title: "Initial Repository Scan",
+        type: "initial-scan",
+      });
+
+      await db.insert(TURNS_TBL).values({
+        id: turnId,
+        sessionId,
+        userPrompt: "Scan repository",
+        status: "running",
+      });
+
+      // Create content block without TodoWrite
+      await db.insert(BLOCKS_TBL).values({
+        id: `block_${randomUUID()}`,
+        turnId,
+        type: "content",
+        content: {
+          text: "Analyzing repository structure...",
+        },
+        sequenceNumber: 0,
+      });
+
+      const response = await apiCall(GET, "GET");
+
+      const project = response.data.projects.find(
+        (p: { id: string }) => p.id === projectId,
+      );
+
+      expect(project).toBeDefined();
+      expect(project.initial_scan_progress).toBeDefined();
+      expect(project.initial_scan_progress.lastBlock).toBeDefined();
+      expect(project.initial_scan_progress.lastBlock.type).toBe("content");
+      expect(project.initial_scan_progress.lastBlock.content).toMatchObject({
+        text: "Analyzing repository structure...",
+      });
+
+      // Cleanup
+      await db.delete(BLOCKS_TBL).where(eq(BLOCKS_TBL.turnId, turnId));
+      await db.delete(TURNS_TBL).where(eq(TURNS_TBL.id, turnId));
+      await db.delete(SESSIONS_TBL).where(eq(SESSIONS_TBL.id, sessionId));
+      await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.id, projectId));
+    });
+
+    it("should not fetch progress for completed scans", async () => {
+      initServices();
+      const db = globalThis.services.db;
+
+      const projectId = randomUUID();
+      const sessionId = `sess_${randomUUID()}`;
+
+      await db.insert(PROJECTS_TBL).values({
+        id: projectId,
+        userId,
+        name: `Test Project ${Date.now()}`,
+        ydocData: "test-data",
+        version: 0,
+        initialScanStatus: "completed",
+        initialScanSessionId: sessionId,
+      });
+
+      const response = await apiCall(GET, "GET");
+
+      const project = response.data.projects.find(
+        (p: { id: string }) => p.id === projectId,
+      );
+
+      expect(project).toBeDefined();
+      expect(project.initial_scan_status).toBe("completed");
+      expect(project.initial_scan_progress).toBeNull();
+
+      // Cleanup
+      await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.id, projectId));
+    });
+
+    it("should handle projects without initial scan", async () => {
+      const projectName = `test-project-no-scan-${Date.now()}`;
+
+      const createResponse = await apiCall(
+        POST,
+        "POST",
+        {},
+        { name: projectName },
+      );
+      createdProjectIds.push(createResponse.data.id);
+
+      const response = await apiCall(GET, "GET");
+
+      const project = response.data.projects.find(
+        (p: { id: string }) => p.id === createResponse.data.id,
+      );
+
+      expect(project).toBeDefined();
+      expect(project.initial_scan_status).toBeNull();
+      expect(project.initial_scan_progress).toBeNull();
     });
   });
 });
