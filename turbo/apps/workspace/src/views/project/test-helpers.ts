@@ -147,7 +147,6 @@ function mockProjectApis(config: MockProjectConfig) {
                         turnId: turn.id,
                         type: 'text',
                         content: turn.assistantMessage,
-                        sequenceNumber: 0,
                         createdAt: turn.createdAt ?? new Date().toISOString(),
                       },
                     ]

@@ -144,7 +144,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
           turnId: manualTurnId,
           type: "thinking",
           content: { text: "Let me think about this..." },
-          sequenceNumber: 0,
         })
         .returning();
 
@@ -159,7 +158,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
             parameters: { path: "/test.txt" },
             tool_use_id: "tool_123",
           },
-          sequenceNumber: 1,
         })
         .returning();
 
@@ -174,7 +172,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
             result: "File contents...",
             error: null,
           },
-          sequenceNumber: 2,
         })
         .returning();
 
@@ -187,7 +184,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
           content: {
             text: "Based on the file, the answer is...",
           },
-          sequenceNumber: 3,
         })
         .returning();
 
@@ -204,24 +200,20 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId", () => {
       const data = await response.json();
       expect(data.blocks).toHaveLength(4);
 
-      // Check blocks are in sequence order
+      // Check blocks are in order
       expect(data.blocks[0].type).toBe("thinking");
       expect(data.blocks[0].content.text).toBe("Let me think about this...");
-      expect(data.blocks[0].sequence_number).toBe(0);
 
       expect(data.blocks[1].type).toBe("tool_use");
       expect(data.blocks[1].content.tool_name).toBe("read_file");
-      expect(data.blocks[1].sequence_number).toBe(1);
 
       expect(data.blocks[2].type).toBe("tool_result");
       expect(data.blocks[2].content.result).toBe("File contents...");
-      expect(data.blocks[2].sequence_number).toBe(2);
 
       expect(data.blocks[3].type).toBe("content");
       expect(data.blocks[3].content.text).toBe(
         "Based on the file, the answer is...",
       );
-      expect(data.blocks[3].sequence_number).toBe(3);
     });
   });
 });

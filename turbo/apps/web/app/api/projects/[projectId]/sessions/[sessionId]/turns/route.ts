@@ -244,7 +244,7 @@ export async function GET(
         .select({ id: BLOCKS_TBL.id })
         .from(BLOCKS_TBL)
         .where(eq(BLOCKS_TBL.turnId, turn.id))
-        .orderBy(BLOCKS_TBL.sequenceNumber);
+        .orderBy(BLOCKS_TBL.createdAt);
 
       return {
         ...turn,
