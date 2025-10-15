@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import "../../../src/test/setup";
+import { NextRequest } from "next/server";
 import { GET, POST } from "./route";
+import { POST as createSession } from "./[projectId]/sessions/route";
+import { POST as createTurn } from "./[projectId]/sessions/[sessionId]/turns/route";
+import { POST as onClaudeStdout } from "./[projectId]/sessions/[sessionId]/turns/[turnId]/on-claude-stdout/route";
 import { apiCall } from "../../../src/test/api-helpers";
 import {
   createTestProjectForUser,
@@ -8,13 +12,8 @@ import {
 } from "../../../src/test/db-test-utils";
 import { initServices } from "../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
-import {
-  SESSIONS_TBL,
-  TURNS_TBL,
-  BLOCKS_TBL,
-} from "../../../src/db/schema/sessions";
+import { SESSIONS_TBL } from "../../../src/db/schema/sessions";
 import { eq } from "drizzle-orm";
-import { randomUUID } from "crypto";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -297,68 +296,99 @@ describe("/api/projects", () => {
       initServices();
       const db = globalThis.services.db;
 
-      // Create project with scan status
-      const projectId = randomUUID();
-      const sessionId = `sess_${randomUUID()}`;
-      const turnId = `turn_${randomUUID()}`;
+      // Create project via API
+      const createProjectResponse = await apiCall(
+        POST,
+        "POST",
+        {},
+        { name: `Test Project ${Date.now()}` },
+      );
+      const projectId = createProjectResponse.data.id;
+      createdProjectIds.push(projectId);
 
-      await db.insert(PROJECTS_TBL).values({
-        id: projectId,
-        userId,
-        name: `Test Project ${Date.now()}`,
-        ydocData: "test-data",
-        version: 0,
-        sourceRepoUrl: "owner/repo",
-        sourceRepoInstallationId: 12345,
-        initialScanStatus: "running",
-        initialScanSessionId: sessionId,
-      });
+      // Create session via API
+      const sessionResponse = await createSession(
+        new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ title: "Initial Repository Scan" }),
+        }),
+        { params: Promise.resolve({ projectId }) },
+      );
+      const sessionData = await sessionResponse.json();
+      const sessionId = sessionData.id;
 
-      // Create session with type 'initial-scan'
-      await db.insert(SESSIONS_TBL).values({
-        id: sessionId,
-        projectId,
-        title: "Initial Repository Scan",
-        type: "initial-scan",
-      });
+      // NOTE: Direct DB operation to mark session as initial-scan
+      // Exception justified: session.type is an internal marker, not business logic.
+      // No public API should allow setting this (security/integrity concern).
+      // This is test setup for internal state, similar to CLI token in on-claude-stdout tests.
+      await db
+        .update(SESSIONS_TBL)
+        .set({ type: "initial-scan" })
+        .where(eq(SESSIONS_TBL.id, sessionId));
 
-      // Create turn
-      await db.insert(TURNS_TBL).values({
-        id: turnId,
-        sessionId,
-        userPrompt: "Scan repository",
-        status: "running",
-      });
+      // Update project to reference this scan session
+      await db
+        .update(PROJECTS_TBL)
+        .set({
+          sourceRepoUrl: "owner/repo",
+          sourceRepoInstallationId: 12345,
+          initialScanStatus: "running",
+          initialScanSessionId: sessionId,
+        })
+        .where(eq(PROJECTS_TBL.id, projectId));
 
-      // Create TodoWrite block
-      await db.insert(BLOCKS_TBL).values({
-        id: `block_${randomUUID()}`,
-        turnId,
-        type: "tool_use",
-        content: {
-          tool_name: "TodoWrite",
-          parameters: {
-            todos: [
-              {
-                content: "Clone repository",
-                status: "completed",
-                activeForm: "Cloning repository",
+      // Create turn via API (send message)
+      const turnResponse = await createTurn(
+        new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ user_message: "Scan repository" }),
+        }),
+        { params: Promise.resolve({ projectId, sessionId }) },
+      );
+      const turnData = await turnResponse.json();
+      const turnId = turnData.id;
+
+      // Create TodoWrite block via on-claude-stdout API
+      const todoWriteLine = JSON.stringify({
+        type: "assistant",
+        message: {
+          content: [
+            {
+              type: "tool_use",
+              id: "tool_todowrite_123",
+              name: "TodoWrite",
+              input: {
+                todos: [
+                  {
+                    content: "Clone repository",
+                    status: "completed",
+                    activeForm: "Cloning repository",
+                  },
+                  {
+                    content: "Analyze codebase",
+                    status: "in_progress",
+                    activeForm: "Analyzing codebase",
+                  },
+                  {
+                    content: "Generate summary",
+                    status: "pending",
+                    activeForm: "Generating summary",
+                  },
+                ],
               },
-              {
-                content: "Analyze codebase",
-                status: "in_progress",
-                activeForm: "Analyzing codebase",
-              },
-              {
-                content: "Generate summary",
-                status: "pending",
-                activeForm: "Generating summary",
-              },
-            ],
-          },
+            },
+          ],
         },
-        sequenceNumber: 0,
       });
+
+      const onStdoutResponse = await onClaudeStdout(
+        new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ line: todoWriteLine }),
+        }),
+        { params: Promise.resolve({ projectId, sessionId, turnId }) },
+      );
+      expect(onStdoutResponse.status).toBe(200);
 
       const response = await apiCall(GET, "GET");
 
@@ -379,55 +409,80 @@ describe("/api/projects", () => {
         status: "in_progress",
       });
 
-      // Cleanup
-      await db.delete(BLOCKS_TBL).where(eq(BLOCKS_TBL.turnId, turnId));
-      await db.delete(TURNS_TBL).where(eq(TURNS_TBL.id, turnId));
-      await db.delete(SESSIONS_TBL).where(eq(SESSIONS_TBL.id, sessionId));
-      await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.id, projectId));
+      // No explicit cleanup needed - project deletion cascades to sessions, turns, blocks
     });
 
     it("should return lastBlock when no TodoWrite blocks exist", async () => {
       initServices();
       const db = globalThis.services.db;
 
-      const projectId = randomUUID();
-      const sessionId = `sess_${randomUUID()}`;
-      const turnId = `turn_${randomUUID()}`;
+      // Create project via API
+      const createProjectResponse = await apiCall(
+        POST,
+        "POST",
+        {},
+        { name: `Test Project ${Date.now()}` },
+      );
+      const projectId = createProjectResponse.data.id;
+      createdProjectIds.push(projectId);
 
-      await db.insert(PROJECTS_TBL).values({
-        id: projectId,
-        userId,
-        name: `Test Project ${Date.now()}`,
-        ydocData: "test-data",
-        version: 0,
-        initialScanStatus: "running",
-        initialScanSessionId: sessionId,
-      });
+      // Create session via API
+      const sessionResponse = await createSession(
+        new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ title: "Initial Repository Scan" }),
+        }),
+        { params: Promise.resolve({ projectId }) },
+      );
+      const sessionData = await sessionResponse.json();
+      const sessionId = sessionData.id;
 
-      await db.insert(SESSIONS_TBL).values({
-        id: sessionId,
-        projectId,
-        title: "Initial Repository Scan",
-        type: "initial-scan",
-      });
+      // Mark session as initial-scan (internal marker)
+      await db
+        .update(SESSIONS_TBL)
+        .set({ type: "initial-scan" })
+        .where(eq(SESSIONS_TBL.id, sessionId));
 
-      await db.insert(TURNS_TBL).values({
-        id: turnId,
-        sessionId,
-        userPrompt: "Scan repository",
-        status: "running",
-      });
+      // Update project scan status
+      await db
+        .update(PROJECTS_TBL)
+        .set({
+          initialScanStatus: "running",
+          initialScanSessionId: sessionId,
+        })
+        .where(eq(PROJECTS_TBL.id, projectId));
 
-      // Create content block without TodoWrite
-      await db.insert(BLOCKS_TBL).values({
-        id: `block_${randomUUID()}`,
-        turnId,
-        type: "content",
-        content: {
-          text: "Analyzing repository structure...",
+      // Create turn via API
+      const turnResponse = await createTurn(
+        new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ user_message: "Scan repository" }),
+        }),
+        { params: Promise.resolve({ projectId, sessionId }) },
+      );
+      const turnData = await turnResponse.json();
+      const turnId = turnData.id;
+
+      // Create content block (not TodoWrite) via on-claude-stdout API
+      const contentLine = JSON.stringify({
+        type: "assistant",
+        message: {
+          content: [
+            {
+              type: "text",
+              text: "Analyzing repository structure...",
+            },
+          ],
         },
-        sequenceNumber: 0,
       });
+
+      await onClaudeStdout(
+        new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ line: contentLine }),
+        }),
+        { params: Promise.resolve({ projectId, sessionId, turnId }) },
+      );
 
       const response = await apiCall(GET, "GET");
 
@@ -442,30 +497,41 @@ describe("/api/projects", () => {
       expect(project.initial_scan_progress.lastBlock.content).toMatchObject({
         text: "Analyzing repository structure...",
       });
-
-      // Cleanup
-      await db.delete(BLOCKS_TBL).where(eq(BLOCKS_TBL.turnId, turnId));
-      await db.delete(TURNS_TBL).where(eq(TURNS_TBL.id, turnId));
-      await db.delete(SESSIONS_TBL).where(eq(SESSIONS_TBL.id, sessionId));
-      await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.id, projectId));
     });
 
     it("should not fetch progress for completed scans", async () => {
       initServices();
       const db = globalThis.services.db;
 
-      const projectId = randomUUID();
-      const sessionId = `sess_${randomUUID()}`;
+      // Create project via API
+      const createProjectResponse = await apiCall(
+        POST,
+        "POST",
+        {},
+        { name: `Test Project ${Date.now()}` },
+      );
+      const projectId = createProjectResponse.data.id;
+      createdProjectIds.push(projectId);
 
-      await db.insert(PROJECTS_TBL).values({
-        id: projectId,
-        userId,
-        name: `Test Project ${Date.now()}`,
-        ydocData: "test-data",
-        version: 0,
-        initialScanStatus: "completed",
-        initialScanSessionId: sessionId,
-      });
+      // Create session via API
+      const sessionResponse = await createSession(
+        new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ title: "Initial Repository Scan" }),
+        }),
+        { params: Promise.resolve({ projectId }) },
+      );
+      const sessionData = await sessionResponse.json();
+      const sessionId = sessionData.id;
+
+      // Update project to mark scan as completed
+      await db
+        .update(PROJECTS_TBL)
+        .set({
+          initialScanStatus: "completed",
+          initialScanSessionId: sessionId,
+        })
+        .where(eq(PROJECTS_TBL.id, projectId));
 
       const response = await apiCall(GET, "GET");
 
@@ -476,9 +542,6 @@ describe("/api/projects", () => {
       expect(project).toBeDefined();
       expect(project.initial_scan_status).toBe("completed");
       expect(project.initial_scan_progress).toBeNull();
-
-      // Cleanup
-      await db.delete(PROJECTS_TBL).where(eq(PROJECTS_TBL.id, projectId));
     });
 
     it("should handle projects without initial scan", async () => {
