@@ -11,14 +11,11 @@ test.describe("Basic Smoke Tests", () => {
   });
 
   test("sign-in page is accessible", async ({ page }) => {
-    await page.goto("/sign-in");
+    const response = await page.goto("/sign-in");
 
-    // Verify page loads and URL is correct
+    // Verify page loads successfully
+    expect(response?.status()).toBeLessThan(400);
     await expect(page).toHaveURL(/sign-in/);
-
-    // Check page doesn't show error
-    const errorMessage = page.locator('text=/error|404|not found/i');
-    await expect(errorMessage).not.toBeVisible();
   });
 
   test("API health check endpoints work", async ({ request }) => {
