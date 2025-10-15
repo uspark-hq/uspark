@@ -167,7 +167,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/last-block-id", () => {
           turnId: turn!.id,
           type: "content",
           content: { text: "Answer" },
-          sequenceNumber: 0,
         })
         .returning();
 
@@ -202,7 +201,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/last-block-id", () => {
           turnId: turn1!.id,
           type: "content",
           content: { text: "Answer 1" },
-          sequenceNumber: 0,
         })
         .returning();
 
@@ -226,7 +224,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/last-block-id", () => {
           turnId: turn2!.id,
           type: "content",
           content: { text: "Answer 2" },
-          sequenceNumber: 0,
         })
         .returning();
 

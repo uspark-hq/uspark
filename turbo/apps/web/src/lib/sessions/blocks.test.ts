@@ -236,7 +236,7 @@ describe("Blocks Database Functions", () => {
   describe("addBlock", () => {
     it("should add a single block and return its ID", async () => {
       const content = { text: "This is a thinking block" };
-      const blockId = await addBlock(turnId, "thinking", content, 0);
+      const blockId = await addBlock(turnId, "thinking", content);
 
       expect(blockId).toBeDefined();
       expect(blockId).toMatch(/^block_/);
@@ -251,7 +251,6 @@ describe("Blocks Database Functions", () => {
       expect(block).toBeDefined();
       expect(block!.turnId).toBe(turnId);
       expect(block!.type).toBe("thinking");
-      expect(block!.sequenceNumber).toBe(0);
 
       // With JSON column type, Drizzle automatically handles serialization/deserialization
       expect(block!.content).toEqual(content);
@@ -267,7 +266,7 @@ describe("Blocks Database Functions", () => {
         tool_use_id: "tool_test_123",
       };
 
-      const blockId = await addBlock(turnId, "tool_use", content, 5);
+      const blockId = await addBlock(turnId, "tool_use", content);
       createdBlockIds.push(blockId);
 
       const [block] = await globalThis.services.db
@@ -276,19 +275,18 @@ describe("Blocks Database Functions", () => {
         .where(eq(BLOCKS_TBL.id, blockId));
 
       expect(block!.type).toBe("tool_use");
-      expect(block!.sequenceNumber).toBe(5);
       expect(block!.content).toEqual(content);
     });
 
     it("should throw error if turn doesn't exist", async () => {
       await expect(
-        addBlock("non-existent-turn", "content", { text: "test" }, 0),
+        addBlock("non-existent-turn", "content", { text: "test" }),
       ).rejects.toThrow();
     });
   });
 
   describe("addBlocks", () => {
-    it("should add multiple blocks with sequential numbering", async () => {
+    it("should add multiple blocks in order", async () => {
       const blocks = [
         { type: "thinking", content: { text: "Thinking..." } },
         { type: "content", content: { text: "The answer is 42" } },
@@ -308,45 +306,23 @@ describe("Blocks Database Functions", () => {
         .select()
         .from(BLOCKS_TBL)
         .where(eq(BLOCKS_TBL.turnId, turnId))
-        .orderBy(BLOCKS_TBL.sequenceNumber);
+        .orderBy(BLOCKS_TBL.createdAt);
 
       expect(dbBlocks).toHaveLength(3);
       expect(dbBlocks[0]!.type).toBe("thinking");
-      expect(dbBlocks[0]!.sequenceNumber).toBe(0);
       expect(dbBlocks[0]!.content).toEqual({
         text: "Thinking...",
       });
 
       expect(dbBlocks[1]!.type).toBe("content");
-      expect(dbBlocks[1]!.sequenceNumber).toBe(1);
       expect(dbBlocks[1]!.content).toEqual({
         text: "The answer is 42",
       });
 
       expect(dbBlocks[2]!.type).toBe("content");
-      expect(dbBlocks[2]!.sequenceNumber).toBe(2);
       expect(dbBlocks[2]!.content).toEqual({
         text: "Here's why...",
       });
-    });
-
-    it("should respect startSequence parameter", async () => {
-      const blocks = [
-        { type: "content", content: { text: "First" } },
-        { type: "content", content: { text: "Second" } },
-      ];
-
-      const blockIds = await addBlocks(turnId, blocks, 10);
-      createdBlockIds.push(...blockIds);
-
-      const dbBlocks = await globalThis.services.db
-        .select()
-        .from(BLOCKS_TBL)
-        .where(eq(BLOCKS_TBL.turnId, turnId))
-        .orderBy(BLOCKS_TBL.sequenceNumber);
-
-      expect(dbBlocks[0]!.sequenceNumber).toBe(10);
-      expect(dbBlocks[1]!.sequenceNumber).toBe(11);
     });
 
     it("should handle empty array", async () => {
@@ -400,7 +376,7 @@ describe("Blocks Database Functions", () => {
         .select()
         .from(BLOCKS_TBL)
         .where(eq(BLOCKS_TBL.turnId, turnId))
-        .orderBy(BLOCKS_TBL.sequenceNumber);
+        .orderBy(BLOCKS_TBL.createdAt);
 
       expect(dbBlocks).toHaveLength(4);
 

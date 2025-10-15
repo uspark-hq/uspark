@@ -1,11 +1,4 @@
-import {
-  pgTable,
-  text,
-  timestamp,
-  integer,
-  json,
-  unique,
-} from "drizzle-orm/pg-core";
+import { pgTable, text, timestamp, json } from "drizzle-orm/pg-core";
 
 /**
  * Schema for Claude sessions management
@@ -38,26 +31,15 @@ export const TURNS_TBL = pgTable("turns", {
 });
 
 // Blocks table - individual response blocks from Claude
-export const BLOCKS_TBL = pgTable(
-  "blocks",
-  {
-    id: text("id").primaryKey().notNull(), // block_<uuid>
-    turnId: text("turn_id")
-      .notNull()
-      .references(() => TURNS_TBL.id, { onDelete: "cascade" }),
-    type: text("type").notNull(), // thinking, content, tool_use, tool_result
-    content: json("content").notNull(), // JSON content (auto-serialized by Drizzle)
-    sequenceNumber: integer("sequence_number").notNull(), // Order of blocks within a turn
-    createdAt: timestamp("created_at").notNull().defaultNow(),
-  },
-  (table) => ({
-    // Unique constraint to prevent duplicate sequence numbers within a turn
-    uniqueTurnSequence: unique("blocks_turn_id_sequence_number_unique").on(
-      table.turnId,
-      table.sequenceNumber,
-    ),
-  }),
-);
+export const BLOCKS_TBL = pgTable("blocks", {
+  id: text("id").primaryKey().notNull(), // block_<uuid>
+  turnId: text("turn_id")
+    .notNull()
+    .references(() => TURNS_TBL.id, { onDelete: "cascade" }),
+  type: text("type").notNull(), // thinking, content, tool_use, tool_result
+  content: json("content").notNull(), // JSON content (auto-serialized by Drizzle)
+  createdAt: timestamp("created_at").notNull().defaultNow(), // Used for ordering blocks
+});
 
 // Import projects table for reference
 import { PROJECTS_TBL } from "./projects";
