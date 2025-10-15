@@ -204,14 +204,13 @@ export default function NewProjectPage() {
           );
           if (project) {
             setCreatedProject(project);
-            // Auto-redirect when scan completes successfully
-            if (project.initial_scan_status === "completed") {
+            // Auto-redirect when scan completes (both success and failure)
+            if (
+              project.initial_scan_status === "completed" ||
+              project.initial_scan_status === "failed"
+            ) {
               clearInterval(interval);
               navigateToProject(project.id);
-            }
-            // Stop polling on failure but don't auto-redirect (show error UI)
-            if (project.initial_scan_status === "failed") {
-              clearInterval(interval);
             }
           }
         }
@@ -469,30 +468,10 @@ export default function NewProjectPage() {
 
         {/* Step 3: Scanning */}
         {currentStep === "scanning" && createdProject && (
-          <div className="space-y-6">
-            <InitialScanProgress
-              progress={createdProject.initial_scan_progress || null}
-              projectName={createdProject.name}
-            />
-            {createdProject.initial_scan_status === "failed" && (
-              <Card className="border-destructive">
-                <CardContent className="pt-6">
-                  <p className="text-sm text-destructive mb-4">
-                    Initial scan failed. You can still access the project, but
-                    it may not have been fully analyzed.
-                  </p>
-                  <Button
-                    onClick={() => navigateToProject(createdProject.id)}
-                    className="w-full"
-                    size="lg"
-                    variant="outline"
-                  >
-                    Continue Anyway
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+          <InitialScanProgress
+            progress={createdProject.initial_scan_progress || null}
+            projectName={createdProject.name}
+          />
         )}
 
         {/* Step 4: Ready */}
