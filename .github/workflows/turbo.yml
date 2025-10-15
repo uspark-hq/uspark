@@ -19,6 +19,7 @@ jobs:
       docs-changed: ${{ steps.detect.outputs.docs-changed }}
       cli-changed: ${{ steps.detect.outputs.cli-changed }}
       workspace-changed: ${{ steps.detect.outputs.workspace-changed }}
+      web-e2e-changed: ${{ steps.detect.outputs.web-e2e-changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -37,6 +38,7 @@ jobs:
             echo "docs-changed=true" >> $GITHUB_OUTPUT
             echo "cli-changed=true" >> $GITHUB_OUTPUT
             echo "workspace-changed=true" >> $GITHUB_OUTPUT
+            echo "web-e2e-changed=true" >> $GITHUB_OUTPUT
             exit 0
           fi
           
@@ -81,6 +83,16 @@ jobs:
           else
             echo "Changes detected in workspace app"
             echo "workspace-changed=true" >> $GITHUB_OUTPUT
+          fi
+
+          # Check e2e/web tests
+          cd ../../../e2e/web
+          if git diff --quiet HEAD^ HEAD .; then
+            echo "No changes detected in web e2e tests"
+            echo "web-e2e-changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in web e2e tests"
+            echo "web-e2e-changed=true" >> $GITHUB_OUTPUT
           fi
 
   lint:
@@ -132,8 +144,8 @@ jobs:
     container:
       image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
     needs: [change-detection]
-    # Deploy if it's a PR and either web or CLI changed (CLI needs web for e2e tests)
-    if: github.event_name == 'pull_request' && (needs.change-detection.outputs.web-changed == 'true' || needs.change-detection.outputs.cli-changed == 'true')
+    # Deploy if it's a PR and either web, CLI, or web-e2e changed (they all need web deployment)
+    if: github.event_name == 'pull_request' && (needs.change-detection.outputs.web-changed == 'true' || needs.change-detection.outputs.cli-changed == 'true' || needs.change-detection.outputs.web-e2e-changed == 'true')
     outputs:
       preview-url: ${{ steps.deploy.outputs.url }}
     permissions:
@@ -288,8 +300,8 @@ jobs:
     container:
       image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
     needs: [change-detection, deploy-web]
-    # Run if web changed and deployment succeeded
-    if: github.event_name == 'pull_request' && needs.change-detection.outputs.web-changed == 'true' && needs.deploy-web.outputs.preview-url != ''
+    # Run if web or web e2e tests changed and deployment succeeded
+    if: github.event_name == 'pull_request' && (needs.change-detection.outputs.web-changed == 'true' || needs.change-detection.outputs.web-e2e-changed == 'true') && needs.deploy-web.outputs.preview-url != ''
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/toolchain-init
