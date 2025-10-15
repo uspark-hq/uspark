@@ -60,29 +60,30 @@ runs:
       id: deploy
       shell: bash
       run: |
-        # Create .env.production.local file for Vite to read during build
-        ENV_VARS="${{ inputs.environment-variables }}"
-        if [ -n "$ENV_VARS" ]; then
-          echo "Creating .env.production.local file for Vite build..."
-          touch .env.production.local
-          while IFS= read -r line; do
-            # Skip empty lines
-            line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-            if [ -n "$line" ]; then
-              # Write to .env.production.local file
-              echo "$line" >> .env.production.local
-              KEY="${line%%=*}"
-              echo "Added to .env.production.local: $KEY"
-            fi
-          done <<< "$ENV_VARS"
-        fi
-
-        # Build deployment command (build and deploy in one step)
+        # Build deployment command
         DEPLOY_CMD="vercel deploy --token=${{ inputs.vercel-token }}"
 
         # Add production flag if needed
         if [ "${{ inputs.environment }}" == "production" ]; then
           DEPLOY_CMD="$DEPLOY_CMD --prod"
+        fi
+
+        # Add environment variables as --build-env flags for Next.js
+        ENV_VARS="${{ inputs.environment-variables }}"
+        if [ -n "$ENV_VARS" ]; then
+          echo "Adding environment variables for build..."
+          while IFS= read -r line; do
+            # Skip empty lines
+            line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+            if [ -n "$line" ]; then
+              # Extract key and value
+              KEY="${line%%=*}"
+              VALUE="${line#*=}"
+              echo "Adding build env: $KEY"
+              # Add as build-time environment variable
+              DEPLOY_CMD="$DEPLOY_CMD --build-env $KEY=\"$VALUE\""
+            fi
+          done <<< "$ENV_VARS"
         fi
 
         # Add metadata if provided
@@ -95,8 +96,6 @@ runs:
         fi
 
         # Execute deployment and capture URL
-        # Note: Vite will read .env.production.local during build on Vercel
-        # For Next.js apps, you still need --build-env and --env flags
         echo "Executing deployment..."
         DEPLOYMENT_URL=$(eval $DEPLOY_CMD)
 
