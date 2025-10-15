@@ -13,13 +13,14 @@ test.describe("Basic Smoke Tests", () => {
   test("sign-in page is accessible", async ({ page }) => {
     await page.goto("/sign-in");
 
+    // Wait for Clerk to load - it may take longer in CI environment
     const signInForm = page
       .locator(
         'input[name="identifier"], input[type="email"], [data-clerk-sign-in]'
       )
       .first();
 
-    await expect(signInForm).toBeVisible();
+    await expect(signInForm).toBeVisible({ timeout: 15000 });
   });
 
   test("API health check endpoints work", async ({ request }) => {
