@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.44.0](https://github.com/uspark-hq/uspark/compare/web-v0.43.0...web-v0.44.0) (2025-10-15)
+
+
+### Features
+
+* **web:** add initial scan progress tracking with real-time updates ([#515](https://github.com/uspark-hq/uspark/issues/515)) ([14a056c](https://github.com/uspark-hq/uspark/commit/14a056cf26ee5a97dd7f2169f4ff3912f5ce3e1e))
+
+
+### Bug Fixes
+
+* improve ci-check script portability and replace vercel checks with pnpm build ([#519](https://github.com/uspark-hq/uspark/issues/519)) ([b7e4a19](https://github.com/uspark-hq/uspark/commit/b7e4a19b75d859083b012eb98a52cc55905d5192))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.17.0
+
 ## [0.43.0](https://github.com/uspark-hq/uspark/compare/web-v0.42.0...web-v0.43.0) (2025-10-15)
 
 

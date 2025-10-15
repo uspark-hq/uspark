@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/uspark-hq/uspark/compare/core-v0.16.0...core-v0.17.0) (2025-10-15)
+
+
+### Features
+
+* **web:** add initial scan progress tracking with real-time updates ([#515](https://github.com/uspark-hq/uspark/issues/515)) ([14a056c](https://github.com/uspark-hq/uspark/commit/14a056cf26ee5a97dd7f2169f4ff3912f5ce3e1e))
+
 ## [0.16.0](https://github.com/uspark-hq/uspark/compare/core-v0.15.0...core-v0.16.0) (2025-10-13)
 
 
