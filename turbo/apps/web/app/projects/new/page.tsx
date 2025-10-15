@@ -65,6 +65,12 @@ export default function NewProjectPage() {
   useEffect(() => {
     if (checkingStatus) return;
 
+    // Auto-skip choice step for users with GitHub already connected
+    if (currentStep === "choice" && hasGitHub) {
+      setUseGitHub(true);
+      setCurrentStep("repository");
+    }
+
     // If user chose GitHub and already has it connected, skip to repository
     if (currentStep === "github" && hasGitHub && useGitHub) {
       setCurrentStep("repository");

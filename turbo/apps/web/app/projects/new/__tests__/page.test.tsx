@@ -55,18 +55,7 @@ describe("NewProjectPage", () => {
     // Should show loading initially
     expect(screen.getByText("Loading...")).toBeInTheDocument();
 
-    // Should show choice step after loading
-    await waitFor(() => {
-      expect(screen.getByText("Create a New Project")).toBeInTheDocument();
-    });
-
-    // Click GitHub option
-    const githubButton = screen.getByRole("button", {
-      name: /Connect GitHub Repository/i,
-    });
-    fireEvent.click(githubButton);
-
-    // Should advance to repository step (skipping GitHub setup since already connected)
+    // Should auto-skip choice step and go directly to repository step
     await waitFor(() => {
       expect(screen.getByText("Select a Repository")).toBeInTheDocument();
     });
@@ -110,18 +99,7 @@ describe("NewProjectPage", () => {
   it("should navigate to repository selection and continue to ready step", async () => {
     render(<NewProjectPage />);
 
-    // Should show choice step first
-    await waitFor(() => {
-      expect(screen.getByText("Create a New Project")).toBeInTheDocument();
-    });
-
-    // Click GitHub option
-    const githubButton = screen.getByRole("button", {
-      name: /Connect GitHub Repository/i,
-    });
-    fireEvent.click(githubButton);
-
-    // Wait for repository step and select to load
+    // Should auto-skip to repository step (GitHub already connected)
     await waitFor(() => {
       expect(screen.getByRole("combobox")).toBeInTheDocument();
     });
@@ -155,18 +133,7 @@ describe("NewProjectPage", () => {
 
     render(<NewProjectPage />);
 
-    // Should show choice step first
-    await waitFor(() => {
-      expect(screen.getByText("Create a New Project")).toBeInTheDocument();
-    });
-
-    // Click GitHub option
-    const githubButton = screen.getByRole("button", {
-      name: /Connect GitHub Repository/i,
-    });
-    fireEvent.click(githubButton);
-
-    // Wait for repository step and select to load
+    // Should auto-skip to repository step (GitHub already connected)
     await waitFor(() => {
       expect(screen.getByRole("combobox")).toBeInTheDocument();
     });
@@ -193,18 +160,7 @@ describe("NewProjectPage", () => {
   it("should disable continue button when no repository selected", async () => {
     render(<NewProjectPage />);
 
-    // Should show choice step first
-    await waitFor(() => {
-      expect(screen.getByText("Create a New Project")).toBeInTheDocument();
-    });
-
-    // Click GitHub option
-    const githubButton = screen.getByRole("button", {
-      name: /Connect GitHub Repository/i,
-    });
-    fireEvent.click(githubButton);
-
-    // Wait for repository step
+    // Should auto-skip to repository step (GitHub already connected)
     await waitFor(() => {
       expect(screen.getByText("Select a Repository")).toBeInTheDocument();
     });
@@ -214,9 +170,16 @@ describe("NewProjectPage", () => {
   });
 
   it("should allow manual project creation without GitHub", async () => {
+    // Mock no GitHub connection to see choice step
+    server.use(
+      http.get("*/api/github/installation-status", () => {
+        return HttpResponse.json({ installation: null });
+      }),
+    );
+
     render(<NewProjectPage />);
 
-    // Should show choice step
+    // Should show choice step (no GitHub connected)
     await waitFor(() => {
       expect(screen.getByText("Create a New Project")).toBeInTheDocument();
     });
@@ -257,9 +220,16 @@ describe("NewProjectPage", () => {
   });
 
   it("should disable continue button when project name is empty in manual mode", async () => {
+    // Mock no GitHub connection to see choice step
+    server.use(
+      http.get("*/api/github/installation-status", () => {
+        return HttpResponse.json({ installation: null });
+      }),
+    );
+
     render(<NewProjectPage />);
 
-    // Wait for choice step and click Manual
+    // Wait for choice step (no GitHub connected)
     await waitFor(() => {
       expect(screen.getByText("Create a New Project")).toBeInTheDocument();
     });
