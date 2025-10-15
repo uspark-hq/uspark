@@ -1,11 +1,23 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Card, CardContent, CardHeader, CardTitle } from "@uspark/ui";
+import {
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Input,
+} from "@uspark/ui";
 import { GitHubRepoSelector } from "../../components/github-repo-selector";
-import { Check, Github, FolderGit2 } from "lucide-react";
+import { Check, Github, FolderGit2, FileText } from "lucide-react";
 
-type ProjectCreationStep = "github" | "repository" | "ready";
+type ProjectCreationStep =
+  | "choice"
+  | "github"
+  | "repository"
+  | "manual"
+  | "ready";
 
 interface SelectedRepo {
   repo: {
@@ -16,9 +28,11 @@ interface SelectedRepo {
 }
 
 export default function NewProjectPage() {
-  const [currentStep, setCurrentStep] = useState<ProjectCreationStep>("github");
+  const [currentStep, setCurrentStep] = useState<ProjectCreationStep>("choice");
   const [hasGitHub, setHasGitHub] = useState<boolean | null>(null);
   const [selectedRepo, setSelectedRepo] = useState<SelectedRepo | null>(null);
+  const [projectName, setProjectName] = useState("");
+  const [useGitHub, setUseGitHub] = useState<boolean | null>(null);
   const [creating, setCreating] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
   const [error, setError] = useState<string>();
@@ -51,10 +65,31 @@ export default function NewProjectPage() {
   useEffect(() => {
     if (checkingStatus) return;
 
-    if (currentStep === "github" && hasGitHub) {
+    // Auto-skip choice step for users with GitHub already connected
+    if (currentStep === "choice" && hasGitHub) {
+      setUseGitHub(true);
       setCurrentStep("repository");
     }
-  }, [checkingStatus, hasGitHub, currentStep]);
+
+    // If user chose GitHub and already has it connected, skip to repository
+    if (currentStep === "github" && hasGitHub && useGitHub) {
+      setCurrentStep("repository");
+    }
+  }, [checkingStatus, hasGitHub, currentStep, useGitHub]);
+
+  const handleChooseGitHub = () => {
+    setUseGitHub(true);
+    if (hasGitHub) {
+      setCurrentStep("repository");
+    } else {
+      setCurrentStep("github");
+    }
+  };
+
+  const handleChooseManual = () => {
+    setUseGitHub(false);
+    setCurrentStep("manual");
+  };
 
   const handleGitHubSetup = () => {
     window.location.href = "/settings/github";
@@ -75,20 +110,35 @@ export default function NewProjectPage() {
     setCurrentStep("ready");
   };
 
+  const handleContinueFromManual = () => {
+    if (!projectName.trim()) return;
+    setCurrentStep("ready");
+  };
+
   const handleCreateProject = async () => {
-    if (!selectedRepo) return;
+    // GitHub mode: need selectedRepo
+    if (useGitHub && !selectedRepo) return;
+    // Manual mode: need projectName
+    if (!useGitHub && !projectName.trim()) return;
 
     setCreating(true);
     setError(undefined);
 
+    // Build request body based on mode
+    const body = useGitHub
+      ? {
+          name: selectedRepo!.repo.name,
+          sourceRepoUrl: selectedRepo!.repo.fullName,
+          installationId: selectedRepo!.installationId,
+        }
+      : {
+          name: projectName.trim(),
+        };
+
     const response = await fetch("/api/projects", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: selectedRepo.repo.name,
-        sourceRepoUrl: selectedRepo.repo.fullName,
-        installationId: selectedRepo.installationId,
-      }),
+      body: JSON.stringify(body),
     });
 
     if (response.ok) {
@@ -119,18 +169,87 @@ export default function NewProjectPage() {
         <div className="mb-8 flex items-center justify-center gap-2">
           <StepIndicator
             number={1}
-            label="GitHub"
-            active={currentStep === "github"}
-            completed={hasGitHub === true}
+            label={
+              useGitHub === null ? "Setup" : useGitHub ? "GitHub" : "Project"
+            }
+            active={
+              currentStep === "choice" ||
+              currentStep === "github" ||
+              currentStep === "manual"
+            }
+            completed={
+              currentStep === "repository" ||
+              (currentStep === "ready" && useGitHub === false)
+            }
           />
-          <div className="h-px w-12 bg-border" />
-          <StepIndicator
-            number={2}
-            label="Repository"
-            active={currentStep === "repository" || currentStep === "ready"}
-            completed={currentStep === "ready"}
-          />
+          {useGitHub && (
+            <>
+              <div className="h-px w-12 bg-border" />
+              <StepIndicator
+                number={2}
+                label="Repository"
+                active={currentStep === "repository"}
+                completed={currentStep === "ready"}
+              />
+            </>
+          )}
         </div>
+
+        {/* Step 0: Choice */}
+        {currentStep === "choice" && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Create a New Project</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                Choose how you want to set up your project
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {/* GitHub Option */}
+                <button
+                  onClick={handleChooseGitHub}
+                  className="w-full rounded-lg border-2 border-border bg-card p-6 text-left transition-all hover:border-primary hover:bg-accent"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-lg bg-primary/10 p-3">
+                      <Github className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold mb-1">
+                        Connect GitHub Repository
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Link an existing GitHub repository for AI-powered code
+                        analysis and automated scanning
+                      </p>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Manual Option */}
+                <button
+                  onClick={handleChooseManual}
+                  className="w-full rounded-lg border-2 border-border bg-card p-6 text-left transition-all hover:border-primary hover:bg-accent"
+                >
+                  <div className="flex items-start gap-4">
+                    <div className="rounded-lg bg-primary/10 p-3">
+                      <FileText className="h-6 w-6 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold mb-1">
+                        Create Project Manually
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        Start with a blank project without connecting to GitHub
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Step 1: GitHub */}
         {currentStep === "github" && (
@@ -221,6 +340,58 @@ export default function NewProjectPage() {
           </Card>
         )}
 
+        {/* Step 2b: Manual Project Name */}
+        {currentStep === "manual" && (
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-primary/10 p-3">
+                  <FileText className="h-6 w-6 text-primary" />
+                </div>
+                <div>
+                  <CardTitle>Name Your Project</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Choose a name for your new project
+                  </p>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div>
+                  <label
+                    htmlFor="project-name"
+                    className="text-sm font-medium mb-2 block"
+                  >
+                    Project Name
+                  </label>
+                  <Input
+                    id="project-name"
+                    type="text"
+                    placeholder="My Awesome Project"
+                    value={projectName}
+                    onChange={(e) => setProjectName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && projectName.trim()) {
+                        handleContinueFromManual();
+                      }
+                    }}
+                    autoFocus
+                  />
+                </div>
+                <Button
+                  onClick={handleContinueFromManual}
+                  disabled={!projectName.trim()}
+                  className="w-full"
+                  size="lg"
+                >
+                  Continue
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Step 3: Ready */}
         {currentStep === "ready" && (
           <Card>
@@ -251,15 +422,19 @@ export default function NewProjectPage() {
                       <Check className="h-4 w-4 text-primary mt-0.5" />
                       <span>
                         Your project will be created:{" "}
-                        <strong>{selectedRepo?.repo.name}</strong>
+                        <strong>
+                          {useGitHub ? selectedRepo?.repo.name : projectName}
+                        </strong>
                       </span>
                     </li>
-                    <li className="flex items-start gap-2">
-                      <Check className="h-4 w-4 text-primary mt-0.5" />
-                      <span>
-                        Initial repository scan will begin automatically
-                      </span>
-                    </li>
+                    {useGitHub && (
+                      <li className="flex items-start gap-2">
+                        <Check className="h-4 w-4 text-primary mt-0.5" />
+                        <span>
+                          Initial repository scan will begin automatically
+                        </span>
+                      </li>
+                    )}
                     <li className="flex items-start gap-2">
                       <Check className="h-4 w-4 text-primary mt-0.5" />
                       <span>
@@ -274,7 +449,11 @@ export default function NewProjectPage() {
                   className="w-full"
                   size="lg"
                 >
-                  {creating ? "Creating Project..." : "Start Scanning"}
+                  {creating
+                    ? "Creating Project..."
+                    : useGitHub
+                      ? "Start Scanning"
+                      : "Create Project"}
                 </Button>
               </div>
             </CardContent>
