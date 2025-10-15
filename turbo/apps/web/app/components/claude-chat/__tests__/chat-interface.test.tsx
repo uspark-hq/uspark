@@ -53,7 +53,6 @@ describe("ChatInterface", () => {
                   id: "block-1",
                   type: "content",
                   content: { text: "Hello! How can I help you?" },
-                  sequenceNumber: 0,
                 },
               ],
               startedAt: new Date().toISOString(),

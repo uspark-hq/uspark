@@ -65,19 +65,18 @@ export async function GET(
     return NextResponse.json({ error: "turn_not_found" }, { status: 404 });
   }
 
-  // Get all blocks for this turn
+  // Get all blocks for this turn, ordered by creation time
   const blocks = await globalThis.services.db
     .select()
     .from(BLOCKS_TBL)
     .where(eq(BLOCKS_TBL.turnId, turnId))
-    .orderBy(BLOCKS_TBL.sequenceNumber);
+    .orderBy(BLOCKS_TBL.createdAt);
 
   // With JSON column type, content is already deserialized by Drizzle
   const parsedBlocks = blocks.map((block) => ({
     id: block.id,
     type: block.type,
     content: block.content,
-    sequence_number: block.sequenceNumber,
   }));
 
   return NextResponse.json({

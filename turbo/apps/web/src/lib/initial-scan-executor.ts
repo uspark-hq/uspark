@@ -38,6 +38,7 @@ export class InitialScanExecutor {
       id: sessionId,
       projectId,
       title: "Initial Repository Scan",
+      type: "initial-scan",
     });
 
     // Create turn with scan prompt

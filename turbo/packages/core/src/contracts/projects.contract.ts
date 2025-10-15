@@ -4,6 +4,28 @@ import { z } from "zod";
 const c = initContract();
 
 /**
+ * Todo item schema for initial scan progress
+ */
+export const TodoItemSchema = z.object({
+  content: z.string(),
+  status: z.enum(["pending", "in_progress", "completed"]),
+  activeForm: z.string(),
+});
+
+/**
+ * Initial scan progress schema
+ */
+export const InitialScanProgressSchema = z.object({
+  todos: z.array(TodoItemSchema).optional(),
+  lastBlock: z
+    .object({
+      type: z.string(),
+      content: z.unknown(),
+    })
+    .optional(),
+});
+
+/**
  * Project Schema - represents a project in the system
  */
 export const ProjectSchema = z.object({
@@ -16,6 +38,19 @@ export const ProjectSchema = z.object({
     .nullable()
     .optional()
     .describe("GitHub repository URL in 'owner/repo' format"),
+  initial_scan_status: z
+    .enum(["pending", "running", "completed", "failed"])
+    .nullable()
+    .optional()
+    .describe("Status of initial repository scan"),
+  initial_scan_session_id: z
+    .string()
+    .nullable()
+    .optional()
+    .describe("Session ID for initial scan"),
+  initial_scan_progress: InitialScanProgressSchema.nullable()
+    .optional()
+    .describe("Progress of initial scan (todos or last block)"),
 });
 
 /**

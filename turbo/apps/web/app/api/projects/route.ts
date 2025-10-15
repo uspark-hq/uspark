@@ -3,7 +3,8 @@ import { getUserId } from "../../../src/lib/auth/get-user-id";
 import * as Y from "yjs";
 import { initServices } from "../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
-import { eq } from "drizzle-orm";
+import { TURNS_TBL, BLOCKS_TBL } from "../../../src/db/schema/sessions";
+import { eq, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
   ListProjectsResponseSchema,
@@ -33,20 +34,97 @@ export async function GET() {
       created_at: PROJECTS_TBL.createdAt,
       updated_at: PROJECTS_TBL.updatedAt,
       source_repo_url: PROJECTS_TBL.sourceRepoUrl,
+      initial_scan_status: PROJECTS_TBL.initialScanStatus,
+      initial_scan_session_id: PROJECTS_TBL.initialScanSessionId,
     })
     .from(PROJECTS_TBL)
     .where(eq(PROJECTS_TBL.userId, userId));
 
-  // Convert dates to ISO strings for schema validation
-  const projects = projectsData.map((project) => ({
-    ...project,
-    created_at: project.created_at.toISOString(),
-    updated_at: project.updated_at.toISOString(),
-  }));
+  // Fetch initial scan progress for projects that are scanning
+  const projectsWithProgress = await Promise.all(
+    projectsData.map(async (project) => {
+      let initial_scan_progress = null;
+
+      // Only fetch progress for active scans
+      if (
+        project.initial_scan_session_id &&
+        (project.initial_scan_status === "pending" ||
+          project.initial_scan_status === "running")
+      ) {
+        initial_scan_progress = await getInitialScanProgress(
+          project.initial_scan_session_id,
+        );
+      }
+
+      return {
+        ...project,
+        created_at: project.created_at.toISOString(),
+        updated_at: project.updated_at.toISOString(),
+        initial_scan_progress,
+      };
+    }),
+  );
 
   // Validate response with schema
-  const response = ListProjectsResponseSchema.parse({ projects });
+  const response = ListProjectsResponseSchema.parse({
+    projects: projectsWithProgress,
+  });
   return NextResponse.json(response);
+}
+
+/**
+ * Get initial scan progress from session blocks
+ */
+async function getInitialScanProgress(
+  sessionId: string,
+): Promise<{ todos?: unknown[]; lastBlock?: unknown } | null> {
+  // Get all turns for this session
+  const turns = await globalThis.services.db
+    .select({ id: TURNS_TBL.id })
+    .from(TURNS_TBL)
+    .where(eq(TURNS_TBL.sessionId, sessionId));
+
+  if (turns.length === 0) {
+    return null;
+  }
+
+  // Get all blocks for the first turn (usually only one turn in initial scan)
+  // Ordered by sequence number descending to get most recent first
+  const blocks = await globalThis.services.db
+    .select()
+    .from(BLOCKS_TBL)
+    .where(eq(BLOCKS_TBL.turnId, turns[0]!.id))
+    .orderBy(desc(BLOCKS_TBL.sequenceNumber));
+
+  // Find the most recent TodoWrite block
+  const todoWriteBlock = blocks.find(
+    (block) =>
+      block.type === "tool_use" &&
+      (block.content as { tool_name?: string }).tool_name === "TodoWrite",
+  );
+
+  if (todoWriteBlock) {
+    const content = todoWriteBlock.content as {
+      parameters?: { todos?: unknown[] };
+    };
+    return {
+      todos: content.parameters?.todos,
+    };
+  }
+
+  // If no todos, find the last content block
+  const lastContentBlock = blocks.find((block) => block.type === "content");
+
+  if (lastContentBlock) {
+    return {
+      lastBlock: {
+        type: lastContentBlock.type,
+        content: lastContentBlock.content,
+      },
+    };
+  }
+
+  return null;
 }
 
 /**

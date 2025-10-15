@@ -1,11 +1,19 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import "../../../src/test/setup";
+import { NextRequest } from "next/server";
 import { GET, POST } from "./route";
+import { POST as createSession } from "./[projectId]/sessions/route";
+import { POST as createTurn } from "./[projectId]/sessions/[sessionId]/turns/route";
+import { POST as onClaudeStdout } from "./[projectId]/sessions/[sessionId]/turns/[turnId]/on-claude-stdout/route";
 import { apiCall } from "../../../src/test/api-helpers";
 import {
   createTestProjectForUser,
   cleanupTestProjects,
 } from "../../../src/test/db-test-utils";
+import { initServices } from "../../../src/lib/init-services";
+import { PROJECTS_TBL } from "../../../src/db/schema/projects";
+import { SESSIONS_TBL } from "../../../src/db/schema/sessions";
+import { eq } from "drizzle-orm";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -280,6 +288,282 @@ describe("/api/projects", () => {
 
       // Project should be created without scan
       expect(response.data).toHaveProperty("id");
+    });
+  });
+
+  describe("GET /api/projects with initial scan progress", () => {
+    it("should return initial_scan_progress with todos from TodoWrite blocks", async () => {
+      initServices();
+      const db = globalThis.services.db;
+
+      // Create project via API
+      const createProjectResponse = await apiCall(
+        POST,
+        "POST",
+        {},
+        { name: `Test Project ${Date.now()}` },
+      );
+      const projectId = createProjectResponse.data.id;
+      createdProjectIds.push(projectId);
+
+      // Create session via API
+      const sessionResponse = await createSession(
+        new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ title: "Initial Repository Scan" }),
+        }),
+        { params: Promise.resolve({ projectId }) },
+      );
+      const sessionData = await sessionResponse.json();
+      const sessionId = sessionData.id;
+
+      // NOTE: Direct DB operation to mark session as initial-scan
+      // Exception justified: session.type is an internal marker, not business logic.
+      // No public API should allow setting this (security/integrity concern).
+      // This is test setup for internal state, similar to CLI token in on-claude-stdout tests.
+      await db
+        .update(SESSIONS_TBL)
+        .set({ type: "initial-scan" })
+        .where(eq(SESSIONS_TBL.id, sessionId));
+
+      // Update project to reference this scan session
+      await db
+        .update(PROJECTS_TBL)
+        .set({
+          sourceRepoUrl: "owner/repo",
+          sourceRepoInstallationId: 12345,
+          initialScanStatus: "running",
+          initialScanSessionId: sessionId,
+        })
+        .where(eq(PROJECTS_TBL.id, projectId));
+
+      // Create turn via API (send message)
+      const turnResponse = await createTurn(
+        new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ user_message: "Scan repository" }),
+        }),
+        { params: Promise.resolve({ projectId, sessionId }) },
+      );
+      const turnData = await turnResponse.json();
+      const turnId = turnData.id;
+
+      // Create TodoWrite block via on-claude-stdout API
+      const todoWriteLine = JSON.stringify({
+        type: "assistant",
+        message: {
+          content: [
+            {
+              type: "tool_use",
+              id: "tool_todowrite_123",
+              name: "TodoWrite",
+              input: {
+                todos: [
+                  {
+                    content: "Clone repository",
+                    status: "completed",
+                    activeForm: "Cloning repository",
+                  },
+                  {
+                    content: "Analyze codebase",
+                    status: "in_progress",
+                    activeForm: "Analyzing codebase",
+                  },
+                  {
+                    content: "Generate summary",
+                    status: "pending",
+                    activeForm: "Generating summary",
+                  },
+                ],
+              },
+            },
+          ],
+        },
+      });
+
+      const onStdoutResponse = await onClaudeStdout(
+        new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ line: todoWriteLine }),
+        }),
+        { params: Promise.resolve({ projectId, sessionId, turnId }) },
+      );
+      expect(onStdoutResponse.status).toBe(200);
+
+      const response = await apiCall(GET, "GET");
+
+      const project = response.data.projects.find(
+        (p: { id: string }) => p.id === projectId,
+      );
+
+      expect(project).toBeDefined();
+      expect(project.initial_scan_status).toBe("running");
+      expect(project.initial_scan_progress).toBeDefined();
+      expect(project.initial_scan_progress.todos).toHaveLength(3);
+      expect(project.initial_scan_progress.todos[0]).toMatchObject({
+        content: "Clone repository",
+        status: "completed",
+      });
+      expect(project.initial_scan_progress.todos[1]).toMatchObject({
+        content: "Analyze codebase",
+        status: "in_progress",
+      });
+
+      // No explicit cleanup needed - project deletion cascades to sessions, turns, blocks
+    });
+
+    it("should return lastBlock when no TodoWrite blocks exist", async () => {
+      initServices();
+      const db = globalThis.services.db;
+
+      // Create project via API
+      const createProjectResponse = await apiCall(
+        POST,
+        "POST",
+        {},
+        { name: `Test Project ${Date.now()}` },
+      );
+      const projectId = createProjectResponse.data.id;
+      createdProjectIds.push(projectId);
+
+      // Create session via API
+      const sessionResponse = await createSession(
+        new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ title: "Initial Repository Scan" }),
+        }),
+        { params: Promise.resolve({ projectId }) },
+      );
+      const sessionData = await sessionResponse.json();
+      const sessionId = sessionData.id;
+
+      // Mark session as initial-scan (internal marker)
+      await db
+        .update(SESSIONS_TBL)
+        .set({ type: "initial-scan" })
+        .where(eq(SESSIONS_TBL.id, sessionId));
+
+      // Update project scan status
+      await db
+        .update(PROJECTS_TBL)
+        .set({
+          initialScanStatus: "running",
+          initialScanSessionId: sessionId,
+        })
+        .where(eq(PROJECTS_TBL.id, projectId));
+
+      // Create turn via API
+      const turnResponse = await createTurn(
+        new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ user_message: "Scan repository" }),
+        }),
+        { params: Promise.resolve({ projectId, sessionId }) },
+      );
+      const turnData = await turnResponse.json();
+      const turnId = turnData.id;
+
+      // Create content block (not TodoWrite) via on-claude-stdout API
+      const contentLine = JSON.stringify({
+        type: "assistant",
+        message: {
+          content: [
+            {
+              type: "text",
+              text: "Analyzing repository structure...",
+            },
+          ],
+        },
+      });
+
+      await onClaudeStdout(
+        new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ line: contentLine }),
+        }),
+        { params: Promise.resolve({ projectId, sessionId, turnId }) },
+      );
+
+      const response = await apiCall(GET, "GET");
+
+      const project = response.data.projects.find(
+        (p: { id: string }) => p.id === projectId,
+      );
+
+      expect(project).toBeDefined();
+      expect(project.initial_scan_progress).toBeDefined();
+      expect(project.initial_scan_progress.lastBlock).toBeDefined();
+      expect(project.initial_scan_progress.lastBlock.type).toBe("content");
+      expect(project.initial_scan_progress.lastBlock.content).toMatchObject({
+        text: "Analyzing repository structure...",
+      });
+    });
+
+    it("should not fetch progress for completed scans", async () => {
+      initServices();
+      const db = globalThis.services.db;
+
+      // Create project via API
+      const createProjectResponse = await apiCall(
+        POST,
+        "POST",
+        {},
+        { name: `Test Project ${Date.now()}` },
+      );
+      const projectId = createProjectResponse.data.id;
+      createdProjectIds.push(projectId);
+
+      // Create session via API
+      const sessionResponse = await createSession(
+        new NextRequest("http://localhost:3000", {
+          method: "POST",
+          body: JSON.stringify({ title: "Initial Repository Scan" }),
+        }),
+        { params: Promise.resolve({ projectId }) },
+      );
+      const sessionData = await sessionResponse.json();
+      const sessionId = sessionData.id;
+
+      // Update project to mark scan as completed
+      await db
+        .update(PROJECTS_TBL)
+        .set({
+          initialScanStatus: "completed",
+          initialScanSessionId: sessionId,
+        })
+        .where(eq(PROJECTS_TBL.id, projectId));
+
+      const response = await apiCall(GET, "GET");
+
+      const project = response.data.projects.find(
+        (p: { id: string }) => p.id === projectId,
+      );
+
+      expect(project).toBeDefined();
+      expect(project.initial_scan_status).toBe("completed");
+      expect(project.initial_scan_progress).toBeNull();
+    });
+
+    it("should handle projects without initial scan", async () => {
+      const projectName = `test-project-no-scan-${Date.now()}`;
+
+      const createResponse = await apiCall(
+        POST,
+        "POST",
+        {},
+        { name: projectName },
+      );
+      createdProjectIds.push(createResponse.data.id);
+
+      const response = await apiCall(GET, "GET");
+
+      const project = response.data.projects.find(
+        (p: { id: string }) => p.id === createResponse.data.id,
+      );
+
+      expect(project).toBeDefined();
+      expect(project.initial_scan_status).toBeNull();
+      expect(project.initial_scan_progress).toBeNull();
     });
   });
 });

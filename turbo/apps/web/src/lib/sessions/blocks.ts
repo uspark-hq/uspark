@@ -14,7 +14,6 @@ export async function addBlock(
   turnId: string,
   type: string,
   content: unknown,
-  sequenceNumber: number,
 ): Promise<string> {
   initServices();
 
@@ -26,7 +25,6 @@ export async function addBlock(
       turnId,
       type,
       content: content,
-      sequenceNumber,
     })
     .returning();
 
@@ -47,7 +45,6 @@ export async function addBlocks(
     type: string;
     content: unknown;
   }>,
-  startSequence: number = 0,
 ): Promise<string[]> {
   initServices();
 
@@ -56,12 +53,11 @@ export async function addBlocks(
     return [];
   }
 
-  const blockData: NewBlock[] = blocks.map((block, index) => ({
+  const blockData: NewBlock[] = blocks.map((block) => ({
     id: `block_${randomUUID()}`,
     turnId,
     type: block.type,
     content: JSON.stringify(block.content),
-    sequenceNumber: startSequence + index,
   }));
 
   const newBlocks = await globalThis.services.db

@@ -6,7 +6,6 @@ interface Block {
   id: string;
   type: string;
   content: Record<string, unknown>;
-  sequenceNumber: number;
 }
 
 interface Turn {

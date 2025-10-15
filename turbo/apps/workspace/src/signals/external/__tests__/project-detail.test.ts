@@ -281,13 +281,11 @@ describe('project-detail signals', () => {
             id: 'block_1',
             type: 'text',
             content: { text: 'Answer 1' },
-            sequence_number: 0,
           },
           {
             id: 'block_2',
             type: 'code',
             content: { code: 'console.log("hello")' },
-            sequence_number: 1,
           },
         ],
       }

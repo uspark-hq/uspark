@@ -220,7 +220,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
     expect(blocks[0]!.content).toMatchObject({
       text: "Hello, how can I help you?",
     });
-    expect(blocks[0]!.sequenceNumber).toBe(0);
   });
 
   it("should create block from tool_use", async () => {
@@ -300,7 +299,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
     });
   });
 
-  it("should increment sequence numbers correctly", async () => {
+  it("should create blocks in order", async () => {
     const context = {
       params: Promise.resolve({ projectId, sessionId, turnId }),
     };
@@ -327,16 +326,14 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
     });
     await POST(request2, context);
 
-    // Verify sequence numbers
+    // Verify blocks are ordered by creation time
     const blocks = await globalThis.services.db
       .select()
       .from(BLOCKS_TBL)
       .where(eq(BLOCKS_TBL.turnId, turnId))
-      .orderBy(BLOCKS_TBL.sequenceNumber);
+      .orderBy(BLOCKS_TBL.createdAt);
 
     expect(blocks).toHaveLength(2);
-    expect(blocks[0]!.sequenceNumber).toBe(0);
-    expect(blocks[1]!.sequenceNumber).toBe(1);
   });
 
   it("should update turn status to completed on result block", async () => {
@@ -651,12 +648,12 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
     const res6 = await POST(req6, context);
     expect(res6.status).toBe(200);
 
-    // Verify all blocks were created with correct sequence numbers
+    // Verify all blocks were created in order
     const blocks = await globalThis.services.db
       .select()
       .from(BLOCKS_TBL)
       .where(eq(BLOCKS_TBL.turnId, turnId))
-      .orderBy(BLOCKS_TBL.sequenceNumber);
+      .orderBy(BLOCKS_TBL.createdAt);
 
     // Should have 4 blocks now (system init and result are skipped)
     // Block 0: assistant text content
@@ -670,7 +667,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
     expect(blocks[0]!.content).toMatchObject({
       text: "I'll list the files in the current working directory.",
     });
-    expect(blocks[0]!.sequenceNumber).toBe(0);
 
     // Verify second block (tool_use)
     expect(blocks[1]!.type).toBe("tool_use");
@@ -682,7 +678,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
         description: "List files in current directory",
       },
     });
-    expect(blocks[1]!.sequenceNumber).toBe(1);
 
     // Verify third block (tool_result from user message)
     expect(blocks[2]!.type).toBe("tool_result");
@@ -693,14 +688,12 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
     expect((blocks[2]!.content as { result: string }).result).toContain(
       "total 124",
     );
-    expect(blocks[2]!.sequenceNumber).toBe(2);
 
     // Verify fourth block (final response)
     expect(blocks[3]!.type).toBe("content");
     expect((blocks[3]!.content as { text: string }).text).toContain(
       "The workspace contains several markdown",
     );
-    expect(blocks[3]!.sequenceNumber).toBe(3);
 
     // Verify turn was marked as completed
     const [turn] = await globalThis.services.db
