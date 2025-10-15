@@ -293,4 +293,85 @@ test.describe("New Project Multi-Step Flow", () => {
 
     // Note: We don't actually click "Create Project" to avoid creating test projects in the database
   });
+
+  test("complete manual project creation with mocked API and verify redirect", async ({ page }) => {
+    // Step 1: Sign in with test user
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await clerk.signIn({
+      page,
+      emailAddress: "e2e+clerk_test@uspark.ai",
+    });
+
+    // Step 2: Navigate to project creation page
+    await page.goto("/projects/new");
+    await page.waitForLoadState("networkidle");
+
+    // Step 3: Should see choice step (manual creation option)
+    const choiceHeading = page.getByText("Create a New Project");
+    await expect(choiceHeading).toBeVisible();
+
+    // Step 4: Click "Create Project Manually" button
+    const manualButton = page.locator("button").filter({ hasText: /Create Project Manually/i });
+    await expect(manualButton).toBeVisible();
+    await manualButton.click();
+    await page.waitForLoadState("networkidle");
+
+    // Step 5: Enter project name
+    const nameHeading = page.getByText("Name Your Project");
+    await expect(nameHeading).toBeVisible();
+
+    const projectNameInput = page.getByPlaceholder("My Awesome Project");
+    await expect(projectNameInput).toBeVisible();
+    await projectNameInput.fill("E2E Mocked Test Project");
+
+    // Step 6: Click Continue
+    const continueButton = page.locator("button").filter({ hasText: /Continue/i });
+    await expect(continueButton).toBeEnabled();
+    await continueButton.click();
+    await page.waitForLoadState("networkidle");
+
+    // Step 7: Verify "You're All Set!" page
+    const readyHeading = page.getByText("You're All Set!");
+    await expect(readyHeading).toBeVisible();
+
+    // Mock the API response for project creation
+    const mockProjectId = "proj_mock_123456";
+    await page.route("**/api/projects", async (route) => {
+      if (route.request().method() === "POST") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            id: mockProjectId,
+            name: "E2E Mocked Test Project",
+            user_id: "test_user",
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          }),
+        });
+      } else {
+        await route.continue();
+      }
+    });
+
+    // Track navigation to verify redirect
+    let navigatedToWorkspace = false;
+    const navigationPromise = page.waitForURL((url) => {
+      const urlString = url.toString();
+      const hasAppSubdomain = urlString.includes("app.");
+      const hasProjectId = urlString.includes(`/projects/${mockProjectId}`);
+      navigatedToWorkspace = hasAppSubdomain && hasProjectId;
+      return navigatedToWorkspace;
+    });
+
+    // Step 8: Click "Create Project" button
+    const createButton = page.locator("button").filter({ hasText: /Create Project/i });
+    await expect(createButton).toBeVisible();
+    await expect(createButton).toBeEnabled();
+    await createButton.click();
+
+    // Step 9: Verify navigation to workspace project details page
+    await navigationPromise;
+    expect(navigatedToWorkspace).toBe(true);
+  });
 });
