@@ -1,3 +1,0 @@
-# Allow .env.production.local to be uploaded for Vite builds
-# All other .env files should remain ignored for security
-!.env.production.local
