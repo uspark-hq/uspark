@@ -343,17 +343,17 @@ test.describe("New Project Multi-Step Flow", () => {
     await expect(createButton).toBeEnabled();
     await createButton.click();
 
-    // Step 8: Wait for navigation to workspace (app subdomain)
-    // The app redirects to: app.{domain}/projects/{projectId}
+    // Step 8: Wait for navigation to project page
+    // In production: redirects to app.uspark.ai/projects/{projectId}
+    // In preview: stays on same domain /projects/{projectId}
     await page.waitForURL((url) => {
       const urlString = url.toString();
-      return urlString.includes("app.") && urlString.includes("/projects/");
+      return urlString.includes("/projects/") && !urlString.includes("/projects/new");
     }, { timeout: 30000 });
 
-    // Step 9: Verify we're on the workspace project page
+    // Step 9: Verify we're on the project page with valid UUID
     const currentUrl = page.url();
-    expect(currentUrl).toContain("app.");
-    expect(currentUrl).toMatch(/\/projects\/proj_[a-zA-Z0-9_-]+/);
+    expect(currentUrl).toMatch(/\/projects\/[a-z0-9-]{36}/);
 
     // Verify the project page loads successfully
     await page.waitForLoadState("domcontentloaded");
