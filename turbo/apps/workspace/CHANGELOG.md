@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.10.3...workspace-v1.11.0) (2025-10-15)
+
+
+### Features
+
+* **workspace:** add real-time session polling mechanism ([#512](https://github.com/uspark-hq/uspark/issues/512)) ([d69197b](https://github.com/uspark-hq/uspark/commit/d69197ba43abd248f984157961c1e797e321c353))
+
 ## [1.10.3](https://github.com/uspark-hq/uspark/compare/workspace-v1.10.2...workspace-v1.10.3) (2025-10-13)
 
 
