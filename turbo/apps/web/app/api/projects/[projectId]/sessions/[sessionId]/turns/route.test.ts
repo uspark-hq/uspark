@@ -210,7 +210,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
           turnId: turn1Data.id,
           type: "thinking",
           content: JSON.stringify({ text: "Thinking..." }),
-          sequenceNumber: 0,
         })
         .returning();
 
@@ -221,7 +220,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
           turnId: turn1Data.id,
           type: "content",
           content: JSON.stringify({ text: "The answer is..." }),
-          sequenceNumber: 1,
         })
         .returning();
 

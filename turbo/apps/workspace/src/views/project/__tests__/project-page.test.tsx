@@ -531,7 +531,6 @@ describe('projectPage - turn and blocks rendering', () => {
                   turnId: turnId,
                   type: 'thinking',
                   content: { text: 'Let me check the files...' },
-                  sequenceNumber: 0,
                   createdAt: new Date().toISOString(),
                 },
                 {
@@ -539,7 +538,6 @@ describe('projectPage - turn and blocks rendering', () => {
                   turnId: turnId,
                   type: 'content',
                   content: { text: 'Here are the files in your project' },
-                  sequenceNumber: 1,
                   createdAt: new Date().toISOString(),
                 },
                 {
@@ -551,7 +549,6 @@ describe('projectPage - turn and blocks rendering', () => {
                     parameters: { directory: '.' },
                     tool_use_id: 'tool-use-123',
                   },
-                  sequenceNumber: 2,
                   createdAt: new Date().toISOString(),
                 },
                 {
@@ -563,7 +560,6 @@ describe('projectPage - turn and blocks rendering', () => {
                     result: 'README.md\npackage.json',
                     error: null,
                   },
-                  sequenceNumber: 3,
                   createdAt: new Date().toISOString(),
                 },
               ],

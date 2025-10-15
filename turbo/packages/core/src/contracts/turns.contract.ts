@@ -30,7 +30,6 @@ export const BlockSchema = z.object({
   type: z.enum(["text", "code", "tool_use", "tool_result", "error"]),
   content: z.string(),
   metadata: z.record(z.string(), z.unknown()).optional(),
-  sequenceNumber: z.number(),
   createdAt: z.date().or(z.string()),
 });
 export type Block = z.infer<typeof BlockSchema>;
