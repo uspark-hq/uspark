@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.44.1](https://github.com/uspark-hq/uspark/compare/web-v0.44.0...web-v0.44.1) (2025-10-15)
+
+
+### Bug Fixes
+
+* remove unnecessary polling mechanism in project list ([#524](https://github.com/uspark-hq/uspark/issues/524)) ([7560def](https://github.com/uspark-hq/uspark/commit/7560def99b4864ead3aae5bad04fa639d3666977))
+
 ## [0.44.0](https://github.com/uspark-hq/uspark/compare/web-v0.43.0...web-v0.44.0) (2025-10-15)
 
 
