@@ -60,20 +60,19 @@ runs:
       id: deploy
       shell: bash
       run: |
-        # Set environment variables for build
+        # Create .env.production.local file for Vite to read during build
         ENV_VARS="${{ inputs.environment-variables }}"
         if [ -n "$ENV_VARS" ]; then
+          echo "Creating .env.production.local file for Vite build..."
+          touch .env.production.local
           while IFS= read -r line; do
             # Skip empty lines
             line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
             if [ -n "$line" ]; then
-              # Parse key=value format and export for build
+              # Write to .env.production.local file
+              echo "$line" >> .env.production.local
               KEY="${line%%=*}"
-              VALUE="${line#*=}"
-              if [ -n "$KEY" ] && [ -n "$VALUE" ]; then
-                export "$KEY=$VALUE"
-                echo "Set env: $KEY"
-              fi
+              echo "Added to .env.production.local: $KEY"
             fi
           done <<< "$ENV_VARS"
         fi
@@ -95,26 +94,9 @@ runs:
           DEPLOY_CMD="$DEPLOY_CMD --meta pr=${{ inputs.meta-pr }}"
         fi
 
-        # Add environment variables for both build and runtime
-        if [ -n "$ENV_VARS" ]; then
-          while IFS= read -r line; do
-            # Skip empty lines
-            line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
-            if [ -n "$line" ]; then
-              # Parse key=value format
-              KEY="${line%%=*}"
-              VALUE="${line#*=}"
-              if [ -n "$KEY" ] && [ -n "$VALUE" ]; then
-                # Add as both build-env and runtime env
-                # build-env is needed for Next.js build process
-                # env is needed for runtime serverless functions
-                DEPLOY_CMD="$DEPLOY_CMD --build-env \"${KEY}=${VALUE}\" --env \"${KEY}=${VALUE}\""
-              fi
-            fi
-          done <<< "$ENV_VARS"
-        fi
-
         # Execute deployment and capture URL
+        # Note: Vite will read .env.production.local during build on Vercel
+        # For Next.js apps, you still need --build-env and --env flags
         echo "Executing deployment..."
         DEPLOYMENT_URL=$(eval $DEPLOY_CMD)
 
