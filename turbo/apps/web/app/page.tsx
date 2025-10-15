@@ -3,7 +3,12 @@
 import { TerminalHome } from "./components/TerminalHome";
 import styles from "./page.module.css";
 
-// Home page component - displays the landing page with terminal interface
+/**
+ * Home page component that renders the landing page.
+ * Displays the uSpark logo header and interactive terminal interface.
+ *
+ * @returns The main landing page layout
+ */
 export default function Home() {
   return (
     <div className={styles.container}>
