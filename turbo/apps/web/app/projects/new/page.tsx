@@ -250,8 +250,7 @@ export default function NewProjectPage() {
             completed={
               currentStep === "repository" ||
               currentStep === "ready" ||
-              currentStep === "scanning" ||
-              (currentStep === "ready" && useGitHub === false)
+              currentStep === "scanning"
             }
           />
           {useGitHub && (
