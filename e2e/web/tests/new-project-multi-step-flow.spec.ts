@@ -39,7 +39,24 @@ test.describe("New Project Multi-Step Flow", () => {
       await page.waitForLoadState("networkidle");
     }
 
-    // Step 4: GitHub Connection Step (should auto-skip if already connected)
+    // Step 4: Choice Step (new step - choose between GitHub and Manual)
+    const choiceHeading = page.getByText("Create a New Project");
+    const choiceVisible = await choiceHeading.isVisible().catch(() => false);
+
+    if (choiceVisible) {
+      await page.screenshot({
+        path: "test-results/multi-step-02-choice-step.png",
+        fullPage: true,
+      });
+
+      // Click "Connect GitHub Repository" button
+      const githubButton = page.locator("button").filter({ hasText: /Connect GitHub Repository/i });
+      await expect(githubButton).toBeVisible();
+      await githubButton.click();
+      await page.waitForLoadState("networkidle");
+    }
+
+    // Step 5: GitHub Connection Step (should auto-skip if already connected)
     const githubHeading = page.getByText("Connect Your GitHub Account");
     const repositoryHeading = page.getByText("Select a Repository");
 
@@ -64,7 +81,7 @@ test.describe("New Project Multi-Step Flow", () => {
 
     if (isOnGitHubStep) {
       await page.screenshot({
-        path: "test-results/multi-step-02-github-step.png",
+        path: "test-results/multi-step-03-github-step.png",
         fullPage: true,
       });
 
@@ -74,10 +91,10 @@ test.describe("New Project Multi-Step Flow", () => {
       return;
     }
 
-    // Step 5: Repository Selection Step (only if GitHub already connected)
+    // Step 6: Repository Selection Step (only if GitHub already connected)
     await expect(repositoryHeading).toBeVisible();
     await page.screenshot({
-      path: "test-results/multi-step-03-repository-step.png",
+      path: "test-results/multi-step-04-repository-step.png",
       fullPage: true,
     });
 
@@ -88,7 +105,7 @@ test.describe("New Project Multi-Step Flow", () => {
     // Select first available repository
     await repoSelect.selectOption({ index: 1 }); // Index 0 is the placeholder
     await page.screenshot({
-      path: "test-results/multi-step-04-repository-selected.png",
+      path: "test-results/multi-step-05-repository-selected.png",
       fullPage: true,
     });
 
@@ -98,14 +115,16 @@ test.describe("New Project Multi-Step Flow", () => {
     await continueButton.click();
     await page.waitForLoadState("networkidle");
 
-    // Step 6: Token Step (conditional - only shown if token not configured)
+    // Step 7: Token Step (conditional - only shown if token not configured)
+    // Note: This step was removed in favor of shared DEFAULT_CLAUDE_TOKEN
+    // Keeping the code for backward compatibility during transition
     const tokenHeading = page.getByText("Add Your Claude API Key");
     const readyHeading = page.getByText("You're All Set!");
 
     const isOnTokenStep = await tokenHeading.isVisible();
     if (isOnTokenStep) {
       await page.screenshot({
-        path: "test-results/multi-step-05-token-step.png",
+        path: "test-results/multi-step-06-token-step.png",
         fullPage: true,
       });
 
@@ -113,7 +132,7 @@ test.describe("New Project Multi-Step Flow", () => {
       const tokenInput = page.locator("input[type='password']");
       await tokenInput.fill("sk-ant-test-token-for-e2e-testing");
       await page.screenshot({
-        path: "test-results/multi-step-06-token-filled.png",
+        path: "test-results/multi-step-07-token-filled.png",
         fullPage: true,
       });
 
@@ -124,10 +143,10 @@ test.describe("New Project Multi-Step Flow", () => {
       await page.waitForLoadState("networkidle");
     }
 
-    // Step 7: Ready/Final Step
+    // Step 8: Ready/Final Step
     await expect(readyHeading).toBeVisible();
     await page.screenshot({
-      path: "test-results/multi-step-07-ready-step.png",
+      path: "test-results/multi-step-08-ready-step.png",
       fullPage: true,
     });
 
@@ -143,7 +162,7 @@ test.describe("New Project Multi-Step Flow", () => {
 
     // Take final screenshot before clicking
     await page.screenshot({
-      path: "test-results/multi-step-08-before-start.png",
+      path: "test-results/multi-step-09-before-start.png",
       fullPage: true,
     });
 
@@ -160,6 +179,15 @@ test.describe("New Project Multi-Step Flow", () => {
 
     await page.goto("/projects/new");
     await page.waitForLoadState("networkidle");
+
+    // Handle choice step if present
+    const choiceHeading = page.getByText("Create a New Project");
+    const choiceVisible = await choiceHeading.isVisible().catch(() => false);
+    if (choiceVisible) {
+      const githubButton = page.locator("button").filter({ hasText: /Connect GitHub Repository/i });
+      await githubButton.click();
+      await page.waitForLoadState("networkidle");
+    }
 
     // If we're on the repository step, proceed
     const repositoryHeading = page.getByText("Select a Repository");
