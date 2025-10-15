@@ -25,7 +25,7 @@ jobs:
     permissions:
       deployments: write
     steps:
-      - name: Mark Deployments as Inactive
+      - name: Delete PR Deployments
         uses: actions/github-script@v7
         with:
           script: |
@@ -50,16 +50,30 @@ jobs:
                      deployment.environment?.includes(`preview/${branchName}`);
             });
 
-            console.log(`Found ${branchDeployments.length} deployments to clean up`);
+            console.log(`Found ${branchDeployments.length} deployments to delete`);
 
-            // Mark each deployment as inactive
+            // Delete each deployment (must mark as inactive first)
             for (const deployment of branchDeployments) {
-              console.log(`Marking deployment ${deployment.id} (${deployment.environment}) as inactive`);
+              console.log(`Deleting deployment ${deployment.id} (${deployment.environment})`);
+
+              // Step 1: Mark as inactive
               await github.rest.repos.createDeploymentStatus({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 deployment_id: deployment.id,
                 state: 'inactive',
-                description: 'PR closed - deployment removed'
+                description: 'PR closed - cleaning up'
               });
+
+              // Step 2: Delete the deployment
+              try {
+                await github.rest.repos.deleteDeployment({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  deployment_id: deployment.id
+                });
+                console.log(`Successfully deleted deployment ${deployment.id}`);
+              } catch (error) {
+                console.error(`Failed to delete deployment ${deployment.id}: ${error.message}`);
+              }
             }
