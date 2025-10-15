@@ -1,9 +1,12 @@
 import type { FileItem } from '@uspark/core/yjs-filesystem'
 import { command, computed, state } from 'ccstate'
+import { delay } from 'signal-timers'
+import { IN_VITEST } from '../../env'
 import {
   blobStore$,
   createSession$,
   getFileContentUrl,
+  lastBlockId,
   projectFiles,
   projectSessions,
   sendMessage$,
@@ -11,6 +14,7 @@ import {
   turnDetail,
 } from '../external/project-detail'
 import { pathParams$, searchParams$, updateSearchParams$ } from '../route'
+import { throwIfAbort } from '../utils'
 
 function findFileInTree(
   files: FileItem[],
@@ -232,5 +236,83 @@ export const sendChatMessage$ = command(
 
     set(internalChatInput$, '')
     set(internalReloadTurn$, (x) => x + 1)
+  },
+)
+
+export const currentLastBlockId$ = computed(async (get) => {
+  const turns = await get(turns$)
+  if (!turns || turns.length === 0) {
+    return null
+  }
+
+  for (let i = turns.length - 1; i >= 0; i--) {
+    const turn = turns[i]
+    if (turn.blocks.length > 0) {
+      return turn.blocks[turn.blocks.length - 1].id
+    }
+  }
+
+  return null
+})
+
+export const hasActiveTurns$ = computed(async (get) => {
+  const turns = await get(turns$)
+  if (!turns) {
+    return false
+  }
+
+  return turns.some(
+    (turn) => turn.status === 'pending' || turn.status === 'in_progress',
+  )
+})
+
+const pollingInterval$ = computed(async (get) => {
+  const hasActive = await get(hasActiveTurns$)
+  return hasActive ? 1000 : 5000
+})
+
+export const startWatchSession$ = command(
+  async ({ get, set }, signal: AbortSignal) => {
+    do {
+      try {
+        const session = await get(selectedSession$)
+        signal.throwIfAborted()
+        const projectId = get(projectId$)
+
+        if (session && projectId) {
+          const { lastBlockId: serverLastBlockId } = await get(
+            lastBlockId({
+              projectId,
+              sessionId: session.id,
+            }),
+          )
+          signal.throwIfAborted()
+
+          const localLastBlockId = await get(currentLastBlockId$)
+          signal.throwIfAborted()
+
+          if (serverLastBlockId !== localLastBlockId) {
+            set(internalReloadTurn$, (x) => x + 1)
+          }
+        }
+
+        if (!IN_VITEST) {
+          const interval = await get(pollingInterval$)
+          signal.throwIfAborted()
+          await delay(interval, { signal })
+        }
+      } catch (error) {
+        throwIfAbort(error)
+
+        if (!IN_VITEST) {
+          try {
+            await delay(5000, { signal })
+          } catch (error) {
+            throwIfAbort(error)
+            break
+          }
+        }
+      }
+    } while (!IN_VITEST && !signal.aborted)
   },
 )
