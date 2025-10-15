@@ -74,8 +74,8 @@ runs:
             # Skip empty lines
             line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
             if [ -n "$line" ]; then
-              # Add both --build-env and --env for each variable
-              DEPLOY_CMD="$DEPLOY_CMD --build-env $line --env $line"
+              # Add both --build-env and --env for each variable (quoted to handle special chars)
+              DEPLOY_CMD="$DEPLOY_CMD --build-env \"$line\" --env \"$line\""
               KEY="${line%%=*}"
               echo "Adding environment variable: $KEY"
             fi
