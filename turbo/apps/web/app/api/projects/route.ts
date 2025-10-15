@@ -89,12 +89,12 @@ async function getInitialScanProgress(
   }
 
   // Get all blocks for the first turn (usually only one turn in initial scan)
-  // Ordered by sequence number descending to get most recent first
+  // Ordered by created_at descending to get most recent first
   const blocks = await globalThis.services.db
     .select()
     .from(BLOCKS_TBL)
     .where(eq(BLOCKS_TBL.turnId, turns[0]!.id))
-    .orderBy(desc(BLOCKS_TBL.sequenceNumber));
+    .orderBy(desc(BLOCKS_TBL.createdAt));
 
   // Find the most recent TodoWrite block
   const todoWriteBlock = blocks.find(
