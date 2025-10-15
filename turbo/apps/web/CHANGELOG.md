@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.45.0](https://github.com/uspark-hq/uspark/compare/web-v0.44.1...web-v0.45.0) (2025-10-15)
+
+
+### Features
+
+* **web:** streamline initial scan progress display ([#526](https://github.com/uspark-hq/uspark/issues/526)) ([3ed428f](https://github.com/uspark-hq/uspark/commit/3ed428f2c934ae5983fe849869d3f50766eae7ab))
+
 ## [0.44.1](https://github.com/uspark-hq/uspark/compare/web-v0.44.0...web-v0.44.1) (2025-10-15)
 
 
