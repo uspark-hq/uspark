@@ -221,4 +221,76 @@ test.describe("New Project Multi-Step Flow", () => {
       });
     }
   });
+
+  test("complete manual project creation without GitHub", async ({ page }) => {
+    // Step 1: Sign in with test user
+    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await clerk.signIn({
+      page,
+      emailAddress: "e2e+clerk_test@uspark.ai",
+    });
+
+    // Step 2: Navigate to project creation page
+    await page.goto("/projects/new");
+    await page.waitForLoadState("networkidle");
+
+    // Step 3: Should see choice step (manual creation option)
+    const choiceHeading = page.getByText("Create a New Project");
+    await expect(choiceHeading).toBeVisible();
+    await page.screenshot({
+      path: "test-results/manual-01-choice-step.png",
+      fullPage: true,
+    });
+
+    // Step 4: Click "Create Project Manually" button
+    const manualButton = page.locator("button").filter({ hasText: /Create Project Manually/i });
+    await expect(manualButton).toBeVisible();
+    await manualButton.click();
+    await page.waitForLoadState("networkidle");
+
+    // Step 5: Enter project name
+    const nameHeading = page.getByText("Name Your Project");
+    await expect(nameHeading).toBeVisible();
+    await page.screenshot({
+      path: "test-results/manual-02-name-input.png",
+      fullPage: true,
+    });
+
+    const projectNameInput = page.getByPlaceholder("My Awesome Project");
+    await expect(projectNameInput).toBeVisible();
+    await projectNameInput.fill("E2E Test Project");
+    await page.screenshot({
+      path: "test-results/manual-03-name-filled.png",
+      fullPage: true,
+    });
+
+    // Step 6: Click Continue
+    const continueButton = page.locator("button").filter({ hasText: /Continue/i });
+    await expect(continueButton).toBeEnabled();
+    await continueButton.click();
+    await page.waitForLoadState("networkidle");
+
+    // Step 7: Verify "You're All Set!" page
+    const readyHeading = page.getByText("You're All Set!");
+    await expect(readyHeading).toBeVisible();
+    await page.screenshot({
+      path: "test-results/manual-04-ready.png",
+      fullPage: true,
+    });
+
+    // Verify project name is displayed
+    await expect(page.getByText("E2E Test Project")).toBeVisible();
+
+    // Verify "Create Project" button (not "Start Scanning")
+    const createButton = page.locator("button").filter({ hasText: /Create Project/i });
+    await expect(createButton).toBeVisible();
+    await expect(createButton).toBeEnabled();
+
+    await page.screenshot({
+      path: "test-results/manual-05-final.png",
+      fullPage: true,
+    });
+
+    // Note: We don't actually click "Create Project" to avoid creating test projects in the database
+  });
 });
