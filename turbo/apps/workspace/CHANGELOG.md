@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.2](https://github.com/uspark-hq/uspark/compare/workspace-v1.11.1...workspace-v1.11.2) (2025-10-15)
+
+
+### Bug Fixes
+
+* **workspace:** add documentation for clerk authentication signals ([#529](https://github.com/uspark-hq/uspark/issues/529)) ([e52ca0e](https://github.com/uspark-hq/uspark/commit/e52ca0e8ae396c756db74d9d168eeae45aaa9e11))
+
 ## [1.11.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.11.0...workspace-v1.11.1) (2025-10-15)
 
 
