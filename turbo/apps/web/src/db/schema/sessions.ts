@@ -12,6 +12,7 @@ export const SESSIONS_TBL = pgTable("sessions", {
     .notNull()
     .references(() => PROJECTS_TBL.id),
   title: text("title"), // Optional session title
+  type: text("type"), // 'initial-scan' for initial repository scan, null for regular sessions
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });

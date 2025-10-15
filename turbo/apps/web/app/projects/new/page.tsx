@@ -11,13 +11,19 @@ import {
 } from "@uspark/ui";
 import { GitHubRepoSelector } from "../../components/github-repo-selector";
 import { Check, Github, FolderGit2, FileText } from "lucide-react";
+import { InitialScanProgress } from "../../components/initial-scan-progress";
+import type { Project } from "@uspark/core";
+
+// Poll interval for checking scan progress (milliseconds)
+const SCAN_POLL_INTERVAL_MS = 3000;
 
 type ProjectCreationStep =
   | "choice"
   | "github"
   | "repository"
   | "manual"
-  | "ready";
+  | "ready"
+  | "scanning";
 
 interface SelectedRepo {
   repo: {
@@ -36,6 +42,7 @@ export default function NewProjectPage() {
   const [creating, setCreating] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
   const [error, setError] = useState<string>();
+  const [createdProject, setCreatedProject] = useState<Project | null>(null);
 
   // Navigate to project in app subdomain (workspace)
   const navigateToProject = (projectId: string) => {
@@ -141,15 +148,78 @@ export default function NewProjectPage() {
       body: JSON.stringify(body),
     });
 
-    if (response.ok) {
-      const data = await response.json();
-      navigateToProject(data.id);
-    } else {
+    // FAIL-FAST: Early return on error
+    if (!response.ok) {
       const data = await response.json();
       setError(data.error_description || "Failed to create project");
       setCreating(false);
+      return;
     }
+
+    const data = await response.json();
+
+    // For manual projects (no GitHub), go directly to workspace
+    if (!useGitHub) {
+      navigateToProject(data.id);
+      return;
+    }
+
+    // For GitHub projects, fetch full project details to show scan progress
+    const projectResponse = await fetch("/api/projects");
+    if (!projectResponse.ok) {
+      setError("Project created but failed to fetch details");
+      setCreating(false);
+      return;
+    }
+
+    const projectsData = await projectResponse.json();
+    const project = projectsData.projects.find(
+      (p: Project) => p.id === data.id,
+    );
+
+    if (!project) {
+      setError("Project created but not found in list");
+      setCreating(false);
+      return;
+    }
+
+    setCreatedProject(project);
+    setCurrentStep("scanning");
+    setCreating(false);
   };
+
+  // Poll for scan completion
+  useEffect(() => {
+    if (!createdProject || currentStep !== "scanning") {
+      return;
+    }
+
+    const interval = setInterval(async () => {
+      try {
+        const response = await fetch("/api/projects");
+        if (response.ok) {
+          const data = await response.json();
+          const project = data.projects.find(
+            (p: Project) => p.id === createdProject.id,
+          );
+          if (project) {
+            setCreatedProject(project);
+            // Stop polling when scan completes
+            if (
+              project.initial_scan_status === "completed" ||
+              project.initial_scan_status === "failed"
+            ) {
+              clearInterval(interval);
+            }
+          }
+        }
+      } catch {
+        // Ignore polling errors
+      }
+    }, SCAN_POLL_INTERVAL_MS);
+
+    return () => clearInterval(interval);
+  }, [createdProject, currentStep]);
 
   if (checkingStatus) {
     return (
@@ -179,7 +249,8 @@ export default function NewProjectPage() {
             }
             completed={
               currentStep === "repository" ||
-              (currentStep === "ready" && useGitHub === false)
+              currentStep === "ready" ||
+              currentStep === "scanning"
             }
           />
           {useGitHub && (
@@ -189,7 +260,9 @@ export default function NewProjectPage() {
                 number={2}
                 label="Repository"
                 active={currentStep === "repository"}
-                completed={currentStep === "ready"}
+                completed={
+                  currentStep === "ready" || currentStep === "scanning"
+                }
               />
             </>
           )}
@@ -392,7 +465,48 @@ export default function NewProjectPage() {
           </Card>
         )}
 
-        {/* Step 3: Ready */}
+        {/* Step 3: Scanning */}
+        {currentStep === "scanning" && createdProject && (
+          <div className="space-y-6">
+            <InitialScanProgress
+              progress={createdProject.initial_scan_progress || null}
+              projectName={createdProject.name}
+            />
+            {createdProject.initial_scan_status === "completed" && (
+              <Card>
+                <CardContent className="pt-6">
+                  <Button
+                    onClick={() => navigateToProject(createdProject.id)}
+                    className="w-full"
+                    size="lg"
+                  >
+                    Enter Project Workspace
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+            {createdProject.initial_scan_status === "failed" && (
+              <Card className="border-destructive">
+                <CardContent className="pt-6">
+                  <p className="text-sm text-destructive mb-4">
+                    Initial scan failed. You can still access the project, but
+                    it may not have been fully analyzed.
+                  </p>
+                  <Button
+                    onClick={() => navigateToProject(createdProject.id)}
+                    className="w-full"
+                    size="lg"
+                    variant="outline"
+                  >
+                    Continue Anyway
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+
+        {/* Step 4: Ready */}
         {currentStep === "ready" && (
           <Card>
             <CardHeader>
