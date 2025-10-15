@@ -1,5 +1,6 @@
 import test, { expect } from "@playwright/test";
 import { clerk, clerkSetup } from "@clerk/testing/playwright";
+import { setupMockHandlers } from "../mocks/handlers";
 
 test.describe("New Project Multi-Step Flow", () => {
   test.beforeAll(async () => {
@@ -334,25 +335,8 @@ test.describe("New Project Multi-Step Flow", () => {
     const readyHeading = page.getByText("You're All Set!");
     await expect(readyHeading).toBeVisible();
 
-    // Mock the API response for project creation
-    const mockProjectId = "proj_mock_123456";
-    await page.route("**/api/projects", async (route) => {
-      if (route.request().method() === "POST") {
-        await route.fulfill({
-          status: 200,
-          contentType: "application/json",
-          body: JSON.stringify({
-            id: mockProjectId,
-            name: "E2E Mocked Test Project",
-            user_id: "test_user",
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          }),
-        });
-      } else {
-        await route.continue();
-      }
-    });
+    // Setup MSW-style mock handlers for API
+    const mockProjectId = await setupMockHandlers(page);
 
     // Track navigation to verify redirect
     let navigatedToWorkspace = false;
