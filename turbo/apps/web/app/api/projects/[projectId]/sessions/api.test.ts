@@ -12,7 +12,6 @@ import { POST as interruptSession } from "./[sessionId]/interrupt/route";
 import { GET as getLastBlockId } from "./[sessionId]/last-block-id/route";
 import { POST as createProject } from "../../route";
 import { initServices } from "../../../../../src/lib/init-services";
-import { CLAUDE_TOKENS_TBL } from "../../../../../src/db/schema/claude-tokens";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -45,22 +44,8 @@ describe("Claude Session Management API Integration", () => {
     // Mock successful authentication
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
 
-    // Initialize services and add Claude token for test user
+    // Initialize services
     initServices();
-    await globalThis.services.db
-      .insert(CLAUDE_TOKENS_TBL)
-      .values({
-        userId,
-        encryptedToken: "encrypted_test_token",
-        tokenPrefix: "test_token",
-      })
-      .onConflictDoUpdate({
-        target: CLAUDE_TOKENS_TBL.userId,
-        set: {
-          encryptedToken: "encrypted_test_token",
-          tokenPrefix: "test_token",
-        },
-      });
 
     // Create a project using the API
     const projectResponse = await apiCall(

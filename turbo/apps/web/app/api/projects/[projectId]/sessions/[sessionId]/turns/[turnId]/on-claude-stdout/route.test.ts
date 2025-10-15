@@ -12,7 +12,6 @@ import {
   BLOCKS_TBL,
 } from "../../../../../../../../../src/db/schema/sessions";
 import { CLI_TOKENS_TBL } from "../../../../../../../../../src/db/schema/cli-tokens";
-import { CLAUDE_TOKENS_TBL } from "../../../../../../../../../src/db/schema/claude-tokens";
 import { eq } from "drizzle-orm";
 
 // Mock Clerk authentication
@@ -115,25 +114,6 @@ async function createTestTurnContext(userId: string, cliToken: string) {
   const sessionData = await sessionResponse.json();
   const sessionId = sessionData.id;
 
-  // NOTE: Direct DB operation for Claude token
-  // Exception justified: No public API exists for token management (security sensitive).
-  // Creating APIs just for tests violates YAGNI and could expose security risks.
-  // This is authentication setup, not business logic testing.
-  await globalThis.services.db
-    .insert(CLAUDE_TOKENS_TBL)
-    .values({
-      userId,
-      encryptedToken: "encrypted_test_token",
-      tokenPrefix: "test_token",
-    })
-    .onConflictDoUpdate({
-      target: CLAUDE_TOKENS_TBL.userId,
-      set: {
-        encryptedToken: "encrypted_test_token",
-        tokenPrefix: "test_token",
-      },
-    });
-
   // Create turn via API
   const createTurnRequest = new NextRequest("http://localhost:3000", {
     method: "POST",
@@ -200,9 +180,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
     await globalThis.services.db
       .delete(CLI_TOKENS_TBL)
       .where(eq(CLI_TOKENS_TBL.token, cliToken));
-    await globalThis.services.db
-      .delete(CLAUDE_TOKENS_TBL)
-      .where(eq(CLAUDE_TOKENS_TBL.userId, userId));
   });
 
   it("should create block from assistant content", async () => {

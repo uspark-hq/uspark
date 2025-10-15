@@ -1,18 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  Input,
-} from "@uspark/ui";
+import { Button, Card, CardContent, CardHeader, CardTitle } from "@uspark/ui";
 import { GitHubRepoSelector } from "../../components/github-repo-selector";
-import { Check, Github, FolderGit2, Key } from "lucide-react";
+import { Check, Github, FolderGit2 } from "lucide-react";
 
-type ProjectCreationStep = "github" | "repository" | "token" | "ready";
+type ProjectCreationStep = "github" | "repository" | "ready";
 
 interface SelectedRepo {
   repo: {
@@ -25,9 +18,7 @@ interface SelectedRepo {
 export default function NewProjectPage() {
   const [currentStep, setCurrentStep] = useState<ProjectCreationStep>("github");
   const [hasGitHub, setHasGitHub] = useState<boolean | null>(null);
-  const [hasToken, setHasToken] = useState<boolean | null>(null);
   const [selectedRepo, setSelectedRepo] = useState<SelectedRepo | null>(null);
-  const [tokenInput, setTokenInput] = useState("");
   const [creating, setCreating] = useState(false);
   const [checkingStatus, setCheckingStatus] = useState(true);
   const [error, setError] = useState<string>();
@@ -40,7 +31,7 @@ export default function NewProjectPage() {
     window.location.href = newUrl;
   };
 
-  // Check GitHub and token status on mount
+  // Check GitHub status on mount
   useEffect(() => {
     const checkStatus = async () => {
       // Check GitHub installation
@@ -48,13 +39,6 @@ export default function NewProjectPage() {
       if (githubRes.ok) {
         const data = await githubRes.json();
         setHasGitHub(data.installation !== null);
-      }
-
-      // Check Claude token
-      const tokenRes = await fetch("/api/claude-token");
-      if (tokenRes.ok) {
-        const data = await tokenRes.json();
-        setHasToken(data.token !== null);
       }
 
       setCheckingStatus(false);
@@ -88,30 +72,7 @@ export default function NewProjectPage() {
   };
 
   const handleContinueFromRepo = () => {
-    if (hasToken) {
-      setCurrentStep("ready");
-    } else {
-      setCurrentStep("token");
-    }
-  };
-
-  const handleTokenSubmit = async () => {
-    if (!tokenInput.trim()) return;
-
-    setError(undefined);
-    const response = await fetch("/api/claude-token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ token: tokenInput }),
-    });
-
-    if (response.ok) {
-      setHasToken(true);
-      setCurrentStep("ready");
-    } else {
-      const data = await response.json();
-      setError(data.error_description || "Failed to save API key");
-    }
+    setCurrentStep("ready");
   };
 
   const handleCreateProject = async () => {
@@ -166,14 +127,7 @@ export default function NewProjectPage() {
           <StepIndicator
             number={2}
             label="Repository"
-            active={currentStep === "repository"}
-            completed={selectedRepo !== null}
-          />
-          <div className="h-px w-12 bg-border" />
-          <StepIndicator
-            number={3}
-            label={hasToken ? "Ready" : "Token"}
-            active={currentStep === "token" || currentStep === "ready"}
+            active={currentStep === "repository" || currentStep === "ready"}
             completed={currentStep === "ready"}
           />
         </div>
@@ -267,74 +221,7 @@ export default function NewProjectPage() {
           </Card>
         )}
 
-        {/* Step 3: Token (if needed) */}
-        {currentStep === "token" && (
-          <Card>
-            <CardHeader>
-              <div className="flex items-center gap-3">
-                <div className="rounded-lg bg-primary/10 p-3">
-                  <Key className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                  <CardTitle>Add Your Claude API Key</CardTitle>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    This enables AI-powered analysis of your code
-                  </p>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {error && (
-                  <div className="rounded-lg border border-destructive bg-destructive/10 p-3">
-                    <p className="text-sm text-destructive">{error}</p>
-                  </div>
-                )}
-                <div className="rounded-lg border bg-muted/50 p-4">
-                  <h4 className="font-medium mb-2">How to get your API key:</h4>
-                  <ol className="space-y-2 text-sm text-muted-foreground list-decimal list-inside">
-                    <li>Visit console.anthropic.com</li>
-                    <li>Sign in or create an account</li>
-                    <li>Navigate to API Keys section</li>
-                    <li>Create a new key and copy it</li>
-                  </ol>
-                </div>
-                <div>
-                  <label
-                    htmlFor="token"
-                    className="text-sm font-medium block mb-2"
-                  >
-                    API Key
-                  </label>
-                  <Input
-                    id="token"
-                    type="password"
-                    placeholder="sk-ant-..."
-                    value={tokenInput}
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                      setTokenInput(e.target.value)
-                    }
-                    onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
-                      if (e.key === "Enter" && tokenInput.trim()) {
-                        handleTokenSubmit();
-                      }
-                    }}
-                  />
-                </div>
-                <Button
-                  onClick={handleTokenSubmit}
-                  disabled={!tokenInput.trim()}
-                  className="w-full"
-                  size="lg"
-                >
-                  Save and Continue
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Step 3/4: Ready */}
+        {/* Step 3: Ready */}
         {currentStep === "ready" && (
           <Card>
             <CardHeader>

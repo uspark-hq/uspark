@@ -22,7 +22,7 @@ function initEnv() {
       GH_APP_ID: z.string().min(1),
       GH_APP_PRIVATE_KEY: z.string().min(1),
       GH_WEBHOOK_SECRET: z.string().min(1),
-      CLAUDE_TOKEN_ENCRYPTION_KEY: z.string().length(64).optional(), // 32 bytes as hex = 64 chars
+      DEFAULT_CLAUDE_TOKEN: z.string().min(1),
       // E2B development environment variables (optional, for local testing only)
       USPARK_TOKEN_FOR_DEV: z.string().optional(),
       PROJECT_ID_FOR_DEV: z.string().min(1).optional(),
@@ -51,9 +51,9 @@ function initEnv() {
       GH_WEBHOOK_SECRET: isTest
         ? "test_github_webhook_secret"
         : process.env.GH_WEBHOOK_SECRET,
-      CLAUDE_TOKEN_ENCRYPTION_KEY: isTest
-        ? "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
-        : process.env.CLAUDE_TOKEN_ENCRYPTION_KEY,
+      DEFAULT_CLAUDE_TOKEN: isTest
+        ? "sk-ant-test-default-token-for-testing"
+        : process.env.DEFAULT_CLAUDE_TOKEN,
       USPARK_TOKEN_FOR_DEV: process.env.USPARK_TOKEN_FOR_DEV,
       PROJECT_ID_FOR_DEV: process.env.PROJECT_ID_FOR_DEV,
       TURN_ID_FOR_DEV: process.env.TURN_ID_FOR_DEV,
