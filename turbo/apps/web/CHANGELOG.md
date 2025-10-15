@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.42.0](https://github.com/uspark-hq/uspark/compare/web-v0.41.0...web-v0.42.0) (2025-10-15)
+
+
+### Features
+
+* **web:** use shared claude token to simplify bootstrap flow ([#510](https://github.com/uspark-hq/uspark/issues/510)) ([cdb45a6](https://github.com/uspark-hq/uspark/commit/cdb45a6e60ce3e2a4455ca1eb2d634c25c8be6cf))
+
 ## [0.41.0](https://github.com/uspark-hq/uspark/compare/web-v0.40.1...web-v0.41.0) (2025-10-14)
 
 
