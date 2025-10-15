@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.11.3](https://github.com/uspark-hq/uspark/compare/workspace-v1.11.2...workspace-v1.11.3) (2025-10-15)
+
+
+### Bug Fixes
+
+* **workspace:** improve project page component documentation ([#540](https://github.com/uspark-hq/uspark/issues/540)) ([e2ade99](https://github.com/uspark-hq/uspark/commit/e2ade9908665bf67d1ef4c07ff2553e34310e6c8))
+
 ## [1.11.2](https://github.com/uspark-hq/uspark/compare/workspace-v1.11.1...workspace-v1.11.2) (2025-10-15)
 
 
