@@ -68,10 +68,10 @@ runs:
           DEPLOY_CMD="$DEPLOY_CMD --prod"
         fi
 
-        # Add environment variables as --build-env flags for Next.js
+        # Add environment variables for both build-time and runtime
         ENV_VARS="${{ inputs.environment-variables }}"
         if [ -n "$ENV_VARS" ]; then
-          echo "Adding environment variables for build..."
+          echo "Adding environment variables for build and runtime..."
           while IFS= read -r line; do
             # Skip empty lines
             line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
@@ -79,9 +79,9 @@ runs:
               # Extract key and value
               KEY="${line%%=*}"
               VALUE="${line#*=}"
-              echo "Adding build env: $KEY"
-              # Add as build-time environment variable
-              DEPLOY_CMD="$DEPLOY_CMD --build-env $KEY=\"$VALUE\""
+              echo "Adding env: $KEY"
+              # Add as both build-time and runtime environment variable
+              DEPLOY_CMD="$DEPLOY_CMD --build-env $KEY=\"$VALUE\" --env $KEY=\"$VALUE\""
             fi
           done <<< "$ENV_VARS"
         fi
