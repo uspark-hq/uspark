@@ -1,8 +1,11 @@
 import { render, screen } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { InitialScanProgress } from "../initial-scan-progress";
 
 describe("InitialScanProgress", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
   it("should show initializing message when no progress", () => {
     render(<InitialScanProgress progress={null} projectName="Test Project" />);
 
