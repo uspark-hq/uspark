@@ -188,7 +188,7 @@ export default function NewProjectPage() {
     setCreating(false);
   };
 
-  // Poll for scan completion
+  // Poll for scan completion and auto-redirect when done
   useEffect(() => {
     if (!createdProject || currentStep !== "scanning") {
       return;
@@ -204,11 +204,13 @@ export default function NewProjectPage() {
           );
           if (project) {
             setCreatedProject(project);
-            // Stop polling when scan completes
-            if (
-              project.initial_scan_status === "completed" ||
-              project.initial_scan_status === "failed"
-            ) {
+            // Auto-redirect when scan completes successfully
+            if (project.initial_scan_status === "completed") {
+              clearInterval(interval);
+              navigateToProject(project.id);
+            }
+            // Stop polling on failure but don't auto-redirect (show error UI)
+            if (project.initial_scan_status === "failed") {
               clearInterval(interval);
             }
           }
@@ -472,19 +474,6 @@ export default function NewProjectPage() {
               progress={createdProject.initial_scan_progress || null}
               projectName={createdProject.name}
             />
-            {createdProject.initial_scan_status === "completed" && (
-              <Card>
-                <CardContent className="pt-6">
-                  <Button
-                    onClick={() => navigateToProject(createdProject.id)}
-                    className="w-full"
-                    size="lg"
-                  >
-                    Enter Project Workspace
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
             {createdProject.initial_scan_status === "failed" && (
               <Card className="border-destructive">
                 <CardContent className="pt-6">

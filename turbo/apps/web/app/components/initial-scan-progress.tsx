@@ -1,7 +1,7 @@
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle, Badge } from "@uspark/ui";
-import { CheckCircle2, Circle, Loader2 } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@uspark/ui";
+import { Loader2 } from "lucide-react";
 
 interface TodoItem {
   content: string;
@@ -37,8 +37,26 @@ export function InitialScanProgress({
     );
   }
 
-  // Show todos if available
+  // Show todos if available - only show in_progress tasks
   if (progress.todos && progress.todos.length > 0) {
+    const inProgressTodos = progress.todos.filter(
+      (todo) => todo.status === "in_progress",
+    );
+
+    // If no in_progress tasks, show a generic scanning message
+    if (inProgressTodos.length === 0) {
+      return (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              Scanning {projectName}...
+            </CardTitle>
+          </CardHeader>
+        </Card>
+      );
+    }
+
     return (
       <Card>
         <CardHeader>
@@ -49,38 +67,14 @@ export function InitialScanProgress({
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {progress.todos.map((todo, index) => (
+            {inProgressTodos.map((todo, index) => (
               <div
                 key={index}
                 className="flex items-start gap-3 rounded-lg border p-3"
               >
-                {todo.status === "completed" ? (
-                  <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 flex-shrink-0" />
-                ) : todo.status === "in_progress" ? (
-                  <Loader2 className="h-5 w-5 animate-spin text-primary mt-0.5 flex-shrink-0" />
-                ) : (
-                  <Circle className="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0" />
-                )}
+                <Loader2 className="h-5 w-5 animate-spin text-primary mt-0.5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">
-                    {todo.status === "in_progress"
-                      ? todo.activeForm
-                      : todo.content}
-                  </p>
-                  <div className="mt-1">
-                    <Badge
-                      variant={
-                        todo.status === "completed"
-                          ? "default"
-                          : todo.status === "in_progress"
-                            ? "secondary"
-                            : "outline"
-                      }
-                      className="text-xs"
-                    >
-                      {todo.status.replace("_", " ")}
-                    </Badge>
-                  </div>
+                  <p className="text-sm font-medium">{todo.activeForm}</p>
                 </div>
               </div>
             ))}
