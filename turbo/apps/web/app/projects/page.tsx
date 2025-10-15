@@ -1,5 +1,12 @@
 "use client";
 
+/**
+ * Projects List Page
+ *
+ * Note: This page previously had a polling mechanism that refreshed every 3 seconds.
+ * This was removed to improve performance and reduce unnecessary network requests.
+ */
+
 import { useState, useEffect } from "react";
 import {
   AlertDialog,
