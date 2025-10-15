@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.45.2](https://github.com/uspark-hq/uspark/compare/web-v0.45.1...web-v0.45.2) (2025-10-15)
+
+
+### Bug Fixes
+
+* **web:** improve home page component documentation ([#538](https://github.com/uspark-hq/uspark/issues/538)) ([5dfd5e9](https://github.com/uspark-hq/uspark/commit/5dfd5e9a18590f645c3be4ddce5cc1382c89fcd2))
+
 ## [0.45.1](https://github.com/uspark-hq/uspark/compare/web-v0.45.0...web-v0.45.1) (2025-10-15)
 
 
