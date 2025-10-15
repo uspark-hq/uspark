@@ -188,7 +188,7 @@ export default function NewProjectPage() {
     setCreating(false);
   };
 
-  // Poll for scan completion
+  // Poll for scan completion and auto-redirect when done
   useEffect(() => {
     if (!createdProject || currentStep !== "scanning") {
       return;
@@ -204,12 +204,13 @@ export default function NewProjectPage() {
           );
           if (project) {
             setCreatedProject(project);
-            // Stop polling when scan completes
+            // Auto-redirect when scan completes (both success and failure)
             if (
               project.initial_scan_status === "completed" ||
               project.initial_scan_status === "failed"
             ) {
               clearInterval(interval);
+              navigateToProject(project.id);
             }
           }
         }
@@ -467,43 +468,10 @@ export default function NewProjectPage() {
 
         {/* Step 3: Scanning */}
         {currentStep === "scanning" && createdProject && (
-          <div className="space-y-6">
-            <InitialScanProgress
-              progress={createdProject.initial_scan_progress || null}
-              projectName={createdProject.name}
-            />
-            {createdProject.initial_scan_status === "completed" && (
-              <Card>
-                <CardContent className="pt-6">
-                  <Button
-                    onClick={() => navigateToProject(createdProject.id)}
-                    className="w-full"
-                    size="lg"
-                  >
-                    Enter Project Workspace
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-            {createdProject.initial_scan_status === "failed" && (
-              <Card className="border-destructive">
-                <CardContent className="pt-6">
-                  <p className="text-sm text-destructive mb-4">
-                    Initial scan failed. You can still access the project, but
-                    it may not have been fully analyzed.
-                  </p>
-                  <Button
-                    onClick={() => navigateToProject(createdProject.id)}
-                    className="w-full"
-                    size="lg"
-                    variant="outline"
-                  >
-                    Continue Anyway
-                  </Button>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+          <InitialScanProgress
+            progress={createdProject.initial_scan_progress || null}
+            projectName={createdProject.name}
+          />
         )}
 
         {/* Step 4: Ready */}

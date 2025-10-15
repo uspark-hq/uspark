@@ -248,4 +248,190 @@ describe("NewProjectPage", () => {
     const continueButton = screen.getByRole("button", { name: /Continue/i });
     expect(continueButton).toBeDisabled();
   });
+
+  it("should auto-redirect when scan completes successfully", async () => {
+    // Mock window.location.href
+    delete (window as { location?: unknown }).location;
+    window.location = { href: "https://www.example.com" } as Location;
+
+    let pollCount = 0;
+
+    // Mock project creation and scanning
+    server.use(
+      http.post("*/api/projects", () => {
+        return HttpResponse.json({
+          id: "project-123",
+          name: "test-repo",
+          created_at: new Date().toISOString(),
+        });
+      }),
+      // Initial fetch after project creation and polling
+      http.get("*/api/projects", () => {
+        pollCount++;
+        if (pollCount === 1) {
+          // First fetch: get created project with scanning status
+          return HttpResponse.json({
+            projects: [
+              {
+                id: "project-123",
+                name: "test-repo",
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                initial_scan_status: "running",
+                initial_scan_progress: {
+                  todos: [
+                    {
+                      content: "Clone repository",
+                      status: "in_progress",
+                      activeForm: "Cloning repository",
+                    },
+                  ],
+                },
+              },
+            ],
+          });
+        } else {
+          // Subsequent polls: scan completed
+          return HttpResponse.json({
+            projects: [
+              {
+                id: "project-123",
+                name: "test-repo",
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                initial_scan_status: "completed",
+                initial_scan_progress: null,
+              },
+            ],
+          });
+        }
+      }),
+    );
+
+    render(<NewProjectPage />);
+
+    // Navigate through the flow
+    await waitFor(() => {
+      expect(screen.getByRole("combobox")).toBeInTheDocument();
+    });
+
+    const select = screen.getByRole("combobox");
+    fireEvent.change(select, { target: { value: "test-user/test-repo" } });
+    fireEvent.click(screen.getByRole("button", { name: /Continue/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("You're All Set!")).toBeInTheDocument();
+    });
+
+    // Start scanning
+    fireEvent.click(screen.getByRole("button", { name: /Start Scanning/i }));
+
+    // Wait for scanning UI
+    await waitFor(() => {
+      expect(screen.getByText("Cloning repository")).toBeInTheDocument();
+    });
+
+    // Should auto-redirect when scan completes
+    await waitFor(
+      () => {
+        expect(window.location.href).toBe(
+          "https://app.example.com/projects/project-123",
+        );
+      },
+      { timeout: 5000 },
+    );
+  });
+
+  it("should auto-redirect when scan fails", async () => {
+    // Mock window.location.href
+    delete (window as { location?: unknown }).location;
+    window.location = { href: "https://www.example.com" } as Location;
+
+    let pollCount = 0;
+
+    // Mock project creation and scanning
+    server.use(
+      http.post("*/api/projects", () => {
+        return HttpResponse.json({
+          id: "project-456",
+          name: "test-repo",
+          created_at: new Date().toISOString(),
+        });
+      }),
+      // Initial fetch after project creation and polling
+      http.get("*/api/projects", () => {
+        pollCount++;
+        if (pollCount === 1) {
+          // First fetch: get created project with scanning status
+          return HttpResponse.json({
+            projects: [
+              {
+                id: "project-456",
+                name: "test-repo",
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                initial_scan_status: "running",
+                initial_scan_progress: {
+                  todos: [
+                    {
+                      content: "Analyze code",
+                      status: "in_progress",
+                      activeForm: "Analyzing code",
+                    },
+                  ],
+                },
+              },
+            ],
+          });
+        } else {
+          // Subsequent polls: scan failed
+          return HttpResponse.json({
+            projects: [
+              {
+                id: "project-456",
+                name: "test-repo",
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+                initial_scan_status: "failed",
+                initial_scan_progress: null,
+              },
+            ],
+          });
+        }
+      }),
+    );
+
+    render(<NewProjectPage />);
+
+    // Navigate through the flow
+    await waitFor(() => {
+      expect(screen.getByRole("combobox")).toBeInTheDocument();
+    });
+
+    const select = screen.getByRole("combobox");
+    fireEvent.change(select, { target: { value: "test-user/test-repo" } });
+    fireEvent.click(screen.getByRole("button", { name: /Continue/i }));
+
+    await waitFor(() => {
+      expect(screen.getByText("You're All Set!")).toBeInTheDocument();
+    });
+
+    // Start scanning
+    fireEvent.click(screen.getByRole("button", { name: /Start Scanning/i }));
+
+    // Wait for scanning UI
+    await waitFor(() => {
+      expect(screen.getByText("Analyzing code")).toBeInTheDocument();
+    });
+
+    // Should auto-redirect even when scan fails
+    await waitFor(
+      () => {
+        expect(window.location.href).toBe(
+          "https://app.example.com/projects/project-456",
+        );
+      },
+      { timeout: 5000 },
+    );
+  });
 });
