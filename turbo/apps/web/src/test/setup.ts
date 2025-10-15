@@ -52,17 +52,6 @@ vi.mock("next/headers", () => ({
   })),
 }));
 
-// Mock Claude token crypto for testing
-vi.mock("../lib/claude-token-crypto", () => ({
-  encryptClaudeToken: vi.fn((token: string) => `encrypted_${token}`),
-  decryptClaudeToken: vi.fn((encrypted: string) =>
-    encrypted.replace("encrypted_", ""),
-  ),
-  getTokenPrefix: vi.fn((token: string) => token.substring(0, 10) + "..."),
-  isValidClaudeToken: vi.fn(() => true),
-  getEncryptionKey: vi.fn(() => Buffer.from("test-encryption-key")),
-}));
-
 interface CommandOptions {
   onStdout?: (data: string) => void;
   onStderr?: (data: string) => void;

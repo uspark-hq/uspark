@@ -1,9 +1,8 @@
 import { Sandbox, SandboxPaginator, SandboxInfo } from "e2b";
 import { initServices } from "./init-services";
-import { CLAUDE_TOKENS_TBL } from "../db/schema/claude-tokens";
 import { CLI_TOKENS_TBL } from "../db/schema/cli-tokens";
 import { eq, and, lt } from "drizzle-orm";
-import { decryptClaudeToken } from "./claude-token-crypto";
+import { getClaudeToken } from "./get-user-claude-token";
 import { env } from "../env";
 
 /**
@@ -108,11 +107,8 @@ export class E2BExecutor {
     // 3. Create new sandbox
     console.log(`Creating new sandbox for session ${sessionId}`);
 
-    // Get user's Claude token
-    const claudeToken = await this.getUserClaudeToken(userId);
-    if (!claudeToken) {
-      throw new Error("User has not configured Claude OAuth token");
-    }
+    // Get Claude token from environment
+    const claudeToken = getClaudeToken();
 
     // Check if we're in development mode by checking if dev token is configured
     const isDevelopment = !!env().USPARK_TOKEN_FOR_DEV;
@@ -283,28 +279,6 @@ export class E2BExecutor {
       success: true,
       output: `Background execution started for turn ${effectiveTurnId}`,
     };
-  }
-
-  /**
-   * Get user's Claude OAuth token from database
-   */
-  private static async getUserClaudeToken(
-    userId: string,
-  ): Promise<string | null> {
-    initServices();
-
-    const [tokenRecord] = await globalThis.services.db
-      .select()
-      .from(CLAUDE_TOKENS_TBL)
-      .where(eq(CLAUDE_TOKENS_TBL.userId, userId))
-      .limit(1);
-
-    if (!tokenRecord || !tokenRecord.encryptedToken) {
-      return null;
-    }
-
-    // Decrypt and return token
-    return decryptClaudeToken(tokenRecord.encryptedToken);
   }
 
   /**
