@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.45.1](https://github.com/uspark-hq/uspark/compare/web-v0.45.0...web-v0.45.1) (2025-10-15)
+
+
+### Bug Fixes
+
+* **ci:** use build-env flags for next.js environment variables ([#531](https://github.com/uspark-hq/uspark/issues/531)) ([ffc00ca](https://github.com/uspark-hq/uspark/commit/ffc00cae75b223510c30ea5e106de7a542afa552))
+
 ## [0.45.0](https://github.com/uspark-hq/uspark/compare/web-v0.44.1...web-v0.45.0) (2025-10-15)
 
 
