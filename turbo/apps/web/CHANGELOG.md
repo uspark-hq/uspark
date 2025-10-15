@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.43.0](https://github.com/uspark-hq/uspark/compare/web-v0.42.0...web-v0.43.0) (2025-10-15)
+
+
+### Features
+
+* **web:** add optional github bootstrap with manual project creation ([#513](https://github.com/uspark-hq/uspark/issues/513)) ([f78d022](https://github.com/uspark-hq/uspark/commit/f78d022ca6bf7141b41df70416792f21a55ea2ae))
+
 ## [0.42.0](https://github.com/uspark-hq/uspark/compare/web-v0.41.0...web-v0.42.0) (2025-10-15)
 
 
