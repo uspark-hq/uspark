@@ -35,6 +35,10 @@ inputs:
   deployment-env:
     description: "Deployment environment name (e.g., web, docs)"
     required: true
+  app-directory:
+    description: "Application directory where .env files should be created (relative to repo root)"
+    required: false
+    default: "."
 
 runs:
   using: "composite"
@@ -62,17 +66,20 @@ runs:
       run: |
         # Create .env.production.local file for Vite to read during build
         ENV_VARS="${{ inputs.environment-variables }}"
+        APP_DIR="${{ inputs.app-directory }}"
         if [ -n "$ENV_VARS" ]; then
-          echo "Creating .env.production.local file for Vite build..."
-          touch .env.production.local
+          echo "Creating .env.production.local file for Vite build in $APP_DIR..."
+          ENV_FILE="$APP_DIR/.env.production.local"
+          mkdir -p "$APP_DIR"
+          touch "$ENV_FILE"
           while IFS= read -r line; do
             # Skip empty lines
             line=$(echo "$line" | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
             if [ -n "$line" ]; then
               # Write to .env.production.local file
-              echo "$line" >> .env.production.local
+              echo "$line" >> "$ENV_FILE"
               KEY="${line%%=*}"
-              echo "Added to .env.production.local: $KEY"
+              echo "Added to $ENV_FILE: $KEY"
             fi
           done <<< "$ENV_VARS"
         fi

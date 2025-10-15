@@ -124,6 +124,7 @@ jobs:
           vercel-project-id: ${{ vars.VERCEL_PROJECT_ID_WORKSPACE }}
           environment: production
           deployment-env: workspace
+          app-directory: turbo/apps/workspace
           environment-variables: |
             VITE_CLERK_PUBLISHABLE_KEY=${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
 
