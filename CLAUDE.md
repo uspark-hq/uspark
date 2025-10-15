@@ -159,17 +159,29 @@ const handleSubmit = async () => {
 - **Use imperative mood** - Use `add`, not `added` or `adds`
 
 ### Types:
-- `feat:` New feature
-- `fix:` Bug fix  
-- `docs:` Documentation changes
-- `style:` Code style changes (formatting, semicolons, etc)
-- `refactor:` Code refactoring
-- `test:` Test additions or changes
-- `chore:` Build process or auxiliary tool changes
-- `ci:` CI configuration changes
-- `perf:` Performance improvements
-- `build:` Build system changes
-- `revert:` Revert previous commit
+- `feat:` New feature (triggers minor version bump)
+- `fix:` Bug fix (triggers patch version bump)
+- `docs:` Documentation changes (no release)
+- `style:` Code style changes (formatting, semicolons, etc) (no release)
+- `refactor:` Code refactoring (no release)
+- `test:` Test additions or changes (no release)
+- `chore:` Build process or auxiliary tool changes (no release)
+- `ci:` CI configuration changes (no release)
+- `perf:` Performance improvements (no release)
+- `build:` Build system changes (no release)
+- `revert:` Revert previous commit (no release)
+
+### Release Triggering:
+**Only certain commit types trigger automated releases via release-please:**
+- ✅ `feat:` - Triggers a **minor** version bump (e.g., 1.2.0 → 1.3.0)
+- ✅ `fix:` - Triggers a **patch** version bump (e.g., 1.2.0 → 1.2.1)
+- ✅ `deps:` - Dependency updates trigger a **patch** version bump
+- ✅ Breaking changes (any type with `!` or `BREAKING CHANGE:` footer) - Triggers a **major** version bump (e.g., 1.2.0 → 2.0.0)
+- ❌ All other types (`refactor`, `docs`, `chore`, `ci`, etc.) - Will appear in changelog but **will not trigger a release**
+
+**Important:** If you want a `refactor` or other non-release type to trigger a version bump, use `fix:` instead. For example:
+- Use `fix: refactor authentication logic` instead of `refactor: authentication logic`
+- This is acceptable since refactoring often fixes technical debt or improves code quality
 
 ### Examples:
 - ✅ `feat: add user authentication system`

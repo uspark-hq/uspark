@@ -128,17 +128,26 @@ gh pr view --json url -q .url
 ```
 
 ### Valid Types:
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, semicolons, etc)
-- `refactor`: Code refactoring
-- `test`: Test additions or changes
-- `chore`: Build process or auxiliary tool changes
-- `ci`: CI configuration changes
-- `perf`: Performance improvements
-- `build`: Build system changes
-- `revert`: Revert previous commit
+- `feat`: New feature (triggers minor version bump)
+- `fix`: Bug fix (triggers patch version bump)
+- `docs`: Documentation changes (no release)
+- `style`: Code style changes (formatting, semicolons, etc) (no release)
+- `refactor`: Code refactoring (no release)
+- `test`: Test additions or changes (no release)
+- `chore`: Build process or auxiliary tool changes (no release)
+- `ci`: CI configuration changes (no release)
+- `perf`: Performance improvements (no release)
+- `build`: Build system changes (no release)
+- `revert`: Revert previous commit (no release)
+
+### Release Triggering:
+**Only certain commit types trigger automated releases:**
+- ✅ `feat` and `fix` trigger version bumps and releases
+- ✅ `deps` (dependency updates) trigger patch releases
+- ✅ Breaking changes (any type with `!`) trigger major releases
+- ❌ Other types (`refactor`, `docs`, `chore`, etc.) appear in changelog but do NOT trigger releases
+
+**Tip:** If you want a refactor to trigger a release, use `fix:` instead (e.g., `fix: refactor authentication logic`)
 
 ### Strict Requirements:
 - **Type must be lowercase** (feat, not Feat)
