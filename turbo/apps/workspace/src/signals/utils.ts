@@ -7,6 +7,7 @@ export enum Reason {
   DomCallback = 'dom_callback',
   Entrance = 'entrance',
   Deferred = 'deferred',
+  Daemon = 'daemon',
 }
 
 const L = logger('Promise')
