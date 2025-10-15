@@ -261,7 +261,9 @@ export default function NewProjectPage() {
                 number={2}
                 label="Repository"
                 active={currentStep === "repository"}
-                completed={currentStep === "ready" || currentStep === "scanning"}
+                completed={
+                  currentStep === "ready" || currentStep === "scanning"
+                }
               />
             </>
           )}
