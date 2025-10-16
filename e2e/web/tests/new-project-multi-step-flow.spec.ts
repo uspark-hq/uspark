@@ -172,8 +172,7 @@ test.describe("New Project Multi-Step Flow", () => {
     // Step 9: Verify redirect to /projects/:id/init page
     await page.waitForURL(/\/projects\/[a-z0-9-]{36}\/init/, { timeout: 10000 });
 
-    const currentUrl = page.url();
-    expect(currentUrl).toMatch(/\/projects\/[a-z0-9-]{36}\/init$/);
+    expect(page.url()).toMatch(/\/projects\/[a-z0-9-]{36}\/init$/);
 
     // Step 10: Verify init page shows scan progress
     await page.waitForLoadState("domcontentloaded");
