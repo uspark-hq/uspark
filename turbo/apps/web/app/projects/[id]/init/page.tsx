@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { InitialScanProgress } from "../../../components/initial-scan-progress";
-import type { Project } from "@uspark/core";
+import type { Project, InitialScanResponse } from "@uspark/core";
 
 // Poll interval for checking scan progress (milliseconds)
 const SCAN_POLL_INTERVAL_MS = 3000;
@@ -12,6 +12,7 @@ export default function ProjectInitPage() {
   const params = useParams();
   const projectId = params.id as string;
   const [project, setProject] = useState<Project | null>(null);
+  const [scanData, setScanData] = useState<InitialScanResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
 
@@ -23,19 +24,20 @@ export default function ProjectInitPage() {
     window.location.href = newUrl;
   };
 
-  // Fetch project details on mount
+  // Fetch project details and scan data on mount
   useEffect(() => {
-    const fetchProject = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch("/api/projects");
-        if (!response.ok) {
+        // Fetch project basic info
+        const projectsResponse = await fetch("/api/projects");
+        if (!projectsResponse.ok) {
           setError("Failed to fetch project details");
           setLoading(false);
           return;
         }
 
-        const data = await response.json();
-        const foundProject = data.projects.find(
+        const projectsData = await projectsResponse.json();
+        const foundProject = projectsData.projects.find(
           (p: Project) => p.id === projectId,
         );
 
@@ -46,56 +48,66 @@ export default function ProjectInitPage() {
         }
 
         setProject(foundProject);
-        setLoading(false);
 
-        // If first turn is completed or failed, redirect immediately
-        if (
-          foundProject.initial_scan_turn_status === "completed" ||
-          foundProject.initial_scan_turn_status === "failed"
-        ) {
-          navigateToProject(foundProject.id);
+        // Fetch initial scan data if project has scan
+        if (foundProject.initial_scan_session_id) {
+          const scanResponse = await fetch(
+            `/api/projects/${projectId}/initial-scan`,
+          );
+          if (scanResponse.ok) {
+            const scanResponseData = await scanResponse.json();
+            setScanData(scanResponseData);
+
+            // If first turn is completed or failed, redirect immediately
+            if (
+              scanResponseData.initial_scan_turn_status === "completed" ||
+              scanResponseData.initial_scan_turn_status === "failed"
+            ) {
+              navigateToProject(foundProject.id);
+              return;
+            }
+          }
         }
+
+        setLoading(false);
       } catch {
         setError("Failed to load project");
         setLoading(false);
       }
     };
 
-    fetchProject();
+    fetchData();
   }, [projectId]);
 
   // Poll for scan completion and auto-redirect when done
   useEffect(() => {
-    if (!project || loading) {
+    if (!project || loading || !scanData) {
       return;
     }
 
     // Don't poll if first turn is already completed or failed
     if (
-      project.initial_scan_turn_status === "completed" ||
-      project.initial_scan_turn_status === "failed"
+      scanData.initial_scan_turn_status === "completed" ||
+      scanData.initial_scan_turn_status === "failed"
     ) {
       return;
     }
 
     const interval = setInterval(async () => {
       try {
-        const response = await fetch("/api/projects");
-        if (response.ok) {
-          const data = await response.json();
-          const updatedProject = data.projects.find(
-            (p: Project) => p.id === projectId,
-          );
-          if (updatedProject) {
-            setProject(updatedProject);
-            // Auto-redirect when first turn completes or fails
-            if (
-              updatedProject.initial_scan_turn_status === "completed" ||
-              updatedProject.initial_scan_turn_status === "failed"
-            ) {
-              clearInterval(interval);
-              navigateToProject(updatedProject.id);
-            }
+        const scanResponse = await fetch(
+          `/api/projects/${projectId}/initial-scan`,
+        );
+        if (scanResponse.ok) {
+          const updatedScanData = await scanResponse.json();
+          setScanData(updatedScanData);
+          // Auto-redirect when first turn completes or fails
+          if (
+            updatedScanData.initial_scan_turn_status === "completed" ||
+            updatedScanData.initial_scan_turn_status === "failed"
+          ) {
+            clearInterval(interval);
+            navigateToProject(project.id);
           }
         }
       } catch {
@@ -104,7 +116,7 @@ export default function ProjectInitPage() {
     }, SCAN_POLL_INTERVAL_MS);
 
     return () => clearInterval(interval);
-  }, [project, projectId, loading]);
+  }, [project, projectId, loading, scanData]);
 
   if (loading) {
     return (
@@ -131,7 +143,7 @@ export default function ProjectInitPage() {
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4">
       <div className="w-full max-w-2xl">
         <InitialScanProgress
-          progress={project.initial_scan_progress || null}
+          progress={scanData?.initial_scan_progress || null}
           projectName={project.name}
         />
       </div>

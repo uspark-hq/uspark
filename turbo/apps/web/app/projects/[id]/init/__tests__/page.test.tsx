@@ -22,18 +22,25 @@ describe("ProjectInitPage", () => {
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
               initial_scan_status: "running",
-              initial_scan_turn_status: "in_progress",
-              initial_scan_progress: {
-                todos: [
-                  {
-                    content: "Clone repository",
-                    status: "in_progress",
-                    activeForm: "Cloning repository",
-                  },
-                ],
-              },
+              initial_scan_session_id: "session-123",
             },
           ],
+        });
+      }),
+      // Initial scan endpoint - GET
+      http.get("*/api/projects/*/initial-scan", () => {
+        return HttpResponse.json({
+          initial_scan_status: "running",
+          initial_scan_turn_status: "in_progress",
+          initial_scan_progress: {
+            todos: [
+              {
+                content: "Clone repository",
+                status: "in_progress",
+                activeForm: "Cloning repository",
+              },
+            ],
+          },
         });
       }),
     );
@@ -97,44 +104,42 @@ describe("ProjectInitPage", () => {
 
     server.use(
       http.get("*/api/projects", () => {
+        return HttpResponse.json({
+          projects: [
+            {
+              id: "project-123",
+              name: "test-repo",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              initial_scan_status: "running",
+              initial_scan_session_id: "session-123",
+            },
+          ],
+        });
+      }),
+      http.get("*/api/projects/*/initial-scan", () => {
         pollCount++;
         if (pollCount === 1) {
-          // First fetch: get project with running scan
+          // First fetch: get scan with running status
           return HttpResponse.json({
-            projects: [
-              {
-                id: "project-123",
-                name: "test-repo",
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                initial_scan_status: "running",
-                initial_scan_turn_status: "in_progress",
-                initial_scan_progress: {
-                  todos: [
-                    {
-                      content: "Clone repository",
-                      status: "in_progress",
-                      activeForm: "Cloning repository",
-                    },
-                  ],
+            initial_scan_status: "running",
+            initial_scan_turn_status: "in_progress",
+            initial_scan_progress: {
+              todos: [
+                {
+                  content: "Clone repository",
+                  status: "in_progress",
+                  activeForm: "Cloning repository",
                 },
-              },
-            ],
+              ],
+            },
           });
         } else {
           // Subsequent polls: scan completed
           return HttpResponse.json({
-            projects: [
-              {
-                id: "project-123",
-                name: "test-repo",
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                initial_scan_status: "completed",
-                initial_scan_turn_status: "completed",
-                initial_scan_progress: null,
-              },
-            ],
+            initial_scan_status: "completed",
+            initial_scan_turn_status: "completed",
+            initial_scan_progress: null,
           });
         }
       }),
@@ -169,44 +174,42 @@ describe("ProjectInitPage", () => {
 
     server.use(
       http.get("*/api/projects", () => {
+        return HttpResponse.json({
+          projects: [
+            {
+              id: "project-123",
+              name: "test-repo",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              initial_scan_status: "running",
+              initial_scan_session_id: "session-123",
+            },
+          ],
+        });
+      }),
+      http.get("*/api/projects/*/initial-scan", () => {
         pollCount++;
         if (pollCount === 1) {
-          // First fetch: get project with running scan
+          // First fetch: get scan with running status
           return HttpResponse.json({
-            projects: [
-              {
-                id: "project-123",
-                name: "test-repo",
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                initial_scan_status: "running",
-                initial_scan_turn_status: "in_progress",
-                initial_scan_progress: {
-                  todos: [
-                    {
-                      content: "Analyze code",
-                      status: "in_progress",
-                      activeForm: "Analyzing code",
-                    },
-                  ],
+            initial_scan_status: "running",
+            initial_scan_turn_status: "in_progress",
+            initial_scan_progress: {
+              todos: [
+                {
+                  content: "Analyze code",
+                  status: "in_progress",
+                  activeForm: "Analyzing code",
                 },
-              },
-            ],
+              ],
+            },
           });
         } else {
           // Subsequent polls: scan failed
           return HttpResponse.json({
-            projects: [
-              {
-                id: "project-123",
-                name: "test-repo",
-                created_at: new Date().toISOString(),
-                updated_at: new Date().toISOString(),
-                initial_scan_status: "failed",
-                initial_scan_turn_status: "failed",
-                initial_scan_progress: null,
-              },
-            ],
+            initial_scan_status: "failed",
+            initial_scan_turn_status: "failed",
+            initial_scan_progress: null,
           });
         }
       }),
@@ -247,10 +250,16 @@ describe("ProjectInitPage", () => {
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
               initial_scan_status: "completed",
-              initial_scan_turn_status: "completed",
-              initial_scan_progress: null,
+              initial_scan_session_id: "session-123",
             },
           ],
+        });
+      }),
+      http.get("*/api/projects/*/initial-scan", () => {
+        return HttpResponse.json({
+          initial_scan_status: "completed",
+          initial_scan_turn_status: "completed",
+          initial_scan_progress: null,
         });
       }),
     );
