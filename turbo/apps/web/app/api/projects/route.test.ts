@@ -3,8 +3,6 @@ import "../../../src/test/setup";
 import { NextRequest } from "next/server";
 import { GET, POST } from "./route";
 import { POST as createSession } from "./[projectId]/sessions/route";
-import { POST as createTurn } from "./[projectId]/sessions/[sessionId]/turns/route";
-import { POST as onClaudeStdout } from "./[projectId]/sessions/[sessionId]/turns/[turnId]/on-claude-stdout/route";
 import { apiCall } from "../../../src/test/api-helpers";
 import {
   createTestProjectForUser,
@@ -291,8 +289,8 @@ describe("/api/projects", () => {
     });
   });
 
-  describe("GET /api/projects with initial scan progress", () => {
-    it("should return initial_scan_progress with todos from TodoWrite blocks", async () => {
+  describe("GET /api/projects with initial scan status", () => {
+    it("should return projects with initial_scan_status fields", async () => {
       initServices();
       const db = globalThis.services.db;
 
@@ -337,59 +335,6 @@ describe("/api/projects", () => {
         })
         .where(eq(PROJECTS_TBL.id, projectId));
 
-      // Create turn via API (send message)
-      const turnResponse = await createTurn(
-        new NextRequest("http://localhost:3000", {
-          method: "POST",
-          body: JSON.stringify({ user_message: "Scan repository" }),
-        }),
-        { params: Promise.resolve({ projectId, sessionId }) },
-      );
-      const turnData = await turnResponse.json();
-      const turnId = turnData.id;
-
-      // Create TodoWrite block via on-claude-stdout API
-      const todoWriteLine = JSON.stringify({
-        type: "assistant",
-        message: {
-          content: [
-            {
-              type: "tool_use",
-              id: "tool_todowrite_123",
-              name: "TodoWrite",
-              input: {
-                todos: [
-                  {
-                    content: "Clone repository",
-                    status: "completed",
-                    activeForm: "Cloning repository",
-                  },
-                  {
-                    content: "Analyze codebase",
-                    status: "in_progress",
-                    activeForm: "Analyzing codebase",
-                  },
-                  {
-                    content: "Generate summary",
-                    status: "pending",
-                    activeForm: "Generating summary",
-                  },
-                ],
-              },
-            },
-          ],
-        },
-      });
-
-      const onStdoutResponse = await onClaudeStdout(
-        new NextRequest("http://localhost:3000", {
-          method: "POST",
-          body: JSON.stringify({ line: todoWriteLine }),
-        }),
-        { params: Promise.resolve({ projectId, sessionId, turnId }) },
-      );
-      expect(onStdoutResponse.status).toBe(200);
-
       const response = await apiCall(GET, "GET");
 
       const project = response.data.projects.find(
@@ -398,153 +343,13 @@ describe("/api/projects", () => {
 
       expect(project).toBeDefined();
       expect(project.initial_scan_status).toBe("running");
-      expect(project.initial_scan_progress).toBeDefined();
-      expect(project.initial_scan_progress.todos).toHaveLength(3);
-      expect(project.initial_scan_progress.todos[0]).toMatchObject({
-        content: "Clone repository",
-        status: "completed",
-      });
-      expect(project.initial_scan_progress.todos[1]).toMatchObject({
-        content: "Analyze codebase",
-        status: "in_progress",
-      });
-
-      // No explicit cleanup needed - project deletion cascades to sessions, turns, blocks
+      expect(project.initial_scan_session_id).toBe(sessionId);
+      // initial_scan_progress and initial_scan_turn_status are not returned by GET /api/projects
+      expect(project).not.toHaveProperty("initial_scan_progress");
+      expect(project).not.toHaveProperty("initial_scan_turn_status");
     });
 
-    it("should return lastBlock when no TodoWrite blocks exist", async () => {
-      initServices();
-      const db = globalThis.services.db;
-
-      // Create project via API
-      const createProjectResponse = await apiCall(
-        POST,
-        "POST",
-        {},
-        { name: `Test Project ${Date.now()}` },
-      );
-      const projectId = createProjectResponse.data.id;
-      createdProjectIds.push(projectId);
-
-      // Create session via API
-      const sessionResponse = await createSession(
-        new NextRequest("http://localhost:3000", {
-          method: "POST",
-          body: JSON.stringify({ title: "Initial Repository Scan" }),
-        }),
-        { params: Promise.resolve({ projectId }) },
-      );
-      const sessionData = await sessionResponse.json();
-      const sessionId = sessionData.id;
-
-      // Mark session as initial-scan (internal marker)
-      await db
-        .update(SESSIONS_TBL)
-        .set({ type: "initial-scan" })
-        .where(eq(SESSIONS_TBL.id, sessionId));
-
-      // Update project scan status
-      await db
-        .update(PROJECTS_TBL)
-        .set({
-          initialScanStatus: "running",
-          initialScanSessionId: sessionId,
-        })
-        .where(eq(PROJECTS_TBL.id, projectId));
-
-      // Create turn via API
-      const turnResponse = await createTurn(
-        new NextRequest("http://localhost:3000", {
-          method: "POST",
-          body: JSON.stringify({ user_message: "Scan repository" }),
-        }),
-        { params: Promise.resolve({ projectId, sessionId }) },
-      );
-      const turnData = await turnResponse.json();
-      const turnId = turnData.id;
-
-      // Create content block (not TodoWrite) via on-claude-stdout API
-      const contentLine = JSON.stringify({
-        type: "assistant",
-        message: {
-          content: [
-            {
-              type: "text",
-              text: "Analyzing repository structure...",
-            },
-          ],
-        },
-      });
-
-      await onClaudeStdout(
-        new NextRequest("http://localhost:3000", {
-          method: "POST",
-          body: JSON.stringify({ line: contentLine }),
-        }),
-        { params: Promise.resolve({ projectId, sessionId, turnId }) },
-      );
-
-      const response = await apiCall(GET, "GET");
-
-      const project = response.data.projects.find(
-        (p: { id: string }) => p.id === projectId,
-      );
-
-      expect(project).toBeDefined();
-      expect(project.initial_scan_progress).toBeDefined();
-      expect(project.initial_scan_progress.lastBlock).toBeDefined();
-      expect(project.initial_scan_progress.lastBlock.type).toBe("content");
-      expect(project.initial_scan_progress.lastBlock.content).toMatchObject({
-        text: "Analyzing repository structure...",
-      });
-    });
-
-    it("should not fetch progress for completed scans", async () => {
-      initServices();
-      const db = globalThis.services.db;
-
-      // Create project via API
-      const createProjectResponse = await apiCall(
-        POST,
-        "POST",
-        {},
-        { name: `Test Project ${Date.now()}` },
-      );
-      const projectId = createProjectResponse.data.id;
-      createdProjectIds.push(projectId);
-
-      // Create session via API
-      const sessionResponse = await createSession(
-        new NextRequest("http://localhost:3000", {
-          method: "POST",
-          body: JSON.stringify({ title: "Initial Repository Scan" }),
-        }),
-        { params: Promise.resolve({ projectId }) },
-      );
-      const sessionData = await sessionResponse.json();
-      const sessionId = sessionData.id;
-
-      // Update project to mark scan as completed
-      await db
-        .update(PROJECTS_TBL)
-        .set({
-          initialScanStatus: "completed",
-          initialScanSessionId: sessionId,
-        })
-        .where(eq(PROJECTS_TBL.id, projectId));
-
-      const response = await apiCall(GET, "GET");
-
-      const project = response.data.projects.find(
-        (p: { id: string }) => p.id === projectId,
-      );
-
-      expect(project).toBeDefined();
-      expect(project.initial_scan_status).toBe("completed");
-      expect(project.initial_scan_progress).toBeNull();
-    });
-
-    it("should handle projects without initial scan", async () => {
+    it("should return null initial_scan_status for projects without scan", async () => {
       const projectName = `test-project-no-scan-${Date.now()}`;
 
       const createResponse = await apiCall(
@@ -563,7 +368,9 @@ describe("/api/projects", () => {
 
       expect(project).toBeDefined();
       expect(project.initial_scan_status).toBeNull();
-      expect(project.initial_scan_progress).toBeNull();
+      expect(project.initial_scan_session_id).toBeNull();
+      expect(project).not.toHaveProperty("initial_scan_progress");
+      expect(project).not.toHaveProperty("initial_scan_turn_status");
     });
   });
 });

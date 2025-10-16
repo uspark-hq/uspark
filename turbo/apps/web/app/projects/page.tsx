@@ -41,16 +41,26 @@ export default function ProjectsListPage() {
   const [checkingGitHub, setCheckingGitHub] = useState(true);
 
   // Navigate to project - check if init is completed
-  const navigateToProject = (project: Project) => {
+  const navigateToProject = async (project: Project) => {
     const currentUrl = new URL(window.location.href);
 
-    // If project has an init session and first turn is not completed, go to init page
-    if (
-      project.initial_scan_session_id &&
-      project.initial_scan_turn_status !== "completed"
-    ) {
-      window.location.href = `/projects/${project.id}/init`;
-      return;
+    // If project has an init session, check its status
+    if (project.initial_scan_session_id) {
+      try {
+        const scanResponse = await fetch(
+          `/api/projects/${project.id}/initial-scan`,
+        );
+        if (scanResponse.ok) {
+          const scanData = await scanResponse.json();
+          // If first turn is not completed, go to init page
+          if (scanData.initial_scan_turn_status !== "completed") {
+            window.location.href = `/projects/${project.id}/init`;
+            return;
+          }
+        }
+      } catch {
+        // If fetch fails, proceed to workspace
+      }
     }
 
     // Otherwise go to the workspace project page

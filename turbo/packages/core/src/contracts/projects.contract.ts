@@ -48,15 +48,6 @@ export const ProjectSchema = z.object({
     .nullable()
     .optional()
     .describe("Session ID for initial scan"),
-  initial_scan_progress: InitialScanProgressSchema.nullable()
-    .optional()
-    .describe("Progress of initial scan (todos or last block)"),
-  initial_scan_turn_status: z
-    .nullable(
-      z.enum(["pending", "in_progress", "completed", "failed", "interrupted"]),
-    )
-    .optional()
-    .describe("Status of the first turn in the initial scan session"),
 });
 
 /**
@@ -95,6 +86,23 @@ export const ListProjectsResponseSchema = z.object({
 });
 
 /**
+ * Initial Scan Response Schema
+ */
+export const InitialScanResponseSchema = z.object({
+  initial_scan_status: z
+    .enum(["pending", "running", "completed", "failed"])
+    .nullable()
+    .describe("Status of initial repository scan"),
+  initial_scan_progress: InitialScanProgressSchema.nullable().describe(
+    "Progress of initial scan (todos or last block)",
+  ),
+  initial_scan_turn_status: z
+    .enum(["pending", "in_progress", "completed", "failed", "interrupted"])
+    .nullable()
+    .describe("Status of the first turn in the initial scan session"),
+});
+
+/**
  * Error Response Schema
  */
 export const ProjectErrorSchema = z.object({
@@ -106,6 +114,7 @@ export type Project = z.infer<typeof ProjectSchema>;
 export type CreateProjectRequest = z.infer<typeof CreateProjectRequestSchema>;
 export type CreateProjectResponse = z.infer<typeof CreateProjectResponseSchema>;
 export type ListProjectsResponse = z.infer<typeof ListProjectsResponseSchema>;
+export type InitialScanResponse = z.infer<typeof InitialScanResponseSchema>;
 export type ProjectError = z.infer<typeof ProjectErrorSchema>;
 
 /**
@@ -270,5 +279,31 @@ export const projectsContract = c.router({
     summary: "Get blob storage token",
     description:
       "Returns a temporary client token for direct Vercel Blob Storage access with project-scoped permissions",
+  },
+
+  /**
+   * Get initial scan progress for a project
+   * Returns the current state and progress of the initial repository scan
+   */
+  getInitialScan: {
+    method: "GET",
+    path: "/api/projects/:projectId/initial-scan",
+    pathParams: z.object({
+      projectId: z.string().describe("Project identifier"),
+    }),
+    responses: {
+      200: InitialScanResponseSchema,
+      401: z.object({
+        error: z.literal("unauthorized"),
+        error_description: z.string().optional(),
+      }),
+      404: z.object({
+        error: z.literal("project_not_found"),
+        error_description: z.string(),
+      }),
+    },
+    summary: "Get initial scan progress",
+    description:
+      "Returns the current state and progress of the initial repository scan including turn status and todo progress",
   },
 });
