@@ -39,6 +39,9 @@ export default function ProjectsListPage() {
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [checkingGitHub, setCheckingGitHub] = useState(true);
+  const [hasGitHubInstallation, setHasGitHubInstallation] = useState<
+    boolean | null
+  >(null);
 
   // Navigate to project in app subdomain (workspace)
   const navigateToProject = (projectId: string) => {
@@ -48,9 +51,26 @@ export default function ProjectsListPage() {
     window.location.href = newUrl;
   };
 
-  // Simple loading flag to prevent redirect flash
+  // Check GitHub installation status
   useEffect(() => {
-    setCheckingGitHub(false);
+    const checkGitHubInstallation = async () => {
+      try {
+        const response = await fetch("/api/github/installation-status");
+        if (response.ok) {
+          const data = await response.json();
+          setHasGitHubInstallation(!!data.installation);
+        } else {
+          setHasGitHubInstallation(false);
+        }
+      } catch (err) {
+        console.error("Error checking GitHub installation:", err);
+        setHasGitHubInstallation(false);
+      } finally {
+        setCheckingGitHub(false);
+      }
+    };
+
+    checkGitHubInstallation();
   }, []);
 
   // Load projects from API
@@ -75,12 +95,24 @@ export default function ProjectsListPage() {
     loadProjects();
   }, []);
 
+  // Redirect to GitHub onboarding if no installation
+  useEffect(() => {
+    if (!checkingGitHub && hasGitHubInstallation === false) {
+      window.location.href = "/onboarding/github";
+    }
+  }, [checkingGitHub, hasGitHubInstallation]);
+
   // Redirect to new project page if user has no projects
   useEffect(() => {
-    if (!loading && !checkingGitHub && projects.length === 0) {
+    if (
+      !loading &&
+      !checkingGitHub &&
+      projects.length === 0 &&
+      hasGitHubInstallation
+    ) {
       window.location.href = "/projects/new";
     }
-  }, [loading, checkingGitHub, projects.length]);
+  }, [loading, checkingGitHub, projects.length, hasGitHubInstallation]);
 
   const handleDeleteProject = async () => {
     if (!projectToDelete) return;

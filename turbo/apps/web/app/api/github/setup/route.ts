@@ -78,7 +78,13 @@ export async function GET(request: NextRequest) {
           },
         });
 
-      const successUrl = new URL("/settings?github=connected", request.url);
+      // Redirect to projects page if user came from onboarding, otherwise to settings
+      const referer = request.headers.get("referer");
+      const isFromOnboarding = referer?.includes("/onboarding/github");
+      const successUrl = new URL(
+        isFromOnboarding ? "/projects" : "/settings?github=connected",
+        request.url,
+      );
       return NextResponse.redirect(successUrl);
     }
 
