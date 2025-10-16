@@ -33,6 +33,7 @@
       "entry": [
         "src/main.ts",
         "src/views/**/*.tsx",
+        "src/signals/**/!(*.test|*.btest).ts",
         "**/*.{test,btest}.ts?(x)",
         "vitest.setup.*.ts"
       ],
