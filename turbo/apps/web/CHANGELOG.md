@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.47.0](https://github.com/uspark-hq/uspark/compare/web-v0.46.0...web-v0.47.0) (2025-10-16)
+
+
+### Features
+
+* improve project init page ux with progress indicator and smart navigation ([#548](https://github.com/uspark-hq/uspark/issues/548)) ([fcc4c7c](https://github.com/uspark-hq/uspark/commit/fcc4c7ca6c57efb75591950c4d8a41020748b8a9))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.18.0
+
 ## [0.46.0](https://github.com/uspark-hq/uspark/compare/web-v0.45.2...web-v0.46.0) (2025-10-16)
 
 
