@@ -40,11 +40,22 @@ export default function ProjectsListPage() {
   const [deleting, setDeleting] = useState(false);
   const [checkingGitHub, setCheckingGitHub] = useState(true);
 
-  // Navigate to project in app subdomain (workspace)
-  const navigateToProject = (projectId: string) => {
+  // Navigate to project - check if init is completed
+  const navigateToProject = (project: Project) => {
     const currentUrl = new URL(window.location.href);
+
+    // If project has an init session and first turn is not completed, go to init page
+    if (
+      project.initial_scan_session_id &&
+      project.initial_scan_turn_status !== "completed"
+    ) {
+      window.location.href = `/projects/${project.id}/init`;
+      return;
+    }
+
+    // Otherwise go to the workspace project page
     const newUrl =
-      currentUrl.origin.replace("www.", "app.") + `/projects/${projectId}`;
+      currentUrl.origin.replace("www.", "app.") + `/projects/${project.id}`;
     window.location.href = newUrl;
   };
 
@@ -219,7 +230,7 @@ export default function ProjectsListPage() {
             <Card
               key={project.id}
               className="group cursor-pointer transition-all hover:shadow-lg"
-              onClick={() => navigateToProject(project.id)}
+              onClick={() => navigateToProject(project)}
             >
               <CardHeader>
                 <div className="flex items-start justify-between">

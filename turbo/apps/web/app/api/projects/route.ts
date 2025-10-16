@@ -40,20 +40,33 @@ export async function GET() {
     .from(PROJECTS_TBL)
     .where(eq(PROJECTS_TBL.userId, userId));
 
-  // Fetch initial scan progress for projects that are scanning
+  // Fetch initial scan progress and turn status for projects
   const projectsWithProgress = await Promise.all(
     projectsData.map(async (project) => {
       let initial_scan_progress = null;
+      let initial_scan_turn_status = null;
 
-      // Only fetch progress for active scans
-      if (
-        project.initial_scan_session_id &&
-        (project.initial_scan_status === "pending" ||
-          project.initial_scan_status === "running")
-      ) {
-        initial_scan_progress = await getInitialScanProgress(
-          project.initial_scan_session_id,
-        );
+      if (project.initial_scan_session_id) {
+        // Get first turn status for this session
+        const turns = await globalThis.services.db
+          .select({ status: TURNS_TBL.status })
+          .from(TURNS_TBL)
+          .where(eq(TURNS_TBL.sessionId, project.initial_scan_session_id))
+          .limit(1);
+
+        if (turns.length > 0) {
+          initial_scan_turn_status = turns[0]!.status;
+        }
+
+        // Only fetch progress for active scans
+        if (
+          project.initial_scan_status === "pending" ||
+          project.initial_scan_status === "running"
+        ) {
+          initial_scan_progress = await getInitialScanProgress(
+            project.initial_scan_session_id,
+          );
+        }
       }
 
       return {
@@ -61,6 +74,7 @@ export async function GET() {
         created_at: project.created_at.toISOString(),
         updated_at: project.updated_at.toISOString(),
         initial_scan_progress,
+        initial_scan_turn_status,
       };
     }),
   );

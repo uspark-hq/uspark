@@ -51,6 +51,11 @@ export const ProjectSchema = z.object({
   initial_scan_progress: InitialScanProgressSchema.nullable()
     .optional()
     .describe("Progress of initial scan (todos or last block)"),
+  initial_scan_turn_status: z
+    .enum(["pending", "running", "completed", "failed"])
+    .nullable()
+    .optional()
+    .describe("Status of the first turn in the initial scan session"),
 });
 
 /**
