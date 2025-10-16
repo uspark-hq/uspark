@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.47.1](https://github.com/uspark-hq/uspark/compare/web-v0.47.0...web-v0.47.1) (2025-10-16)
+
+
+### Bug Fixes
+
+* display task counter before task description and show correct index ([#550](https://github.com/uspark-hq/uspark/issues/550)) ([6b51a1c](https://github.com/uspark-hq/uspark/commit/6b51a1ca0cd0ac9bd9ba32ebe79ba6b7333beff6))
+
 ## [0.47.0](https://github.com/uspark-hq/uspark/compare/web-v0.46.0...web-v0.47.0) (2025-10-16)
 
 
