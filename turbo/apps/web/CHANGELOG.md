@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.46.0](https://github.com/uspark-hq/uspark/compare/web-v0.45.2...web-v0.46.0) (2025-10-16)
+
+
+### Features
+
+* redirect to /projects/:id/init page after GitHub project creation ([#545](https://github.com/uspark-hq/uspark/issues/545)) ([62e3d91](https://github.com/uspark-hq/uspark/commit/62e3d91ecb16491f3cf37cf04ee5527b77aa3821))
+
 ## [0.45.2](https://github.com/uspark-hq/uspark/compare/web-v0.45.1...web-v0.45.2) (2025-10-15)
 
 
