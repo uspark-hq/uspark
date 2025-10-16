@@ -52,7 +52,7 @@ describe("ProjectInitPage", () => {
 
     await waitFor(() => {
       expect(screen.getByText(/Scanning test-repo/)).toBeInTheDocument();
-      expect(screen.getByText("Cloning repository")).toBeInTheDocument();
+      expect(screen.getByText("[1/1] Cloning repository")).toBeInTheDocument();
     });
   });
 
@@ -144,7 +144,7 @@ describe("ProjectInitPage", () => {
 
     // Wait for initial scan progress
     await waitFor(() => {
-      expect(screen.getByText("Cloning repository")).toBeInTheDocument();
+      expect(screen.getByText("[1/1] Cloning repository")).toBeInTheDocument();
     });
 
     // Should auto-redirect when scan completes
@@ -216,7 +216,7 @@ describe("ProjectInitPage", () => {
 
     // Wait for initial scan progress
     await waitFor(() => {
-      expect(screen.getByText("Analyzing code")).toBeInTheDocument();
+      expect(screen.getByText("[1/1] Analyzing code")).toBeInTheDocument();
     });
 
     // Should auto-redirect even when scan fails

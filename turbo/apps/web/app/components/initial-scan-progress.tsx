@@ -71,17 +71,28 @@ export function InitialScanProgress({
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            {inProgressTodos.map((todo, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-3 rounded-lg border p-3"
-              >
-                <Loader2 className="h-5 w-5 animate-spin text-primary mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{todo.activeForm}</p>
+            {inProgressTodos.map((todo, index) => {
+              // Find the actual index of this task in the full todos array
+              // We know progress.todos exists here because we're inside the if block
+              const actualIndex = progress.todos!.findIndex(
+                (t) => t.content === todo.content && t.status === todo.status,
+              );
+              const currentTaskNumber = actualIndex + 1;
+
+              return (
+                <div
+                  key={index}
+                  className="flex items-start gap-3 rounded-lg border p-3"
+                >
+                  <Loader2 className="h-5 w-5 animate-spin text-primary mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">
+                      [{currentTaskNumber}/{totalTodos}] {todo.activeForm}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>

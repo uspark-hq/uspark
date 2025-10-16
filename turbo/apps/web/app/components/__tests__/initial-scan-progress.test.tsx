@@ -39,8 +39,10 @@ describe("InitialScanProgress", () => {
       <InitialScanProgress progress={progress} projectName="Test Project" />,
     );
 
-    // Should only show the in_progress task
-    expect(screen.getByText("Analyzing code structure")).toBeInTheDocument();
+    // Should only show the in_progress task with correct counter
+    expect(
+      screen.getByText("[2/3] Analyzing code structure"),
+    ).toBeInTheDocument();
 
     // Should NOT show completed tasks
     expect(screen.queryByText("Clone repository")).not.toBeInTheDocument();
@@ -117,8 +119,10 @@ describe("InitialScanProgress", () => {
       <InitialScanProgress progress={progress} projectName="Test Project" />,
     );
 
-    // Should show both in_progress tasks
-    expect(screen.getByText("Analyzing code structure")).toBeInTheDocument();
-    expect(screen.getByText("Scanning dependencies")).toBeInTheDocument();
+    // Should show both in_progress tasks with correct counters
+    expect(
+      screen.getByText("[1/2] Analyzing code structure"),
+    ).toBeInTheDocument();
+    expect(screen.getByText("[2/2] Scanning dependencies")).toBeInTheDocument();
   });
 });
