@@ -166,7 +166,28 @@ test.describe("New Project Multi-Step Flow", () => {
       fullPage: true,
     });
 
-    // Note: We don't actually click "Start Scanning" to avoid creating projects in test environment
+    // Click "Start Scanning" to create project
+    await startButton.click();
+
+    // Step 9: Verify redirect to /projects/:id/init page
+    await page.waitForURL(/\/projects\/[a-z0-9-]{36}\/init/, { timeout: 10000 });
+
+    expect(page.url()).toMatch(/\/projects\/[a-z0-9-]{36}\/init$/);
+
+    // Step 10: Verify init page shows scan progress
+    await page.waitForLoadState("domcontentloaded");
+
+    // Should show "Scanning {projectName}" heading
+    const scanningHeading = page.locator("h3").filter({ hasText: /Scanning/i });
+    await expect(scanningHeading).toBeVisible({ timeout: 5000 });
+
+    await page.screenshot({
+      path: "test-results/multi-step-10-init-page.png",
+      fullPage: true,
+    });
+
+    // Note: The init page will auto-redirect to workspace when scan completes,
+    // but we don't wait for that in this test to avoid long waits
   });
 
   test("shows error when token is invalid", async ({ page }) => {
