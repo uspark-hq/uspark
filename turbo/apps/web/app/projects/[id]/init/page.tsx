@@ -48,8 +48,11 @@ export default function ProjectInitPage() {
         setProject(foundProject);
         setLoading(false);
 
-        // If first turn is completed, redirect immediately
-        if (foundProject.initial_scan_turn_status === "completed") {
+        // If first turn is completed or failed, redirect immediately
+        if (
+          foundProject.initial_scan_turn_status === "completed" ||
+          foundProject.initial_scan_turn_status === "failed"
+        ) {
           navigateToProject(foundProject.id);
         }
       } catch {
@@ -67,8 +70,11 @@ export default function ProjectInitPage() {
       return;
     }
 
-    // Don't poll if first turn is already completed
-    if (project.initial_scan_turn_status === "completed") {
+    // Don't poll if first turn is already completed or failed
+    if (
+      project.initial_scan_turn_status === "completed" ||
+      project.initial_scan_turn_status === "failed"
+    ) {
       return;
     }
 
@@ -82,8 +88,11 @@ export default function ProjectInitPage() {
           );
           if (updatedProject) {
             setProject(updatedProject);
-            // Auto-redirect when first turn completes
-            if (updatedProject.initial_scan_turn_status === "completed") {
+            // Auto-redirect when first turn completes or fails
+            if (
+              updatedProject.initial_scan_turn_status === "completed" ||
+              updatedProject.initial_scan_turn_status === "failed"
+            ) {
               clearInterval(interval);
               navigateToProject(updatedProject.id);
             }
