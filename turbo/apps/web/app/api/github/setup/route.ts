@@ -44,8 +44,7 @@ export async function GET(request: NextRequest) {
       const installationId = parseInt(installationIdStr, 10);
 
       // Get real installation details from GitHub API
-      const installationDetails =
-        await getInstallationDetails(installationId);
+      const installationDetails = await getInstallationDetails(installationId);
 
       // Handle both user and organization account types
       const account = installationDetails.account;

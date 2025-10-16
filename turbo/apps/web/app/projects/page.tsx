@@ -30,6 +30,7 @@ import { Trash2, FolderOpen, Plus } from "lucide-react";
 
 import type { Project } from "@uspark/core";
 import { type ListProjectsResponse } from "@uspark/core/contracts/projects.contract";
+import { type InstallationStatusResponse } from "@uspark/core/contracts/github.contract";
 import { Navigation } from "../components/navigation";
 
 export default function ProjectsListPage() {
@@ -54,20 +55,14 @@ export default function ProjectsListPage() {
   // Check GitHub installation status
   useEffect(() => {
     const checkGitHubInstallation = async () => {
-      try {
-        const response = await fetch("/api/github/installation-status");
-        if (response.ok) {
-          const data = await response.json();
-          setHasGitHubInstallation(!!data.installation);
-        } else {
-          setHasGitHubInstallation(false);
-        }
-      } catch (err) {
-        console.error("Error checking GitHub installation:", err);
+      const response = await fetch("/api/github/installation-status");
+      if (response.ok) {
+        const data: InstallationStatusResponse = await response.json();
+        setHasGitHubInstallation(!!data.installation);
+      } else {
         setHasGitHubInstallation(false);
-      } finally {
-        setCheckingGitHub(false);
       }
+      setCheckingGitHub(false);
     };
 
     checkGitHubInstallation();
@@ -98,6 +93,13 @@ export default function ProjectsListPage() {
   // Redirect to GitHub onboarding if no installation
   useEffect(() => {
     if (!checkingGitHub && hasGitHubInstallation === false) {
+      // Prevent redirect loop with sessionStorage
+      const redirectAttempt = sessionStorage.getItem("github_onboarding_redirect");
+      if (redirectAttempt) {
+        // Already tried to redirect, don't loop
+        return;
+      }
+      sessionStorage.setItem("github_onboarding_redirect", "true");
       window.location.href = "/onboarding/github";
     }
   }, [checkingGitHub, hasGitHubInstallation]);

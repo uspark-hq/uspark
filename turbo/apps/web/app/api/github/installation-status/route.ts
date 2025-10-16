@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { initServices } from "../../../../src/lib/init-services";
 import { githubInstallations } from "../../../../src/db/schema/github";
 import { eq } from "drizzle-orm";
+import { type InstallationStatusResponse } from "@uspark/core/contracts/github.contract";
 
 /**
  * Get the current user's GitHub installation status
@@ -26,18 +27,21 @@ export async function GET() {
     .limit(1);
 
   if (installations.length === 0) {
-    return NextResponse.json({ installation: null });
+    const response: InstallationStatusResponse = { installation: null };
+    return NextResponse.json(response);
   }
 
   const installation = installations[0]!;
 
-  return NextResponse.json({
+  const response: InstallationStatusResponse = {
     installation: {
       installationId: installation.installationId,
       accountName: installation.accountName,
       accountType: "user", // Default to user, can be enhanced later
-      createdAt: installation.createdAt,
+      createdAt: installation.createdAt.toISOString(),
       repositorySelection: "selected", // Default value, can be enhanced later
     },
-  });
+  };
+
+  return NextResponse.json(response);
 }

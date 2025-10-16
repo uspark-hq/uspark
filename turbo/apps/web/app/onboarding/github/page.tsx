@@ -11,6 +11,7 @@ import {
   CheckCircle2,
 } from "lucide-react";
 import { Navigation } from "../../components/navigation";
+import { type InstallationStatusResponse } from "@uspark/core/contracts/github.contract";
 
 export default function GitHubOnboardingPage() {
   const handleConnect = () => {
@@ -20,17 +21,14 @@ export default function GitHubOnboardingPage() {
   // Check if user already has GitHub installation (in case they navigate back)
   useEffect(() => {
     const checkInstallation = async () => {
-      try {
-        const response = await fetch("/api/github/installation-status");
-        if (response.ok) {
-          const data = await response.json();
-          if (data.installation) {
-            // User already has installation, redirect to projects
-            window.location.href = "/projects";
-          }
+      const response = await fetch("/api/github/installation-status");
+      if (response.ok) {
+        const data: InstallationStatusResponse = await response.json();
+        if (data.installation) {
+          // User already has installation, clear redirect flag and go to projects
+          sessionStorage.removeItem("github_onboarding_redirect");
+          window.location.href = "/projects";
         }
-      } catch (err) {
-        console.error("Error checking installation:", err);
       }
     };
 
