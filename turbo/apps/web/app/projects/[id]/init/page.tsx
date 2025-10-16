@@ -48,10 +48,10 @@ export default function ProjectInitPage() {
         setProject(foundProject);
         setLoading(false);
 
-        // If scan is already completed or failed, redirect immediately
+        // If first turn is completed or failed, redirect immediately
         if (
-          foundProject.initial_scan_status === "completed" ||
-          foundProject.initial_scan_status === "failed"
+          foundProject.initial_scan_turn_status === "completed" ||
+          foundProject.initial_scan_turn_status === "failed"
         ) {
           navigateToProject(foundProject.id);
         }
@@ -70,10 +70,10 @@ export default function ProjectInitPage() {
       return;
     }
 
-    // Don't poll if scan is already completed or failed
+    // Don't poll if first turn is already completed or failed
     if (
-      project.initial_scan_status === "completed" ||
-      project.initial_scan_status === "failed"
+      project.initial_scan_turn_status === "completed" ||
+      project.initial_scan_turn_status === "failed"
     ) {
       return;
     }
@@ -88,10 +88,10 @@ export default function ProjectInitPage() {
           );
           if (updatedProject) {
             setProject(updatedProject);
-            // Auto-redirect when scan completes (both success and failure)
+            // Auto-redirect when first turn completes or fails
             if (
-              updatedProject.initial_scan_status === "completed" ||
-              updatedProject.initial_scan_status === "failed"
+              updatedProject.initial_scan_turn_status === "completed" ||
+              updatedProject.initial_scan_turn_status === "failed"
             ) {
               clearInterval(interval);
               navigateToProject(updatedProject.id);

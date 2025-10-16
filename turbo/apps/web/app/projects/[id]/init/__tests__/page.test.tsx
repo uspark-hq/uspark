@@ -22,6 +22,7 @@ describe("ProjectInitPage", () => {
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
               initial_scan_status: "running",
+              initial_scan_turn_status: "in_progress",
               initial_scan_progress: {
                 todos: [
                   {
@@ -50,7 +51,7 @@ describe("ProjectInitPage", () => {
     render(<ProjectInitPage />);
 
     await waitFor(() => {
-      expect(screen.getByText("Scanning test-repo")).toBeInTheDocument();
+      expect(screen.getByText(/Scanning test-repo/)).toBeInTheDocument();
       expect(screen.getByText("Cloning repository")).toBeInTheDocument();
     });
   });
@@ -107,6 +108,7 @@ describe("ProjectInitPage", () => {
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
                 initial_scan_status: "running",
+                initial_scan_turn_status: "in_progress",
                 initial_scan_progress: {
                   todos: [
                     {
@@ -129,6 +131,7 @@ describe("ProjectInitPage", () => {
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
                 initial_scan_status: "completed",
+                initial_scan_turn_status: "completed",
                 initial_scan_progress: null,
               },
             ],
@@ -177,6 +180,7 @@ describe("ProjectInitPage", () => {
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
                 initial_scan_status: "running",
+                initial_scan_turn_status: "in_progress",
                 initial_scan_progress: {
                   todos: [
                     {
@@ -199,6 +203,7 @@ describe("ProjectInitPage", () => {
                 created_at: new Date().toISOString(),
                 updated_at: new Date().toISOString(),
                 initial_scan_status: "failed",
+                initial_scan_turn_status: "failed",
                 initial_scan_progress: null,
               },
             ],
@@ -242,6 +247,7 @@ describe("ProjectInitPage", () => {
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString(),
               initial_scan_status: "completed",
+              initial_scan_turn_status: "completed",
               initial_scan_progress: null,
             },
           ],
