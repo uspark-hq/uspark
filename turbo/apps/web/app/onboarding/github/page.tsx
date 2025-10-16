@@ -141,17 +141,8 @@ export default function GitHubOnboardingPage() {
         <div className="mt-8 text-center">
           <p className="text-sm text-gray-500 dark:text-gray-500">
             By connecting your GitHub account, you agree to grant uSpark access
-            to the repositories you select. You can revoke access at any time
-            from your{" "}
-            <a
-              href="https://github.com/settings/installations"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-600 underline hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-            >
-              GitHub settings
-            </a>
-            .
+            to the repositories you select. You can manage or revoke access at
+            any time from your GitHub account settings.
           </p>
         </div>
       </main>

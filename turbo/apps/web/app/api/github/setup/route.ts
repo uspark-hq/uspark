@@ -44,22 +44,16 @@ export async function GET(request: NextRequest) {
       const installationId = parseInt(installationIdStr, 10);
 
       // Get real installation details from GitHub API
-      let accountName: string;
-      try {
-        const installationDetails =
-          await getInstallationDetails(installationId);
-        // Handle both user and organization account types
-        const account = installationDetails.account;
-        accountName = account
-          ? "login" in account
-            ? account.login
-            : account.slug || account.name
-          : "unknown";
-      } catch (error) {
-        console.error("Failed to fetch installation details:", error);
-        // Fallback to placeholder if API call fails
-        accountName = `installation-${installationId}`;
-      }
+      const installationDetails =
+        await getInstallationDetails(installationId);
+
+      // Handle both user and organization account types
+      const account = installationDetails.account;
+      const accountName = account
+        ? "login" in account
+          ? account.login
+          : account.slug || account.name
+        : "unknown";
 
       // Store installation in database (idempotent operation)
       await globalThis.services.db
