@@ -213,18 +213,6 @@ export const createGithubRepository$ = command(
   },
 )
 
-export const syncToGithub$ = command(
-  ({ get }, params: { projectId: string }, signal: AbortSignal) => {
-    const workspaceFetch = get(fetch$)
-
-    return contractFetch(projectDetailContract.syncToGitHub, {
-      params: { projectId: params.projectId },
-      fetch: workspaceFetch,
-      signal,
-    })
-  },
-)
-
 export const getFileContentUrl = (
   storeId: string,
   projectId: string,
