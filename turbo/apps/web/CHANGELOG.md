@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.48.0](https://github.com/uspark-hq/uspark/compare/web-v0.47.1...web-v0.48.0) (2025-10-17)
+
+
+### Features
+
+* add automatic github onboarding flow ([#553](https://github.com/uspark-hq/uspark/issues/553)) ([1c53cb5](https://github.com/uspark-hq/uspark/commit/1c53cb53d198f155651a7ba5b1a778c59bf10af5))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.19.0
+
 ## [0.47.1](https://github.com/uspark-hq/uspark/compare/web-v0.47.0...web-v0.47.1) (2025-10-16)
 
 
