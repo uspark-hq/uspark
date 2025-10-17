@@ -18,11 +18,14 @@ test.describe("New Project Multi-Step Flow", () => {
     await page.goto("/projects");
     await page.waitForLoadState("networkidle");
 
-    // Check if we're auto-redirected to /projects/new (for users with no projects)
+    // Check where we ended up after navigation
     const currentUrl = page.url();
-    const isAutoRedirected = currentUrl.includes("/projects/new");
 
-    if (!isAutoRedirected) {
+    // If redirected to GitHub onboarding, skip to /projects/new directly
+    if (currentUrl.includes("/onboarding/github")) {
+      await page.goto("/projects/new");
+      await page.waitForLoadState("networkidle");
+    } else if (!currentUrl.includes("/projects/new")) {
       // User has projects, take screenshot of projects page
       await page.screenshot({
         path: "test-results/multi-step-01-projects-page.png",

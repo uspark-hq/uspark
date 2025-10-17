@@ -30,6 +30,7 @@ import { Trash2, FolderOpen, Plus } from "lucide-react";
 
 import type { Project } from "@uspark/core";
 import { type ListProjectsResponse } from "@uspark/core/contracts/projects.contract";
+import { type InstallationStatusResponse } from "@uspark/core/contracts/github.contract";
 import { Navigation } from "../components/navigation";
 
 export default function ProjectsListPage() {
@@ -39,6 +40,9 @@ export default function ProjectsListPage() {
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [checkingGitHub, setCheckingGitHub] = useState(true);
+  const [hasGitHubInstallation, setHasGitHubInstallation] = useState<
+    boolean | null
+  >(null);
 
   // Navigate to project - check if init is completed
   const navigateToProject = async (project: Project) => {
@@ -69,9 +73,20 @@ export default function ProjectsListPage() {
     window.location.href = newUrl;
   };
 
-  // Simple loading flag to prevent redirect flash
+  // Check GitHub installation status
   useEffect(() => {
-    setCheckingGitHub(false);
+    const checkGitHubInstallation = async () => {
+      const response = await fetch("/api/github/installation-status");
+      if (response.ok) {
+        const data: InstallationStatusResponse = await response.json();
+        setHasGitHubInstallation(!!data.installation);
+      } else {
+        setHasGitHubInstallation(false);
+      }
+      setCheckingGitHub(false);
+    };
+
+    checkGitHubInstallation();
   }, []);
 
   // Load projects from API
@@ -96,12 +111,33 @@ export default function ProjectsListPage() {
     loadProjects();
   }, []);
 
+  // Redirect to GitHub onboarding if no installation
+  useEffect(() => {
+    if (!checkingGitHub && hasGitHubInstallation === false) {
+      // Prevent redirect loop with sessionStorage
+      const redirectAttempt = sessionStorage.getItem(
+        "github_onboarding_redirect",
+      );
+      if (redirectAttempt) {
+        // Already tried to redirect, don't loop
+        return;
+      }
+      sessionStorage.setItem("github_onboarding_redirect", "true");
+      window.location.href = "/onboarding/github";
+    }
+  }, [checkingGitHub, hasGitHubInstallation]);
+
   // Redirect to new project page if user has no projects
   useEffect(() => {
-    if (!loading && !checkingGitHub && projects.length === 0) {
+    if (
+      !loading &&
+      !checkingGitHub &&
+      projects.length === 0 &&
+      hasGitHubInstallation
+    ) {
       window.location.href = "/projects/new";
     }
-  }, [loading, checkingGitHub, projects.length]);
+  }, [loading, checkingGitHub, projects.length, hasGitHubInstallation]);
 
   const handleDeleteProject = async () => {
     if (!projectToDelete) return;
