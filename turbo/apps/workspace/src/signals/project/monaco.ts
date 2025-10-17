@@ -1,42 +1,20 @@
-import { command, computed, state } from 'ccstate'
+import { command, computed } from 'ccstate'
 import { editor } from 'monaco-editor'
 
-// Monaco 编辑器实例状态（内部）
-const internalMonacoEditor$ = state<editor.IStandaloneCodeEditor | null>(null)
-
 // 编辑器容器元素状态
-const editorContainer$ = state<HTMLElement | null>(null)
-
-// 注册容器元素并自动初始化编辑器
-export const setEditorContainer$ = command(
-  ({ get, set }, container: HTMLElement | null, signal: AbortSignal) => {
-    if (!container) {
-      return
-    }
-
-    set(editorContainer$, container)
-
-    // 当容器设置时，自动初始化编辑器
-    if (!get(internalMonacoEditor$)) {
-      set(initMonacoEditor$, signal)
-      signal.throwIfAborted()
-    }
-  },
+export const editorContainer$ = command(
+  (_ctx, container: HTMLElement | null) => container,
 )
 
-// 初始化编辑器
-export const initMonacoEditor$ = command(({ get, set }) => {
+// 获取编辑器实例，自动初始化并确保只创建一次
+export const monacoEditor$ = computed((get) => {
   const container = get(editorContainer$)
+
   if (!container) {
-    return
+    return null
   }
 
-  // 如果已经存在编辑器，先清理
-  const existingEditor = get(internalMonacoEditor$)
-  if (existingEditor) {
-    existingEditor.dispose()
-  }
-
+  // 创建新的编辑器实例（computed 的缓存机制确保只创建一次）
   const monacoEditor = editor.create(container, {
     value: '',
     language: 'typescript',
@@ -47,8 +25,5 @@ export const initMonacoEditor$ = command(({ get, set }) => {
     scrollBeyondLastLine: false,
   })
 
-  set(internalMonacoEditor$, monacoEditor)
+  return monacoEditor
 })
-
-// 获取编辑器实例（供外部使用）
-export const monacoEditor$ = computed((get) => get(internalMonacoEditor$))
