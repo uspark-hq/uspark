@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.19.0](https://github.com/uspark-hq/uspark/compare/core-v0.18.0...core-v0.19.0) (2025-10-17)
+
+
+### Features
+
+* add automatic github onboarding flow ([#553](https://github.com/uspark-hq/uspark/issues/553)) ([1c53cb5](https://github.com/uspark-hq/uspark/commit/1c53cb53d198f155651a7ba5b1a778c59bf10af5))
+
 ## [0.18.0](https://github.com/uspark-hq/uspark/compare/core-v0.17.0...core-v0.18.0) (2025-10-16)
 
 
