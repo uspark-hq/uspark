@@ -49,10 +49,6 @@ const GitHubInstallationsResponseSchema = z.object({
   installations: z.array(GitHubInstallationSchema),
 });
 
-const GitHubSyncResponseSchema = z.object({
-  filesCount: z.number(),
-});
-
 // ============ Type Exports ============
 export type ProjectSession = z.infer<typeof SessionSchema>;
 export type GitHubRepository = z.infer<typeof GitHubRepositorySchema>;
@@ -196,19 +192,5 @@ export const projectDetailContract = c.router({
     },
     summary: "Create GitHub repository",
     description: "Creates and links a GitHub repository to a project",
-  },
-
-  syncToGitHub: {
-    method: "POST",
-    path: "/api/projects/:projectId/github/sync",
-    pathParams: z.object({
-      projectId: z.string(),
-    }),
-    body: z.object({}), // Empty body for POST request
-    responses: {
-      200: GitHubSyncResponseSchema,
-    },
-    summary: "Sync to GitHub",
-    description: "Syncs project files to the linked GitHub repository",
   },
 });

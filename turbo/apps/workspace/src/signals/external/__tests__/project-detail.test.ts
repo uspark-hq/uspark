@@ -20,7 +20,6 @@ import {
   projectSessions,
   sendMessage$,
   shareFile$,
-  syncToGithub$,
   turnDetail,
 } from '../project-detail'
 
@@ -399,34 +398,6 @@ describe('project-detail signals', () => {
         {
           projectId: 'project-123',
           installationId: 12_345,
-        },
-        signal,
-      )
-
-      expect(result).toStrictEqual(mockResponse)
-    })
-  })
-
-  describe('syncToGithub$', () => {
-    it('should sync project to GitHub', async () => {
-      const { store, signal } = context
-
-      const mockResponse = {
-        filesCount: 10,
-      }
-
-      server.use(
-        http.post('*/api/projects/:projectId/github/sync', ({ params }) => {
-          expect(params.projectId).toBe('project-123')
-          // Empty body for POST request (contract defines it as empty object)
-          return HttpResponse.json(mockResponse)
-        }),
-      )
-
-      const result = await store.set(
-        syncToGithub$,
-        {
-          projectId: 'project-123',
         },
         signal,
       )

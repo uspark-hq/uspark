@@ -77,31 +77,6 @@ export async function createTestGitHubInstallation(
 }
 
 /**
- * Links a GitHub repository to a project.
- * TODO: Replace with POST /api/projects/[projectId]/github/link when available
- */
-export async function linkGitHubRepository(
-  projectId: string,
-  installationId: number,
-  repoName: string,
-  repoId: number,
-) {
-  initServices();
-
-  const [repo] = await globalThis.services.db
-    .insert(githubRepos)
-    .values({
-      projectId,
-      installationId,
-      repoName,
-      repoId,
-    })
-    .returning();
-
-  return repo;
-}
-
-/**
  * Creates a test share link for a file.
  * Use this ONLY for setting up test data when API is not suitable.
  * For normal share creation, use: POST /api/share
