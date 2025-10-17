@@ -19,7 +19,7 @@ export const GitHubInstallationStatusSchema = z.object({
  */
 export const InstallationStatusResponseSchema = z.object({
   installation: GitHubInstallationStatusSchema.nullable().describe(
-    "GitHub installation details, null if not installed"
+    "GitHub installation details, null if not installed",
   ),
 });
 

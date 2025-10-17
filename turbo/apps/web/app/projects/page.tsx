@@ -94,7 +94,9 @@ export default function ProjectsListPage() {
   useEffect(() => {
     if (!checkingGitHub && hasGitHubInstallation === false) {
       // Prevent redirect loop with sessionStorage
-      const redirectAttempt = sessionStorage.getItem("github_onboarding_redirect");
+      const redirectAttempt = sessionStorage.getItem(
+        "github_onboarding_redirect",
+      );
       if (redirectAttempt) {
         // Already tried to redirect, don't loop
         return;
