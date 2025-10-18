@@ -25,7 +25,7 @@ export function MarkdownEditor() {
   return (
     <div className="flex h-full flex-col bg-[#1e1e1e]">
       {/* 文件名标题栏 */}
-      <div className="flex items-center border-b border-[#3e3e42] px-3 py-1.5">
+      <div className="flex h-8 items-center border-b border-[#3e3e42] px-3">
         <span className="text-[13px] text-[#cccccc]">
           {selectedFile?.path.split('/').pop()}
         </span>
