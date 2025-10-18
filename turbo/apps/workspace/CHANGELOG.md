@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.15.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.14.0...workspace-v1.15.0) (2025-10-18)
+
+
+### Features
+
+* **workspace:** add turn list container ref management ([#578](https://github.com/uspark-hq/uspark/issues/578)) ([f32aecf](https://github.com/uspark-hq/uspark/commit/f32aecfcbbc3773be56f4316ec0affd51a9e7b6e))
+
 ## [1.14.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.13.0...workspace-v1.14.0) (2025-10-18)
 
 
