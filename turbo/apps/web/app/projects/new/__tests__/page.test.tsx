@@ -112,14 +112,18 @@ describe("NewProjectPage", () => {
 
     // Wait for repository option to appear
     await waitFor(() => {
-      expect(screen.getByRole("option", { name: /test-repo/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("option", { name: /test-repo/i }),
+      ).toBeInTheDocument();
     });
 
     await user.click(screen.getByRole("option", { name: /test-repo/i }));
 
     // Verify repository is selected (shown in combobox button)
     await waitFor(() => {
-      expect(screen.getByRole("combobox")).toHaveTextContent("test-user/test-repo");
+      expect(screen.getByRole("combobox")).toHaveTextContent(
+        "test-user/test-repo",
+      );
     });
 
     // Click continue
@@ -157,7 +161,9 @@ describe("NewProjectPage", () => {
     await user.click(screen.getByRole("combobox"));
 
     await waitFor(() => {
-      expect(screen.getByRole("option", { name: /test-repo/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("option", { name: /test-repo/i }),
+      ).toBeInTheDocument();
     });
 
     await user.click(screen.getByRole("option", { name: /test-repo/i }));
@@ -303,7 +309,9 @@ describe("NewProjectPage", () => {
     await user.click(screen.getByRole("combobox"));
 
     await waitFor(() => {
-      expect(screen.getByRole("option", { name: /test-repo/i })).toBeInTheDocument();
+      expect(
+        screen.getByRole("option", { name: /test-repo/i }),
+      ).toBeInTheDocument();
     });
 
     await user.click(screen.getByRole("option", { name: /test-repo/i }));
