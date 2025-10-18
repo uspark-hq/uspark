@@ -10,4 +10,13 @@
   img {
     -webkit-user-drag: none;
   }
+
+  /* CodeMirror 编辑器样式优化 */
+  .cm-editor {
+    height: 100%;
+  }
+
+  .cm-content {
+    padding: 1rem !important;
+  }
 }

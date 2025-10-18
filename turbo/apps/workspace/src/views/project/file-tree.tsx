@@ -81,7 +81,7 @@ export function FileTree() {
 
   return (
     <div className="h-full overflow-y-auto bg-[#252526]">
-      <div className="border-b border-[#3e3e42] px-3 py-1.5 text-[11px] font-semibold tracking-wide text-[#cccccc] uppercase">
+      <div className="flex h-8 items-center border-b border-[#3e3e42] px-3 text-[11px] font-semibold tracking-wide text-[#cccccc] uppercase">
         Explorer
       </div>
       <div className="py-0.5">
