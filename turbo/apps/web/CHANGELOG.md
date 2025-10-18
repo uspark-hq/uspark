@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.52.1](https://github.com/uspark-hq/uspark/compare/web-v0.52.0...web-v0.52.1) (2025-10-18)
+
+
+### Bug Fixes
+
+* improve repository selector UX and test quality ([#585](https://github.com/uspark-hq/uspark/issues/585)) ([9a20709](https://github.com/uspark-hq/uspark/commit/9a207090eb5d76449a1106aa9c97c25d912dbd32))
+
 ## [0.52.0](https://github.com/uspark-hq/uspark/compare/web-v0.51.0...web-v0.52.0) (2025-10-18)
 
 
