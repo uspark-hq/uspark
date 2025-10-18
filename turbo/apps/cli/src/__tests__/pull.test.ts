@@ -129,19 +129,25 @@ describe("pull --all command", () => {
     }
   });
 
-  it("should handle empty project gracefully", async () => {
+  it("should handle empty project gracefully and create output directory", async () => {
     const projectId = "empty-project";
+    const outputDir = join(tempDir, "empty-output");
 
     // Don't add any files to the project
 
     // Execute pull --all command - should not throw
     await pullAllCommand({
       projectId,
-      outputDir: tempDir,
+      outputDir,
     });
 
-    // Verify no files were created
-    const files = readdirSync(tempDir);
+    // Verify directory was created even though no files were pulled
+    const { statSync } = await import("fs");
+    const stat = statSync(outputDir);
+    expect(stat.isDirectory()).toBe(true);
+
+    // Verify no files were created inside the directory
+    const files = readdirSync(outputDir);
     expect(files).toHaveLength(0);
   });
 });
