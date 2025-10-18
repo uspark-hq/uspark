@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.17.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.17.0...workspace-v1.17.1) (2025-10-18)
+
+
+### Bug Fixes
+
+* **workspace:** align three-column header heights and improve editor padding ([#593](https://github.com/uspark-hq/uspark/issues/593)) ([8c9079b](https://github.com/uspark-hq/uspark/commit/8c9079b365efe3e3722c9e1483390f657ba6108c))
+
 ## [1.17.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.16.0...workspace-v1.17.0) (2025-10-18)
 
 
