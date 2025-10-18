@@ -3,6 +3,7 @@ import {
   selectedFileContent$,
   selectedFileItem$,
 } from '../../signals/project/project'
+import { MarkdownEditor } from './markdown-editor'
 
 export function FileContent() {
   const fileContent = useLastResolved(selectedFileContent$)
@@ -18,16 +19,13 @@ export function FileContent() {
     )
   }
 
-  return (
-    <div className="h-full overflow-y-auto bg-[#1e1e1e]">
-      <div className="flex items-center gap-1.5 border-b border-[#3e3e42] px-3 py-1.5 text-[13px] text-[#cccccc]">
-        <span>{selectedFile?.path.split('/').pop() ?? 'File'}</span>
-      </div>
-      <div className="p-3">
-        <pre className="font-mono text-[13px] leading-[1.6] whitespace-pre-wrap text-[#d4d4d4]">
-          {fileContent}
-        </pre>
-      </div>
-    </div>
-  )
+  // 只渲染 markdown 文件
+  const isMarkdown = selectedFile?.path.endsWith('.md') ?? false
+
+  if (isMarkdown) {
+    return <MarkdownEditor />
+  }
+
+  // 非 markdown 文件不显示内容
+  return null
 }

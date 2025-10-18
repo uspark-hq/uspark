@@ -37,10 +37,15 @@ describe('projectPage - file content display', () => {
     // Wait for file tree to load
     await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
 
-    // Verify file content is displayed
-    const content = await screen.findByText(/Test README/)
-    expect(content).toBeInTheDocument()
-    expect(screen.getByText(/This is a test document/)).toBeInTheDocument()
+    // Verify file content is displayed in CodeMirror
+    await waitFor(() => {
+      const contentElement = document.querySelector('.cm-content')
+      expect(contentElement).toBeInTheDocument()
+    })
+
+    const contentElement = document.querySelector('.cm-content')
+    expect(contentElement?.textContent).toContain('Test README')
+    expect(contentElement?.textContent).toContain('This is a test document')
   })
 })
 
@@ -82,20 +87,22 @@ describe('projectPage - file selection', () => {
     const readmeFile = screen.getByText('README.md')
     await userEvent.click(readmeFile)
 
-    // Verify README content is displayed
-    await expect(
-      screen.findByText(/Main documentation/),
-    ).resolves.toBeInTheDocument()
+    // Verify README content is displayed in CodeMirror
+    await waitFor(() => {
+      const contentElement = document.querySelector('.cm-content')
+      expect(contentElement?.textContent).toContain('Main documentation')
+    })
 
     // Click on guide.md (get all matches and take the last one which is the file, not directory)
     const guideFiles = screen.getAllByText('guide.md')
     const guideFile = guideFiles[guideFiles.length - 1]
     await userEvent.click(guideFile)
 
-    // Verify guide content is displayed
-    await expect(
-      screen.findByText(/User guide content/),
-    ).resolves.toBeInTheDocument()
+    // Verify guide content is displayed in CodeMirror
+    await waitFor(() => {
+      const contentElement = document.querySelector('.cm-content')
+      expect(contentElement?.textContent).toContain('User guide content')
+    })
   })
 })
 
