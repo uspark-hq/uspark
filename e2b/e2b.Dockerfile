@@ -4,10 +4,10 @@ FROM node:22-slim
 RUN apt-get update && apt-get install -y git curl
 
 # Install Claude Code CLI globally
-RUN npm install -g @anthropic-ai/claude-code@2.0.15
+RUN npm install -g @anthropic-ai/claude-code@2.0.22
 
 # Install uspark CLI globally
-RUN npm install -g @uspark/cli@0.12.0
+RUN npm install -g @uspark/cli@0.12.1
 
 # Verify installations
 RUN claude --version
