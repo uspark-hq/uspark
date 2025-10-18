@@ -36,6 +36,7 @@ describe("GitHubRepoSelector", () => {
   ];
 
   beforeEach(() => {
+    vi.clearAllMocks();
     // Reset fetch mock before each test
     global.fetch = vi.fn();
   });
