@@ -42,11 +42,7 @@ export function InitialScanProgress({
     const inProgressTodos = progress.todos.filter(
       (todo) => todo.status === "in_progress",
     );
-    const completedTodos = progress.todos.filter(
-      (todo) => todo.status === "completed",
-    );
     const totalTodos = progress.todos.length;
-    const completedCount = completedTodos.length;
 
     // If no in_progress tasks, show a generic scanning message
     if (inProgressTodos.length === 0) {
@@ -65,9 +61,7 @@ export function InitialScanProgress({
     return (
       <Card>
         <CardHeader>
-          <CardTitle>
-            Scanning {projectName} [{completedCount}/{totalTodos}]
-          </CardTitle>
+          <CardTitle>Scanning {projectName}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
