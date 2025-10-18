@@ -236,7 +236,7 @@ grep -qxF '.uspark' .gitignore 2>/dev/null || echo '.uspark' >> .gitignore
 
 # Pull uspark content to .uspark subdirectory
 echo "Pulling uspark content to ~/workspace/.uspark..."
-uspark pull --all --project-id "${projectId}" --output-dir ~/workspace/.uspark --verbose
+uspark pull --all --project-id "${projectId}" --output-dir ~/workspace/.uspark --verbose 2>&1 | tee /tmp/pull.log
 `;
 
       const result = await sandbox.commands.run(gitSetupScript, {
