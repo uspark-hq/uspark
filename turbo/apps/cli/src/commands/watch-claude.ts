@@ -184,7 +184,11 @@ export async function watchClaudeCommand(options: {
             const syncPromise = (async () => {
               try {
                 // File was successfully modified, sync it now
-                await syncFile(context, options.projectId, filePath);
+                // When using prefix, reconstruct the local path for reading
+                const localPath = options.prefix
+                  ? `${options.prefix}/${filePath}`
+                  : filePath;
+                await syncFile(context, options.projectId, filePath, localPath);
               } catch (error) {
                 // Only output errors to stderr
                 console.error(
