@@ -15,6 +15,18 @@ afterEach(() => {
 global.URL.createObjectURL = () => "blob:mock-url";
 global.URL.revokeObjectURL = () => {};
 
+// Polyfill ResizeObserver for jsdom
+// Required by cmdk component used in Command/ComboBox
+global.ResizeObserver = class ResizeObserver {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
+// Polyfill scrollIntoView for jsdom
+// Required by cmdk component for keyboard navigation
+Element.prototype.scrollIntoView = vi.fn();
+
 // Force override Clerk test environment variables for offline testing
 // These are mock values that ensure tests never use real API credentials
 process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY =
