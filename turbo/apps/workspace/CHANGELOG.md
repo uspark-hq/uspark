@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.12.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.11.5...workspace-v1.12.0) (2025-10-17)
+
+
+### Features
+
+* remove github project files sync functionality ([#559](https://github.com/uspark-hq/uspark/issues/559)) ([ec88887](https://github.com/uspark-hq/uspark/commit/ec88887f2e28d75c35828dd21f6e3566bf7120d7))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.20.0
+
 ## [1.11.5](https://github.com/uspark-hq/uspark/compare/workspace-v1.11.4...workspace-v1.11.5) (2025-10-17)
 
 

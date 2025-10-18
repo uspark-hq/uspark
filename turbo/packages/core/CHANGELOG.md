@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.20.0](https://github.com/uspark-hq/uspark/compare/core-v0.19.0...core-v0.20.0) (2025-10-17)
+
+
+### Features
+
+* remove github project files sync functionality ([#559](https://github.com/uspark-hq/uspark/issues/559)) ([ec88887](https://github.com/uspark-hq/uspark/commit/ec88887f2e28d75c35828dd21f6e3566bf7120d7))
+
 ## [0.19.0](https://github.com/uspark-hq/uspark/compare/core-v0.18.0...core-v0.19.0) (2025-10-17)
 
 
