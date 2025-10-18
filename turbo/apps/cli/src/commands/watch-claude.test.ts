@@ -277,4 +277,98 @@ describe("watch-claude", () => {
     // syncFile should not be called for non-file-modification tools
     expect(syncFile).not.toHaveBeenCalled();
   });
+
+  it("should send result block to callback API", async () => {
+    // Create a successful result block (matches production scenario)
+    const events = [
+      JSON.stringify({
+        type: "result",
+        subtype: "success",
+        is_error: false,
+      }),
+    ];
+
+    // Create stream that auto-ends after events
+    mockStdin = Readable.from(events.map((e) => e + "\n"));
+    const originalStdin = process.stdin;
+    Object.defineProperty(process, "stdin", {
+      value: mockStdin,
+      writable: true,
+    });
+
+    const { watchClaudeCommand } = await import("./watch-claude");
+    watchClaudeCommand({
+      projectId: "test-project-id",
+      turnId: "turn_test",
+      sessionId: "sess_test",
+    });
+
+    // Wait for callback to be called
+    await vi.waitFor(
+      () => {
+        expect(stdoutCallbackSpy).toHaveBeenCalled();
+      },
+      {
+        timeout: 1000,
+        interval: 10,
+      },
+    );
+
+    Object.defineProperty(process, "stdin", {
+      value: originalStdin,
+      writable: true,
+    });
+
+    // Verify result block was sent to callback API
+    expect(stdoutCallbackSpy).toHaveBeenCalledWith({
+      line: events[0],
+    });
+  });
+
+  it("should send failed result block to callback API", async () => {
+    // Create a failed result block
+    const events = [
+      JSON.stringify({
+        type: "result",
+        subtype: "error",
+        is_error: true,
+      }),
+    ];
+
+    // Create stream that auto-ends after events
+    mockStdin = Readable.from(events.map((e) => e + "\n"));
+    const originalStdin = process.stdin;
+    Object.defineProperty(process, "stdin", {
+      value: mockStdin,
+      writable: true,
+    });
+
+    const { watchClaudeCommand } = await import("./watch-claude");
+    watchClaudeCommand({
+      projectId: "test-project-id",
+      turnId: "turn_test",
+      sessionId: "sess_test",
+    });
+
+    // Wait for callback to be called
+    await vi.waitFor(
+      () => {
+        expect(stdoutCallbackSpy).toHaveBeenCalled();
+      },
+      {
+        timeout: 1000,
+        interval: 10,
+      },
+    );
+
+    Object.defineProperty(process, "stdin", {
+      value: originalStdin,
+      writable: true,
+    });
+
+    // Verify result block was sent to callback API
+    expect(stdoutCallbackSpy).toHaveBeenCalledWith({
+      line: events[0],
+    });
+  });
 });
