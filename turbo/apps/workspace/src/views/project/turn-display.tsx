@@ -5,44 +5,10 @@ interface TurnDisplayProps {
   turn: GetTurnResponse
 }
 
-function TurnStatusBadge({ status }: { status: GetTurnResponse['status'] }) {
-  const statusConfig = {
-    pending: {
-      label: '⏳ Pending',
-      className: 'bg-[#433519] text-[#e5c07b]',
-    },
-    in_progress: {
-      label: '🔄 In Progress',
-      className: 'bg-[#1e3a5f] text-[#569cd6]',
-    },
-    completed: {
-      label: '✅ Completed',
-      className: 'bg-[#1e4620] text-[#89d185]',
-    },
-    failed: {
-      label: '❌ Failed',
-      className: 'bg-[#4b2b2b] text-[#f48771]',
-    },
-    interrupted: {
-      label: '⚠️ Interrupted',
-      className: 'bg-[#4b3319] text-[#e5c07b]',
-    },
-  }
-
-  const config = statusConfig[status]
-
-  return (
-    <span
-      data-testid="turn-status"
-      className={`inline-block rounded px-1.5 py-0.5 text-[10px] font-medium ${config.className}`}
-    >
-      {config.label}
-    </span>
-  )
-}
-
 export function TurnDisplay({ turn }: TurnDisplayProps) {
   const hasBlocks = (turn.blocks as unknown[] | undefined)?.length > 0
+  const isInProgress =
+    turn.status === 'pending' || turn.status === 'in_progress'
 
   return (
     <div className="space-y-2">
@@ -50,11 +16,19 @@ export function TurnDisplay({ turn }: TurnDisplayProps) {
       <div className="rounded border border-[#0d5a8c] bg-[#094771] p-2">
         <div className="mb-1 flex items-center justify-between">
           <div className="text-[11px] font-medium text-[#9cdcfe]">User</div>
-          <TurnStatusBadge status={turn.status} />
         </div>
         <div className="text-[13px] leading-[1.5] whitespace-pre-wrap text-[#e3e3e3]">
           {turn.user_prompt}
         </div>
+        {isInProgress && (
+          <div className="mt-2 text-[#9cdcfe]">
+            <span className="inline-flex gap-0.5">
+              <span className="animate-pulse">.</span>
+              <span className="animate-pulse [animation-delay:200ms]">.</span>
+              <span className="animate-pulse [animation-delay:400ms]">.</span>
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Assistant blocks */}
