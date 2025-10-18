@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.50.1](https://github.com/uspark-hq/uspark/compare/web-v0.50.0...web-v0.50.1) (2025-10-18)
+
+
+### Bug Fixes
+
+* remove duplicate task number from init page title ([#571](https://github.com/uspark-hq/uspark/issues/571)) ([f6d98a8](https://github.com/uspark-hq/uspark/commit/f6d98a8ab32f8220b7ff51447a922e86a8aeff1e))
+
 ## [0.50.0](https://github.com/uspark-hq/uspark/compare/web-v0.49.1...web-v0.50.0) (2025-10-18)
 
 
