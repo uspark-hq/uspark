@@ -451,6 +451,10 @@ export class ProjectSync {
 
     if (allFiles.size === 0) {
       console.log("ℹ️  No files found in project");
+      // Create output directory even when there are no files
+      if (outputDir) {
+        await mkdir(outputDir, { recursive: true });
+      }
       return;
     }
 

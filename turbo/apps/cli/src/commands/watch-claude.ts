@@ -105,6 +105,9 @@ export async function watchClaudeCommand(options: {
   // Track pending sync promises to wait for them before exiting
   const pendingSyncs: Array<Promise<void>> = [];
 
+  // Track pending stdout callback promises to wait for them before exiting
+  const pendingCallbacks: Array<Promise<void>> = [];
+
   // Create readline interface to process stdin line by line
   const rl = createInterface({
     input: process.stdin,
@@ -126,13 +129,26 @@ export async function watchClaudeCommand(options: {
     }
 
     // Send stdout line to callback API (non-blocking)
-    sendStdoutCallback(context, options, line).catch((error) => {
-      // Only log errors to stderr, don't affect main flow
-      console.error(
-        chalk.red(
-          `[uspark] Failed to send stdout callback: ${error instanceof Error ? error.message : String(error)}`,
-        ),
-      );
+    const callbackPromise = sendStdoutCallback(context, options, line).catch(
+      (error) => {
+        // Only log errors to stderr, don't affect main flow
+        console.error(
+          chalk.red(
+            `[uspark] Failed to send stdout callback: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+        );
+      },
+    );
+
+    // Track the callback promise
+    pendingCallbacks.push(callbackPromise);
+
+    // Remove from tracking once complete
+    callbackPromise.finally(() => {
+      const index = pendingCallbacks.indexOf(callbackPromise);
+      if (index > -1) {
+        pendingCallbacks.splice(index, 1);
+      }
     });
 
     // Step 1: Track tool_use events for file modification tools
@@ -216,9 +232,10 @@ export async function watchClaudeCommand(options: {
 
   // Handle process termination
   rl.on("close", async () => {
-    // Wait for all pending syncs to complete before exiting
-    if (pendingSyncs.length > 0) {
-      await Promise.all(pendingSyncs);
+    // Wait for all pending operations to complete before exiting
+    const allPending = [...pendingSyncs, ...pendingCallbacks];
+    if (allPending.length > 0) {
+      await Promise.all(allPending);
     }
     process.exit(0);
   });
