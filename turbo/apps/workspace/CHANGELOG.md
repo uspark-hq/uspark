@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.14.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.13.0...workspace-v1.14.0) (2025-10-18)
+
+
+### Features
+
+* **workspace:** integrate codemirror 6 for markdown file viewing ([#576](https://github.com/uspark-hq/uspark/issues/576)) ([6bb4eb8](https://github.com/uspark-hq/uspark/commit/6bb4eb8cc73e6cf441aaf7b8eb63cfbdaf1e79a6))
+
 ## [1.13.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.12.0...workspace-v1.13.0) (2025-10-18)
 
 

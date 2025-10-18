@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.51.0](https://github.com/uspark-hq/uspark/compare/web-v0.50.1...web-v0.51.0) (2025-10-18)
+
+
+### Features
+
+* add logging to on-claude-stdout endpoint ([#574](https://github.com/uspark-hq/uspark/issues/574)) ([b0d138d](https://github.com/uspark-hq/uspark/commit/b0d138d306b752e122ac859433349da08b8116d1))
+* add spinner animation to create project button ([#577](https://github.com/uspark-hq/uspark/issues/577)) ([1e41ef0](https://github.com/uspark-hq/uspark/commit/1e41ef001cc4fc102f523b74eedb78b53939dfd1))
+
 ## [0.50.1](https://github.com/uspark-hq/uspark/compare/web-v0.50.0...web-v0.50.1) (2025-10-18)
 
 
