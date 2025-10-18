@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.52.0](https://github.com/uspark-hq/uspark/compare/web-v0.51.0...web-v0.52.0) (2025-10-18)
+
+
+### Features
+
+* add searchable repository selector with shadcn command component ([#579](https://github.com/uspark-hq/uspark/issues/579)) ([18c5fdd](https://github.com/uspark-hq/uspark/commit/18c5fdd646145887d6a92751c5dac291b3ca28db))
+
 ## [0.51.0](https://github.com/uspark-hq/uspark/compare/web-v0.50.1...web-v0.51.0) (2025-10-18)
 
 
