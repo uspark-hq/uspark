@@ -23,7 +23,7 @@ export const editorStateConfig$ = computed(async (get) => {
     markdown(),
     oneDark,
     EditorView.lineWrapping,
-    EditorView.editable.of(false), // 只读模式
+    EditorView.editable.of(true), // 编辑模式
   ]
 
   return {
