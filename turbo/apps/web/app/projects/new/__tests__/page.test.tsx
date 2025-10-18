@@ -104,17 +104,23 @@ describe("NewProjectPage", () => {
       expect(screen.getByRole("combobox")).toBeInTheDocument();
     });
 
-    // Select a repository
-    const select = screen.getByRole("combobox");
-    fireEvent.change(select, { target: { value: "test-user/test-repo" } });
+    // Select a repository by clicking the CommandItem
+    await waitFor(() => {
+      expect(screen.getByText("test-repo")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText("test-repo"));
 
     // Click continue
+    await waitFor(() => {
+      const continueButton = screen.getByRole("button", { name: /Continue/i });
+      expect(continueButton).not.toBeDisabled();
+    });
     const continueButton = screen.getByRole("button", { name: /Continue/i });
     fireEvent.click(continueButton);
 
     // Should go directly to ready step (no token step needed)
     await waitFor(() => {
-      expect(screen.getByText("You're All Set!")).toBeInTheDocument();
+      expect(screen.getByText(/You'?re All Set!/i)).toBeInTheDocument();
     });
   });
 
@@ -138,12 +144,21 @@ describe("NewProjectPage", () => {
       expect(screen.getByRole("combobox")).toBeInTheDocument();
     });
 
-    const select = screen.getByRole("combobox");
-    fireEvent.change(select, { target: { value: "test-user/test-repo" } });
+    // Select a repository by clicking the CommandItem
+    await waitFor(() => {
+      expect(screen.getByText("test-repo")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText("test-repo"));
+
+    // Click continue
+    await waitFor(() => {
+      const continueButton = screen.getByRole("button", { name: /Continue/i });
+      expect(continueButton).not.toBeDisabled();
+    });
     fireEvent.click(screen.getByRole("button", { name: /Continue/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("You're All Set!")).toBeInTheDocument();
+      expect(screen.getByText(/You'?re All Set!/i)).toBeInTheDocument();
     });
 
     // Click Start Scanning
@@ -274,12 +289,21 @@ describe("NewProjectPage", () => {
       expect(screen.getByRole("combobox")).toBeInTheDocument();
     });
 
-    const select = screen.getByRole("combobox");
-    fireEvent.change(select, { target: { value: "test-user/test-repo" } });
+    // Select a repository by clicking the CommandItem
+    await waitFor(() => {
+      expect(screen.getByText("test-repo")).toBeInTheDocument();
+    });
+    fireEvent.click(screen.getByText("test-repo"));
+
+    // Click continue
+    await waitFor(() => {
+      const continueButton = screen.getByRole("button", { name: /Continue/i });
+      expect(continueButton).not.toBeDisabled();
+    });
     fireEvent.click(screen.getByRole("button", { name: /Continue/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("You're All Set!")).toBeInTheDocument();
+      expect(screen.getByText(/You'?re All Set!/i)).toBeInTheDocument();
     });
 
     // Start scanning - should redirect to init page
