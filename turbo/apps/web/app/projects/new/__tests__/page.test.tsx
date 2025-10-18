@@ -1,4 +1,5 @@
 import { render, screen, waitFor, fireEvent } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { beforeEach, afterEach, describe, it, expect } from "vitest";
 import { server, http, HttpResponse } from "../../../../src/test/msw-setup";
 import NewProjectPage from "../page";
@@ -97,6 +98,8 @@ describe("NewProjectPage", () => {
   });
 
   it("should navigate to repository selection and continue to ready step", async () => {
+    const user = userEvent.setup();
+
     render(<NewProjectPage />);
 
     // Should auto-skip to repository step (GitHub already connected)
@@ -104,13 +107,23 @@ describe("NewProjectPage", () => {
       expect(screen.getByRole("combobox")).toBeInTheDocument();
     });
 
-    // Select a repository
-    const select = screen.getByRole("combobox");
-    fireEvent.change(select, { target: { value: "test-user/test-repo" } });
+    // Open combobox and select a repository
+    await user.click(screen.getByRole("combobox"));
+
+    // Wait for repository option to appear
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: /test-repo/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("option", { name: /test-repo/i }));
+
+    // Verify repository is selected (shown in combobox button)
+    await waitFor(() => {
+      expect(screen.getByRole("combobox")).toHaveTextContent("test-user/test-repo");
+    });
 
     // Click continue
-    const continueButton = screen.getByRole("button", { name: /Continue/i });
-    fireEvent.click(continueButton);
+    await user.click(screen.getByRole("button", { name: /Continue/i }));
 
     // Should go directly to ready step (no token step needed)
     await waitFor(() => {
@@ -119,6 +132,8 @@ describe("NewProjectPage", () => {
   });
 
   it("should display error when project creation fails", async () => {
+    const user = userEvent.setup();
+
     server.use(
       http.post("*/api/projects", () => {
         return HttpResponse.json(
@@ -138,16 +153,24 @@ describe("NewProjectPage", () => {
       expect(screen.getByRole("combobox")).toBeInTheDocument();
     });
 
-    const select = screen.getByRole("combobox");
-    fireEvent.change(select, { target: { value: "test-user/test-repo" } });
-    fireEvent.click(screen.getByRole("button", { name: /Continue/i }));
+    // Open combobox and select a repository
+    await user.click(screen.getByRole("combobox"));
+
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: /test-repo/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("option", { name: /test-repo/i }));
+
+    // Click continue
+    await user.click(screen.getByRole("button", { name: /Continue/i }));
 
     await waitFor(() => {
       expect(screen.getByText("You're All Set!")).toBeInTheDocument();
     });
 
     // Click Start Scanning
-    fireEvent.click(screen.getByRole("button", { name: /Start Scanning/i }));
+    await user.click(screen.getByRole("button", { name: /Start Scanning/i }));
 
     // Should display error
     await waitFor(() => {
@@ -250,6 +273,8 @@ describe("NewProjectPage", () => {
   });
 
   it("should redirect to init page after GitHub project creation", async () => {
+    const user = userEvent.setup();
+
     // Mock window.location.href
     Object.defineProperty(window, "location", {
       value: { href: "https://www.example.com" },
@@ -274,16 +299,24 @@ describe("NewProjectPage", () => {
       expect(screen.getByRole("combobox")).toBeInTheDocument();
     });
 
-    const select = screen.getByRole("combobox");
-    fireEvent.change(select, { target: { value: "test-user/test-repo" } });
-    fireEvent.click(screen.getByRole("button", { name: /Continue/i }));
+    // Open combobox and select a repository
+    await user.click(screen.getByRole("combobox"));
+
+    await waitFor(() => {
+      expect(screen.getByRole("option", { name: /test-repo/i })).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("option", { name: /test-repo/i }));
+
+    // Click continue
+    await user.click(screen.getByRole("button", { name: /Continue/i }));
 
     await waitFor(() => {
       expect(screen.getByText("You're All Set!")).toBeInTheDocument();
     });
 
     // Start scanning - should redirect to init page
-    fireEvent.click(screen.getByRole("button", { name: /Start Scanning/i }));
+    await user.click(screen.getByRole("button", { name: /Start Scanning/i }));
 
     // Should redirect to init page
     await waitFor(() => {
