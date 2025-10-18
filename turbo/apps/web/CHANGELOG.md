@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.49.1](https://github.com/uspark-hq/uspark/compare/web-v0.49.0...web-v0.49.1) (2025-10-18)
+
+
+### Bug Fixes
+
+* correctly detect initial scan success/failure in result callback ([#564](https://github.com/uspark-hq/uspark/issues/564)) ([b318604](https://github.com/uspark-hq/uspark/commit/b31860431960b5b10acf872a38eb2e6817a22421))
+
 ## [0.49.0](https://github.com/uspark-hq/uspark/compare/web-v0.48.0...web-v0.49.0) (2025-10-17)
 
 
