@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.21.0](https://github.com/uspark-hq/uspark/compare/core-v0.20.0...core-v0.21.0) (2025-10-18)
+
+
+### Features
+
+* implement unified workspace directory structure and remove legacy github sync ([#568](https://github.com/uspark-hq/uspark/issues/568)) ([83041a7](https://github.com/uspark-hq/uspark/commit/83041a7372e035a145b8a386f8a0f5d7da5a9649))
+
 ## [0.20.0](https://github.com/uspark-hq/uspark/compare/core-v0.19.0...core-v0.20.0) (2025-10-17)
 
 
