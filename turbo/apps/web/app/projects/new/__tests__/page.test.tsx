@@ -127,7 +127,7 @@ describe("NewProjectPage", () => {
 
     // Should go directly to ready step (no token step needed)
     await waitFor(() => {
-      expect(screen.getByText("You're All Set!")).toBeInTheDocument();
+      expect(screen.getByText(/You'?re All Set!/i)).toBeInTheDocument();
     });
   });
 
@@ -166,7 +166,7 @@ describe("NewProjectPage", () => {
     await user.click(screen.getByRole("button", { name: /Continue/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("You're All Set!")).toBeInTheDocument();
+      expect(screen.getByText(/You'?re All Set!/i)).toBeInTheDocument();
     });
 
     // Click Start Scanning
@@ -312,7 +312,7 @@ describe("NewProjectPage", () => {
     await user.click(screen.getByRole("button", { name: /Continue/i }));
 
     await waitFor(() => {
-      expect(screen.getByText("You're All Set!")).toBeInTheDocument();
+      expect(screen.getByText(/You'?re All Set!/i)).toBeInTheDocument();
     });
 
     // Start scanning - should redirect to init page

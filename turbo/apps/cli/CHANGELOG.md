@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.1](https://github.com/uspark-hq/uspark/compare/cli-v0.12.0...cli-v0.12.1) (2025-10-18)
+
+
+### Bug Fixes
+
+* **cli:** ensure directory creation on empty pull and complete callback delivery ([#581](https://github.com/uspark-hq/uspark/issues/581)) ([f835df1](https://github.com/uspark-hq/uspark/commit/f835df10047bfac7b734e3ba8fbaf605d5d6d8b5))
+
 ## [0.12.0](https://github.com/uspark-hq/uspark/compare/cli-v0.11.9...cli-v0.12.0) (2025-10-18)
 
 
