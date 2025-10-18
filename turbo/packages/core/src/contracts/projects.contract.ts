@@ -225,12 +225,6 @@ export const projectsContract = c.router({
       projectId: z.string().describe("Project identifier"),
     }),
     body: z.any().describe("Binary YJS update data"), // Binary request body
-    headers: z.object({
-      "x-version": z
-        .string()
-        .optional()
-        .describe("Client version for optimistic locking"),
-    }),
     responses: {
       200: z.object({
         message: z.literal("OK"),

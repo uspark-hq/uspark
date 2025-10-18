@@ -186,9 +186,6 @@ export const cliAuthContract = c.router({
   generateToken: {
     method: "POST",
     path: "/api/cli/auth/generate-token",
-    headers: z.object({
-      authorization: z.string().describe("Bearer token"),
-    }),
     body: z.object({
       name: z
         .string()

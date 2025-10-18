@@ -139,9 +139,6 @@ export const shareContract = c.router({
   createShare: {
     method: "POST",
     path: "/api/share",
-    headers: z.object({
-      authorization: z.string().describe("Bearer token"),
-    }),
     body: CreateShareRequestSchema,
     responses: {
       201: CreateShareResponseSchema,
@@ -179,9 +176,6 @@ export const shareContract = c.router({
   listShares: {
     method: "GET",
     path: "/api/shares",
-    headers: z.object({
-      authorization: z.string().describe("Bearer token"),
-    }),
     responses: {
       200: ListSharesResponseSchema,
       401: ShareErrorSchema,
@@ -199,9 +193,6 @@ export const shareContract = c.router({
     path: "/api/shares/:id",
     pathParams: z.object({
       id: z.string().describe("Share link ID to delete"),
-    }),
-    headers: z.object({
-      authorization: z.string().describe("Bearer token"),
     }),
     responses: {
       200: DeleteShareResponseSchema,
