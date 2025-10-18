@@ -228,18 +228,18 @@ describe("sync commands", () => {
 
       await pullCommand("remote/file.txt", {
         projectId: "proj-123",
-        output: "local/output.txt",
+        outputDir: "local",
       });
 
-      // Check that file was created in the correct location
+      // Check that file was created in the correct location (maintains original path structure)
       const fileExists = await fs
-        .access("local/output.txt")
+        .access("local/remote/file.txt")
         .then(() => true)
         .catch(() => false);
       expect(fileExists).toBe(true);
 
       // Check file content
-      const content = await fs.readFile("local/output.txt", "utf8");
+      const content = await fs.readFile("local/remote/file.txt", "utf8");
       expect(content).toBe("remote file content");
     });
 

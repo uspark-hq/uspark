@@ -40,24 +40,52 @@ function isFileModificationTool(
 function extractFilePath(
   toolName: string,
   toolInput: Record<string, unknown>,
+  prefix?: string,
 ): string | null {
   // All file modification tools use 'file_path' parameter
   const filePath = toolInput.file_path;
 
   if (typeof filePath === "string") {
-    // Return relative path if it's within the current working directory
-    // This ensures we only sync files within the project
+    let relativePath: string;
+
+    // Convert absolute paths to relative paths
     if (filePath.startsWith("/")) {
       // Absolute path - check if it's within the current working directory
       const cwd = process.cwd();
       if (filePath.startsWith(cwd)) {
-        return filePath.substring(cwd.length + 1); // Remove leading slash
+        relativePath = filePath.substring(cwd.length + 1); // Remove leading slash
+      } else {
+        // Outside current directory - don't sync
+        return null;
       }
-      // Outside current directory - don't sync
-      return null;
+    } else {
+      // Already a relative path
+      relativePath = filePath;
     }
-    // Already a relative path
-    return filePath;
+
+    // If prefix is specified, filter and strip it
+    if (prefix) {
+      // Normalize prefix - ensure it doesn't have leading/trailing slashes
+      const normalizedPrefix = prefix.replace(/^\/+|\/+$/g, "");
+
+      // Check if file is under the prefix directory
+      if (
+        relativePath === normalizedPrefix ||
+        relativePath.startsWith(normalizedPrefix + "/")
+      ) {
+        // Strip the prefix from the path
+        if (relativePath === normalizedPrefix) {
+          // Edge case: file path exactly matches prefix
+          return "";
+        }
+        return relativePath.substring(normalizedPrefix.length + 1);
+      } else {
+        // File is not under the prefix directory - ignore it
+        return null;
+      }
+    }
+
+    return relativePath;
   }
 
   return null;
@@ -67,6 +95,7 @@ export async function watchClaudeCommand(options: {
   projectId: string;
   turnId: string;
   sessionId: string;
+  prefix?: string;
 }): Promise<void> {
   const context = await requireAuth();
 
@@ -120,7 +149,11 @@ export async function watchClaudeCommand(options: {
 
           // Check for file modification tools
           if (isFileModificationTool(toolName, toolInput)) {
-            const filePath = extractFilePath(toolName, toolInput);
+            const filePath = extractFilePath(
+              toolName,
+              toolInput,
+              options.prefix,
+            );
 
             if (filePath) {
               // Store for later sync after tool_result

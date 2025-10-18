@@ -68,8 +68,8 @@ program
   )
   .requiredOption("--project-id <projectId>", "Project ID")
   .option(
-    "--output <outputPath>",
-    "Local output path (defaults to same as remote path)",
+    "--output-dir <directory>",
+    "Output directory for pulled files (defaults to current directory)",
   )
   .option("--all", "Pull all files from the project")
   .option("--verbose", "Show detailed logging information")
@@ -78,7 +78,7 @@ program
       filePath: string | undefined,
       options: {
         projectId: string;
-        output?: string;
+        outputDir?: string;
         all?: boolean;
         verbose?: boolean;
       },
@@ -87,12 +87,16 @@ program
         // Pull all files
         await pullAllCommand({
           projectId: options.projectId,
-          output: options.output,
+          outputDir: options.outputDir,
           verbose: options.verbose,
         });
       } else if (filePath) {
         // Pull single file
-        await pullCommand(filePath, { ...options, verbose: options.verbose });
+        await pullCommand(filePath, {
+          projectId: options.projectId,
+          outputDir: options.outputDir,
+          verbose: options.verbose,
+        });
       } else {
         console.error(
           chalk.red("Error: Either provide a file path or use --all flag"),
@@ -131,11 +135,16 @@ program
   .requiredOption("--project-id <projectId>", "Project ID to sync changes to")
   .requiredOption("--turn-id <turnId>", "Turn ID for callback API")
   .requiredOption("--session-id <sessionId>", "Session ID for callback API")
+  .option(
+    "--prefix <prefix>",
+    "Only watch files under this prefix directory and strip it when uploading",
+  )
   .action(
     async (options: {
       projectId: string;
       turnId: string;
       sessionId: string;
+      prefix?: string;
     }) => {
       await watchClaudeCommand(options);
     },

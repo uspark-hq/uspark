@@ -163,7 +163,7 @@ export class ProjectSync {
     projectId: string,
     filePath: string,
     options: SyncOptions,
-    localPath?: string,
+    outputDir?: string,
   ): Promise<void> {
     const apiUrl = options.apiUrl;
     const token = options.token;
@@ -201,7 +201,7 @@ export class ProjectSync {
     }
 
     // 4. Write to local filesystem
-    const outputPath = localPath || filePath;
+    const outputPath = outputDir ? join(outputDir, filePath) : filePath;
     await mkdir(dirname(outputPath), { recursive: true });
     await writeFile(outputPath, content, "utf8");
   }
