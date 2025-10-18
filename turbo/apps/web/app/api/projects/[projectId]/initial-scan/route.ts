@@ -3,7 +3,7 @@ import { getUserId } from "../../../../../src/lib/auth/get-user-id";
 import { initServices } from "../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { TURNS_TBL, BLOCKS_TBL } from "../../../../../src/db/schema/sessions";
-import { eq, desc } from "drizzle-orm";
+import { eq, desc, asc } from "drizzle-orm";
 
 /**
  * GET /api/projects/[projectId]/initial-scan
@@ -65,6 +65,7 @@ export async function GET(
       .select({ status: TURNS_TBL.status })
       .from(TURNS_TBL)
       .where(eq(TURNS_TBL.sessionId, project.initial_scan_session_id))
+      .orderBy(asc(TURNS_TBL.createdAt))
       .limit(1);
 
     if (turns.length > 0) {
