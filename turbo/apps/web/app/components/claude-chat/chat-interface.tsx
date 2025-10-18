@@ -255,9 +255,7 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
                       fontSize: "14px",
                       flexShrink: 0,
                     }}
-                  >
-                    👤
-                  </div>
+                  ></div>
                   <div style={{ flex: 1 }}>
                     <div
                       style={{
@@ -301,9 +299,7 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
                       fontSize: "14px",
                       flexShrink: 0,
                     }}
-                  >
-                    🤖
-                  </div>
+                  ></div>
                   <div style={{ flex: 1 }}>
                     <div
                       style={{

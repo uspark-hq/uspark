@@ -36,15 +36,19 @@ describe("BlockDisplay", () => {
       },
     };
 
-    render(<BlockDisplay block={block} />);
+    const { container } = render(<BlockDisplay block={block} />);
     expect(screen.getByText(/Tool: read_file/)).toBeInTheDocument();
 
     // Should show parameters by default
     expect(screen.getByText(/\/test\.txt/)).toBeInTheDocument();
 
-    // Click to collapse
-    const header = screen.getByText(/Tool: read_file/).parentElement;
-    fireEvent.click(header!);
+    // Click to collapse - find the clickable header div
+    const clickableHeader = container.querySelector(
+      '[style*="cursor: pointer"]',
+    );
+    if (clickableHeader) {
+      fireEvent.click(clickableHeader);
+    }
 
     // Parameters should be hidden
     expect(screen.queryByText(/\/test\.txt/)).not.toBeInTheDocument();
@@ -78,5 +82,84 @@ describe("BlockDisplay", () => {
 
     render(<BlockDisplay block={block} />);
     expect(screen.getByText("File content here")).toBeInTheDocument();
+  });
+
+  it("collapses tool_result content when more than 3 lines", () => {
+    const multiLineContent = "Line 1\nLine 2\nLine 3\nLine 4\nLine 5";
+    const block = {
+      id: "block-6",
+      type: "tool_result",
+      content: {
+        tool_use_id: "tool-123",
+        result: multiLineContent,
+        error: null,
+      },
+    };
+
+    render(<BlockDisplay block={block} />);
+
+    // Should show only first 3 lines with ellipsis by default
+    expect(screen.getByText(/Line 1/)).toBeInTheDocument();
+    expect(screen.getByText(/Line 2/)).toBeInTheDocument();
+    expect(screen.getByText(/Line 3\.\.\./)).toBeInTheDocument();
+    expect(screen.queryByText("Line 4")).not.toBeInTheDocument();
+    expect(screen.queryByText("Line 5")).not.toBeInTheDocument();
+
+    // Should show expand arrow
+    expect(screen.getByText("▶")).toBeInTheDocument();
+  });
+
+  it("expands tool_result content when clicked", () => {
+    const multiLineContent = "Line 1\nLine 2\nLine 3\nLine 4\nLine 5";
+    const block = {
+      id: "block-7",
+      type: "tool_result",
+      content: {
+        tool_use_id: "tool-123",
+        result: multiLineContent,
+        error: null,
+      },
+    };
+
+    const { container } = render(<BlockDisplay block={block} />);
+
+    // Click to expand - find the clickable header div
+    const clickableHeader = container.querySelector(
+      '[style*="cursor: pointer"]',
+    );
+    if (clickableHeader) {
+      fireEvent.click(clickableHeader);
+    }
+
+    // Should show all lines
+    expect(screen.getByText(/Line 4/)).toBeInTheDocument();
+    expect(screen.getByText(/Line 5/)).toBeInTheDocument();
+
+    // Should show collapse arrow
+    expect(screen.getByText("▼")).toBeInTheDocument();
+  });
+
+  it("does not show expand arrow for tool_result with 3 or fewer lines", () => {
+    const shortContent = "Line 1\nLine 2\nLine 3";
+    const block = {
+      id: "block-8",
+      type: "tool_result",
+      content: {
+        tool_use_id: "tool-123",
+        result: shortContent,
+        error: null,
+      },
+    };
+
+    render(<BlockDisplay block={block} />);
+
+    // Should show all content
+    expect(screen.getByText(/Line 1/)).toBeInTheDocument();
+    expect(screen.getByText(/Line 2/)).toBeInTheDocument();
+    expect(screen.getByText(/Line 3/)).toBeInTheDocument();
+
+    // Should not show expand arrow
+    expect(screen.queryByText("▶")).not.toBeInTheDocument();
+    expect(screen.queryByText("▼")).not.toBeInTheDocument();
   });
 });
