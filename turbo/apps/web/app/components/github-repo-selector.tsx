@@ -1,8 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Badge, Skeleton } from "@uspark/ui";
-import { Github, ExternalLink, Lock, Globe, AlertCircle } from "lucide-react";
+import {
+  Badge,
+  Skeleton,
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@uspark/ui";
+import {
+  Github,
+  ExternalLink,
+  Lock,
+  Globe,
+  AlertCircle,
+  Check,
+} from "lucide-react";
 
 interface Repository {
   id: number;
@@ -154,23 +170,37 @@ export function GitHubRepoSelector({
 
   return (
     <div className="space-y-3">
-      <select
-        value={selectedRepo?.fullName || ""}
-        onChange={(e) => handleRepoChange(e.target.value)}
-        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-      >
-        <option value="">Select a repository (optional)</option>
-        {Object.entries(groupedRepos).map(([owner, repos]) => (
-          <optgroup key={owner} label={owner}>
-            {repos.map((repo) => (
-              <option key={repo.id} value={repo.fullName}>
-                {repo.name}
-                {repo.private ? " 🔒" : ""}
-              </option>
-            ))}
-          </optgroup>
-        ))}
-      </select>
+      <Command className="rounded-lg border shadow-md">
+        <CommandInput placeholder="Search repositories..." />
+        <CommandList>
+          <CommandEmpty>No repositories found.</CommandEmpty>
+          {Object.entries(groupedRepos).map(([owner, repos]) => (
+            <CommandGroup key={owner} heading={owner}>
+              {repos.map((repo) => (
+                <CommandItem
+                  key={repo.id}
+                  value={repo.fullName}
+                  onSelect={() => handleRepoChange(repo.fullName)}
+                  className="cursor-pointer"
+                >
+                  <div className="flex items-center gap-2 flex-1">
+                    <Github className="h-4 w-4" />
+                    <span>{repo.name}</span>
+                    {repo.private ? (
+                      <Lock className="h-3 w-3 text-muted-foreground" />
+                    ) : (
+                      <Globe className="h-3 w-3 text-muted-foreground" />
+                    )}
+                  </div>
+                  {selectedRepo?.fullName === repo.fullName && (
+                    <Check className="h-4 w-4" />
+                  )}
+                </CommandItem>
+              ))}
+            </CommandGroup>
+          ))}
+        </CommandList>
+      </Command>
       {selectedRepo && (
         <div className="rounded-lg border bg-muted/30 p-3">
           <div className="flex items-start justify-between gap-3">

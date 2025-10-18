@@ -1,5 +1,6 @@
 import { useLastResolved, useSet } from 'ccstate-react'
 import {
+  mountTurnList$,
   projectSessions$,
   selectedSession$,
   selectSession$,
@@ -13,6 +14,7 @@ export function ChatWindow() {
   const selectedSession = useLastResolved(selectedSession$)
   const turns = useLastResolved(turns$)
   const handleSelectSession = useSet(selectSession$)
+  const mountTurnList = useSet(mountTurnList$)
 
   return (
     <div className="flex h-full flex-col bg-[#1e1e1e]">
@@ -40,7 +42,7 @@ export function ChatWindow() {
         )}
       </div>
 
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto" ref={mountTurnList}>
         {!selectedSession && (
           <div className="p-3 text-[13px] text-[#969696]">
             {projectSessions?.sessions.length === 0 ? (

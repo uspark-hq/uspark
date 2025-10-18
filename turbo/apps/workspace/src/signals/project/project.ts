@@ -14,7 +14,7 @@ import {
   turnDetail,
 } from '../external/project-detail'
 import { pathParams$, searchParams$, updateSearchParams$ } from '../route'
-import { throwIfAbort } from '../utils'
+import { onRef, throwIfAbort } from '../utils'
 
 function findFileInTree(
   files: FileItem[],
@@ -154,6 +154,23 @@ export const selectedSession$ = computed(async (get) => {
 })
 
 const internalReloadTurn$ = state(0)
+
+const internalTurnListContainerEl$ = state<HTMLDivElement | null>(null)
+
+const internalMountTurnList$ = command(
+  ({ set }, el: HTMLDivElement, signal: AbortSignal) => {
+    set(internalTurnListContainerEl$, el)
+    signal.addEventListener('abort', () => {
+      set(internalTurnListContainerEl$, null)
+    })
+  },
+)
+
+export const mountTurnList$ = onRef(internalMountTurnList$)
+
+export const turnListContainerEl$ = computed((get) =>
+  get(internalTurnListContainerEl$),
+)
 
 export const turns$ = computed(async (get) => {
   get(internalReloadTurn$)
