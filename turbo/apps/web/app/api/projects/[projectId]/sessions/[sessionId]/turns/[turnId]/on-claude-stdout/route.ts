@@ -110,6 +110,9 @@ export async function POST(
 
   const { line } = parseResult.data;
 
+  // Log received content
+  console.log(`[on-claude-stdout] Received: ${line}`);
+
   // Parse Claude output line
   let block: Record<string, unknown>;
   try {
