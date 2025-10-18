@@ -150,14 +150,14 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
   let projectId: string;
   let sessionId: string;
   let turnId: string;
-  let auth: ReturnType<typeof setupTestAuth>;
+  let testAuth: ReturnType<typeof setupTestAuth>;
 
   beforeEach(async () => {
     vi.clearAllMocks();
 
     // Setup authentication
-    auth = setupTestAuth(userId, cliToken);
-    auth.setupCliAuth();
+    testAuth = setupTestAuth(userId, cliToken);
+    testAuth.setupCliAuth();
 
     // Create test context (project, session, turn, tokens)
     const context = await createTestTurnContext(userId, cliToken);
@@ -367,7 +367,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
 
   it("should reject requests without authentication", async () => {
     // Reset authentication to simulate no auth
-    auth.resetAuth();
+    testAuth.resetAuth();
 
     const line = JSON.stringify({
       type: "assistant",
@@ -703,5 +703,217 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
 
     expect(turn!.status).toBe("completed");
     expect(turn!.completedAt).not.toBeNull();
+  });
+
+  it("should update initial scan status on successful result", async () => {
+    // Import needed for this test
+    const { PROJECTS_TBL } = await import(
+      "../../../../../../../../../src/db/schema/projects"
+    );
+
+    // Setup CLI auth for this test
+    testAuth.setupCliAuth();
+
+    // Create a project with initial scan running
+    mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+    const createProjectRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: `Initial Scan Test ${Date.now()}` }),
+    });
+    const projectResponse = await createProject(createProjectRequest);
+    expect(projectResponse.status).toBe(201);
+    const { id: scanProjectId } = await projectResponse.json();
+
+    // Create session for this project
+    const createSessionRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ title: "Initial Scan Session" }),
+    });
+    const sessionContext = {
+      params: Promise.resolve({ projectId: scanProjectId }),
+    };
+    const sessionResponse = await createSession(
+      createSessionRequest,
+      sessionContext,
+    );
+    expect(sessionResponse.status).toBe(200);
+    const { id: scanSessionId } = await sessionResponse.json();
+
+    // Create turn for this session
+    const createTurnRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ user_message: "Initial scan prompt" }),
+    });
+    const turnContext = {
+      params: Promise.resolve({
+        projectId: scanProjectId,
+        sessionId: scanSessionId,
+      }),
+    };
+    const turnResponse = await createTurn(createTurnRequest, turnContext);
+    expect(turnResponse.status).toBe(200);
+    const { id: scanTurnId } = await turnResponse.json();
+
+    // Manually set up initial scan session
+    await globalThis.services.db
+      .update(PROJECTS_TBL)
+      .set({
+        initialScanStatus: "running",
+        initialScanSessionId: scanSessionId,
+      })
+      .where(eq(PROJECTS_TBL.id, scanProjectId));
+
+    // Send a successful result block
+    const successResult = JSON.stringify({
+      type: "result",
+      subtype: "success",
+      is_error: false,
+      duration_ms: 5000,
+      result: "Initial scan completed successfully",
+    });
+
+    const request = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ line: successResult }),
+    });
+    const context = {
+      params: Promise.resolve({
+        projectId: scanProjectId,
+        sessionId: scanSessionId,
+        turnId: scanTurnId,
+      }),
+    };
+
+    const response = await POST(request, context);
+    expect(response.status).toBe(200);
+
+    // Verify turn was marked as completed
+    const [turn] = await globalThis.services.db
+      .select()
+      .from(TURNS_TBL)
+      .where(eq(TURNS_TBL.id, scanTurnId));
+    expect(turn!.status).toBe("completed");
+
+    // Verify initial scan status was updated to completed
+    const [project] = await globalThis.services.db
+      .select()
+      .from(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.id, scanProjectId));
+    expect(project!.initialScanStatus).toBe("completed");
+
+    // Cleanup
+    const deleteRequest = new NextRequest("http://localhost:3000", {
+      method: "DELETE",
+    });
+    const deleteContext = {
+      params: Promise.resolve({ projectId: scanProjectId }),
+    };
+    await deleteProject(deleteRequest, deleteContext);
+  });
+
+  it("should update initial scan status on failed result", async () => {
+    // Import needed for this test
+    const { PROJECTS_TBL } = await import(
+      "../../../../../../../../../src/db/schema/projects"
+    );
+
+    // Setup CLI auth for this test
+    testAuth.setupCliAuth();
+
+    // Create a project with initial scan running
+    mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+    const createProjectRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ name: `Initial Scan Test Fail ${Date.now()}` }),
+    });
+    const projectResponse = await createProject(createProjectRequest);
+    expect(projectResponse.status).toBe(201);
+    const { id: scanProjectId } = await projectResponse.json();
+
+    // Create session for this project
+    const createSessionRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ title: "Initial Scan Session" }),
+    });
+    const sessionContext = {
+      params: Promise.resolve({ projectId: scanProjectId }),
+    };
+    const sessionResponse = await createSession(
+      createSessionRequest,
+      sessionContext,
+    );
+    expect(sessionResponse.status).toBe(200);
+    const { id: scanSessionId } = await sessionResponse.json();
+
+    // Create turn for this session
+    const createTurnRequest = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ user_message: "Initial scan prompt" }),
+    });
+    const turnContext = {
+      params: Promise.resolve({
+        projectId: scanProjectId,
+        sessionId: scanSessionId,
+      }),
+    };
+    const turnResponse = await createTurn(createTurnRequest, turnContext);
+    expect(turnResponse.status).toBe(200);
+    const { id: scanTurnId } = await turnResponse.json();
+
+    // Manually set up initial scan session
+    await globalThis.services.db
+      .update(PROJECTS_TBL)
+      .set({
+        initialScanStatus: "running",
+        initialScanSessionId: scanSessionId,
+      })
+      .where(eq(PROJECTS_TBL.id, scanProjectId));
+
+    // Send a failed result block
+    const failureResult = JSON.stringify({
+      type: "result",
+      subtype: "error",
+      is_error: true,
+      duration_ms: 2000,
+      result: "Initial scan failed due to error",
+    });
+
+    const request = new NextRequest("http://localhost:3000", {
+      method: "POST",
+      body: JSON.stringify({ line: failureResult }),
+    });
+    const context = {
+      params: Promise.resolve({
+        projectId: scanProjectId,
+        sessionId: scanSessionId,
+        turnId: scanTurnId,
+      }),
+    };
+
+    const response = await POST(request, context);
+    expect(response.status).toBe(200);
+
+    // Verify turn was marked as completed
+    const [turn] = await globalThis.services.db
+      .select()
+      .from(TURNS_TBL)
+      .where(eq(TURNS_TBL.id, scanTurnId));
+    expect(turn!.status).toBe("completed");
+
+    // Verify initial scan status was updated to failed
+    const [project] = await globalThis.services.db
+      .select()
+      .from(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.id, scanProjectId));
+    expect(project!.initialScanStatus).toBe("failed");
+
+    // Cleanup
+    const deleteRequest = new NextRequest("http://localhost:3000", {
+      method: "DELETE",
+    });
+    const deleteContext = {
+      params: Promise.resolve({ projectId: scanProjectId }),
+    };
+    await deleteProject(deleteRequest, deleteContext);
   });
 });
