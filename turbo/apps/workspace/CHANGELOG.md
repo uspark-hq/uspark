@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.17.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.16.0...workspace-v1.17.0) (2025-10-18)
+
+
+### Features
+
+* improve turn UI and fix TypeScript type errors ([#591](https://github.com/uspark-hq/uspark/issues/591)) ([6de328f](https://github.com/uspark-hq/uspark/commit/6de328f8a3721a5f27da73b4f806f586d407f073))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.22.0
+
 ## [1.16.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.15.0...workspace-v1.16.0) (2025-10-18)
 
 

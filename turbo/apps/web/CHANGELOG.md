@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.53.0](https://github.com/uspark-hq/uspark/compare/web-v0.52.1...web-v0.53.0) (2025-10-18)
+
+
+### Features
+
+* improve claude chat ui with collapsible tool results ([#590](https://github.com/uspark-hq/uspark/issues/590)) ([1524c82](https://github.com/uspark-hq/uspark/commit/1524c8276b6b8d984fc1c66f0898781182128a5b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.22.0
+
 ## [0.52.1](https://github.com/uspark-hq/uspark/compare/web-v0.52.0...web-v0.52.1) (2025-10-18)
 
 

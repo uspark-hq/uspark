@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.22.0](https://github.com/uspark-hq/uspark/compare/core-v0.21.0...core-v0.22.0) (2025-10-18)
+
+
+### Features
+
+* improve turn UI and fix TypeScript type errors ([#591](https://github.com/uspark-hq/uspark/issues/591)) ([6de328f](https://github.com/uspark-hq/uspark/commit/6de328f8a3721a5f27da73b4f806f586d407f073))
+
 ## [0.21.0](https://github.com/uspark-hq/uspark/compare/core-v0.20.0...core-v0.21.0) (2025-10-18)
 
 
