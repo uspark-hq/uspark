@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.16.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.15.0...workspace-v1.16.0) (2025-10-18)
+
+
+### Features
+
+* **workspace:** enable editing mode in project markdown editor ([#586](https://github.com/uspark-hq/uspark/issues/586)) ([87d7e04](https://github.com/uspark-hq/uspark/commit/87d7e04c806103c2ea6c63e931b8d200a160e5cb))
+
 ## [1.15.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.14.0...workspace-v1.15.0) (2025-10-18)
 
 
