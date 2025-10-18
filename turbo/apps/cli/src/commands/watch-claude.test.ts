@@ -143,6 +143,7 @@ describe("watch-claude", () => {
       },
       "test-project-id",
       "spec/test-time.md", // Should be relative path
+      "spec/test-time.md", // localPath (same as filePath when no prefix)
     );
 
     // Verify stdout callback was called with both event lines
@@ -370,5 +371,97 @@ describe("watch-claude", () => {
     expect(stdoutCallbackSpy).toHaveBeenCalledWith({
       line: events[0],
     });
+  });
+
+  it("should use prefix to construct local path for file sync", async () => {
+    const { syncFile } = await import("./shared");
+
+    const events = [
+      JSON.stringify({
+        type: "assistant",
+        subtype: "tool_use",
+        message: {
+          id: "msg_01BvHYxH8yfSxQtKLkPeKnRc",
+          type: "message",
+          role: "assistant",
+          content: [
+            {
+              type: "tool_use",
+              id: "toolu_015LBZEJykuRthAH8dhkPzBu",
+              name: "Write",
+              input: {
+                file_path: "/workspaces/uspark/.uspark/tech-debt.md",
+                content: "# Tech Debt",
+              },
+            },
+          ],
+        },
+      }),
+      JSON.stringify({
+        type: "user",
+        message: {
+          id: "msg_result_01",
+          type: "message",
+          role: "user",
+          content: [
+            {
+              type: "tool_result",
+              tool_use_id: "toolu_015LBZEJykuRthAH8dhkPzBu",
+              content:
+                "File created successfully at: /workspaces/uspark/.uspark/tech-debt.md",
+            },
+          ],
+        },
+      }),
+    ];
+
+    mockStdin = Readable.from(events.map((e) => e + "\n"));
+
+    const originalStdin = process.stdin;
+    const originalCwd = process.cwd;
+
+    Object.defineProperty(process, "stdin", {
+      value: mockStdin,
+      writable: true,
+    });
+
+    process.cwd = vi.fn(() => "/workspaces/uspark");
+
+    const { watchClaudeCommand } = await import("./watch-claude");
+
+    // Run with prefix parameter
+    watchClaudeCommand({
+      projectId: "test-project-id",
+      turnId: "turn_test",
+      sessionId: "sess_test",
+      prefix: ".uspark",
+    });
+
+    await vi.waitFor(
+      () => {
+        expect(syncFile).toHaveBeenCalled();
+      },
+      {
+        timeout: 1000,
+        interval: 10,
+      },
+    );
+
+    Object.defineProperty(process, "stdin", {
+      value: originalStdin,
+      writable: true,
+    });
+    process.cwd = originalCwd;
+
+    // Verify syncFile was called with stripped path and reconstructed local path
+    expect(syncFile).toHaveBeenCalledWith(
+      {
+        token: "test-token",
+        apiUrl: "https://www.uspark.ai",
+      },
+      "test-project-id",
+      "tech-debt.md", // Remote path (prefix stripped)
+      ".uspark/tech-debt.md", // Local path (reconstructed with prefix)
+    );
   });
 });
