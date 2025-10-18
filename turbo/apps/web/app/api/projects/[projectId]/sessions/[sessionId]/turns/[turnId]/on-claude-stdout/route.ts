@@ -127,6 +127,9 @@ export async function POST(
 
   // If this is a result block, mark turn as completed
   if (block.type === "result") {
+    // Determine if the result indicates success or failure
+    const isSuccess = block.subtype === "success" || block.is_error === false;
+
     await globalThis.services.db
       .update(TURNS_TBL)
       .set({
@@ -134,6 +137,10 @@ export async function POST(
         completedAt: new Date(),
       })
       .where(eq(TURNS_TBL.id, turnId));
+
+    console.log(
+      `Turn ${turnId} completed with ${isSuccess ? "success" : "failure"}`,
+    );
 
     // Check if this is an initial scan session
     const [projectData] = await globalThis.services.db
@@ -148,7 +155,10 @@ export async function POST(
 
     // If this session is an initial scan, update scan status
     if (projectData) {
-      await InitialScanExecutor.onScanComplete(projectId, sessionId, true);
+      console.log(
+        `Updating initial scan status for project ${projectId} to ${isSuccess ? "completed" : "failed"}`,
+      );
+      await InitialScanExecutor.onScanComplete(projectId, sessionId, isSuccess);
     }
   }
 
