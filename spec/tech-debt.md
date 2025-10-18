@@ -207,6 +207,75 @@ useEffect(() => {
 - `/turbo/apps/web/app/api/cli/auth/device/route.ts` now uses `${env().APP_URL}/cli-auth`
 - All API routes now use centralized environment configuration
 
+## MSW Unhandled Requests in Tests
+**Issue:** Tests using MSW (Mock Service Worker) have unhandled HTTP requests that pass through without being intercepted.
+**Source:** Code review October 2025
+**Status:** 🔴 **ACTIVE**
+**Severity:** MEDIUM
+**Problem:**
+- MSW warns about unhandled requests but tests still pass
+- Indicates missing or incorrect request handlers
+- Tests may be making real network calls instead of using mocks
+- Can cause flaky tests if actual network is unavailable
+- Makes it unclear whether mocks are working correctly
+
+**Detection:**
+Look for MSW warnings in test output:
+```
+stderr | test file
+[MSW] Unhandled GET request to http://localhost:3000/api/github/repositories
+```
+
+**Root Causes:**
+1. **URL Pattern Mismatch**: Handler pattern doesn't match actual request URL
+   ```typescript
+   // ❌ Bad: Doesn't match localhost:3000
+   http.get("/api/github/repositories", ...)
+
+   // ✅ Good: Matches any host
+   http.get("*/api/github/repositories", ...)
+
+   // ✅ Also Good: Explicit full URL
+   http.get("http://localhost:3000/api/github/repositories", ...)
+   ```
+
+2. **Missing Handlers**: Request made but no handler defined
+3. **Wrong HTTP Method**: Handler is GET but request is POST
+
+**Solution:**
+1. **Use wildcard patterns for paths:**
+   ```typescript
+   const server = setupServer(
+     http.get("*/api/github/repositories", () => {
+       return HttpResponse.json({ repositories: [] });
+     }),
+   );
+   ```
+
+2. **Configure MSW to error on unhandled requests:**
+   ```typescript
+   beforeAll(() => {
+     server.listen({ onUnhandledRequest: "error" });
+   });
+   ```
+
+3. **Or bypass non-test requests silently:**
+   ```typescript
+   beforeAll(() => {
+     server.listen({ onUnhandledRequest: "bypass" });
+   });
+   ```
+
+**Best Practice:**
+- Always verify MSW handlers are working by checking no unhandled request warnings
+- Use `onUnhandledRequest: "error"` during development to catch misconfigurations
+- Use `onUnhandledRequest: "bypass"` in CI if you have legitimate unhandled requests
+- Each MSW-based test should have zero unhandled request warnings
+
+**Files to Check:**
+- Any test file importing `msw` or using `setupServer`
+- Look for MSW warnings in test output
+
 ## Test Database Setup Refactoring
 **Issue:** Tests in route.test.ts files heavily rely on manual database operations for setup, which duplicates logic already implemented in API endpoints.
 **Problem:** 
@@ -302,7 +371,7 @@ beforeEach(async () => {
 
 ## Metrics
 
-### Current State (September 2025)
+### Current State (October 2025)
 - Direct DB operations: **12 files** (down from 18+)
 - Test mock cleanup missing: **0 files** ✅ RESOLVED
 - TypeScript `any` violations: **3 test files** (down from 5, production code clean)
@@ -310,11 +379,13 @@ beforeEach(async () => {
 - Timer cleanup issues: **0** ✅ RESOLVED
 - Hardcoded URLs: **0** ✅ RESOLVED
 - Database test isolation: **Unique IDs implemented** ✅ RESOLVED
+- MSW unhandled requests: **Needs investigation** 🔴 ACTIVE
 
 ### Target State
 - Direct DB operations: **0 files**
 - Test mock cleanup: **100% coverage**
 - TypeScript `any` violations: **0**
+- MSW unhandled requests: **0 warnings** (all handlers properly configured)
 - ~~Try-catch violations: **0 unnecessary blocks**~~ ✅ ACHIEVED
 - ~~Hardcoded URLs: **0**~~ ✅ ACHIEVED
 - ~~Database test isolation: **Transaction-based with rollback**~~ ✅ ACHIEVED (via unique IDs)
@@ -339,12 +410,14 @@ beforeEach(async () => {
    - [ ] No artificial delays or setTimeout
    - [ ] Tests use API endpoints for setup
    - [ ] Tests are deterministic and repeatable
+   - [ ] MSW-based tests have zero unhandled request warnings
+   - [ ] MSW handlers use wildcard or full URL patterns
 
 3. **CI/CD Checks**
    - Add automated check for forbidden patterns
    - Fail builds that introduce new technical debt
 
-## Recent Improvements Summary (September 2025)
+## Recent Improvements Summary (October 2025)
 
 ### Major Achievements:
 1. **Database Test Isolation** ✅ - Implemented unique user IDs to prevent race conditions (PR #261)
@@ -352,8 +425,10 @@ beforeEach(async () => {
 3. **Hardcoded URLs** ✅ - All URLs now use centralized configuration (PR #259)
 4. **Try-Catch Cleanup** ✅ - Removed unnecessary defensive programming patterns
 5. **Test Mock Cleanup** ✅ - Added `vi.clearAllMocks()` to all 17 test files (PR #272)
+6. **MSW Integration** 🟡 - Started migrating from fetch mocking to MSW (October 2025)
 
 ### Remaining Work:
+- **MSW Unhandled Requests** 🔴 - Need to fix handler patterns to eliminate warnings
 - **Test Code `any` Types** - 3 violations in test files (low priority)
 - **Direct DB Operations in Tests** - 12 files need refactoring to use API endpoints
 
@@ -366,4 +441,4 @@ The most critical technical debt items have been resolved, significantly improvi
 
 ---
 
-*Last updated: 2025-09-13*
+*Last updated: 2025-10-18*

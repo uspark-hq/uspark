@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import {
   Badge,
+  Button,
   Skeleton,
   Command,
   CommandEmpty,
@@ -10,6 +11,9 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
 } from "@uspark/ui";
 import {
   Github,
@@ -18,6 +22,7 @@ import {
   Globe,
   AlertCircle,
   Check,
+  ChevronsUpDown,
 } from "lucide-react";
 
 interface Repository {
@@ -42,6 +47,7 @@ export function GitHubRepoSelector({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedRepo, setSelectedRepo] = useState<Repository | null>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -104,6 +110,7 @@ export function GitHubRepoSelector({
     if (repo) {
       setSelectedRepo(repo);
       onSelect(repo, repo.installationId);
+      setOpen(false); // Close popover after selection
     }
   };
 
@@ -169,76 +176,88 @@ export function GitHubRepoSelector({
   }
 
   return (
-    <div className="space-y-3">
-      <Command className="rounded-lg border shadow-md">
-        <CommandInput placeholder="Search repositories..." />
-        <CommandList>
-          <CommandEmpty>No repositories found.</CommandEmpty>
-          {Object.entries(groupedRepos).map(([owner, repos]) => (
-            <CommandGroup key={owner} heading={owner}>
-              {repos.map((repo) => (
-                <CommandItem
-                  key={repo.id}
-                  value={repo.fullName}
-                  onSelect={() => handleRepoChange(repo.fullName)}
-                  className="cursor-pointer"
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="w-full justify-between"
+          data-testid="repository-selector"
+        >
+          {selectedRepo ? (
+            <div className="flex items-center gap-2 flex-1 min-w-0">
+              <Github className="h-4 w-4 flex-shrink-0" />
+              <span className="truncate">{selectedRepo.fullName}</span>
+              <Badge variant="secondary" className="text-xs flex-shrink-0">
+                {selectedRepo.private ? (
+                  <span className="flex items-center gap-1">
+                    <Lock className="h-3 w-3" />
+                    Private
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1">
+                    <Globe className="h-3 w-3" />
+                    Public
+                  </span>
+                )}
+              </Badge>
+              {selectedRepo.url && (
+                <a
+                  href={selectedRepo.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+                  onClick={(e) => e.stopPropagation()}
                 >
-                  <div className="flex items-center gap-2 flex-1">
-                    <Github className="h-4 w-4" />
-                    <span>{repo.name}</span>
-                    {repo.private ? (
-                      <Lock className="h-3 w-3 text-muted-foreground" />
-                    ) : (
-                      <Globe className="h-3 w-3 text-muted-foreground" />
-                    )}
-                  </div>
-                  {selectedRepo?.fullName === repo.fullName && (
-                    <Check className="h-4 w-4" />
-                  )}
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          ))}
-        </CommandList>
-      </Command>
-      {selectedRepo && (
-        <div className="rounded-lg border bg-muted/30 p-3">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-3">
-              <div className="mt-0.5 flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md bg-background">
-                <Github className="h-4 w-4" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium">{selectedRepo.fullName}</p>
-                <div className="mt-1.5 flex items-center gap-2">
-                  <Badge variant="secondary" className="text-xs">
-                    {selectedRepo.private ? (
-                      <span className="flex items-center gap-1">
-                        <Lock className="h-3 w-3" />
-                        Private
-                      </span>
-                    ) : (
-                      <span className="flex items-center gap-1">
-                        <Globe className="h-3 w-3" />
-                        Public
-                      </span>
-                    )}
-                  </Badge>
-                </div>
-              </div>
+                  <ExternalLink className="h-3 w-3" />
+                </a>
+              )}
             </div>
-            <a
-              href={selectedRepo.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex-shrink-0 rounded-md p-1 text-muted-foreground transition-colors hover:bg-background hover:text-foreground"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <ExternalLink className="h-4 w-4" />
-            </a>
-          </div>
-        </div>
-      )}
-    </div>
+          ) : (
+            <span className="text-muted-foreground">
+              Select a repository...
+            </span>
+          )}
+          <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-[var(--radix-popover-trigger-width)] p-0"
+        align="start"
+      >
+        <Command>
+          <CommandInput placeholder="Search repositories..." />
+          <CommandList>
+            <CommandEmpty>No repositories found.</CommandEmpty>
+            {Object.entries(groupedRepos).map(([owner, repos]) => (
+              <CommandGroup key={owner} heading={owner}>
+                {repos.map((repo) => (
+                  <CommandItem
+                    key={repo.id}
+                    value={repo.fullName}
+                    onSelect={() => handleRepoChange(repo.fullName)}
+                    className="cursor-pointer"
+                  >
+                    <div className="flex items-center gap-2 flex-1">
+                      <Github className="h-4 w-4" />
+                      <span>{repo.name}</span>
+                      {repo.private ? (
+                        <Lock className="h-3 w-3 text-muted-foreground" />
+                      ) : (
+                        <Globe className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </div>
+                    {selectedRepo?.fullName === repo.fullName && (
+                      <Check className="h-4 w-4" />
+                    )}
+                  </CommandItem>
+                ))}
+              </CommandGroup>
+            ))}
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }

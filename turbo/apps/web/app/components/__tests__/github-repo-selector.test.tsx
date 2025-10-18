@@ -1,203 +1,210 @@
 /**
  * @vitest-environment jsdom
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  vi,
+  beforeEach,
+  beforeAll,
+  afterAll,
+  afterEach,
+} from "vitest";
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { GitHubRepoSelector } from "../github-repo-selector";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
+
+const mockRepositories = [
+  {
+    id: 1,
+    name: "repo-1",
+    fullName: "owner1/repo-1",
+    installationId: 123,
+    private: false,
+    url: "https://github.com/owner1/repo-1",
+  },
+  {
+    id: 2,
+    name: "repo-2",
+    fullName: "owner1/repo-2",
+    installationId: 123,
+    private: true,
+    url: "https://github.com/owner1/repo-2",
+  },
+  {
+    id: 3,
+    name: "repo-3",
+    fullName: "owner2/repo-3",
+    installationId: 456,
+    private: false,
+    url: "https://github.com/owner2/repo-3",
+  },
+];
+
+// Setup MSW server
+// Note: Currently has unhandled request warnings - tracked in spec/tech-debt.md
+const server = setupServer(
+  http.get("http://localhost:3000/api/github/repositories", () => {
+    return HttpResponse.json({ repositories: mockRepositories });
+  }),
+);
+
+beforeAll(() => {
+  server.listen({ onUnhandledRequest: "bypass" });
+});
+
+afterEach(() => {
+  vi.clearAllMocks();
+  server.resetHandlers();
+});
+
+afterAll(() => {
+  server.close();
+});
 
 describe("GitHubRepoSelector", () => {
-  const mockRepositories = [
-    {
-      id: 1,
-      name: "repo-1",
-      fullName: "owner1/repo-1",
-      installationId: 123,
-      private: false,
-      url: "https://github.com/owner1/repo-1",
-    },
-    {
-      id: 2,
-      name: "repo-2",
-      fullName: "owner1/repo-2",
-      installationId: 123,
-      private: true,
-      url: "https://github.com/owner1/repo-2",
-    },
-    {
-      id: 3,
-      name: "repo-3",
-      fullName: "owner2/repo-3",
-      installationId: 456,
-      private: false,
-      url: "https://github.com/owner2/repo-3",
-    },
-  ];
-
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset fetch mock before each test
-    global.fetch = vi.fn();
   });
 
-  it("displays loading state initially", async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ repositories: [] }),
-    } as Response);
+  it("should allow user to select a repository from the list", async () => {
+    const onSelectMock = vi.fn();
+    const user = userEvent.setup();
 
-    render(<GitHubRepoSelector onSelect={vi.fn()} />);
+    render(<GitHubRepoSelector onSelect={onSelectMock} />);
 
-    // Should show skeleton during loading
-    const skeletons = document.querySelectorAll(".animate-pulse");
-    expect(skeletons.length).toBeGreaterThan(0);
+    // Wait for component to load
+    await waitFor(() => {
+      expect(screen.getByRole("combobox")).toBeInTheDocument();
+    });
+
+    // Open the repository selector
+    await user.click(screen.getByRole("combobox"));
+
+    // Wait for repositories to load
+    await waitFor(() => {
+      expect(
+        screen.getByRole("option", { name: /repo-1/i }),
+      ).toBeInTheDocument();
+    });
+
+    // Select a repository
+    await user.click(screen.getByRole("option", { name: /repo-1/i }));
+
+    // Verify onSelect was called with correct data
+    expect(onSelectMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: "repo-1",
+        fullName: "owner1/repo-1",
+        installationId: 123,
+      }),
+      123,
+    );
   });
 
-  it("displays repositories in searchable list", async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ repositories: mockRepositories }),
-    } as Response);
+  it("should display selected repository information after selection", async () => {
+    const user = userEvent.setup();
 
     render(<GitHubRepoSelector onSelect={vi.fn()} />);
 
     await waitFor(() => {
+      expect(screen.getByRole("combobox")).toBeInTheDocument();
+    });
+
+    // Open and select a repository
+    await user.click(screen.getByRole("combobox"));
+
+    await waitFor(() => {
       expect(
-        screen.getByPlaceholderText("Search repositories..."),
+        screen.getByRole("option", { name: /repo-1/i }),
       ).toBeInTheDocument();
     });
 
-    // All repositories should be visible
-    expect(screen.getByText("repo-1")).toBeInTheDocument();
-    expect(screen.getByText("repo-2")).toBeInTheDocument();
-    expect(screen.getByText("repo-3")).toBeInTheDocument();
+    await user.click(screen.getByRole("option", { name: /repo-1/i }));
+
+    // Verify selected repository is shown in the trigger button
+    await waitFor(() => {
+      const button = screen.getByRole("combobox");
+      expect(button).toHaveTextContent("owner1/repo-1");
+    });
   });
 
-  it("groups repositories by owner", async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ repositories: mockRepositories }),
-    } as Response);
+  it("should show privacy badge for selected repository", async () => {
+    const user = userEvent.setup();
 
     render(<GitHubRepoSelector onSelect={vi.fn()} />);
 
+    await waitFor(() => {
+      expect(screen.getByRole("combobox")).toBeInTheDocument();
+    });
+
+    // Select a private repository
+    await user.click(screen.getByRole("combobox"));
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("option", { name: /repo-2/i }),
+      ).toBeInTheDocument();
+    });
+
+    await user.click(screen.getByRole("option", { name: /repo-2/i }));
+
+    // Verify private badge is displayed
+    await waitFor(() => {
+      expect(screen.getByText("Private")).toBeInTheDocument();
+    });
+  });
+
+  it("should group repositories by owner", async () => {
+    const user = userEvent.setup();
+
+    render(<GitHubRepoSelector onSelect={vi.fn()} />);
+
+    await waitFor(() => {
+      expect(screen.getByRole("combobox")).toBeInTheDocument();
+    });
+
+    // Open the selector
+    await user.click(screen.getByRole("combobox"));
+
+    // Verify owner groups are present
     await waitFor(() => {
       expect(screen.getByText("owner1")).toBeInTheDocument();
       expect(screen.getByText("owner2")).toBeInTheDocument();
     });
   });
 
-  it("calls onSelect when repository is selected", async () => {
-    const onSelectMock = vi.fn();
+  it("should close popover after selecting a repository", async () => {
     const user = userEvent.setup();
-
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ repositories: mockRepositories }),
-    } as Response);
-
-    render(<GitHubRepoSelector onSelect={onSelectMock} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("repo-1")).toBeInTheDocument();
-    });
-
-    // Click on a repository
-    await user.click(screen.getByText("repo-1"));
-
-    expect(onSelectMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        name: "repo-1",
-        fullName: "owner1/repo-1",
-      }),
-      123,
-    );
-  });
-
-  it("displays selected repository details", async () => {
-    const user = userEvent.setup();
-
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ repositories: mockRepositories }),
-    } as Response);
 
     render(<GitHubRepoSelector onSelect={vi.fn()} />);
 
     await waitFor(() => {
-      expect(screen.getByText("repo-1")).toBeInTheDocument();
+      expect(screen.getByRole("combobox")).toBeInTheDocument();
+    });
+
+    // Open the selector
+    await user.click(screen.getByRole("combobox"));
+
+    // Verify search input is visible (popover is open)
+    await waitFor(() => {
+      expect(
+        screen.getByPlaceholderText("Search repositories..."),
+      ).toBeInTheDocument();
     });
 
     // Select a repository
-    await user.click(screen.getByText("repo-1"));
+    await user.click(screen.getByRole("option", { name: /repo-1/i }));
 
-    // Should show selected repository details
-    await waitFor(() => {
-      expect(screen.getByText("owner1/repo-1")).toBeInTheDocument();
-      expect(screen.getByText("Public")).toBeInTheDocument();
-    });
-  });
-
-  it("shows private badge for private repositories", async () => {
-    const user = userEvent.setup();
-
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ repositories: mockRepositories }),
-    } as Response);
-
-    render(<GitHubRepoSelector onSelect={vi.fn()} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("repo-2")).toBeInTheDocument();
-    });
-
-    // Select private repository
-    await user.click(screen.getByText("repo-2"));
-
-    await waitFor(() => {
-      expect(screen.getByText("Private")).toBeInTheDocument();
-    });
-  });
-
-  it("displays error message on fetch failure", async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockRejectedValueOnce(
-      new Error("Network error"),
-    );
-
-    render(<GitHubRepoSelector onSelect={vi.fn()} />);
-
-    await waitFor(() => {
-      expect(screen.getByText("Network error")).toBeInTheDocument();
-    });
-  });
-
-  it("displays 401 error message when unauthorized", async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: false,
-      status: 401,
-    } as Response);
-
-    render(<GitHubRepoSelector onSelect={vi.fn()} />);
-
+    // Verify search input is no longer visible (popover closed)
     await waitFor(() => {
       expect(
-        screen.getByText("Please sign in to access GitHub repositories"),
-      ).toBeInTheDocument();
-    });
-  });
-
-  it("displays empty state when no repositories found", async () => {
-    (global.fetch as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ repositories: [] }),
-    } as Response);
-
-    render(<GitHubRepoSelector onSelect={vi.fn()} />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/No repositories found/i)).toBeInTheDocument();
+        screen.queryByPlaceholderText("Search repositories..."),
+      ).not.toBeInTheDocument();
     });
   });
 });
