@@ -326,14 +326,6 @@ export default function NewProjectPage() {
             <CardContent>
               <div className="space-y-4">
                 <GitHubRepoSelector onSelect={handleRepoSelect} />
-                {selectedRepo && (
-                  <div className="rounded-lg border bg-muted/50 p-4">
-                    <p className="text-sm font-medium">Selected repository:</p>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {selectedRepo.repo.fullName}
-                    </p>
-                  </div>
-                )}
                 <Button
                   onClick={handleContinueFromRepo}
                   disabled={!selectedRepo}
