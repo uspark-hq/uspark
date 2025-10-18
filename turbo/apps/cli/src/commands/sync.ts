@@ -5,7 +5,7 @@ import { join } from "path";
 
 export async function pullCommand(
   filePath: string,
-  options: { projectId: string; output?: string; verbose?: boolean },
+  options: { projectId: string; outputDir?: string; verbose?: boolean },
 ): Promise<void> {
   const { token, apiUrl, sync } = await requireAuth();
 
@@ -21,16 +21,18 @@ export async function pullCommand(
       apiUrl,
       verbose: options.verbose,
     },
-    options.output,
+    options.outputDir,
   );
 
-  const outputPath = options.output || filePath;
+  const outputPath = options.outputDir
+    ? join(options.outputDir, filePath)
+    : filePath;
   console.log(chalk.green(`✓ Successfully pulled to ${outputPath}`));
 }
 
 export async function pullAllCommand(options: {
   projectId: string;
-  output?: string;
+  outputDir?: string;
   verbose?: boolean;
 }): Promise<void> {
   const { token, apiUrl, sync } = await requireAuth();
@@ -42,7 +44,7 @@ export async function pullAllCommand(options: {
       apiUrl,
       verbose: options.verbose,
     },
-    options.output,
+    options.outputDir,
   );
 }
 

@@ -44,14 +44,14 @@ describe("pull command", () => {
     // Setup mock server with test file
     mockServer.addFileToProject(projectId, filePath, fileContent);
 
-    // Execute pull command
-    const outputPath = join(tempDir, "pulled-hello.ts");
+    // Execute pull command with output directory
     await pullCommand(filePath, {
       projectId,
-      output: outputPath,
+      outputDir: tempDir,
     });
 
-    // Verify file was written to local filesystem
+    // Verify file was written to local filesystem with correct path
+    const outputPath = join(tempDir, filePath);
     const pulledContent = await readFile(outputPath, "utf8");
     expect(pulledContent).toBe(fileContent);
   });
@@ -64,15 +64,13 @@ describe("pull command", () => {
     // Setup mock server
     mockServer.addFileToProject(projectId, filePath, fileContent);
 
-    // Execute pull command without output option
-    const expectedPath = join(tempDir, filePath);
+    // Execute pull command without outputDir - should pull to current directory
     await pullCommand(filePath, {
       projectId,
-      output: expectedPath, // Simulate default behavior
     });
 
-    // Verify file was written
-    const pulledContent = await readFile(expectedPath, "utf8");
+    // Verify file was written to current directory structure
+    const pulledContent = await readFile(filePath, "utf8");
     expect(pulledContent).toBe(fileContent);
   });
 });
@@ -120,7 +118,7 @@ describe("pull --all command", () => {
     // Execute pull --all command
     await pullAllCommand({
       projectId,
-      output: tempDir,
+      outputDir: tempDir,
     });
 
     // Verify all files were written to local filesystem
@@ -139,7 +137,7 @@ describe("pull --all command", () => {
     // Execute pull --all command - should not throw
     await pullAllCommand({
       projectId,
-      output: tempDir,
+      outputDir: tempDir,
     });
 
     // Verify no files were created

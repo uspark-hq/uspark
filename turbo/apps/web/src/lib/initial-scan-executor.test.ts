@@ -95,7 +95,7 @@ describe("InitialScanExecutor", () => {
         status: "pending",
       });
       expect(turns[0]?.userPrompt).toContain("owner/repo");
-      expect(turns[0]?.userPrompt).toContain("git clone");
+      expect(turns[0]?.userPrompt).toContain("~/workspace");
     });
 
     it("should update project status to running", async () => {

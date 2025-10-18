@@ -1,8 +1,10 @@
 import { Sandbox, SandboxPaginator, SandboxInfo } from "e2b";
 import { initServices } from "./init-services";
 import { CLI_TOKENS_TBL } from "../db/schema/cli-tokens";
+import { PROJECTS_TBL } from "../db/schema/projects";
 import { eq, and, lt } from "drizzle-orm";
 import { getClaudeToken } from "./get-user-claude-token";
+import { getInstallationToken } from "./github/auth";
 import { env } from "../env";
 
 /**
@@ -80,6 +82,8 @@ export class E2BExecutor {
     userId: string,
     extraEnvs?: Record<string, string>,
   ): Promise<Sandbox> {
+    initServices();
+
     // 1. Try to find existing sandbox
     const paginator: SandboxPaginator = await Sandbox.list();
     const sandboxes: SandboxInfo[] = await paginator.nextItems(); // Get first page of sandboxes
@@ -141,6 +145,33 @@ export class E2BExecutor {
       console.log(`Generated sandbox CLI token for session ${sessionId}`);
     }
 
+    // Query project to get GitHub repository information
+    const projects = await globalThis.services.db
+      .select({
+        sourceRepoUrl: PROJECTS_TBL.sourceRepoUrl,
+        sourceRepoInstallationId: PROJECTS_TBL.sourceRepoInstallationId,
+      })
+      .from(PROJECTS_TBL)
+      .where(eq(PROJECTS_TBL.id, effectiveProjectId))
+      .limit(1);
+
+    const project = projects[0];
+    let githubToken: string | null = null;
+
+    // Get GitHub installation token if project has a repository
+    if (
+      project?.sourceRepoUrl &&
+      project.sourceRepoInstallationId &&
+      !extraEnvs?.GITHUB_TOKEN // Don't override if already provided (e.g., initial scan)
+    ) {
+      githubToken = await getInstallationToken(
+        project.sourceRepoInstallationId,
+      );
+      console.log(
+        `Retrieved GitHub token for installation ${project.sourceRepoInstallationId}`,
+      );
+    }
+
     const sandbox = await Sandbox.create(this.TEMPLATE_ID, {
       timeoutMs: this.SANDBOX_TIMEOUT * 1000,
       metadata: {
@@ -152,7 +183,8 @@ export class E2BExecutor {
         PROJECT_ID: effectiveProjectId,
         USPARK_TOKEN: sandboxToken,
         CLAUDE_CODE_OAUTH_TOKEN: claudeToken,
-        ...extraEnvs, // Merge any extra environment variables
+        ...(githubToken ? { GITHUB_TOKEN: githubToken } : {}),
+        ...extraEnvs, // Merge any extra environment variables (may override GITHUB_TOKEN)
       },
     });
 
@@ -160,8 +192,12 @@ export class E2BExecutor {
       `Created new sandbox ${sandbox.sandboxId} for session ${sessionId}`,
     );
 
-    // Initialize sandbox (pull project files)
-    await this.initializeSandbox(sandbox, effectiveProjectId);
+    // Initialize sandbox (pull project files and clone git repo if available)
+    await this.initializeSandbox(
+      sandbox,
+      effectiveProjectId,
+      project?.sourceRepoUrl || null,
+    );
 
     return sandbox;
   }
@@ -169,39 +205,102 @@ export class E2BExecutor {
   /**
    * Initialize sandbox with project files
    * @param projectId - The effective project ID (already resolved for dev/prod)
+   * @param sourceRepoUrl - GitHub repository in "owner/repo" format (null if no repo)
    */
   private static async initializeSandbox(
     sandbox: Sandbox,
     projectId: string,
+    sourceRepoUrl: string | null,
   ): Promise<void> {
     console.log(`Initializing sandbox for project ${projectId}`);
 
-    // Pull all project files using uspark CLI in home workspace directory
-    const result = await sandbox.commands.run(
-      `cd ~/workspace && uspark pull --all --project-id "${projectId}" --verbose 2>&1 | tee /tmp/pull.log`,
-      { timeoutMs: 0 },
-    );
-
-    // Always log the output for debugging
-    console.log("Pull command stdout:", result.stdout);
-    if (result.stderr) {
-      console.log("Pull command stderr:", result.stderr);
-    }
-
-    if (result.exitCode !== 0) {
-      const errorDetails = {
-        exitCode: result.exitCode,
-        stdout: result.stdout,
-        stderr: result.stderr,
-        projectId,
-      };
-      console.error("Failed to initialize sandbox:", errorDetails);
-      throw new Error(
-        `Sandbox initialization failed (exit ${result.exitCode}): ${result.stderr || result.stdout || "Unknown error"}`,
+    if (sourceRepoUrl) {
+      // Project has a GitHub repository - set up workspace with git repo
+      console.log(
+        `Setting up workspace with GitHub repository: ${sourceRepoUrl}`,
       );
-    }
 
-    console.log("Sandbox initialized successfully with project files");
+      const gitSetupScript = `
+# Smart git sync - clone or pull depending on whether repo already exists
+if [ -d ~/workspace/.git ]; then
+  echo "Updating existing git repository..."
+  cd ~/workspace && git reset --hard origin/main && git pull origin main
+else
+  echo "Cloning git repository..."
+  git clone https://\${GITHUB_TOKEN}@github.com/${sourceRepoUrl}.git ~/workspace
+fi
+
+# Ensure .gitignore contains .uspark to avoid git pollution
+cd ~/workspace
+grep -qxF '.uspark' .gitignore 2>/dev/null || echo '.uspark' >> .gitignore
+
+# Pull uspark content to .uspark subdirectory
+echo "Pulling uspark content to ~/workspace/.uspark..."
+uspark pull --all --project-id "${projectId}" --output-dir ~/workspace/.uspark --verbose
+`;
+
+      const result = await sandbox.commands.run(gitSetupScript, {
+        timeoutMs: 0,
+      });
+
+      // Always log the output for debugging
+      console.log("Git setup stdout:", result.stdout);
+      if (result.stderr) {
+        console.log("Git setup stderr:", result.stderr);
+      }
+
+      if (result.exitCode !== 0) {
+        const errorDetails = {
+          exitCode: result.exitCode,
+          stdout: result.stdout,
+          stderr: result.stderr,
+          projectId,
+          sourceRepoUrl,
+        };
+        console.error(
+          "Failed to initialize sandbox with git repo:",
+          errorDetails,
+        );
+        throw new Error(
+          `Sandbox git initialization failed (exit ${result.exitCode}): ${result.stderr || result.stdout || "Unknown error"}`,
+        );
+      }
+
+      console.log(
+        "Sandbox initialized successfully with git repository and uspark files",
+      );
+    } else {
+      // No GitHub repository - just create workspace and pull uspark files
+      console.log(
+        "No GitHub repository - setting up workspace with uspark files only",
+      );
+
+      const result = await sandbox.commands.run(
+        `mkdir -p ~/workspace && cd ~/workspace && uspark pull --all --project-id "${projectId}" --output-dir ~/workspace/.uspark --verbose 2>&1 | tee /tmp/pull.log`,
+        { timeoutMs: 0 },
+      );
+
+      // Always log the output for debugging
+      console.log("Pull command stdout:", result.stdout);
+      if (result.stderr) {
+        console.log("Pull command stderr:", result.stderr);
+      }
+
+      if (result.exitCode !== 0) {
+        const errorDetails = {
+          exitCode: result.exitCode,
+          stdout: result.stdout,
+          stderr: result.stderr,
+          projectId,
+        };
+        console.error("Failed to initialize sandbox:", errorDetails);
+        throw new Error(
+          `Sandbox initialization failed (exit ${result.exitCode}): ${result.stderr || result.stdout || "Unknown error"}`,
+        );
+      }
+
+      console.log("Sandbox initialized successfully with uspark files");
+    }
   }
 
   /**
@@ -264,7 +363,8 @@ export class E2BExecutor {
 
     // Pipeline: prompt → claude (skip permissions) → watch-claude (sync files + callback API)
     // Execute in ~/workspace directory where project files are located
-    const command = `cd ~/workspace && cat "${promptFile}" | claude --print --verbose --output-format stream-json --dangerously-skip-permissions | uspark watch-claude --project-id ${effectiveProjectId} --turn-id ${effectiveTurnId} --session-id ${effectiveSessionId} 2>&1 | tee /tmp/claude_exec.log`;
+    // Use --prefix .uspark to only sync files under .uspark directory
+    const command = `cd ~/workspace && cat "${promptFile}" | claude --print --verbose --output-format stream-json --dangerously-skip-permissions | uspark watch-claude --project-id ${effectiveProjectId} --turn-id ${effectiveTurnId} --session-id ${effectiveSessionId} --prefix .uspark 2>&1 | tee /tmp/claude_exec.log`;
 
     // Run in background - command continues in sandbox even after client disconnects
     await sandbox.commands.run(command, {
