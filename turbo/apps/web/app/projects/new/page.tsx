@@ -10,7 +10,7 @@ import {
   Input,
 } from "@uspark/ui";
 import { GitHubRepoSelector } from "../../components/github-repo-selector";
-import { Check, Github, FolderGit2, FileText } from "lucide-react";
+import { Check, Github, FolderGit2, FileText, Loader2 } from "lucide-react";
 
 type ProjectCreationStep =
   | "choice"
@@ -456,11 +456,16 @@ export default function NewProjectPage() {
                   className="w-full"
                   size="lg"
                 >
-                  {creating
-                    ? "Creating Project..."
-                    : useGitHub
-                      ? "Start Scanning"
-                      : "Create Project"}
+                  {creating ? (
+                    <>
+                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                      Creating Project...
+                    </>
+                  ) : useGitHub ? (
+                    "Start Scanning"
+                  ) : (
+                    "Create Project"
+                  )}
                 </Button>
               </div>
             </CardContent>
