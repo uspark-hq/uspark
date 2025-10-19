@@ -230,7 +230,7 @@ describe("Claude Session Management API Integration", () => {
       });
 
       expect(response.status).toBe(200);
-      expect(response.data).toEqual({ lastBlockId: null });
+      expect(response.data).toEqual({ last_block_id: null });
     });
   });
 });

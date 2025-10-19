@@ -144,5 +144,34 @@ describe("/api/projects/:projectId/sessions/:sessionId", () => {
       expect(data.turn_ids[0]).toBe(turn1Data.id);
       expect(data.turn_ids[1]).toBe(turn2Data.id);
     });
+
+    it("should return valid ISO date strings for created_at and updated_at", async () => {
+      const request = new NextRequest("http://localhost:3000");
+      const context = { params: Promise.resolve({ projectId, sessionId }) };
+
+      const response = await GET(request, context);
+
+      expect(response.status).toBe(200);
+      const data = await response.json();
+
+      // Verify created_at is a valid ISO string
+      expect(typeof data.created_at).toBe("string");
+      expect(data.created_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+
+      // Verify updated_at is a valid ISO string
+      expect(typeof data.updated_at).toBe("string");
+      expect(data.updated_at).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/);
+
+      // Verify dates can be parsed without getting Invalid Date
+      const createdDate = new Date(data.created_at);
+      const updatedDate = new Date(data.updated_at);
+
+      expect(createdDate.toString()).not.toBe("Invalid Date");
+      expect(updatedDate.toString()).not.toBe("Invalid Date");
+
+      // Verify the parsed dates have valid timestamps
+      expect(isNaN(createdDate.getTime())).toBe(false);
+      expect(isNaN(updatedDate.getTime())).toBe(false);
+    });
   });
 });

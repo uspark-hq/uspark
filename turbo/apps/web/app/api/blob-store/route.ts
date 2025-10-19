@@ -54,6 +54,6 @@ export async function GET() {
 
   const storeId = parts[3];
 
-  const response: BlobStoreResponse = { storeId };
+  const response: BlobStoreResponse = { store_id: storeId };
   return NextResponse.json(response);
 }

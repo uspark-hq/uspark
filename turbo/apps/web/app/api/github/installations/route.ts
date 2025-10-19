@@ -30,6 +30,16 @@ export async function GET() {
 
   const installations = await getUserInstallations(userId);
 
-  const response: GitHubInstallationsResponse = { installations };
+  // Transform to snake_case for API response
+  const response: GitHubInstallationsResponse = {
+    installations: installations.map((i) => ({
+      id: i.id,
+      installation_id: i.installationId,
+      account_name: i.accountName,
+      created_at: i.createdAt,
+      updated_at: i.updatedAt,
+    })),
+  };
+
   return NextResponse.json(response);
 }

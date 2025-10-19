@@ -71,7 +71,7 @@ function mockProjectApis(config: MockProjectConfig) {
   const handlers = [
     // Blob store
     http.get('*/api/blob-store', () => {
-      return HttpResponse.json({ storeId })
+      return HttpResponse.json({ store_id: storeId })
     }),
 
     // Project YJS data
@@ -100,7 +100,8 @@ function mockProjectApis(config: MockProjectConfig) {
         sessions: sessions.map((s) => ({
           id: s.id,
           title: s.title,
-          createdAt: s.createdAt ?? new Date().toISOString(),
+          created_at: s.createdAt ?? new Date().toISOString(),
+          updated_at: s.createdAt ?? new Date().toISOString(),
         })),
         total: sessions.length,
       })

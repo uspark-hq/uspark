@@ -47,9 +47,18 @@ export async function GET(
     return NextResponse.json({ error: "forbidden" }, { status: 403 });
   }
 
-  // Note: Not using type annotation to avoid type compatibility issues
-  // with RepositoryInfo vs contract schema
-  return NextResponse.json({ repository });
+  // Transform to snake_case for API response
+  const response = {
+    repository: {
+      full_name:
+        repository.fullName ||
+        `${repository.accountName}/${repository.repoName}`,
+      account_name: repository.accountName || "",
+      repo_name: repository.repoName,
+    },
+  };
+
+  return NextResponse.json(response);
 }
 
 /**
@@ -71,14 +80,16 @@ export async function POST(
   const { projectId } = await context.params;
 
   const body = await request.json();
-  const { installationId } = body;
+  const { installation_id } = body;
 
-  if (!installationId || typeof installationId !== "number") {
+  if (!installation_id || typeof installation_id !== "number") {
     return NextResponse.json(
       { error: "installation_id_required" },
       { status: 400 },
     );
   }
+
+  const installationId = installation_id;
 
   // Verify user has access to this installation
   const hasAccess = await hasInstallationAccess(userId, installationId);
@@ -88,8 +99,18 @@ export async function POST(
 
   try {
     // Create new repository
-    const repository = await createProjectRepository(projectId, installationId);
-    return NextResponse.json({ repository }, { status: 201 });
+    const repo = await createProjectRepository(projectId, installationId);
+
+    // Transform to snake_case for API response
+    const response = {
+      repository: {
+        full_name: repo.fullName,
+        account_name: repo.fullName.split("/")[0] || "",
+        repo_name: repo.repoName,
+      },
+    };
+
+    return NextResponse.json(response, { status: 201 });
   } catch (error) {
     if (error instanceof Error) {
       // Handle specific GitHub API errors

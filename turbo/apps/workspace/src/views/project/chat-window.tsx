@@ -58,7 +58,7 @@ export function ChatWindow() {
                 {selectedSession.title ?? 'Untitled Session'}
               </div>
               <div className="mt-0.5 text-[11px] text-[#969696]">
-                {new Date(selectedSession.createdAt).toLocaleString()}
+                {new Date(selectedSession.created_at).toLocaleString()}
               </div>
             </div>
 

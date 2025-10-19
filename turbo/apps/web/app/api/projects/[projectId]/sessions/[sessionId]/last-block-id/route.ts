@@ -75,8 +75,8 @@ export async function GET(
     .limit(1);
 
   if (!lastBlock) {
-    return NextResponse.json({ lastBlockId: null });
+    return NextResponse.json({ last_block_id: null });
   }
 
-  return NextResponse.json({ lastBlockId: lastBlock.id });
+  return NextResponse.json({ last_block_id: lastBlock.id });
 }
