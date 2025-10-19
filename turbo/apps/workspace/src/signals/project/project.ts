@@ -171,6 +171,8 @@ export const selectedSession$ = computed(async (get) => {
 
 const internalReloadTurn$ = state(0)
 
+const internalAutoScrollEnabled$ = state(true)
+
 const internalTurnListContainerEl$ = state<HTMLDivElement | null>(null)
 
 const internalMountTurnList$ = command(
@@ -219,6 +221,32 @@ export const turns$ = computed(async (get) => {
     }),
   )
 })
+
+export const triggerReloadTurn$ = command(
+  async ({ get, set }, signal: AbortSignal) => {
+    // Trigger reload
+    set(internalReloadTurn$, (x) => x + 1)
+
+    // Wait for turns to update
+    await get(turns$)
+    signal.throwIfAborted()
+
+    // Wait for next tick to ensure DOM is updated
+    await delay(0, { signal })
+
+    // Check if auto-scroll is enabled
+    const autoScrollEnabled = get(internalAutoScrollEnabled$)
+    if (!autoScrollEnabled) {
+      return
+    }
+
+    // Scroll to bottom
+    const container = get(internalTurnListContainerEl$)
+    if (container) {
+      container.scrollTop = container.scrollHeight
+    }
+  },
+)
 
 // File content visibility state
 const internalFileContentVisible$ = state(false)
@@ -285,7 +313,7 @@ export const sendChatMessage$ = command(
     )
 
     set(internalChatInput$, '')
-    set(internalReloadTurn$, (x) => x + 1)
+    await set(triggerReloadTurn$, signal)
   },
 )
 
@@ -309,7 +337,7 @@ export const interruptCurrentTurn$ = command(
     )
 
     // Reload turns to reflect the cancelled state
-    set(internalReloadTurn$, (x) => x + 1)
+    await set(triggerReloadTurn$, signal)
   },
 )
 
@@ -377,7 +405,7 @@ export const startWatchSession$ = command(
           signal.throwIfAborted()
 
           if (serverLastBlockId !== localLastBlockId) {
-            set(internalReloadTurn$, (x) => x + 1)
+            await set(triggerReloadTurn$, signal)
           }
         }
 

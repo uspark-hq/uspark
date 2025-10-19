@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.23.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.22.0...workspace-v1.23.0) (2025-10-19)
+
+
+### Features
+
+* **workspace:** add share file functionality with toast notifications ([#650](https://github.com/uspark-hq/uspark/issues/650)) ([7822644](https://github.com/uspark-hq/uspark/commit/7822644fef66baed0e1373bee72b7af2941d10ba))
+* **workspace:** hide chat list on mobile when file preview is open ([#649](https://github.com/uspark-hq/uspark/issues/649)) ([0294edb](https://github.com/uspark-hq/uspark/commit/0294edbeab5118ba489bee48eec59e9032fc3e79))
+* **workspace:** implement auto-scroll for turn list updates ([#651](https://github.com/uspark-hq/uspark/issues/651)) ([af4344e](https://github.com/uspark-hq/uspark/commit/af4344e2d99261cecca9911ea5ec6313b5533245))
+
 ## [1.22.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.21.1...workspace-v1.22.0) (2025-10-19)
 
 

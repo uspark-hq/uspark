@@ -1,6 +1,6 @@
 {
   "name": "workspace",
-  "version": "1.22.0",
+  "version": "1.23.0",
   "type": "module",
   "private": true,
   "scripts": {
@@ -27,7 +27,8 @@
     "path-to-regexp": "^8.3.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "signal-timers": "^1.0.4"
+    "signal-timers": "^1.0.4",
+    "sonner": "^2.0.7"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.1.8",
