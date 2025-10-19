@@ -210,6 +210,10 @@ export class E2BExecutor {
       );
     }
 
+    console.log(
+      `Calling Sandbox.create() with template ${this.TEMPLATE_ID} for session ${sessionId}`,
+    );
+
     const sandbox = await Sandbox.create(this.TEMPLATE_ID, {
       timeoutMs: this.SANDBOX_TIMEOUT * 1000,
       metadata: {
