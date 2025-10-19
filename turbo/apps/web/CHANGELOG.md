@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.56.3](https://github.com/uspark-hq/uspark/compare/web-v0.56.2...web-v0.56.3) (2025-10-19)
+
+
+### Bug Fixes
+
+* **web:** simplify error handling and improve code execution flow ([#638](https://github.com/uspark-hq/uspark/issues/638)) ([3a359f3](https://github.com/uspark-hq/uspark/commit/3a359f384353ae836a2afa3639bf107940bc5c1a))
+
 ## [0.56.2](https://github.com/uspark-hq/uspark/compare/web-v0.56.1...web-v0.56.2) (2025-10-19)
 
 
