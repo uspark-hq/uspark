@@ -203,142 +203,8 @@ export class E2BExecutor {
   }
 
   /**
-   * Sync project files (git pull + uspark pull)
-   * This runs on every turn execution to ensure code is up-to-date
-   * @param sandbox - The sandbox to sync
-   * @param projectId - The effective project ID (already resolved for dev/prod)
-   * @param sourceRepoUrl - GitHub repository in "owner/repo" format (null if no repo)
-   */
-  private static async syncProjectFiles(
-    sandbox: Sandbox,
-    projectId: string,
-    sourceRepoUrl: string | null,
-  ): Promise<void> {
-    const timestamp = Date.now();
-    console.log(`Syncing project files for ${projectId}...`);
-
-    if (sourceRepoUrl) {
-      // Project has a GitHub repository - sync git repo and uspark files
-      console.log(`Syncing GitHub repository: ${sourceRepoUrl}`);
-
-      const syncScript = `
-# Log header
-echo "========================================" | tee -a /tmp/sync_${timestamp}.log
-echo "Project Sync - $(date)" | tee -a /tmp/sync_${timestamp}.log
-echo "Project ID: ${projectId}" | tee -a /tmp/sync_${timestamp}.log
-echo "Repository: ${sourceRepoUrl}" | tee -a /tmp/sync_${timestamp}.log
-echo "========================================" | tee -a /tmp/sync_${timestamp}.log
-
-# Git sync
-if [ -d ~/workspace/.git ]; then
-  echo "[Git] Updating existing repository..." | tee -a /tmp/sync_${timestamp}.log
-  cd ~/workspace && git reset --hard origin/main 2>&1 | tee -a /tmp/sync_${timestamp}.log
-  git pull origin main 2>&1 | tee -a /tmp/sync_${timestamp}.log
-else
-  echo "[Git] Cloning repository..." | tee -a /tmp/sync_${timestamp}.log
-  # Use token for private repos, no token for public repos
-  if [ -n "\${GITHUB_TOKEN}" ]; then
-    git clone https://\${GITHUB_TOKEN}@github.com/${sourceRepoUrl}.git ~/workspace 2>&1 | tee -a /tmp/sync_${timestamp}.log
-  else
-    git clone https://github.com/${sourceRepoUrl}.git ~/workspace 2>&1 | tee -a /tmp/sync_${timestamp}.log
-  fi
-fi
-
-# Ensure .gitignore contains .uspark
-echo "[Git] Checking .gitignore..." | tee -a /tmp/sync_${timestamp}.log
-cd ~/workspace || (echo "ERROR: Failed to cd to ~/workspace" | tee -a /tmp/sync_${timestamp}.log && exit 1)
-if grep -qxF '.uspark' .gitignore 2>/dev/null; then
-  echo ".uspark already in .gitignore" | tee -a /tmp/sync_${timestamp}.log
-else
-  echo '.uspark' >> .gitignore && echo "Added .uspark to .gitignore" | tee -a /tmp/sync_${timestamp}.log
-fi
-
-# Sync uspark files
-echo "[uSpark] Syncing project files to .uspark..." | tee -a /tmp/sync_${timestamp}.log
-uspark pull --all --project-id "${projectId}" --output-dir ~/workspace/.uspark --verbose 2>&1 | tee -a /tmp/sync_${timestamp}.log
-
-echo "[Done] Sync completed at $(date)" | tee -a /tmp/sync_${timestamp}.log
-`;
-
-      const result = await sandbox.commands.run(syncScript, {
-        timeoutMs: 0,
-      });
-
-      console.log("Sync stdout:", result.stdout);
-      if (result.stderr) {
-        console.log("Sync stderr:", result.stderr);
-      }
-
-      if (result.exitCode !== 0) {
-        const errorDetails = {
-          exitCode: result.exitCode,
-          stdout: result.stdout,
-          stderr: result.stderr,
-          projectId,
-          sourceRepoUrl,
-        };
-        console.error("Failed to sync project files:", errorDetails);
-        throw new Error(
-          `Project sync failed (exit ${result.exitCode}): ${result.stderr || result.stdout || "Unknown error"}`,
-        );
-      }
-
-      console.log(
-        `Project files synced successfully (log: /tmp/sync_${timestamp}.log)`,
-      );
-    } else {
-      // No GitHub repository - just sync uspark files
-      console.log("No GitHub repository - syncing uspark files only");
-
-      const syncScript = `
-echo "========================================" | tee /tmp/sync_${timestamp}.log
-echo "uSpark Files Sync - $(date)" | tee -a /tmp/sync_${timestamp}.log
-echo "Project ID: ${projectId}" | tee -a /tmp/sync_${timestamp}.log
-echo "========================================" | tee -a /tmp/sync_${timestamp}.log
-
-echo "[Setup] Creating workspace directory..." | tee -a /tmp/sync_${timestamp}.log
-mkdir -p ~/workspace 2>&1 | tee -a /tmp/sync_${timestamp}.log || (echo "ERROR: Failed to create workspace" | tee -a /tmp/sync_${timestamp}.log && exit 1)
-
-echo "[Setup] Changing to workspace directory..." | tee -a /tmp/sync_${timestamp}.log
-cd ~/workspace || (echo "ERROR: Failed to cd to ~/workspace" | tee -a /tmp/sync_${timestamp}.log && exit 1)
-
-echo "[uSpark] Pulling project files..." | tee -a /tmp/sync_${timestamp}.log
-uspark pull --all --project-id "${projectId}" --output-dir ~/workspace/.uspark --verbose 2>&1 | tee -a /tmp/sync_${timestamp}.log
-
-echo "[Done] Sync completed at $(date)" | tee -a /tmp/sync_${timestamp}.log
-`;
-
-      const result = await sandbox.commands.run(syncScript, {
-        timeoutMs: 0,
-      });
-
-      console.log("Sync stdout:", result.stdout);
-      if (result.stderr) {
-        console.log("Sync stderr:", result.stderr);
-      }
-
-      if (result.exitCode !== 0) {
-        const errorDetails = {
-          exitCode: result.exitCode,
-          stdout: result.stdout,
-          stderr: result.stderr,
-          projectId,
-        };
-        console.error("Failed to sync uspark files:", errorDetails);
-        throw new Error(
-          `uSpark sync failed (exit ${result.exitCode}): ${result.stderr || result.stdout || "Unknown error"}`,
-        );
-      }
-
-      console.log(
-        `uSpark files synced successfully (log: /tmp/sync_${timestamp}.log)`,
-      );
-    }
-  }
-
-  /**
    * Initialize sandbox with project files (only called once on sandbox creation)
-   * Just delegates to syncProjectFiles
+   * Clones the git repository if it exists
    * @param projectId - The effective project ID (already resolved for dev/prod)
    * @param sourceRepoUrl - GitHub repository in "owner/repo" format (null if no repo)
    */
@@ -348,14 +214,51 @@ echo "[Done] Sync completed at $(date)" | tee -a /tmp/sync_${timestamp}.log
     sourceRepoUrl: string | null,
   ): Promise<void> {
     console.log(`Initializing sandbox for project ${projectId}`);
-    // Reuse the sync method for initial setup
-    await this.syncProjectFiles(sandbox, projectId, sourceRepoUrl);
+
+    // Clone git repository if project has one
+    if (sourceRepoUrl) {
+      console.log(`Cloning GitHub repository: ${sourceRepoUrl}`);
+      const timestamp = Date.now();
+      const cloneScript = `
+echo "========================================" | tee /tmp/clone_${timestamp}.log
+echo "Git Clone - $(date)" | tee -a /tmp/clone_${timestamp}.log
+echo "Repository: ${sourceRepoUrl}" | tee -a /tmp/clone_${timestamp}.log
+echo "========================================" | tee -a /tmp/clone_${timestamp}.log
+
+# Use token for private repos, no token for public repos
+if [ -n "\${GITHUB_TOKEN}" ]; then
+  git clone https://\${GITHUB_TOKEN}@github.com/${sourceRepoUrl}.git ~/workspace 2>&1 | tee -a /tmp/clone_${timestamp}.log
+else
+  git clone https://github.com/${sourceRepoUrl}.git ~/workspace 2>&1 | tee -a /tmp/clone_${timestamp}.log
+fi
+
+echo "[Done] Clone completed at $(date)" | tee -a /tmp/clone_${timestamp}.log
+`;
+      const cloneResult = await sandbox.commands.run(cloneScript, {
+        timeoutMs: 0,
+      });
+
+      if (cloneResult.exitCode !== 0) {
+        throw new Error(
+          `Git clone failed (exit ${cloneResult.exitCode}): ${cloneResult.stderr || cloneResult.stdout}`,
+        );
+      }
+      console.log(`Repository cloned successfully`);
+    } else {
+      // No git repo - just create workspace directory
+      console.log("No Git repository - creating workspace directory");
+      await sandbox.commands.run("mkdir -p ~/workspace");
+    }
+
     console.log("Sandbox initialized successfully");
   }
 
   /**
    * Execute Claude command in sandbox (async - does not wait for completion)
-   * Syncs project files before execution to ensure code is up-to-date
+   * Uses the unified execute-claude-turn.sh script which handles:
+   * 1. File synchronization (git pull + uspark pull)
+   * 2. Claude execution pipeline
+   * 3. Cleanup
    */
   static async executeClaude(
     sandbox: Sandbox,
@@ -363,14 +266,8 @@ echo "[Done] Sync completed at $(date)" | tee -a /tmp/sync_${timestamp}.log
     projectId: string,
     turnId: string,
     sessionId: string,
-    sourceRepoUrl: string | null,
   ): Promise<ExecutionResult> {
     console.log(`Executing Claude with prompt length: ${prompt.length}`);
-
-    // Sync project files before execution (git pull + uspark pull)
-    console.log("Syncing project files before Claude execution...");
-    await this.syncProjectFiles(sandbox, projectId, sourceRepoUrl);
-    console.log("Project files synced, starting Claude execution...");
 
     // Check if we're in development mode by checking if dev token is configured
     const isDevelopment = !!env().USPARK_TOKEN_FOR_DEV;
@@ -414,44 +311,28 @@ echo "[Done] Sync completed at $(date)" | tee -a /tmp/sync_${timestamp}.log
       `Using IDs - Project: ${effectiveProjectId}, Turn: ${effectiveTurnId}, Session: ${effectiveSessionId}`,
     );
 
-    // Create a temporary file for the prompt to handle special characters
-    const timestamp = Date.now();
-    const promptFile = `/tmp/prompt_${timestamp}.txt`;
+    // Write prompt to file with fixed naming pattern: /tmp/prompt_${TURN_ID}.txt
+    const promptFile = `/tmp/prompt_${effectiveTurnId}.txt`;
     await sandbox.files.write(promptFile, prompt);
 
-    // Verify working directory first
-    await sandbox.commands.run(
-      `(cd ~/workspace && pwd 2>&1 | tee /tmp/pwd.log)`,
-    );
-
-    // Pipeline: prompt → claude (skip permissions) → watch-claude (sync files + callback API)
-    // Execute in ~/workspace directory where project files are located
-    // Use --prefix .uspark to only sync files under .uspark directory
-    // Log everything to /tmp/claude_exec_<timestamp>.log
-    // Use subshell to ensure cd takes effect
-    // Redirect stderr to stdout for both claude and uspark to capture all errors
-    const command = `
-echo "========================================" | tee /tmp/claude_exec_${timestamp}.log
-echo "Claude Execution - $(date)" | tee -a /tmp/claude_exec_${timestamp}.log
-echo "Turn ID: ${effectiveTurnId}" | tee -a /tmp/claude_exec_${timestamp}.log
-echo "Session ID: ${effectiveSessionId}" | tee -a /tmp/claude_exec_${timestamp}.log
-echo "Project ID: ${effectiveProjectId}" | tee -a /tmp/claude_exec_${timestamp}.log
-echo "========================================" | tee -a /tmp/claude_exec_${timestamp}.log
-
-echo "[Exec] Changing to workspace directory..." | tee -a /tmp/claude_exec_${timestamp}.log
-(cd ~/workspace && pwd 2>&1 | tee -a /tmp/claude_exec_${timestamp}.log) || (echo "ERROR: Failed to cd to ~/workspace" | tee -a /tmp/claude_exec_${timestamp}.log && exit 1)
-
-echo "[Exec] Starting Claude pipeline..." | tee -a /tmp/claude_exec_${timestamp}.log
-(cd ~/workspace && cat "${promptFile}" | claude --print --verbose --output-format stream-json --dangerously-skip-permissions 2>&1 | uspark watch-claude --project-id ${effectiveProjectId} --turn-id ${effectiveTurnId} --session-id ${effectiveSessionId} --prefix .uspark 2>&1 | tee -a /tmp/claude_exec_${timestamp}.log)
-
-echo "========================================" | tee -a /tmp/claude_exec_${timestamp}.log
-echo "Claude Execution Finished - $(date)" | tee -a /tmp/claude_exec_${timestamp}.log
-echo "========================================" | tee -a /tmp/claude_exec_${timestamp}.log
-`;
+    // Generate log file with current datetime
+    const now = new Date();
+    const datetime = now
+      .toISOString()
+      .replace(/[-:]/g, "")
+      .replace(/\.\d+Z$/, "");
+    const logFile = `/tmp/execute_${datetime}.log`;
 
     console.log(
-      `Starting Claude execution (log: /tmp/claude_exec_${timestamp}.log)`,
+      `Starting Claude turn execution via script (prompt: ${promptFile}, log: ${logFile})`,
     );
+
+    // Execute the complete turn via the unified script
+    // The script will handle sync, execution, and cleanup
+    // Environment variables set inline (TURN_ID and SESSION_ID)
+    // Other vars (PROJECT_ID, USPARK_TOKEN, etc) are set at sandbox creation
+    // All output (stdout and stderr) redirected to log file
+    const command = `TURN_ID="${effectiveTurnId}" SESSION_ID="${effectiveSessionId}" /usr/local/bin/execute-claude-turn.sh > ${logFile} 2>&1`;
 
     // Run in background - command continues in sandbox even after client disconnects
     await sandbox.commands.run(command, {
@@ -459,12 +340,9 @@ echo "========================================" | tee -a /tmp/claude_exec_${time
       timeoutMs: 0,
     });
 
-    // Clean up prompt file
-    await sandbox.commands.run(`rm -f "${promptFile}"`);
-
     return {
       success: true,
-      output: `Background execution started for turn ${effectiveTurnId} (log: /tmp/claude_exec_${timestamp}.log)`,
+      output: `Background execution started for turn ${effectiveTurnId} (log: ${logFile})`,
     };
   }
 
