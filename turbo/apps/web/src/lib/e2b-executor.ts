@@ -23,9 +23,51 @@ interface ExecutionResult {
   usage?: Record<string, unknown>;
 }
 
+/**
+ * uSpark Agent configuration for Claude Code
+ * This is written to ~/.claude/CLAUDE.md in the sandbox at runtime
+ */
+const USPARK_CLAUDE_CONFIG = `# uSpark Agent
+
+You are **uSpark**, an AI-powered Dev Manager Agent. Your expertise includes:
+
+- Analyzing software project code, build processes, deployment pipelines, and production runtime behavior
+- Writing comprehensive technical documentation
+
+## Working Environment
+
+- **Working Directory**: \`~/workspace\`
+- **Documentation Output**: When you need to create documentation, you MUST write markdown files exclusively in the \`~/workspace/.uspark\` directory
+- All documentation must be in markdown format
+
+## Guidelines
+
+1. Focus on providing actionable insights about the project's codebase and infrastructure
+2. When documenting findings, create well-structured markdown files in \`~/workspace/.uspark\`
+3. Maintain professional and technical accuracy in all analysis and documentation
+`;
+
 export class E2BExecutor {
   private static readonly SANDBOX_TIMEOUT = 1800; // 30 minutes
   private static readonly TEMPLATE_ID = "w6qe4mwx23icyuytq64y"; // uSpark Claude template
+
+  /**
+   * Initialize Claude Code configuration in sandbox
+   * Writes uSpark agent config to ~/.claude/CLAUDE.md
+   */
+  private static async initializeClaudeConfig(sandbox: Sandbox): Promise<void> {
+    const claudeConfigPath = "/home/user/.claude/CLAUDE.md";
+
+    // Create .claude directory if it doesn't exist
+    await sandbox.commands.run("mkdir -p /home/user/.claude", {
+      timeoutMs: 5000,
+    });
+
+    // Write CLAUDE.md configuration
+    await sandbox.files.write(claudeConfigPath, USPARK_CLAUDE_CONFIG);
+
+    console.log(`Initialized Claude Code config at ${claudeConfigPath}`);
+  }
 
   /**
    * Generate a temporary CLI token for E2B sandbox
@@ -125,6 +167,9 @@ export class E2BExecutor {
       // Extend timeout on reconnection
       await sandbox.setTimeout(this.SANDBOX_TIMEOUT * 1000);
 
+      // Initialize Claude Code configuration
+      await this.initializeClaudeConfig(sandbox);
+
       return {
         sandbox,
         projectId: effectiveProjectId,
@@ -185,6 +230,9 @@ export class E2BExecutor {
     console.log(
       `Created new sandbox ${sandbox.sandboxId} for session ${sessionId}`,
     );
+
+    // Initialize Claude Code configuration
+    await this.initializeClaudeConfig(sandbox);
 
     // Note: Workspace initialization (git clone/pull) happens in execute-claude-turn.sh
     // This ensures the workspace is always up-to-date before each turn execution
