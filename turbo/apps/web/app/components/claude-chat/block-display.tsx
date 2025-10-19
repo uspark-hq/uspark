@@ -1,7 +1,5 @@
 "use client";
 
-import { useState } from "react";
-
 interface BlockProps {
   block: {
     id: string;
@@ -17,23 +15,7 @@ function getToolResultText(content: Record<string, unknown>): string {
     : (content?.result as string) || "No result";
 }
 
-// Helper function to check if text should be collapsed
-function shouldCollapseText(text: string): boolean {
-  return text.split("\n").length > 3;
-}
-
 export function BlockDisplay({ block }: BlockProps) {
-  // For tool_result, default to collapsed if content is long
-  const getInitialExpandedState = () => {
-    if (block.type === "tool_result") {
-      const resultText = getToolResultText(block.content);
-      return !shouldCollapseText(resultText); // Expand if 3 or fewer lines
-    }
-    return true; // Expand by default for other block types
-  };
-
-  const [isExpanded, setIsExpanded] = useState(getInitialExpandedState());
-
   const renderContent = () => {
     switch (block.type) {
       case "thinking":
@@ -49,7 +31,7 @@ export function BlockDisplay({ block }: BlockProps) {
               color: "rgba(156, 163, 175, 0.8)",
             }}
           >
-            💭 {(block.content?.text as string) || "Thinking..."}
+            {(block.content?.text as string) || "Thinking..."}
           </div>
         );
 
@@ -82,32 +64,17 @@ export function BlockDisplay({ block }: BlockProps) {
           >
             <div
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
+                fontWeight: "500",
+                color: "#3b82f6",
                 marginBottom: "8px",
-                cursor: "pointer",
               }}
-              onClick={() => setIsExpanded(!isExpanded)}
             >
-              <span style={{ fontSize: "16px" }}>🔧</span>
-              <span style={{ fontWeight: "500", color: "#3b82f6" }}>
-                Tool: {(block.content?.tool_name as string) || "Unknown"}
-              </span>
-              <span
-                style={{
-                  marginLeft: "auto",
-                  fontSize: "11px",
-                  color: "rgba(156, 163, 175, 0.6)",
-                }}
-              >
-                {isExpanded ? "▼" : "▶"}
-              </span>
+              Tool: {(block.content?.tool_name as string) || "Unknown"}
             </div>
-            {isExpanded && block.content?.parameters != null && (
+            {block.content?.parameters != null && (
               <pre
                 style={{
-                  margin: "8px 0 0 0",
+                  margin: "0",
                   padding: "8px",
                   backgroundColor: "rgba(0, 0, 0, 0.05)",
                   borderRadius: "4px",
@@ -125,10 +92,6 @@ export function BlockDisplay({ block }: BlockProps) {
 
       case "tool_result": {
         const resultText = getToolResultText(block.content);
-        const shouldCollapse = shouldCollapseText(resultText);
-        const previewText = shouldCollapse
-          ? resultText.split("\n").slice(0, 3).join("\n") + "..."
-          : resultText;
 
         return (
           <div
@@ -148,40 +111,15 @@ export function BlockDisplay({ block }: BlockProps) {
           >
             <div
               style={{
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
+                fontWeight: "500",
+                color: block.content?.error ? "#ef4444" : "#22c55e",
                 marginBottom: "8px",
-                cursor: shouldCollapse ? "pointer" : "default",
               }}
-              onClick={() => shouldCollapse && setIsExpanded(!isExpanded)}
             >
-              <span style={{ fontSize: "16px" }}>
-                {block.content?.error ? "❌" : "✅"}
-              </span>
-              <span
-                style={{
-                  fontWeight: "500",
-                  color: block.content?.error ? "#ef4444" : "#22c55e",
-                }}
-              >
-                Tool Result
-              </span>
-              {shouldCollapse && (
-                <span
-                  style={{
-                    marginLeft: "auto",
-                    fontSize: "11px",
-                    color: "rgba(156, 163, 175, 0.6)",
-                  }}
-                >
-                  {isExpanded ? "▼" : "▶"}
-                </span>
-              )}
+              Tool Result
             </div>
             <div
               style={{
-                marginTop: "8px",
                 padding: "8px",
                 backgroundColor: "rgba(0, 0, 0, 0.03)",
                 borderRadius: "4px",
@@ -189,11 +127,11 @@ export function BlockDisplay({ block }: BlockProps) {
                 fontFamily: "monospace",
                 whiteSpace: "pre-wrap",
                 wordBreak: "break-word",
-                maxHeight: isExpanded ? "300px" : "auto",
-                overflow: isExpanded ? "auto" : "visible",
+                maxHeight: "300px",
+                overflow: "auto",
               }}
             >
-              {isExpanded ? resultText : previewText}
+              {resultText}
             </div>
           </div>
         );
