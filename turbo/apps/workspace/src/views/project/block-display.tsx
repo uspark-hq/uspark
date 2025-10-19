@@ -86,6 +86,9 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
       const content = block.content as BlockContent
       const resultData = typeof content === 'object' ? content : {}
       const hasError = 'error' in resultData && Boolean(resultData.error)
+      const resultText = hasError
+        ? 'error' in resultData && String(resultData.error)
+        : 'result' in resultData && String(resultData.result)
 
       return (
         <div
@@ -96,6 +99,11 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
           >
             {hasError ? 'Tool Error' : 'Tool Result'}
           </div>
+          {resultText && (
+            <pre className="mt-1.5 overflow-x-auto text-[13px] break-words whitespace-pre-wrap text-[#cccccc]">
+              {resultText}
+            </pre>
+          )}
         </div>
       )
     }

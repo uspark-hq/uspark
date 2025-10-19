@@ -461,8 +461,12 @@ describe('projectPage - auto-create session', () => {
     // Input should be cleared
     expect(textarea).toHaveValue('')
 
-    // Session selector should appear
-    expect(screen.getByRole('combobox')).toBeInTheDocument()
+    // Session selector should appear (button with aria-haspopup)
+    // Note: The button might show "Select session" or "Untitled Session" depending on timing
+    const sessionButton = await screen.findByRole('button', {
+      name: /Select session|Untitled Session/i,
+    })
+    expect(sessionButton).toHaveAttribute('aria-haspopup', 'true')
   })
 
   it('sends message to newly created session', async () => {
