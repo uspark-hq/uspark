@@ -130,7 +130,7 @@ jobs:
       - uses: ./.github/actions/toolchain-init
 
       - name: Test
-        run: cd turbo && pnpm test
+        run: cd turbo && pnpm test && pnpm -F workspace test
         env:
           DATABASE_URL: "postgresql://postgres:postgres@postgres:5432/postgres"
           CLERK_SECRET_KEY: "test_clerk_secret_key"
