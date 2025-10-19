@@ -6,3 +6,4 @@ export * from "./contracts";
 export * from "./types";
 export * from "./blob";
 export * from "./yjs-filesystem";
+export * from "./utils/blocks";

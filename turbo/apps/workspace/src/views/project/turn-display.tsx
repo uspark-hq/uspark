@@ -1,4 +1,4 @@
-import type { GetTurnResponse } from '@uspark/core'
+import { filterBlocksForDisplay, type GetTurnResponse } from '@uspark/core'
 import { BlockDisplay } from './block-display'
 
 interface TurnDisplayProps {
@@ -34,7 +34,7 @@ export function TurnDisplay({ turn, isLastTurn = false }: TurnDisplayProps) {
       {/* Assistant blocks */}
       {hasBlocks ? (
         <div className="space-y-1.5 pl-3">
-          {turn.blocks.map((block) => (
+          {filterBlocksForDisplay(turn.blocks).map((block) => (
             <BlockDisplay key={block.id} block={block} />
           ))}
         </div>

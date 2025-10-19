@@ -5,6 +5,63 @@ import { useSessionPolling } from "./use-session-polling";
 import { BlockDisplay } from "./block-display";
 import { SessionSelector } from "./session-selector";
 
+// Local Block type used by this component
+interface LocalBlock {
+  id: string;
+  type: string;
+  content: Record<string, unknown>;
+}
+
+/**
+ * Filters blocks for display in the UI.
+ * Rules:
+ * - Hide all tool_use blocks
+ * - Keep only the last tool_result block (if multiple exist)
+ * - Keep all other block types
+ */
+function filterBlocksForDisplay(blocks: LocalBlock[]): LocalBlock[] {
+  if (!blocks || blocks.length === 0) {
+    return blocks;
+  }
+
+  const filtered: LocalBlock[] = [];
+  let lastToolResultIndex = -1;
+
+  // First pass: Find the last tool_result index
+  for (let i = blocks.length - 1; i >= 0; i--) {
+    const block = blocks[i];
+    if (!block) continue;
+    if (block.type === "tool_result") {
+      lastToolResultIndex = i;
+      break;
+    }
+  }
+
+  // Second pass: Apply filtering rules
+  for (let i = 0; i < blocks.length; i++) {
+    const block = blocks[i];
+    if (!block) continue;
+
+    // Hide all tool_use blocks
+    if (block.type === "tool_use") {
+      continue;
+    }
+
+    // Keep only the last tool_result
+    if (block.type === "tool_result") {
+      if (i === lastToolResultIndex) {
+        filtered.push(block);
+      }
+      continue;
+    }
+
+    // Keep all other block types
+    filtered.push(block);
+  }
+
+  return filtered;
+}
+
 interface ChatInterfaceProps {
   projectId: string;
 }
@@ -349,7 +406,7 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
                       }}
                     >
                       {turn.blocks && turn.blocks.length > 0 ? (
-                        turn.blocks.map((block) => (
+                        filterBlocksForDisplay(turn.blocks).map((block) => (
                           <BlockDisplay key={block.id} block={block} />
                         ))
                       ) : turn.status === "in_progress" ? (
