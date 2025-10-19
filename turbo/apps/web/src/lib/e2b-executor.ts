@@ -414,10 +414,17 @@ echo "[Done] Sync completed at $(date)" | tee -a /tmp/sync_${timestamp}.log
     const promptFile = `/tmp/prompt_${timestamp}.txt`;
     await sandbox.files.write(promptFile, prompt);
 
+    // Verify working directory first
+    await sandbox.commands.run(
+      `(cd ~/workspace && pwd 2>&1 | tee /tmp/pwd.log)`,
+    );
+
     // Pipeline: prompt → claude (skip permissions) → watch-claude (sync files + callback API)
     // Execute in ~/workspace directory where project files are located
     // Use --prefix .uspark to only sync files under .uspark directory
     // Log everything to /tmp/claude_exec_<timestamp>.log
+    // Use subshell to ensure cd takes effect
+    // Redirect stderr to stdout for both claude and uspark to capture all errors
     const command = `
 echo "========================================" | tee /tmp/claude_exec_${timestamp}.log
 echo "Claude Execution - $(date)" | tee -a /tmp/claude_exec_${timestamp}.log
@@ -427,10 +434,10 @@ echo "Project ID: ${effectiveProjectId}" | tee -a /tmp/claude_exec_${timestamp}.
 echo "========================================" | tee -a /tmp/claude_exec_${timestamp}.log
 
 echo "[Exec] Changing to workspace directory..." | tee -a /tmp/claude_exec_${timestamp}.log
-cd ~/workspace 2>&1 | tee -a /tmp/claude_exec_${timestamp}.log || (echo "ERROR: Failed to cd to ~/workspace" | tee -a /tmp/claude_exec_${timestamp}.log && exit 1)
+(cd ~/workspace && pwd 2>&1 | tee -a /tmp/claude_exec_${timestamp}.log) || (echo "ERROR: Failed to cd to ~/workspace" | tee -a /tmp/claude_exec_${timestamp}.log && exit 1)
 
 echo "[Exec] Starting Claude pipeline..." | tee -a /tmp/claude_exec_${timestamp}.log
-cat "${promptFile}" | claude --print --verbose --output-format stream-json --dangerously-skip-permissions | uspark watch-claude --project-id ${effectiveProjectId} --turn-id ${effectiveTurnId} --session-id ${effectiveSessionId} --prefix .uspark 2>&1 | tee -a /tmp/claude_exec_${timestamp}.log
+(cd ~/workspace && cat "${promptFile}" | claude --print --verbose --output-format stream-json --dangerously-skip-permissions 2>&1 | uspark watch-claude --project-id ${effectiveProjectId} --turn-id ${effectiveTurnId} --session-id ${effectiveSessionId} --prefix .uspark 2>&1 | tee -a /tmp/claude_exec_${timestamp}.log)
 
 echo "========================================" | tee -a /tmp/claude_exec_${timestamp}.log
 echo "Claude Execution Finished - $(date)" | tee -a /tmp/claude_exec_${timestamp}.log
