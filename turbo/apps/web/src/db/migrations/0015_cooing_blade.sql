@@ -1,0 +1,1 @@
+ALTER TABLE "projects" ADD COLUMN "source_repo_type" text;
