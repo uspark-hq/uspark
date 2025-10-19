@@ -196,9 +196,6 @@ describe("watch-claude", () => {
     // Wait for command to complete
     await commandPromise.catch(() => {});
 
-    // Give it extra time to ensure no unexpected calls
-    await new Promise((resolve) => setTimeout(resolve, 100));
-
     Object.defineProperty(process, "stdin", {
       value: originalStdin,
       writable: true,
