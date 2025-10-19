@@ -71,7 +71,10 @@ export async function POST(
       completedAt: new Date(),
     })
     .where(
-      and(eq(TURNS_TBL.sessionId, sessionId), eq(TURNS_TBL.status, "running")),
+      and(
+        eq(TURNS_TBL.sessionId, sessionId),
+        eq(TURNS_TBL.status, "in_progress"),
+      ),
     );
 
   // Update session's updatedAt timestamp

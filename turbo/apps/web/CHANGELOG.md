@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.54.0](https://github.com/uspark-hq/uspark/compare/web-v0.53.0...web-v0.54.0) (2025-10-19)
+
+
+### Features
+
+* **projects:** add intelligent GitHub repository import with unified input ([#601](https://github.com/uspark-hq/uspark/issues/601)) ([ddbf9a8](https://github.com/uspark-hq/uspark/commit/ddbf9a8a366b53b44836128a413305b25991d677))
+* **sessions:** optimize turn state management and add interrupt functionality ([#602](https://github.com/uspark-hq/uspark/issues/602)) ([e62286f](https://github.com/uspark-hq/uspark/commit/e62286fedfc8192c9dcce42ff79aee94c7697e16))
+* **workspace:** add markdown preview/edit mode toggle and fix turn status tests ([#605](https://github.com/uspark-hq/uspark/issues/605)) ([cd55bb7](https://github.com/uspark-hq/uspark/commit/cd55bb71a93f7d8b1d260c4202fbf99fd809a31b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.23.0
+
 ## [0.53.0](https://github.com/uspark-hq/uspark/compare/web-v0.52.1...web-v0.53.0) (2025-10-18)
 
 

@@ -112,7 +112,7 @@ describe('session watching', () => {
       expect(result).toBeTruthy()
     })
 
-    it('should return true when there are running turns with assistant message', async () => {
+    it('should return true when there are multiple running turns', async () => {
       await setupProjectPage(
         `/projects/${mockProjectId}?sessionId=${mockSessionId}`,
         context,

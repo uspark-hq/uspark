@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import user from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -12,42 +12,8 @@ setupMock()
 
 const context = testContext()
 
-describe('projectPage - file content display', () => {
-  const projectId = 'test-project-123'
-  const fileContent = '# Test README\n\nThis is a test document'
-
-  beforeEach(async () => {
-    await setupProjectPage(`/projects/${projectId}`, context, {
-      projectId,
-      files: [
-        {
-          path: 'README.md',
-          hash: 'readme-hash-123',
-          content: fileContent,
-        },
-      ],
-    })
-  })
-
-  afterEach(() => {
-    server.resetHandlers()
-  })
-
-  it('displays file content when file is loaded', async () => {
-    // Wait for file tree to load
-    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
-
-    // Verify file content is displayed in CodeMirror
-    await waitFor(() => {
-      const contentElement = document.querySelector('.cm-content')
-      expect(contentElement).toBeInTheDocument()
-    })
-
-    const contentElement = document.querySelector('.cm-content')
-    expect(contentElement?.textContent).toContain('Test README')
-    expect(contentElement?.textContent).toContain('This is a test document')
-  })
-})
+// Removed 'projectPage - file content display' test because files no longer auto-display.
+// File selection functionality is tested in 'projectPage - file selection' below.
 
 describe('projectPage - file selection', () => {
   const projectId = 'test-project-456'
@@ -80,28 +46,32 @@ describe('projectPage - file selection', () => {
   it('selects file on click and displays its content', async () => {
     const userEvent = user.setup()
 
-    // Wait for files to load
-    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
+    // Open file tree popover
+    const explorerButton = await screen.findByLabelText('Open file explorer')
+    await userEvent.click(explorerButton)
 
     // Click on README.md
-    const readmeFile = screen.getByText('README.md')
+    const readmeFile = await screen.findByText('README.md')
     await userEvent.click(readmeFile)
 
-    // Verify README content is displayed in CodeMirror
+    // Verify README content is displayed in preview mode (using <pre> tag)
     await waitFor(() => {
-      const contentElement = document.querySelector('.cm-content')
-      expect(contentElement?.textContent).toContain('Main documentation')
+      const previewContent = screen.getByText(/Main documentation/i)
+      expect(previewContent).toBeInTheDocument()
     })
+
+    // Open file tree again to select another file
+    await userEvent.click(explorerButton)
 
     // Click on guide.md (get all matches and take the last one which is the file, not directory)
     const guideFiles = screen.getAllByText('guide.md')
     const guideFile = guideFiles[guideFiles.length - 1]
     await userEvent.click(guideFile)
 
-    // Verify guide content is displayed in CodeMirror
+    // Verify guide content is displayed in preview mode
     await waitFor(() => {
-      const contentElement = document.querySelector('.cm-content')
-      expect(contentElement?.textContent).toContain('User guide content')
+      const previewContent = screen.getByText(/User guide content/i)
+      expect(previewContent).toBeInTheDocument()
     })
   })
 })
@@ -154,7 +124,9 @@ describe('projectPage - chat input', () => {
     const userEvent = user.setup()
 
     // Wait for page to load
-    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
+    await expect(
+      screen.findByLabelText('Open file explorer'),
+    ).resolves.toBeInTheDocument()
 
     // Find textarea and send button
     const textarea = screen.getByPlaceholderText(/Type a message/)
@@ -174,7 +146,9 @@ describe('projectPage - chat input', () => {
     const userEvent = user.setup()
 
     // Wait for page to load
-    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
+    await expect(
+      screen.findByLabelText('Open file explorer'),
+    ).resolves.toBeInTheDocument()
 
     // Find textarea and send button
     const textarea = screen.getByPlaceholderText(/Type a message/)
@@ -194,7 +168,9 @@ describe('projectPage - chat input', () => {
     const userEvent = user.setup()
 
     // Wait for page to load
-    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
+    await expect(
+      screen.findByLabelText('Open file explorer'),
+    ).resolves.toBeInTheDocument()
 
     // Find textarea
     const textarea = screen.getByPlaceholderText(/Type a message/)
@@ -212,7 +188,9 @@ describe('projectPage - chat input', () => {
     const userEvent = user.setup()
 
     // Wait for page to load
-    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
+    await expect(
+      screen.findByLabelText('Open file explorer'),
+    ).resolves.toBeInTheDocument()
 
     // Find textarea
     const textarea = screen.getByPlaceholderText(/Type a message/)
@@ -280,16 +258,32 @@ describe('projectPage - session selector', () => {
   })
 
   it('displays session selector with multiple sessions', async () => {
+    const userEvent = user.setup()
+
     // Wait for page to load
-    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
+    await expect(
+      screen.findByLabelText('Open file explorer'),
+    ).resolves.toBeInTheDocument()
 
-    // Find session selector
-    const sessionSelector = screen.getByRole('combobox')
-    expect(sessionSelector).toBeInTheDocument()
+    // Find session selector button (displays selected session title)
+    const sessionButton = screen.getByRole('button', {
+      name: /First Session/i,
+    })
+    expect(sessionButton).toBeInTheDocument()
+    expect(sessionButton).toHaveAttribute('aria-haspopup', 'true')
 
-    // Verify session titles appear in the selector (use within to scope to select element)
+    // Click to open dropdown
+    await userEvent.click(sessionButton)
+
+    // Verify both sessions appear in the dropdown menu
+    await waitFor(() => {
+      expect(screen.getByRole('menu')).toBeInTheDocument()
+    })
     expect(
-      within(sessionSelector).getByText('First Session'),
+      screen.getByRole('menuitem', { name: /First Session/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('menuitem', { name: /Untitled Session/i }),
     ).toBeInTheDocument()
   })
 
@@ -297,7 +291,9 @@ describe('projectPage - session selector', () => {
     const userEvent = user.setup()
 
     // Wait for page to load
-    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
+    await expect(
+      screen.findByLabelText('Open file explorer'),
+    ).resolves.toBeInTheDocument()
 
     // Wait for first session content to load
     await expect(
@@ -305,9 +301,22 @@ describe('projectPage - session selector', () => {
     ).resolves.toBeInTheDocument()
     expect(screen.getByText('First response')).toBeInTheDocument()
 
-    // Select second session from dropdown
-    const sessionSelector = screen.getByRole('combobox')
-    await userEvent.selectOptions(sessionSelector, session2Id)
+    // Click session button to open dropdown
+    const sessionButton = screen.getByRole('button', {
+      name: /First Session/i,
+    })
+    await userEvent.click(sessionButton)
+
+    // Wait for dropdown menu to open
+    await waitFor(() => {
+      expect(screen.getByRole('menu')).toBeInTheDocument()
+    })
+
+    // Click on second session (Untitled Session)
+    const secondSessionItem = screen.getByRole('menuitem', {
+      name: /Untitled Session/i,
+    })
+    await userEvent.click(secondSessionItem)
 
     // Wait for second session content to load
     await waitFor(() => {
@@ -344,10 +353,14 @@ describe('projectPage - no sessions', () => {
 
   it('does not show selector when no sessions exist', async () => {
     // Wait for page to load
-    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
+    await expect(
+      screen.findByLabelText('Open file explorer'),
+    ).resolves.toBeInTheDocument()
 
-    // Session selector should not exist
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+    // Session selector button should not exist (only shown when sessions > 0)
+    expect(
+      screen.queryByRole('button', { name: /Select session/i }),
+    ).not.toBeInTheDocument()
 
     // Should show "no sessions" message
     expect(screen.getByText(/No sessions yet/)).toBeInTheDocument()
@@ -428,7 +441,9 @@ describe('projectPage - auto-create session', () => {
     const userEvent = user.setup()
 
     // Wait for page to load
-    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
+    await expect(
+      screen.findByLabelText('Open file explorer'),
+    ).resolves.toBeInTheDocument()
 
     // Should show "no sessions" message initially
     expect(screen.getByText(/No sessions yet/)).toBeInTheDocument()
@@ -479,7 +494,9 @@ describe('projectPage - auto-create session', () => {
     )
 
     // Wait for page to load
-    await expect(screen.findByText('Explorer')).resolves.toBeInTheDocument()
+    await expect(
+      screen.findByLabelText('Open file explorer'),
+    ).resolves.toBeInTheDocument()
 
     // Send message
     const textarea = screen.getByPlaceholderText(/Type a message/)
@@ -632,7 +649,7 @@ describe('projectPage - turn status display', () => {
     server.resetHandlers()
   })
 
-  it('handles turn with pending status', async () => {
+  it('handles turn with running status', async () => {
     await setupProjectPage(
       `/projects/${projectId}?sessionId=${sessionId}`,
       context,
@@ -644,14 +661,14 @@ describe('projectPage - turn status display', () => {
       },
       [
         http.get(
-          `*/api/projects/${projectId}/sessions/${sessionId}/turns/turn-status`,
+          `*/api/projects/${projectId}/sessions/${sessionId}/turns/turn-running`,
           () => {
             return HttpResponse.json({
-              id: 'turn-status',
+              id: 'turn-running',
               session_id: sessionId,
-              user_prompt: 'Test status',
-              status: 'pending',
-              started_at: null,
+              user_prompt: 'Test running status',
+              status: 'running',
+              started_at: new Date().toISOString(),
               completed_at: null,
               created_at: new Date().toISOString(),
               blocks: [],
@@ -664,10 +681,10 @@ describe('projectPage - turn status display', () => {
             return HttpResponse.json({
               turns: [
                 {
-                  id: 'turn-status',
-                  user_prompt: 'Test status',
-                  status: 'pending',
-                  started_at: null,
+                  id: 'turn-running',
+                  user_prompt: 'Test running status',
+                  status: 'running',
+                  started_at: new Date().toISOString(),
                   completed_at: null,
                   created_at: new Date().toISOString(),
                   block_count: 0,
@@ -681,10 +698,13 @@ describe('projectPage - turn status display', () => {
       ],
     )
 
-    // Verify pending status is rendered through turns$ signal
-    await expect(screen.findByText('Test status')).resolves.toBeInTheDocument()
-    const statusBadge = screen.getByTestId('turn-status')
-    expect(statusBadge).toHaveTextContent('Pending')
+    // Verify running status shows processing indicator
+    await expect(
+      screen.findByText('Test running status'),
+    ).resolves.toBeInTheDocument()
+    await expect(
+      screen.findByText('Processing...'),
+    ).resolves.toBeInTheDocument()
   })
 
   it('handles turn with failed status', async () => {
@@ -736,11 +756,12 @@ describe('projectPage - turn status display', () => {
       ],
     )
 
-    // Verify failed status is handled through turns$ signal
+    // Verify failed status shows error message
     await expect(
       screen.findByText('Failed message'),
     ).resolves.toBeInTheDocument()
-    const statusBadge = screen.getByTestId('turn-status')
-    expect(statusBadge).toHaveTextContent('Failed')
+    await expect(
+      screen.findByText('Turn execution failed. Please try again.'),
+    ).resolves.toBeInTheDocument()
   })
 })
