@@ -195,10 +195,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
         })
         .where(eq(TURNS_TBL.id, turn1Data.id));
 
-      await globalThis.services.db
-        .update(TURNS_TBL)
-        .set({ status: "in_progress", startedAt: new Date() })
-        .where(eq(TURNS_TBL.id, turn2Data.id));
+      // turn2 is already "running" from creation, no need to update
 
       // Add blocks to turn1 (direct DB - no API for blocks yet)
       const [block1] = await globalThis.services.db
