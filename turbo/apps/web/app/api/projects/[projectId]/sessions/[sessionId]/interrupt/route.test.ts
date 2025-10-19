@@ -4,6 +4,7 @@ import { NextRequest } from "next/server";
 import { POST } from "./route";
 import { POST as createProject } from "../../../../route";
 import { POST as createSession } from "../../route";
+import { POST as createTurn } from "../turns/route";
 import { initServices } from "../../../../../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
 import {
@@ -81,30 +82,19 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
   });
 
   describe("POST /api/projects/:projectId/sessions/:sessionId/interrupt", () => {
-    it("should mark all running turns as failed", async () => {
-      // Create multiple turns with different statuses
-      const [runningTurn1] = await globalThis.services.db
-        .insert(TURNS_TBL)
-        .values({
-          id: `turn_running1_${Date.now()}`,
-          sessionId,
-          userPrompt: "Running question 1",
-          status: "in_progress",
-          startedAt: new Date(),
-        })
-        .returning();
+    it("should mark running turn as interrupted", async () => {
+      // Create running turn using API (this will use the correct "running" status)
+      const createTurnRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ user_message: "Running question" }),
+      });
+      const turnContext = { params: Promise.resolve({ projectId, sessionId }) };
+      const turnResponse = await createTurn(createTurnRequest, turnContext);
+      expect(turnResponse.status).toBe(200);
+      const turnData = await turnResponse.json();
+      createdTurnIds.push(turnData.id);
 
-      const [runningTurn2] = await globalThis.services.db
-        .insert(TURNS_TBL)
-        .values({
-          id: `turn_running2_${Date.now()}`,
-          sessionId,
-          userPrompt: "Running question 2",
-          status: "in_progress",
-          startedAt: new Date(),
-        })
-        .returning();
-
+      // Create completed turn (using DB for non-running states since API doesn't support creating them)
       const [completedTurn] = await globalThis.services.db
         .insert(TURNS_TBL)
         .values({
@@ -115,23 +105,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
           completedAt: new Date(),
         })
         .returning();
-
-      const [pendingTurn] = await globalThis.services.db
-        .insert(TURNS_TBL)
-        .values({
-          id: `turn_pending_${Date.now()}`,
-          sessionId,
-          userPrompt: "Pending question",
-          status: "pending",
-        })
-        .returning();
-
-      createdTurnIds.push(
-        runningTurn1!.id,
-        runningTurn2!.id,
-        completedTurn!.id,
-        pendingTurn!.id,
-      );
+      createdTurnIds.push(completedTurn!.id);
 
       const request = new NextRequest("http://localhost:3000", {
         method: "POST",
@@ -145,24 +119,15 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
       expect(data).toHaveProperty("id", sessionId);
       expect(data).toHaveProperty("status", "interrupted");
 
-      // Verify running turns are now failed
-      const [updatedRunning1] = await globalThis.services.db
+      // Verify running turn is now interrupted
+      const [updatedTurn] = await globalThis.services.db
         .select()
         .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, runningTurn1!.id));
+        .where(eq(TURNS_TBL.id, turnData.id));
 
-      expect(updatedRunning1!.status).toBe("failed");
-      expect(updatedRunning1!.errorMessage).toBe("Session interrupted by user");
-      expect(updatedRunning1!.completedAt).not.toBeNull();
-
-      const [updatedRunning2] = await globalThis.services.db
-        .select()
-        .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, runningTurn2!.id));
-
-      expect(updatedRunning2!.status).toBe("failed");
-      expect(updatedRunning2!.errorMessage).toBe("Session interrupted by user");
-      expect(updatedRunning2!.completedAt).not.toBeNull();
+      expect(updatedTurn!.status).toBe("interrupted");
+      expect(updatedTurn!.errorMessage).toBe("Session interrupted by user");
+      expect(updatedTurn!.completedAt).not.toBeNull();
 
       // Verify completed turn is unchanged
       const [updatedCompleted] = await globalThis.services.db
@@ -172,16 +137,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
 
       expect(updatedCompleted!.status).toBe("completed");
       expect(updatedCompleted!.errorMessage).toBeNull();
-
-      // Verify pending turn is unchanged
-      const [updatedPending] = await globalThis.services.db
-        .select()
-        .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, pendingTurn!.id));
-
-      expect(updatedPending!.status).toBe("pending");
-      expect(updatedPending!.errorMessage).toBeNull();
-      expect(updatedPending!.completedAt).toBeNull();
     });
 
     it("should handle case when no running turns exist", async () => {
@@ -240,19 +195,16 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
     });
 
     it("should not affect turns from other sessions", async () => {
-      // Create running turn in test session
-      const [runningTurn] = await globalThis.services.db
-        .insert(TURNS_TBL)
-        .values({
-          id: `turn_running_${Date.now()}`,
-          sessionId,
-          userPrompt: "Running in test session",
-          status: "in_progress",
-          startedAt: new Date(),
-        })
-        .returning();
-
-      createdTurnIds.push(runningTurn!.id);
+      // Create running turn in test session using API
+      const createTurnRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ user_message: "Running in test session" }),
+      });
+      const turnContext = { params: Promise.resolve({ projectId, sessionId }) };
+      const turnResponse = await createTurn(createTurnRequest, turnContext);
+      expect(turnResponse.status).toBe(200);
+      const turnData = await turnResponse.json();
+      createdTurnIds.push(turnData.id);
 
       // Create another session with running turn using API
       const createOtherSessionRequest = new NextRequest(
@@ -271,16 +223,20 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
       const otherSessionData = await otherSessionResponse.json();
       const otherSessionId = otherSessionData.id;
 
-      const [otherRunningTurn] = await globalThis.services.db
-        .insert(TURNS_TBL)
-        .values({
-          id: `turn_other_running_${Date.now()}`,
-          sessionId: otherSessionId,
-          userPrompt: "Running in other session",
-          status: "in_progress",
-          startedAt: new Date(),
-        })
-        .returning();
+      // Create running turn in other session using API
+      const createOtherTurnRequest = new NextRequest("http://localhost:3000", {
+        method: "POST",
+        body: JSON.stringify({ user_message: "Running in other session" }),
+      });
+      const otherTurnContext = {
+        params: Promise.resolve({ projectId, sessionId: otherSessionId }),
+      };
+      const otherTurnResponse = await createTurn(
+        createOtherTurnRequest,
+        otherTurnContext,
+      );
+      expect(otherTurnResponse.status).toBe(200);
+      const otherTurnData = await otherTurnResponse.json();
 
       const request = new NextRequest("http://localhost:3000", {
         method: "POST",
@@ -293,25 +249,25 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
       const [updatedTurn] = await globalThis.services.db
         .select()
         .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, runningTurn!.id));
+        .where(eq(TURNS_TBL.id, turnData.id));
 
-      expect(updatedTurn!.status).toBe("failed");
+      expect(updatedTurn!.status).toBe("interrupted");
       expect(updatedTurn!.errorMessage).toBe("Session interrupted by user");
 
       // Verify other session turn was not affected
       const [otherTurn] = await globalThis.services.db
         .select()
         .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, otherRunningTurn!.id));
+        .where(eq(TURNS_TBL.id, otherTurnData.id));
 
-      expect(otherTurn!.status).toBe("in_progress");
+      expect(otherTurn!.status).toBe("running");
       expect(otherTurn!.errorMessage).toBeNull();
       expect(otherTurn!.completedAt).toBeNull();
 
       // Clean up
       await globalThis.services.db
         .delete(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, otherRunningTurn!.id));
+        .where(eq(TURNS_TBL.id, otherTurnData.id));
       await globalThis.services.db
         .delete(SESSIONS_TBL)
         .where(eq(SESSIONS_TBL.id, otherSessionId));

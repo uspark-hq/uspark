@@ -62,19 +62,16 @@ export async function POST(
     return NextResponse.json(error, { status: 404 });
   }
 
-  // Update all running turns to failed status
+  // Update all running turns to interrupted status
   await globalThis.services.db
     .update(TURNS_TBL)
     .set({
-      status: "failed",
+      status: "interrupted",
       errorMessage: "Session interrupted by user",
       completedAt: new Date(),
     })
     .where(
-      and(
-        eq(TURNS_TBL.sessionId, sessionId),
-        eq(TURNS_TBL.status, "in_progress"),
-      ),
+      and(eq(TURNS_TBL.sessionId, sessionId), eq(TURNS_TBL.status, "running")),
     );
 
   // Update session's updatedAt timestamp
