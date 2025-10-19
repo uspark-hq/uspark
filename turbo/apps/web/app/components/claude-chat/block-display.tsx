@@ -35,6 +35,7 @@ export function BlockDisplay({ block }: BlockProps) {
           </div>
         );
 
+      case "text":
       case "content":
         return (
           <div
@@ -136,6 +137,49 @@ export function BlockDisplay({ block }: BlockProps) {
           </div>
         );
       }
+
+      case "code":
+        return (
+          <div
+            style={{
+              padding: "12px",
+              backgroundColor: "rgba(0, 0, 0, 0.05)",
+              borderRadius: "6px",
+              fontSize: "13px",
+            }}
+          >
+            <pre
+              style={{
+                margin: "0",
+                fontFamily: "monospace",
+                fontSize: "12px",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+              }}
+            >
+              {(block.content?.code as string) || ""}
+            </pre>
+          </div>
+        );
+
+      case "error":
+        return (
+          <div
+            style={{
+              padding: "12px",
+              backgroundColor: "rgba(239, 68, 68, 0.05)",
+              border: "1px solid rgba(239, 68, 68, 0.2)",
+              borderRadius: "6px",
+              fontSize: "13px",
+              color: "#ef4444",
+            }}
+          >
+            <div style={{ fontWeight: "500", marginBottom: "8px" }}>Error</div>
+            <div style={{ fontSize: "12px" }}>
+              {(block.content?.message as string) || "An error occurred"}
+            </div>
+          </div>
+        );
 
       default:
         return (
