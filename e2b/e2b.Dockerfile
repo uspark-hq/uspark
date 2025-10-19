@@ -17,6 +17,10 @@ RUN uspark --version
 COPY init.sh /usr/local/bin/init.sh
 RUN chmod +x /usr/local/bin/init.sh
 
+# Add Claude turn execution script
+COPY execute-claude-turn.sh /usr/local/bin/execute-claude-turn.sh
+RUN chmod +x /usr/local/bin/execute-claude-turn.sh
+
 # Switch to non-root user
 USER 1000
 

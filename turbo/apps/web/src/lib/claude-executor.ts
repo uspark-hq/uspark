@@ -38,16 +38,13 @@ export class ClaudeExecutor {
     }
 
     // Get or create sandbox for this session (with optional extra envs)
-    const {
-      sandbox,
-      projectId: effectiveProjectId,
-      sourceRepoUrl,
-    } = await E2BExecutor.getSandboxForSession(
-      sessionId,
-      projectId,
-      userId,
-      extraEnvs,
-    );
+    const { sandbox, projectId: effectiveProjectId } =
+      await E2BExecutor.getSandboxForSession(
+        sessionId,
+        projectId,
+        userId,
+        extraEnvs,
+      );
 
     // Start async execution (returns immediately)
     await E2BExecutor.executeClaude(
@@ -56,7 +53,6 @@ export class ClaudeExecutor {
       effectiveProjectId,
       turnId,
       sessionId,
-      sourceRepoUrl,
     );
 
     console.log(`Turn ${turnId} execution started in background`);
