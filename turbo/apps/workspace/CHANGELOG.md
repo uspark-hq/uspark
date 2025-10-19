@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.18.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.17.1...workspace-v1.18.0) (2025-10-19)
+
+
+### Features
+
+* **workspace:** redesign layout with popover file tree and dynamic split view ([#597](https://github.com/uspark-hq/uspark/issues/597)) ([72896d7](https://github.com/uspark-hq/uspark/commit/72896d79c7c39134f49baa3d70b2c8b627eaa45f))
+
 ## [1.17.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.17.0...workspace-v1.17.1) (2025-10-18)
 
 
