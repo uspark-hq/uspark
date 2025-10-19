@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { tmpdir } from "os";
 import { join } from "path";
 import { mkdtemp, readFile, rm } from "fs/promises";
-import { readdirSync } from "fs";
+import { readdirSync, statSync } from "fs";
 import { mockServer } from "../test/mock-server";
 
 // Import the pull command functions for direct testing
@@ -142,7 +142,6 @@ describe("pull --all command", () => {
     });
 
     // Verify directory was created even though no files were pulled
-    const { statSync } = await import("fs");
     const stat = statSync(outputDir);
     expect(stat.isDirectory()).toBe(true);
 

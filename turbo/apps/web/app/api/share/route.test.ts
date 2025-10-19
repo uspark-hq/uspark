@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import "../../../src/test/setup";
 import { POST } from "./route";
 import { POST as createProject } from "../projects/route";
+import { GET } from "../shares/route";
 import { apiCall } from "../../../src/test/api-helpers";
 
 // Mock Clerk authentication
@@ -65,7 +66,6 @@ describe("/api/share", () => {
       createdShareIds.push(response.data.id);
 
       // Verify via GET /api/shares
-      const { GET } = await import("../shares/route");
       const sharesResponse = await apiCall(GET, "GET");
       expect(sharesResponse.status).toBe(200);
       const createdShare = sharesResponse.data.shares.find(

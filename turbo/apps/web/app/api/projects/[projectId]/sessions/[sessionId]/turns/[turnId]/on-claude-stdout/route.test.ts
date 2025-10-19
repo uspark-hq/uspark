@@ -12,6 +12,7 @@ import {
   BLOCKS_TBL,
 } from "../../../../../../../../../src/db/schema/sessions";
 import { CLI_TOKENS_TBL } from "../../../../../../../../../src/db/schema/cli-tokens";
+import { PROJECTS_TBL } from "../../../../../../../../../src/db/schema/projects";
 import { eq } from "drizzle-orm";
 
 // Mock Clerk authentication
@@ -706,11 +707,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
   });
 
   it("should update initial scan status on successful result", async () => {
-    // Import needed for this test
-    const { PROJECTS_TBL } = await import(
-      "../../../../../../../../../src/db/schema/projects"
-    );
-
     // Setup CLI auth for this test
     testAuth.setupCliAuth();
 
@@ -812,11 +808,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns/:turnId/on-claude-s
   });
 
   it("should update initial scan status on failed result", async () => {
-    // Import needed for this test
-    const { PROJECTS_TBL } = await import(
-      "../../../../../../../../../src/db/schema/projects"
-    );
-
     // Setup CLI auth for this test
     testAuth.setupCliAuth();
 
