@@ -64,11 +64,9 @@ const internalSetupClickOutside$ = command(
 
 export const setupDropdownClickOutside$ = onRef(internalSetupClickOutside$)
 
-export const setDropdownEl$ = command(
-  ({ set }, el: HTMLDivElement | null) => {
-    set(internalDropdownEl$, el)
-  },
-)
+export const setDropdownEl$ = command(({ set }, el: HTMLDivElement | null) => {
+  set(internalDropdownEl$, el)
+})
 
 export const setButtonEl$ = command(({ set }, el: HTMLButtonElement | null) => {
   set(internalButtonEl$, el)

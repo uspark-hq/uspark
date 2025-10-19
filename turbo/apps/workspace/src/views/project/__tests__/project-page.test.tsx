@@ -299,8 +299,12 @@ describe('projectPage - session selector', () => {
     await waitFor(() => {
       expect(screen.getByRole('menu')).toBeInTheDocument()
     })
-    expect(screen.getByRole('menuitem', { name: /First Session/i })).toBeInTheDocument()
-    expect(screen.getByRole('menuitem', { name: /Untitled Session/i })).toBeInTheDocument()
+    expect(
+      screen.getByRole('menuitem', { name: /First Session/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('menuitem', { name: /Untitled Session/i }),
+    ).toBeInTheDocument()
   })
 
   it('switches session when selecting from dropdown', async () => {

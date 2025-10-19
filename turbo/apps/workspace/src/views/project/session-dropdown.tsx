@@ -86,7 +86,7 @@ export function SessionDropdown({
       {isOpen && (
         <div
           ref={setDropdownEl}
-          className="absolute right-0 top-full z-50 mt-1 min-w-[200px] max-w-[300px] overflow-hidden rounded border border-[#3e3e42] bg-[#252526] shadow-lg"
+          className="absolute top-full right-0 z-50 mt-1 max-w-[300px] min-w-[200px] overflow-hidden rounded border border-[#3e3e42] bg-[#252526] shadow-lg"
           role="menu"
           aria-orientation="vertical"
         >
