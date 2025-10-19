@@ -18,20 +18,16 @@ describe('markdown editor - codemirror integration', () => {
   beforeEach(async () => {
     vi.clearAllMocks()
 
-    await setupProjectPage(
-      `/projects/${projectId}`,
-      context,
-      {
-        projectId,
-        files: [
-          {
-            path: 'README.md',
-            hash: 'md-hash-123',
-            content: markdownContent,
-          },
-        ],
-      },
-    )
+    await setupProjectPage(`/projects/${projectId}`, context, {
+      projectId,
+      files: [
+        {
+          path: 'README.md',
+          hash: 'md-hash-123',
+          content: markdownContent,
+        },
+      ],
+    })
   })
 
   afterEach(() => {

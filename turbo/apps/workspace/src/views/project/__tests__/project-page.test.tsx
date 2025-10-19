@@ -670,8 +670,12 @@ describe('projectPage - turn status display', () => {
     )
 
     // Verify running status shows processing indicator
-    await expect(screen.findByText('Test running status')).resolves.toBeInTheDocument()
-    await expect(screen.findByText('Processing...')).resolves.toBeInTheDocument()
+    await expect(
+      screen.findByText('Test running status'),
+    ).resolves.toBeInTheDocument()
+    await expect(
+      screen.findByText('Processing...'),
+    ).resolves.toBeInTheDocument()
   })
 
   it('handles turn with failed status', async () => {
