@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.55.3](https://github.com/uspark-hq/uspark/compare/web-v0.55.2...web-v0.55.3) (2025-10-19)
+
+
+### Bug Fixes
+
+* **api:** correct interrupt route to use running status ([#623](https://github.com/uspark-hq/uspark/issues/623)) ([cbbd070](https://github.com/uspark-hq/uspark/commit/cbbd07078faae9fe76f30952e4df59426311d38b))
+
 ## [0.55.2](https://github.com/uspark-hq/uspark/compare/web-v0.55.1...web-v0.55.2) (2025-10-19)
 
 
