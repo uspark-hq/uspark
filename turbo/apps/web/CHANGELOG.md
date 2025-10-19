@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.56.2](https://github.com/uspark-hq/uspark/compare/web-v0.56.1...web-v0.56.2) (2025-10-19)
+
+
+### Bug Fixes
+
+* **api:** increase function timeout and add detailed logging for Claude execution ([#635](https://github.com/uspark-hq/uspark/issues/635)) ([62e3afd](https://github.com/uspark-hq/uspark/commit/62e3afdb0043419aaaa6296e6a7f74884040501d))
+
 ## [0.56.1](https://github.com/uspark-hq/uspark/compare/web-v0.56.0...web-v0.56.1) (2025-10-19)
 
 
