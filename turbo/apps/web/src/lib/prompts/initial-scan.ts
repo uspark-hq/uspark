@@ -1,18 +1,10 @@
 /**
  * Initial Repository Scan Prompt Template
- *
- * Generates a prompt that instructs Claude to:
- * 1. Analyze the codebase (already cloned to ~/workspace by sandbox initialization)
- * 2. Generate initial documentation files in ~/workspace/.uspark/
  */
 
-export function generateInitialScanPrompt(
-  repoOwner: string,
-  repoName: string,
-): string {
-  return `You are helping bootstrap a new uSpark project by analyzing an existing codebase.
+const INITIAL_SCAN_PROMPT = `You are helping bootstrap a new uSpark project by analyzing an existing codebase.
 
-**Repository**: ${repoOwner}/${repoName}
+**Repository**: {{repoOwner}}/{{repoName}}
 
 **Step 1: Analyze the codebase**
 
@@ -52,4 +44,13 @@ Create the following files in ~/workspace/.uspark/ directory (they will automati
 The watch-claude process will automatically sync these files to uSpark when you create them.
 
 Please be thorough in your analysis and provide actionable insights.`;
+
+export function generateInitialScanPrompt(
+  repoOwner: string,
+  repoName: string,
+): string {
+  return INITIAL_SCAN_PROMPT.replace("{{repoOwner}}", repoOwner).replace(
+    "{{repoName}}",
+    repoName,
+  );
 }
