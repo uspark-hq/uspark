@@ -89,7 +89,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
           id: `turn_running1_${Date.now()}`,
           sessionId,
           userPrompt: "Running question 1",
-          status: "running",
+          status: "in_progress",
           startedAt: new Date(),
         })
         .returning();
@@ -100,7 +100,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
           id: `turn_running2_${Date.now()}`,
           sessionId,
           userPrompt: "Running question 2",
-          status: "running",
+          status: "in_progress",
           startedAt: new Date(),
         })
         .returning();
@@ -249,7 +249,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
           id: `turn_running_${Date.now()}`,
           sessionId,
           userPrompt: "Running in test session",
-          status: "running",
+          status: "in_progress",
           startedAt: new Date(),
         })
         .returning();
@@ -279,7 +279,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
           id: `turn_other_running_${Date.now()}`,
           sessionId: otherSessionId,
           userPrompt: "Running in other session",
-          status: "running",
+          status: "in_progress",
           startedAt: new Date(),
         })
         .returning();
@@ -306,7 +306,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
         .from(TURNS_TBL)
         .where(eq(TURNS_TBL.id, otherRunningTurn!.id));
 
-      expect(otherTurn!.status).toBe("running");
+      expect(otherTurn!.status).toBe("in_progress");
       expect(otherTurn!.errorMessage).toBeNull();
       expect(otherTurn!.completedAt).toBeNull();
 

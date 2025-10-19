@@ -24,7 +24,7 @@ export const TURNS_TBL = pgTable("turns", {
     .notNull()
     .references(() => SESSIONS_TBL.id, { onDelete: "cascade" }),
   userPrompt: text("user_prompt").notNull(), // User's input message
-  status: text("status").notNull().default("pending"), // pending, running, completed, failed
+  status: text("status").notNull().default("pending"), // pending, in_progress, completed, failed, interrupted
   startedAt: timestamp("started_at"),
   completedAt: timestamp("completed_at"),
   errorMessage: text("error_message"), // Error details if status is failed

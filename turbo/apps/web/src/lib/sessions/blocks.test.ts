@@ -203,7 +203,7 @@ describe("Blocks Database Functions", () => {
       id: turnId,
       sessionId,
       userPrompt: "Test prompt",
-      status: "running",
+      status: "in_progress",
     });
 
     createdBlockIds = [];

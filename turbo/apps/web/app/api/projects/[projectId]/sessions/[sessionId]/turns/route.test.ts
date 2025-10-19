@@ -199,7 +199,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
 
       await globalThis.services.db
         .update(TURNS_TBL)
-        .set({ status: "running", startedAt: new Date() })
+        .set({ status: "in_progress", startedAt: new Date() })
         .where(eq(TURNS_TBL.id, turn2Data.id));
 
       // Add blocks to turn1 (direct DB - no API for blocks yet)
