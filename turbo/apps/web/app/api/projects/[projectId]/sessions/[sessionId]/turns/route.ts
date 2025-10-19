@@ -12,6 +12,7 @@ import { eq, and } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { turnsContract } from "@uspark/core";
 import { ClaudeExecutor } from "../../../../../../../src/lib/claude-executor";
+import { E2BExecutor } from "../../../../../../../src/lib/e2b-executor";
 
 // Extract types from contract
 type CreateTurnResponse = z.infer<
@@ -130,9 +131,6 @@ export async function POST(
 
     // Interrupt E2B session (best-effort, don't fail if it doesn't work)
     try {
-      const { E2BExecutor } = await import(
-        "../../../../../../../src/lib/e2b-executor"
-      );
       await E2BExecutor.interruptSession(sessionId);
     } catch (error) {
       console.error(`Failed to interrupt E2B session ${sessionId}:`, error);

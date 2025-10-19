@@ -2,6 +2,8 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { Readable } from "stream";
 import { http, HttpResponse } from "msw";
 import { server } from "../test/setup";
+import { watchClaudeCommand } from "./watch-claude";
+import { pushAllFiles } from "./shared";
 
 // Mock the shared module
 vi.mock("./shared", () => ({
@@ -78,7 +80,6 @@ describe("watch-claude", () => {
       writable: true,
     });
 
-    const { watchClaudeCommand } = await import("./watch-claude");
     watchClaudeCommand({
       projectId: "test-project-id",
       turnId: "turn_test",
@@ -112,8 +113,6 @@ describe("watch-claude", () => {
   });
 
   it("should batch push files when prefix is specified on close", async () => {
-    const { pushAllFiles } = await import("./shared");
-
     const events = [
       JSON.stringify({
         type: "result",
@@ -130,7 +129,6 @@ describe("watch-claude", () => {
       writable: true,
     });
 
-    const { watchClaudeCommand } = await import("./watch-claude");
     watchClaudeCommand({
       projectId: "test-project-id",
       turnId: "turn_test",
@@ -168,8 +166,6 @@ describe("watch-claude", () => {
   });
 
   it("should not push files when prefix is not specified", async () => {
-    const { pushAllFiles } = await import("./shared");
-
     const events = [
       JSON.stringify({
         type: "result",
@@ -206,8 +202,6 @@ describe("watch-claude", () => {
   });
 
   it("should handle empty directory gracefully", async () => {
-    const { pushAllFiles } = await import("./shared");
-
     // Mock pushAllFiles to return 0 (no files)
     vi.mocked(pushAllFiles).mockResolvedValueOnce(0);
 
@@ -227,7 +221,6 @@ describe("watch-claude", () => {
       writable: true,
     });
 
-    const { watchClaudeCommand } = await import("./watch-claude");
     watchClaudeCommand({
       projectId: "test-project-id",
       turnId: "turn_test",
@@ -255,8 +248,6 @@ describe("watch-claude", () => {
   });
 
   it("should wait for pending callbacks before pushing files", async () => {
-    const { pushAllFiles } = await import("./shared");
-
     const events = [
       JSON.stringify({
         type: "assistant",
@@ -277,7 +268,6 @@ describe("watch-claude", () => {
       writable: true,
     });
 
-    const { watchClaudeCommand } = await import("./watch-claude");
     watchClaudeCommand({
       projectId: "test-project-id",
       turnId: "turn_test",

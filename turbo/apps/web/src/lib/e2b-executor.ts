@@ -1,4 +1,5 @@
 import { Sandbox, SandboxPaginator, SandboxInfo } from "e2b";
+import { randomBytes } from "crypto";
 import { initServices } from "./init-services";
 import { CLI_TOKENS_TBL } from "../db/schema/cli-tokens";
 import { PROJECTS_TBL } from "../db/schema/projects";
@@ -39,8 +40,8 @@ export class E2BExecutor {
     await this.cleanupExpiredTokens(userId);
 
     // Generate secure token same as regular CLI tokens
-    const randomBytes = await import("crypto").then((m) => m.randomBytes(32));
-    const token = `usp_live_${randomBytes.toString("base64url")}`;
+    const randomBytesValue = randomBytes(32);
+    const token = `usp_live_${randomBytesValue.toString("base64url")}`;
 
     // Store token in database with 2 hour expiration (longer than sandbox timeout)
     const now = new Date();

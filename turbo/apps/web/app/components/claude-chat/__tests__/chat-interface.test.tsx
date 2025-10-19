@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { ChatInterface } from "../chat-interface";
+import { useSessionPolling } from "../use-session-polling";
 
 // Mock the useSessionPolling hook
 vi.mock("../use-session-polling", () => ({
@@ -35,10 +36,6 @@ describe("ChatInterface", () => {
   });
 
   it("displays turns when they exist", async () => {
-    // First, we need to update MSW handler to return an existing session
-    // We'll use dynamic imports to modify the mock
-    const { useSessionPolling } = await import("../use-session-polling");
-
     // Mock useSessionPolling to return turns after session is selected
     vi.mocked(useSessionPolling).mockImplementation((projectId, sessionId) => {
       if (sessionId) {

@@ -9,7 +9,7 @@ import {
 import { initServices } from "../init-services";
 import { githubInstallations, githubRepos } from "../../db/schema/github";
 import { eq } from "drizzle-orm";
-import { getInstallationDetails } from "./client";
+import { getInstallationDetails, createInstallationOctokit } from "./client";
 
 // Mock the client module - we still need to mock external APIs
 vi.mock("./client", () => ({
@@ -172,8 +172,6 @@ describe("GitHub Repository", () => {
 
   describe("createProjectRepository", () => {
     it("should create a new repository for a project", async () => {
-      const { createInstallationOctokit } = await import("./client");
-
       // Mock GitHub API responses
       const mockOctokit = {
         request: vi.fn().mockResolvedValue({
@@ -247,8 +245,6 @@ describe("GitHub Repository", () => {
 
   describe("getUserRepositories", () => {
     it("should return repositories from all user installations", async () => {
-      const { createInstallationOctokit } = await import("./client");
-
       // Create multiple installations for user
       const db = globalThis.services.db;
       await db.insert(githubInstallations).values([
@@ -345,8 +341,6 @@ describe("GitHub Repository", () => {
     });
 
     it("should return empty array when installations have no repositories", async () => {
-      const { createInstallationOctokit } = await import("./client");
-
       // Create installation with no repositories
       const db = globalThis.services.db;
       await db.insert(githubInstallations).values({

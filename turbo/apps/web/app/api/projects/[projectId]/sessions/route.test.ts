@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from "vitest";
 import "../../../../../src/test/setup";
 import { GET, POST } from "./route";
 import { POST as createProject } from "../../route";
-import { apiCall } from "../../../../../src/test/api-helpers";
+import { apiCall, apiCallWithQuery } from "../../../../../src/test/api-helpers";
 
 // Mock Clerk authentication
 vi.mock("@clerk/nextjs/server", () => ({
@@ -135,9 +135,6 @@ describe("/api/projects/:projectId/sessions", () => {
       }
 
       // Test limit
-      const { apiCallWithQuery } = await import(
-        "../../../../../src/test/api-helpers"
-      );
       const response1 = await apiCallWithQuery(
         GET,
         { projectId },
