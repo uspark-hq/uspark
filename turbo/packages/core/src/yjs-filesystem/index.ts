@@ -26,7 +26,3 @@ export type {
   YjsFileSystem,
   YjsBlobConfig,
 } from "./types";
-
-// Export FileSystem and ProjectSync for CLI and MCP server
-export { FileSystem } from "./filesystem";
-export { ProjectSync } from "./project-sync";

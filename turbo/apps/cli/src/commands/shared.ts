@@ -1,6 +1,6 @@
 import chalk from "chalk";
 import { getToken, getApiUrl } from "../config";
-import { ProjectSync } from "@uspark/core/yjs-filesystem";
+import { ProjectSync } from "@uspark/core/yjs-filesystem/project-sync";
 import { readdir } from "fs/promises";
 import { join } from "path";
 

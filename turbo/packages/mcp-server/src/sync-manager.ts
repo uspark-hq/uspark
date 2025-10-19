@@ -1,5 +1,5 @@
 import type { UsparkConfig } from "./config.js";
-import { ProjectSync } from "@uspark/core/yjs-filesystem";
+import { ProjectSync } from "@uspark/core/yjs-filesystem/project-sync";
 
 /**
  * Manages periodic synchronization of the uSpark project
