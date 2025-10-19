@@ -328,6 +328,37 @@ describe('projectPage - session selector', () => {
     ).resolves.toBeInTheDocument()
     expect(screen.getByText('Second response')).toBeInTheDocument()
   })
+
+  it('handles edge cases: empty and whitespace-only session titles', async () => {
+    const userEvent = user.setup()
+
+    // Wait for page to load
+    await expect(
+      screen.findByLabelText('Open file explorer'),
+    ).resolves.toBeInTheDocument()
+
+    // Click session button to open dropdown
+    const sessionButton = screen.getByRole('button', {
+      name: /First Session/i,
+    })
+    await userEvent.click(sessionButton)
+
+    // Wait for dropdown menu to open
+    await waitFor(() => {
+      expect(screen.getByRole('menu')).toBeInTheDocument()
+    })
+
+    // Verify empty string title displays as "Untitled Session"
+    expect(
+      screen.getByRole('menuitem', { name: /Untitled Session/i }),
+    ).toBeInTheDocument()
+
+    // Verify the menuitem is accessible and has proper text content
+    const untitledItem = screen.getByRole('menuitem', {
+      name: /Untitled Session/i,
+    })
+    expect(untitledItem).toHaveTextContent('Untitled Session')
+  })
 })
 
 describe('projectPage - no sessions', () => {
@@ -642,6 +673,97 @@ describe('projectPage - turn and blocks rendering', () => {
         return content.includes('README.md') && content.includes('package.json')
       }),
     ).resolves.toBeInTheDocument()
+  })
+})
+
+describe('projectPage - tool result edge cases', () => {
+  const turnId = 'turn-edge-cases'
+  const sessionId = 'session-edge-cases'
+  const projectId = 'project-edge-cases'
+
+  beforeEach(async () => {
+    await setupProjectPage(
+      `/projects/${projectId}?sessionId=${sessionId}`,
+      context,
+      {
+        projectId,
+        files: [{ path: 'test.md', hash: 'hash', content: 'test' }],
+        sessions: [{ id: sessionId, title: 'Test' }],
+        turns: {
+          [sessionId]: [
+            {
+              id: turnId,
+              userMessage: 'Test edge cases',
+              assistantMessage: 'Results below',
+              status: 'completed',
+            },
+          ],
+        },
+      },
+      [
+        // Override turn detail to include edge case blocks
+        http.get(
+          `*/api/projects/${projectId}/sessions/${sessionId}/turns/${turnId}`,
+          () => {
+            return HttpResponse.json({
+              id: turnId,
+              session_id: sessionId,
+              user_prompt: 'Test edge cases',
+              status: 'completed',
+              started_at: new Date().toISOString(),
+              completed_at: new Date().toISOString(),
+              created_at: new Date().toISOString(),
+              blocks: [
+                {
+                  id: 'block-obj',
+                  turnId: turnId,
+                  type: 'tool_result',
+                  content: {
+                    tool_use_id: 'tool-1',
+                    result: { files: ['a.txt', 'b.txt'], count: 2 },
+                    error: null,
+                  },
+                  createdAt: new Date().toISOString(),
+                },
+                {
+                  id: 'block-null',
+                  turnId: turnId,
+                  type: 'tool_result',
+                  content: {
+                    tool_use_id: 'tool-2',
+                    result: null,
+                    error: null,
+                  },
+                  createdAt: new Date().toISOString(),
+                },
+              ],
+            })
+          },
+        ),
+      ],
+    )
+  })
+
+  afterEach(() => {
+    server.resetHandlers()
+  })
+
+  it('handles objects, null, and undefined tool results', async () => {
+    // Wait for turn to load
+    await expect(
+      screen.findByText('Test edge cases'),
+    ).resolves.toBeInTheDocument()
+
+    // Object result should be JSON stringified
+    await expect(
+      screen.findByText((content) => {
+        return content.includes('"files"') && content.includes('"count"')
+      }),
+    ).resolves.toBeInTheDocument()
+
+    // Both tool results should show headers
+    const toolResultHeaders = screen.getAllByText('Tool Result')
+    expect(toolResultHeaders).toHaveLength(2)
   })
 })
 

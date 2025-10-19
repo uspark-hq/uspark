@@ -86,9 +86,26 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
       const content = block.content as BlockContent
       const resultData = typeof content === 'object' ? content : {}
       const hasError = 'error' in resultData && Boolean(resultData.error)
+
+      // Format result/error value for display
+      const formatValue = (value: unknown): string | undefined => {
+        if (value === null || value === undefined) {
+          return undefined
+        }
+        if (typeof value === 'string') {
+          return value
+        }
+        if (typeof value === 'object') {
+          return JSON.stringify(value, null, 2)
+        }
+        // At this point, value is a primitive (number, boolean, etc.)
+        // eslint-disable-next-line @typescript-eslint/no-base-to-string -- Safe for primitives
+        return String(value)
+      }
+
       const resultText = hasError
-        ? 'error' in resultData && String(resultData.error)
-        : 'result' in resultData && String(resultData.result)
+        ? formatValue(resultData.error)
+        : formatValue(resultData.result)
 
       return (
         <div
