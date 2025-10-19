@@ -147,8 +147,8 @@ export class ProjectSync {
       throw new Error(`Failed to get store ID: ${response.statusText}`);
     }
 
-    const { storeId } = (await response.json()) as { storeId: string };
-    return storeId;
+    const { store_id } = (await response.json()) as { store_id: string };
+    return store_id;
   }
 
   private getPublicBlobUrl(
