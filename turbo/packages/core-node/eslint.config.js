@@ -1,3 +1,3 @@
-import baseConfig from "@uspark/eslint-config/base.js";
+import { config } from "@uspark/eslint-config/base";
 
-export default [...baseConfig];
+export default [...config];
