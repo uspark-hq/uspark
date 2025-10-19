@@ -100,6 +100,46 @@ export async function POST(
 
   const { user_message } = parseResult.data;
 
+  // Cancel any running turns in this session before creating a new one
+  const runningTurns = await globalThis.services.db
+    .select({ id: TURNS_TBL.id })
+    .from(TURNS_TBL)
+    .where(
+      and(eq(TURNS_TBL.sessionId, sessionId), eq(TURNS_TBL.status, "running")),
+    );
+
+  if (runningTurns.length > 0) {
+    console.log(
+      `Cancelling ${runningTurns.length} running turn(s) in session ${sessionId}`,
+    );
+
+    // Update running turns to cancelled
+    await globalThis.services.db
+      .update(TURNS_TBL)
+      .set({
+        status: "cancelled",
+        completedAt: new Date(),
+        errorMessage: "Cancelled by new turn",
+      })
+      .where(
+        and(
+          eq(TURNS_TBL.sessionId, sessionId),
+          eq(TURNS_TBL.status, "running"),
+        ),
+      );
+
+    // Interrupt E2B session (best-effort, don't fail if it doesn't work)
+    try {
+      const { E2BExecutor } = await import(
+        "../../../../../../../src/lib/e2b-executor"
+      );
+      await E2BExecutor.interruptSession(sessionId);
+    } catch (error) {
+      console.error(`Failed to interrupt E2B session ${sessionId}:`, error);
+      // Continue anyway - the turns are already marked as cancelled
+    }
+  }
+
   // Create new turn
   const turnId = `turn_${randomUUID()}`;
   const result = await globalThis.services.db
@@ -108,7 +148,7 @@ export async function POST(
       id: turnId,
       sessionId,
       userPrompt: user_message,
-      status: "pending",
+      status: "running",
     })
     .returning();
 
@@ -137,11 +177,11 @@ export async function POST(
     session_id: newTurn.sessionId,
     user_message: newTurn.userPrompt,
     status: newTurn.status as
-      | "pending"
-      | "in_progress"
+      | "running"
       | "completed"
       | "failed"
-      | "interrupted",
+      | "interrupted"
+      | "cancelled",
     created_at: newTurn.createdAt.toISOString(),
   };
 
@@ -227,7 +267,6 @@ export async function GET(
       id: TURNS_TBL.id,
       user_prompt: TURNS_TBL.userPrompt,
       status: TURNS_TBL.status,
-      started_at: TURNS_TBL.startedAt,
       completed_at: TURNS_TBL.completedAt,
       created_at: TURNS_TBL.createdAt,
     })
@@ -267,12 +306,11 @@ export async function GET(
       id: t.id,
       user_prompt: t.user_prompt,
       status: t.status as
-        | "pending"
-        | "in_progress"
+        | "running"
         | "completed"
         | "failed"
-        | "interrupted",
-      started_at: t.started_at ? t.started_at.toISOString() : null,
+        | "interrupted"
+        | "cancelled",
       completed_at: t.completed_at ? t.completed_at.toISOString() : null,
       created_at: t.created_at.toISOString(),
       block_count: t.block_count,

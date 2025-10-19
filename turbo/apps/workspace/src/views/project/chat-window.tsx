@@ -74,7 +74,13 @@ export function ChatWindow() {
 
             <div className="space-y-3">
               {turns && turns.length > 0 ? (
-                turns.map((turn) => <TurnDisplay key={turn.id} turn={turn} />)
+                turns.map((turn, index) => (
+                  <TurnDisplay
+                    key={turn.id}
+                    turn={turn}
+                    isLastTurn={index === turns.length - 1}
+                  />
+                ))
               ) : (
                 <div className="py-12 text-center text-[13px] text-[#969696]">
                   <div className="mb-2 text-3xl">✨</div>

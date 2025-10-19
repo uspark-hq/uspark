@@ -3,11 +3,11 @@ import { initContract } from "@ts-rest/core";
 
 // Turn status enum
 export const TurnStatusSchema = z.enum([
-  "pending",
-  "in_progress",
+  "running", // Replaces both "pending" and "in_progress"
   "completed",
   "failed",
   "interrupted",
+  "cancelled", // Set when a new turn is created, cancelling the previous one
 ]);
 export type TurnStatus = z.infer<typeof TurnStatusSchema>;
 
@@ -17,7 +17,6 @@ export const TurnSchema = z.object({
   sessionId: z.string().startsWith("sess_"),
   userPrompt: z.string(),
   status: TurnStatusSchema,
-  startedAt: z.date().or(z.string()).nullable(),
   completedAt: z.date().or(z.string()).nullable(),
   createdAt: z.date().or(z.string()),
 });
@@ -62,7 +61,6 @@ export const TurnWithBlocksSchema = z.object({
   id: z.string().startsWith("turn_"),
   user_prompt: z.string(),
   status: TurnStatusSchema,
-  started_at: z.date().or(z.string()).nullable(),
   completed_at: z.date().or(z.string()).nullable(),
   created_at: z.date().or(z.string()),
   block_count: z.number(),
@@ -83,7 +81,6 @@ export const GetTurnResponseSchema = z.object({
   session_id: z.string().startsWith("sess_"),
   user_prompt: z.string(),
   status: TurnStatusSchema,
-  started_at: z.date().or(z.string()).nullable(),
   completed_at: z.date().or(z.string()).nullable(),
   created_at: z.date().or(z.string()),
   blocks: z.array(BlockSchema),
@@ -200,6 +197,7 @@ export const turnsContract = c.router({
       200: OnClaudeStdoutResponseSchema,
       401: TurnErrorResponseSchema,
       404: TurnErrorResponseSchema,
+      409: TurnErrorResponseSchema, // Turn already completed/cancelled
       500: TurnErrorResponseSchema,
     },
     summary: "Receive Claude stdout from watch-claude (CLI token auth)",

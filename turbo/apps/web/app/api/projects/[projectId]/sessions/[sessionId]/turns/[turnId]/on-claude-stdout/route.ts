@@ -96,6 +96,15 @@ export async function POST(
     return NextResponse.json(error, { status: 404 });
   }
 
+  // Reject stdout if turn is not running (already completed/cancelled/etc)
+  if (turn.status !== "running") {
+    const error: TurnErrorResponse = {
+      error: "turn_not_running",
+      error_description: `Cannot accept stdout for turn with status: ${turn.status}`,
+    };
+    return NextResponse.json(error, { status: 409 });
+  }
+
   // Parse and validate request body
   const body = await request.json();
   const parseResult = turnsContract.onClaudeStdout.body.safeParse(body);

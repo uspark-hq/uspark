@@ -6,6 +6,7 @@ import {
   blobStore$,
   createSession$,
   getFileContentUrl,
+  interruptSession$,
   lastBlockId,
   projectFiles,
   projectSessions,
@@ -276,6 +277,30 @@ export const sendChatMessage$ = command(
   },
 )
 
+export const interruptCurrentTurn$ = command(
+  async ({ get, set }, signal: AbortSignal) => {
+    const projectId = get(projectId$)
+    const session = await get(selectedSession$)
+    signal.throwIfAborted()
+
+    if (!projectId || !session) {
+      return
+    }
+
+    await set(
+      interruptSession$,
+      {
+        projectId,
+        sessionId: session.id,
+      },
+      signal,
+    )
+
+    // Reload turns to reflect the cancelled state
+    set(internalReloadTurn$, (x) => x + 1)
+  },
+)
+
 export const currentLastBlockId$ = computed(async (get) => {
   const turns = await get(turns$)
   if (!turns || turns.length === 0) {
@@ -292,15 +317,26 @@ export const currentLastBlockId$ = computed(async (get) => {
   return null
 })
 
+const lastTurn$ = computed(async (get) => {
+  const turns = await get(turns$)
+  if (!turns || turns.length === 0) {
+    return undefined
+  }
+  return turns[turns.length - 1]
+})
+
+export const lastTurnStatus$ = computed(async (get) => {
+  const lastTurn = await get(lastTurn$)
+  return lastTurn?.status
+})
+
 export const hasActiveTurns$ = computed(async (get) => {
   const turns = await get(turns$)
   if (!turns) {
     return false
   }
 
-  return turns.some(
-    (turn) => turn.status === 'pending' || turn.status === 'in_progress',
-  )
+  return turns.some((turn) => turn.status === 'running')
 })
 
 const pollingInterval$ = computed(async (get) => {

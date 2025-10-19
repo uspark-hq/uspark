@@ -90,7 +90,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
           sessionId,
           userPrompt: "Running question 1",
           status: "running",
-          startedAt: new Date(),
         })
         .returning();
 
@@ -101,7 +100,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
           sessionId,
           userPrompt: "Running question 2",
           status: "running",
-          startedAt: new Date(),
         })
         .returning();
 
@@ -112,7 +110,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
           sessionId,
           userPrompt: "Completed question",
           status: "completed",
-          startedAt: new Date(),
           completedAt: new Date(),
         })
         .returning();
@@ -194,7 +191,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
           sessionId,
           userPrompt: "Completed question",
           status: "completed",
-          startedAt: new Date(),
           completedAt: new Date(),
         })
         .returning();
@@ -250,7 +246,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
           sessionId,
           userPrompt: "Running in test session",
           status: "running",
-          startedAt: new Date(),
         })
         .returning();
 
@@ -280,7 +275,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
           sessionId: otherSessionId,
           userPrompt: "Running in other session",
           status: "running",
-          startedAt: new Date(),
         })
         .returning();
 
