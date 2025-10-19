@@ -23,8 +23,8 @@ interface ExecutionResult {
 }
 
 export class E2BExecutor {
-  private static readonly SANDBOX_TIMEOUT = 1800; // 30 minutes
-  private static readonly TEMPLATE_ID = "w6qe4mwx23icyuytq64y"; // uSpark Claude template
+  private static readonly SANDBOX_TIMEOUT = 1800;
+  private static readonly TEMPLATE_ID = "w6qe4mwx23icyuytq64y";
 
   /**
    * Generate a temporary CLI token for E2B sandbox
@@ -89,8 +89,6 @@ export class E2BExecutor {
   }> {
     initServices();
 
-    // Get project information first (needed for both new and reconnected sandboxes)
-    // Check if we're in development mode by checking if dev token is configured
     const isDevelopment = !!env().USPARK_TOKEN_FOR_DEV;
     const effectiveProjectId = isDevelopment
       ? env().PROJECT_ID_FOR_DEV!
@@ -107,22 +105,19 @@ export class E2BExecutor {
 
     const project = projects[0];
 
-    // 1. Try to find existing sandbox
     const paginator: SandboxPaginator = await Sandbox.list();
-    const sandboxes: SandboxInfo[] = await paginator.nextItems(); // Get first page of sandboxes
+    const sandboxes: SandboxInfo[] = await paginator.nextItems();
     const existingSandbox = sandboxes.find(
       (s: SandboxInfo) => s.metadata?.sessionId === sessionId,
     );
 
     if (existingSandbox) {
       try {
-        // 2. Reconnect to existing sandbox
         const sandbox = await Sandbox.connect(existingSandbox.sandboxId);
         console.log(
           `Reconnected to sandbox ${existingSandbox.sandboxId} for session ${sessionId}`,
         );
 
-        // Extend timeout on reconnection
         await sandbox.setTimeout(this.SANDBOX_TIMEOUT * 1000);
 
         return {
