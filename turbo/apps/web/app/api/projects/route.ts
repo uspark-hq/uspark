@@ -165,12 +165,12 @@ export async function POST(request: NextRequest) {
   }
 
   // Trigger initial scan if source repo is provided
-  if (sourceRepoUrl && installationId) {
+  if (sourceRepoUrl) {
     await InitialScanExecutor.startScan(
       projectId,
       sourceRepoUrl,
-      installationId,
       userId,
+      installationId || null,
     );
   }
 

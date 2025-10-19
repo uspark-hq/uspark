@@ -62,8 +62,8 @@ describe("InitialScanExecutor", () => {
       const result = await InitialScanExecutor.startScan(
         testProjectId,
         testSourceRepoUrl,
-        testInstallationId,
         testUserId,
+        testInstallationId,
       );
 
       expect(result).toMatchObject({
@@ -115,8 +115,8 @@ describe("InitialScanExecutor", () => {
       await InitialScanExecutor.startScan(
         testProjectId,
         testSourceRepoUrl,
-        testInstallationId,
         testUserId,
+        testInstallationId,
       );
 
       // Verify project status updated
@@ -145,8 +145,8 @@ describe("InitialScanExecutor", () => {
       const result = await InitialScanExecutor.startScan(
         testProjectId,
         testSourceRepoUrl,
-        testInstallationId,
         testUserId,
+        testInstallationId,
       );
 
       // Verify session and turn were created
@@ -169,8 +169,8 @@ describe("InitialScanExecutor", () => {
         InitialScanExecutor.startScan(
           testProjectId,
           "invalid-url",
-          testInstallationId,
           testUserId,
+          testInstallationId,
         ),
       ).rejects.toThrow("Invalid repository URL format");
     });
@@ -195,8 +195,8 @@ describe("InitialScanExecutor", () => {
         InitialScanExecutor.startScan(
           testProjectId,
           testSourceRepoUrl,
-          testInstallationId,
           testUserId,
+          testInstallationId,
         ),
       ).rejects.toThrow("Invalid installation");
 
@@ -208,6 +208,43 @@ describe("InitialScanExecutor", () => {
 
       expect(project?.initialScanSessionId).toMatch(/^sess_/);
       expect(project?.initialScanStatus).toBe("running");
+    });
+
+    it("should work for public repos without installationId", async () => {
+      // Create project first
+      const db = globalThis.services.db;
+      await db.insert(PROJECTS_TBL).values({
+        id: testProjectId,
+        name: `Test Project ${Date.now()}`,
+        userId: testUserId,
+        ydocData: "test-data",
+        version: 0,
+      });
+
+      const result = await InitialScanExecutor.startScan(
+        testProjectId,
+        testSourceRepoUrl,
+        testUserId,
+        null, // No installation ID for public repos
+      );
+
+      expect(result).toMatchObject({
+        sessionId: expect.stringMatching(/^sess_/),
+        turnId: expect.stringMatching(/^turn_/),
+      });
+
+      // Verify ClaudeExecutor was called without GITHUB_TOKEN
+      expect(ClaudeExecutor.execute).toHaveBeenCalledWith(
+        result.turnId,
+        result.sessionId,
+        testProjectId,
+        expect.any(String),
+        testUserId,
+        undefined, // No extra envs for public repos
+      );
+
+      // Verify getInstallationToken was NOT called
+      expect(getInstallationToken).not.toHaveBeenCalled();
     });
   });
 

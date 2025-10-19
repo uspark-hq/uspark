@@ -270,6 +270,39 @@ describe("/api/projects", () => {
       createdProjectIds.push(response.data.id);
     });
 
+    it("should create project with public repository (no installationId)", async () => {
+      const projectName = `test-project-public-repo-${Date.now()}`;
+      const sourceRepoUrl = "owner/public-repo";
+
+      // Mock scan start for public repo
+      mockStartScan.mockResolvedValue({
+        sessionId: "sess_test_456",
+        turnId: "turn_test_456",
+      });
+
+      const response = await apiCall(
+        POST,
+        "POST",
+        {},
+        {
+          name: projectName,
+          sourceRepoUrl,
+          // No installationId for public repos
+        },
+      );
+
+      expect(response.data).toHaveProperty("id");
+      createdProjectIds.push(response.data.id);
+
+      // Verify scan was triggered for public repo
+      expect(mockStartScan).toHaveBeenCalledWith(
+        response.data.id,
+        sourceRepoUrl,
+        userId,
+        null, // No installationId for public repos
+      );
+    });
+
     it("should validate source repo parameters", async () => {
       const projectName = `test-project-invalid-${Date.now()}`;
 
@@ -284,7 +317,7 @@ describe("/api/projects", () => {
         },
       );
 
-      // Project should be created without scan
+      // Project should be created and scan triggered for public repo
       expect(response.data).toHaveProperty("id");
     });
   });
