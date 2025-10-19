@@ -46,15 +46,14 @@ const mockRepositories = [
 ];
 
 // Setup MSW server
-// Note: Currently has unhandled request warnings - tracked in spec/tech-debt.md
 const server = setupServer(
-  http.get("http://localhost:3000/api/github/repositories", () => {
+  http.get("*/api/github/repositories", () => {
     return HttpResponse.json({ repositories: mockRepositories });
   }),
 );
 
 beforeAll(() => {
-  server.listen({ onUnhandledRequest: "bypass" });
+  server.listen({ onUnhandledRequest: "error" });
 });
 
 afterEach(() => {
