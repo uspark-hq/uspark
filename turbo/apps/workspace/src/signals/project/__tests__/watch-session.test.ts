@@ -88,7 +88,7 @@ describe('session watching', () => {
       expect(result).toBeFalsy()
     })
 
-    it('should return true when there are pending turns', async () => {
+    it('should return true when there are running turns', async () => {
       await setupProjectPage(
         `/projects/${mockProjectId}?sessionId=${mockSessionId}`,
         context,
@@ -101,7 +101,7 @@ describe('session watching', () => {
               {
                 id: 'turn_1',
                 userMessage: 'test',
-                status: 'pending',
+                status: 'running',
               },
             ],
           },
@@ -112,7 +112,7 @@ describe('session watching', () => {
       expect(result).toBeTruthy()
     })
 
-    it('should return true when there are in_progress turns', async () => {
+    it('should return true when there are multiple running turns', async () => {
       await setupProjectPage(
         `/projects/${mockProjectId}?sessionId=${mockSessionId}`,
         context,
@@ -126,7 +126,7 @@ describe('session watching', () => {
                 id: 'turn_1',
                 userMessage: 'test',
                 assistantMessage: 'processing...',
-                status: 'in_progress',
+                status: 'running',
               },
             ],
           },
@@ -178,7 +178,7 @@ describe('session watching', () => {
                 id: 'turn_1',
                 userMessage: 'test',
                 assistantMessage: 'response',
-                status: 'in_progress',
+                status: 'running',
               },
             ],
           },
