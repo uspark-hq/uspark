@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.55.1](https://github.com/uspark-hq/uspark/compare/web-v0.55.0...web-v0.55.1) (2025-10-19)
+
+
+### Bug Fixes
+
+* **e2b:** capture claude cli stderr and ensure correct working directory ([#616](https://github.com/uspark-hq/uspark/issues/616)) ([e70fb70](https://github.com/uspark-hq/uspark/commit/e70fb7095b55b5f38482ba0c047609ef911ec948))
+
 ## [0.55.0](https://github.com/uspark-hq/uspark/compare/web-v0.54.0...web-v0.55.0) (2025-10-19)
 
 
