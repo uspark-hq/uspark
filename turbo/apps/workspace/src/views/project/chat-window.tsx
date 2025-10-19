@@ -7,6 +7,7 @@ import {
   turns$,
 } from '../../signals/project/project'
 import { ChatInput } from './chat-input'
+import { SessionDropdown } from './session-dropdown'
 import { TurnDisplay } from './turn-display'
 
 export function ChatWindow() {
@@ -23,22 +24,11 @@ export function ChatWindow() {
           Assistant
         </div>
         {projectSessions && projectSessions.sessions.length > 0 && (
-          <select
-            value={selectedSession?.id ?? ''}
-            onChange={(e) => {
-              if (e.target.value) {
-                handleSelectSession(e.target.value)
-              }
-            }}
-            className="rounded border border-[#3e3e42] bg-[#3c3c3c] px-2 py-0.5 text-[11px] text-[#cccccc] transition-colors hover:bg-[#505050] focus:border-[#007acc] focus:outline-none"
-          >
-            <option value="">Select session</option>
-            {projectSessions.sessions.map((session) => (
-              <option key={session.id} value={session.id}>
-                {session.title ?? 'Untitled Session'}
-              </option>
-            ))}
-          </select>
+          <SessionDropdown
+            sessions={projectSessions.sessions}
+            selectedSessionId={selectedSession?.id}
+            onSelectSession={handleSelectSession}
+          />
         )}
       </div>
 

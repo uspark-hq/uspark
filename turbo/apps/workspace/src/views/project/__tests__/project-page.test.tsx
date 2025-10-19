@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import user from '@testing-library/user-event'
 import { http, HttpResponse } from 'msw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
@@ -258,18 +258,32 @@ describe('projectPage - session selector', () => {
   })
 
   it('displays session selector with multiple sessions', async () => {
+    const userEvent = user.setup()
+
     // Wait for page to load
     await expect(
       screen.findByLabelText('Open file explorer'),
     ).resolves.toBeInTheDocument()
 
-    // Find session selector
-    const sessionSelector = screen.getByRole('combobox')
-    expect(sessionSelector).toBeInTheDocument()
+    // Find session selector button (displays selected session title)
+    const sessionButton = screen.getByRole('button', {
+      name: /First Session/i,
+    })
+    expect(sessionButton).toBeInTheDocument()
+    expect(sessionButton).toHaveAttribute('aria-haspopup', 'true')
 
-    // Verify session titles appear in the selector (use within to scope to select element)
+    // Click to open dropdown
+    await userEvent.click(sessionButton)
+
+    // Verify both sessions appear in the dropdown menu
+    await waitFor(() => {
+      expect(screen.getByRole('menu')).toBeInTheDocument()
+    })
     expect(
-      within(sessionSelector).getByText('First Session'),
+      screen.getByRole('menuitem', { name: /First Session/i }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('menuitem', { name: /Untitled Session/i }),
     ).toBeInTheDocument()
   })
 
@@ -287,9 +301,22 @@ describe('projectPage - session selector', () => {
     ).resolves.toBeInTheDocument()
     expect(screen.getByText('First response')).toBeInTheDocument()
 
-    // Select second session from dropdown
-    const sessionSelector = screen.getByRole('combobox')
-    await userEvent.selectOptions(sessionSelector, session2Id)
+    // Click session button to open dropdown
+    const sessionButton = screen.getByRole('button', {
+      name: /First Session/i,
+    })
+    await userEvent.click(sessionButton)
+
+    // Wait for dropdown menu to open
+    await waitFor(() => {
+      expect(screen.getByRole('menu')).toBeInTheDocument()
+    })
+
+    // Click on second session (Untitled Session)
+    const secondSessionItem = screen.getByRole('menuitem', {
+      name: /Untitled Session/i,
+    })
+    await userEvent.click(secondSessionItem)
 
     // Wait for second session content to load
     await waitFor(() => {
@@ -330,8 +357,10 @@ describe('projectPage - no sessions', () => {
       screen.findByLabelText('Open file explorer'),
     ).resolves.toBeInTheDocument()
 
-    // Session selector should not exist
-    expect(screen.queryByRole('combobox')).not.toBeInTheDocument()
+    // Session selector button should not exist (only shown when sessions > 0)
+    expect(
+      screen.queryByRole('button', { name: /Select session/i }),
+    ).not.toBeInTheDocument()
 
     // Should show "no sessions" message
     expect(screen.getByText(/No sessions yet/)).toBeInTheDocument()
