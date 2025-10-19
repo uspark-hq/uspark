@@ -132,13 +132,7 @@ export async function POST(
         ),
       );
 
-    // Interrupt E2B session (best-effort, don't fail if it doesn't work)
-    try {
-      await E2BExecutor.interruptSession(sessionId);
-    } catch (error) {
-      console.error(`Failed to interrupt E2B session ${sessionId}:`, error);
-      // Continue anyway - the turns are already marked as cancelled
-    }
+    await E2BExecutor.interruptSession(sessionId);
   }
 
   // Create new turn
@@ -162,16 +156,13 @@ export async function POST(
     return NextResponse.json(error, { status: 500 });
   }
 
-  // Trigger real Claude execution asynchronously (don't wait for it)
-  ClaudeExecutor.execute(
+  await ClaudeExecutor.execute(
     turnId,
     sessionId,
     projectId,
     user_message,
     userId,
-  ).catch((err) => {
-    console.error("Failed to execute Claude:", err);
-  });
+  );
 
   const response: CreateTurnResponse = {
     id: newTurn.id,
