@@ -430,7 +430,7 @@ describe("NewProjectPage", () => {
     });
   });
 
-  it("should redirect to workspace for public repo without installation", async () => {
+  it("should redirect to init page for public repo to show scan progress", async () => {
     const user = userEvent.setup();
 
     // Mock window.location
@@ -471,13 +471,12 @@ describe("NewProjectPage", () => {
       expect(screen.getByText(/You'?re All Set!/i)).toBeInTheDocument();
     });
 
-    // Start scanning - should redirect to workspace (not init page)
+    // Start scanning - should redirect to init page (same as installed repos)
     await user.click(screen.getByRole("button", { name: /Start Scanning/i }));
 
-    // Should redirect to workspace
+    // Should redirect to init page for scan progress
     await waitFor(() => {
-      expect(window.location.href).toContain("/projects/project-123");
-      expect(window.location.href).not.toContain("/init");
+      expect(window.location.href).toBe("/projects/project-123/init");
     });
   });
 });

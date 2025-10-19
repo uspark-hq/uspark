@@ -108,14 +108,8 @@ export default function NewProjectPage() {
       return;
     }
 
-    // For GitHub projects with installation, redirect to init page to show scan progress
-    if (selectedRepo?.type === "installed") {
-      window.location.href = `/projects/${data.id}/init`;
-      return;
-    }
-
-    // For public repos (no scan), go directly to workspace
-    navigateToProject(data.id);
+    // For GitHub projects (both installed and public), redirect to init page to show scan progress
+    window.location.href = `/projects/${data.id}/init`;
   };
 
   return (
