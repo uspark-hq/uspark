@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.20.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.19.0...workspace-v1.20.0) (2025-10-19)
+
+
+### Features
+
+* **workspace:** add session dropdown menu with VS Code theme styling ([#607](https://github.com/uspark-hq/uspark/issues/607)) ([13c5417](https://github.com/uspark-hq/uspark/commit/13c541797a731aca61da200c27cfa02e12e6ef10))
+
+
+### Bug Fixes
+
+* **workspace:** handle empty string titles in session dropdown ([#613](https://github.com/uspark-hq/uspark/issues/613)) ([6022b4d](https://github.com/uspark-hq/uspark/commit/6022b4d4b40b8be2bde764188b16c8ddfd4b24e0))
+
 ## [1.19.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.18.0...workspace-v1.19.0) (2025-10-19)
 
 
