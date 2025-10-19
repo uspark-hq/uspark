@@ -1,5 +1,5 @@
 import { markdown } from '@codemirror/lang-markdown'
-import { EditorState } from '@codemirror/state'
+import { EditorState, type Extension } from '@codemirror/state'
 import { oneDark } from '@codemirror/theme-one-dark'
 import { EditorView } from '@codemirror/view'
 import { command, computed } from 'ccstate'
@@ -19,7 +19,7 @@ export const editorStateConfig$ = computed(async (get) => {
   }
 
   // 编辑器扩展配置
-  const editorExtensions = [
+  const editorExtensions: Extension[] = [
     markdown(),
     oneDark,
     EditorView.lineWrapping,
@@ -44,12 +44,12 @@ export const mountEditor$ = command(
     }
 
     // 创建 EditorView
-    const state = EditorState.create({
+    const state: EditorState = EditorState.create({
       doc: config.doc,
       extensions: config.extensions,
     })
 
-    const view = new EditorView({
+    const view: EditorView = new EditorView({
       state,
       parent: container,
     })

@@ -53,12 +53,15 @@ describe('markdown editor - codemirror integration', () => {
     await userEvent.click(editButton)
 
     // Verify CodeMirror editor is rendered by checking for its root element
+    // CodeMirror creates its own DOM structure, so we need to access it directly
     await waitFor(() => {
+      // eslint-disable-next-line testing-library/no-node-access
       const editorElement = document.querySelector('.cm-editor')
       expect(editorElement).toBeInTheDocument()
     })
 
     // Verify the content is in the editor
+    // eslint-disable-next-line testing-library/no-node-access
     const contentElement = document.querySelector('.cm-content')
     expect(contentElement).toBeInTheDocument()
     expect(contentElement?.textContent).toContain('Test Markdown')
