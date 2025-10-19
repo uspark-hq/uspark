@@ -23,10 +23,6 @@ export class ClaudeExecutor {
     initServices();
     const db = globalThis.services.db;
 
-    console.log(
-      `Starting ClaudeExecutor.execute for turn ${turnId}, session ${sessionId}`,
-    );
-
     // Turn is already set to "running" when created, no need to update
     // Just verify it's still in running state before executing
     const [turn] = await db
@@ -41,10 +37,6 @@ export class ClaudeExecutor {
       return;
     }
 
-    console.log(
-      `Turn ${turnId} status verified as running, getting sandbox...`,
-    );
-
     // Get or create sandbox for this session (with optional extra envs)
     const { sandbox, projectId: effectiveProjectId } =
       await E2BExecutor.getSandboxForSession(
@@ -53,10 +45,6 @@ export class ClaudeExecutor {
         userId,
         extraEnvs,
       );
-
-    console.log(
-      `Got sandbox ${sandbox.sandboxId} for turn ${turnId}, starting execution...`,
-    );
 
     // Start async execution (returns immediately)
     await E2BExecutor.executeClaude(
