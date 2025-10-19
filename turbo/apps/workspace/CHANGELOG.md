@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.21.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.20.0...workspace-v1.21.0) (2025-10-19)
+
+
+### Features
+
+* **workspace:** add back button to project page navigation ([#617](https://github.com/uspark-hq/uspark/issues/617)) ([df2e9e3](https://github.com/uspark-hq/uspark/commit/df2e9e3a384c08e4b51b6fb6b64322f288cd6e65))
+
 ## [1.20.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.19.0...workspace-v1.20.0) (2025-10-19)
 
 
