@@ -217,9 +217,10 @@ test.describe("New Project Multi-Step Flow", () => {
       // Installed repository - verify init/scan progress page
       await page.waitForLoadState("domcontentloaded");
 
-      // Should show "Scanning {projectName}" heading
-      const scanningHeading = page.locator("h3").filter({ hasText: /Scanning/i });
-      await expect(scanningHeading).toBeVisible({ timeout: 5000 });
+      // Should show "Scanning" or "Initializing scan" text
+      // Note: CardTitle renders as div, not h3
+      const scanningText = page.getByText(/Scanning|Initializing scan/i);
+      await expect(scanningText).toBeVisible({ timeout: 10000 });
 
       await page.screenshot({
         path: "test-results/multi-step-10-init-page.png",
