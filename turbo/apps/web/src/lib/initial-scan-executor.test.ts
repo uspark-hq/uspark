@@ -92,7 +92,7 @@ describe("InitialScanExecutor", () => {
       expect(turns).toHaveLength(1);
       expect(turns[0]).toMatchObject({
         sessionId: result.sessionId,
-        status: "pending",
+        status: "running",
       });
       expect(turns[0]?.userPrompt).toContain("owner/repo");
       expect(turns[0]?.userPrompt).toContain("~/workspace");

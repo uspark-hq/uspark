@@ -257,7 +257,7 @@ const projectsHandlers = [
       return HttpResponse.json({
         id: `turn-${Date.now()}`,
         user_prompt: body.user_message,
-        status: "pending",
+        status: "running",
         blocks: [],
         createdAt: new Date().toISOString(),
       });

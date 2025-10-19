@@ -49,7 +49,7 @@ export class InitialScanExecutor {
       id: turnId,
       sessionId,
       userPrompt: scanPrompt,
-      status: "pending",
+      status: "running",
     });
 
     // Update project status
