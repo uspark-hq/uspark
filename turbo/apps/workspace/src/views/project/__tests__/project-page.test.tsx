@@ -643,12 +643,10 @@ describe('projectPage - turn and blocks rendering', () => {
       screen.findByText('Here are the files in your project'),
     ).resolves.toBeInTheDocument()
 
-    // Tool use block shows tool name
-    await expect(
-      screen.findByText('Tool: list_files'),
-    ).resolves.toBeInTheDocument()
+    // Tool use blocks are now hidden by filterBlocksForDisplay()
+    // This improves UX by hiding implementation details
 
-    // Tool result block shows status label (content is now hidden)
+    // Tool result block shows status label (only last tool_result is shown)
     await expect(screen.findByText('Tool Result')).resolves.toBeInTheDocument()
   })
 })
