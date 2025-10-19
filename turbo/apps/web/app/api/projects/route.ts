@@ -83,18 +83,26 @@ export async function POST(request: NextRequest) {
 
   const { name, sourceRepoUrl, installationId } = parseResult.data;
 
-  // Validate installation access if source repo is provided
-  if (sourceRepoUrl && installationId) {
-    const hasAccess = await hasInstallationAccess(userId, installationId);
-    if (!hasAccess) {
-      return NextResponse.json(
-        {
-          error: "forbidden",
-          error_description:
-            "You do not have access to this GitHub installation",
-        },
-        { status: 403 },
-      );
+  // Determine repository type
+  let sourceRepoType: "installed" | "public" | null = null;
+  if (sourceRepoUrl) {
+    if (installationId) {
+      // Installed repository - validate access
+      const hasAccess = await hasInstallationAccess(userId, installationId);
+      if (!hasAccess) {
+        return NextResponse.json(
+          {
+            error: "forbidden",
+            error_description:
+              "You do not have access to this GitHub installation",
+          },
+          { status: 403 },
+        );
+      }
+      sourceRepoType = "installed";
+    } else {
+      // Public repository - no installation needed
+      sourceRepoType = "public";
     }
   }
 
@@ -119,6 +127,7 @@ export async function POST(request: NextRequest) {
         version: 0,
         sourceRepoUrl: sourceRepoUrl || null,
         sourceRepoInstallationId: installationId || null,
+        sourceRepoType: sourceRepoType,
         initialScanStatus: sourceRepoUrl ? "pending" : null,
       })
       .returning({
