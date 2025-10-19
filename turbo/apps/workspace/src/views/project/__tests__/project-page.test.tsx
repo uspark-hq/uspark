@@ -777,3 +777,85 @@ describe('projectPage - turn status display', () => {
     ).resolves.toBeInTheDocument()
   })
 })
+
+describe('projectPage - back button navigation', () => {
+  const projectId = 'test-project-nav'
+  let originalLocation: Location
+
+  beforeEach(async () => {
+    // Save original location
+    originalLocation = window.location
+
+    // Mock window.location with app subdomain
+    delete (window as unknown as { location: Location }).location
+    window.location = {
+      href: 'http://app.uspark.com/projects/test-project-nav',
+      origin: 'http://app.uspark.com',
+      protocol: originalLocation.protocol,
+      host: 'app.uspark.com',
+      hostname: 'app.uspark.com',
+      port: originalLocation.port,
+      pathname: '/projects/test-project-nav',
+      search: originalLocation.search,
+      hash: originalLocation.hash,
+      ancestorOrigins: originalLocation.ancestorOrigins,
+      assign: originalLocation.assign.bind(originalLocation),
+      reload: originalLocation.reload.bind(originalLocation),
+      replace: originalLocation.replace.bind(originalLocation),
+    }
+
+    await setupProjectPage(`/projects/${projectId}`, context, {
+      projectId,
+      files: [
+        {
+          path: 'README.md',
+          hash: 'readme-hash',
+          content: '# README',
+        },
+      ],
+    })
+  })
+
+  afterEach(() => {
+    // Restore original location
+    window.location = originalLocation
+    server.resetHandlers()
+  })
+
+  it('displays back button in top bar', async () => {
+    // Wait for page to load - wait for specs button instead of Explorer
+    await expect(
+      screen.findByLabelText('Open file explorer'),
+    ).resolves.toBeInTheDocument()
+
+    // Verify back button exists
+    const backButton = screen.getByRole('button', { name: /Back to projects/i })
+    expect(backButton).toBeInTheDocument()
+    expect(backButton).toHaveTextContent('Back')
+  })
+
+  it('navigates to projects list with correct domain on back button click', async () => {
+    const userEvent = user.setup()
+
+    // Wait for page to load - wait for specs button instead of Explorer
+    await expect(
+      screen.findByLabelText('Open file explorer'),
+    ).resolves.toBeInTheDocument()
+
+    // Track location changes
+    let newHref = ''
+    Object.defineProperty(window.location, 'href', {
+      set: (value: string) => {
+        newHref = value
+      },
+      get: () => newHref || 'http://app.uspark.com/projects/test-project-nav',
+    })
+
+    // Click back button
+    const backButton = screen.getByRole('button', { name: /Back to projects/i })
+    await userEvent.click(backButton)
+
+    // Verify navigation to projects list with www subdomain
+    expect(newHref).toBe('http://www.uspark.com/projects')
+  })
+})

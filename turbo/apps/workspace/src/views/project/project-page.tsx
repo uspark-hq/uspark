@@ -16,10 +16,36 @@ import { FileTreePopover } from './file-tree-popover'
 export function ProjectPage() {
   const isFileContentVisible = useLastResolved(fileContentVisible$)
 
+  const handleBackToProjects = () => {
+    const currentUrl = new URL(window.location.href)
+    const newUrl = currentUrl.origin.replace('app.', 'www.') + '/projects'
+    window.location.href = newUrl
+  }
+
   return (
     <div className="flex h-screen flex-col bg-[#1e1e1e] text-[#cccccc]">
-      {/* Top bar with file tree button */}
-      <div className="flex items-center justify-end border-b border-[#3e3e42] bg-[#252526] px-4 py-2">
+      {/* Top bar with back button and file tree button */}
+      <div className="flex items-center justify-between border-b border-[#3e3e42] bg-[#252526] px-4 py-2">
+        <button
+          onClick={handleBackToProjects}
+          className="flex items-center gap-2 rounded px-3 py-1.5 text-[13px] text-[#cccccc] transition-colors hover:bg-[#2a2d2e]"
+          aria-label="Back to projects"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M19 12H5M12 19l-7-7 7-7" />
+          </svg>
+          <span>Back</span>
+        </button>
         <FileTreePopover />
       </div>
 
