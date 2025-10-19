@@ -1,4 +1,4 @@
-import { useLastResolved, useSet } from 'ccstate-react'
+import { useGet, useLastResolved, useSet } from 'ccstate-react'
 import {
   closeFileContent$,
   selectedFileContent$,
@@ -6,6 +6,9 @@ import {
   setViewMode$,
   viewMode$,
 } from '../../signals/project/project'
+import { shareCurrentFile$ } from '../../signals/project/share'
+import { rootSignal$ } from '../../signals/root-signal'
+import { onDomEventFn } from '../../signals/utils'
 import { MarkdownEditor } from './markdown-editor'
 import { MarkdownPreview } from './markdown-preview'
 
@@ -15,6 +18,10 @@ export function FileContent() {
   const closeFileContent = useSet(closeFileContent$)
   const mode = useLastResolved(viewMode$) ?? 'preview'
   const setViewMode = useSet(setViewMode$)
+  const shareFile = useSet(shareCurrentFile$)
+  const signal = useGet(rootSignal$)
+
+  const handleShare = onDomEventFn(() => shareFile(signal))
 
   if (!fileContent) {
     return (
@@ -39,6 +46,31 @@ export function FileContent() {
           </div>
 
           <div className="flex items-center gap-2">
+            {/* Share button */}
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-1.5 rounded border border-[#3e3e42] bg-[#2a2d2e] px-3 py-1 text-[12px] text-[#cccccc] transition-colors hover:bg-[#3e3e42] hover:text-[#ffffff]"
+              title="Share file"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <circle cx="18" cy="5" r="3" />
+                <circle cx="6" cy="12" r="3" />
+                <circle cx="18" cy="19" r="3" />
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+              </svg>
+              <span>Share</span>
+            </button>
+
             {/* Preview/Edit toggle buttons */}
             <div className="flex overflow-hidden rounded border border-[#3e3e42]">
               <button
