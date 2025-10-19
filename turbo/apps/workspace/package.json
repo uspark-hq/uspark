@@ -1,6 +1,6 @@
 {
   "name": "workspace",
-  "version": "1.17.1",
+  "version": "1.18.0",
   "type": "module",
   "private": true,
   "scripts": {
