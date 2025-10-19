@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.21.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.21.0...workspace-v1.21.1) (2025-10-19)
+
+
+### Bug Fixes
+
+* **api:** standardize api response field naming to snake_case ([#621](https://github.com/uspark-hq/uspark/issues/621)) ([47086ba](https://github.com/uspark-hq/uspark/commit/47086ba5254dc28418326477f7a13ab971d6dc33))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.23.1
+
 ## [1.21.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.20.0...workspace-v1.21.0) (2025-10-19)
 
 
