@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.58.0](https://github.com/uspark-hq/uspark/compare/web-v0.57.0...web-v0.58.0) (2025-10-19)
+
+
+### Features
+
+* **ui:** add active todos progress tracker to chat interface ([#645](https://github.com/uspark-hq/uspark/issues/645)) ([b657b2c](https://github.com/uspark-hq/uspark/commit/b657b2c9ef4c8137cb022d2c7e5240d73fc5c2ff))
+
 ## [0.57.0](https://github.com/uspark-hq/uspark/compare/web-v0.56.3...web-v0.57.0) (2025-10-19)
 
 
