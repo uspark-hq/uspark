@@ -164,7 +164,7 @@ export async function POST(request: NextRequest) {
     throw new Error("Failed to create project");
   }
 
-  // Trigger initial scan if source repo is provided
+  // Trigger initial scan if source repo is provided (for both installed and public repos)
   if (sourceRepoUrl) {
     await InitialScanExecutor.startScan(
       projectId,
