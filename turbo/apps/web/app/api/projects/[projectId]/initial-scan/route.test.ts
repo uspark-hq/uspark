@@ -211,7 +211,7 @@ describe("/api/projects/[projectId]/initial-scan", () => {
         content: "Clone repository",
         status: "completed",
       });
-      expect(data.initial_scan_turn_status).toBe("in_progress");
+      expect(data.initial_scan_turn_status).toBe("running");
     });
 
     it("should return lastBlock when no TodoWrite blocks exist", async () => {

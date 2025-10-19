@@ -23,19 +23,12 @@ export function MarkdownEditor() {
   }
 
   return (
-    <div className="flex h-full flex-col bg-[#1e1e1e]">
-      {/* 文件名标题栏 */}
-      <div className="flex h-8 items-center border-b border-[#3e3e42] px-3">
-        <span className="text-[13px] text-[#cccccc]">
-          {selectedFile?.path.split('/').pop()}
-        </span>
-      </div>
-
+    <div className="h-full bg-[#1e1e1e]">
       {/* 编辑器容器 - 使用 key 确保文件切换时重建 DOM */}
       <div
         key={selectedFile?.path}
         ref={handleEditorRef}
-        className="flex-1 overflow-auto"
+        className="h-full overflow-auto"
       />
     </div>
   )
