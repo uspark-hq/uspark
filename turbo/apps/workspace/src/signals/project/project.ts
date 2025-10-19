@@ -110,7 +110,7 @@ export const selectedFileContentHtml$ = computed(async (get) => {
     return undefined
   }
 
-  const rawHtml = marked.parse(fileContent)
+  const rawHtml = await marked.parse(fileContent)
   return DOMPurify.sanitize(rawHtml)
 })
 

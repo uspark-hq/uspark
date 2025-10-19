@@ -129,15 +129,11 @@ export async function POST(
       );
 
     // Interrupt E2B session (best-effort, don't fail if it doesn't work)
-    try {
-      const { E2BExecutor } = await import(
-        "../../../../../../../src/lib/e2b-executor"
-      );
-      await E2BExecutor.interruptSession(sessionId);
-    } catch (error) {
-      console.error(`Failed to interrupt E2B session ${sessionId}:`, error);
-      // Continue anyway - the turns are already marked as cancelled
-    }
+
+    const { E2BExecutor } = await import(
+      "../../../../../../../src/lib/e2b-executor"
+    );
+    await E2BExecutor.interruptSession(sessionId);
   }
 
   // Create new turn

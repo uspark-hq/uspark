@@ -115,24 +115,20 @@ export class E2BExecutor {
     );
 
     if (existingSandbox) {
-      try {
-        // 2. Reconnect to existing sandbox
-        const sandbox = await Sandbox.connect(existingSandbox.sandboxId);
-        console.log(
-          `Reconnected to sandbox ${existingSandbox.sandboxId} for session ${sessionId}`,
-        );
+      // 2. Reconnect to existing sandbox
+      const sandbox = await Sandbox.connect(existingSandbox.sandboxId);
+      console.log(
+        `Reconnected to sandbox ${existingSandbox.sandboxId} for session ${sessionId}`,
+      );
 
-        // Extend timeout on reconnection
-        await sandbox.setTimeout(this.SANDBOX_TIMEOUT * 1000);
+      // Extend timeout on reconnection
+      await sandbox.setTimeout(this.SANDBOX_TIMEOUT * 1000);
 
-        return {
-          sandbox,
-          projectId: effectiveProjectId,
-          sourceRepoUrl: project?.sourceRepoUrl || null,
-        };
-      } catch (error) {
-        console.log("Failed to reconnect, will create new sandbox:", error);
-      }
+      return {
+        sandbox,
+        projectId: effectiveProjectId,
+        sourceRepoUrl: project?.sourceRepoUrl || null,
+      };
     }
 
     // 3. Create new sandbox
@@ -318,52 +314,43 @@ export class E2BExecutor {
    * Interrupt a running session by killing Claude processes in the sandbox
    */
   static async interruptSession(sessionId: string): Promise<void> {
-    try {
-      // Find sandbox for this session
-      const paginator: SandboxPaginator = await Sandbox.list();
-      const sandboxes: SandboxInfo[] = await paginator.nextItems();
-      const sandboxInfo = sandboxes.find(
-        (s: SandboxInfo) => s.metadata?.sessionId === sessionId,
-      );
+    // Find sandbox for this session
+    const paginator: SandboxPaginator = await Sandbox.list();
+    const sandboxes: SandboxInfo[] = await paginator.nextItems();
+    const sandboxInfo = sandboxes.find(
+      (s: SandboxInfo) => s.metadata?.sessionId === sessionId,
+    );
 
-      if (!sandboxInfo) {
-        console.log(
-          `No sandbox found for session ${sessionId}, nothing to interrupt`,
-        );
-        return;
-      }
-
-      // Connect to sandbox and kill Claude processes
-      const sandbox = await Sandbox.connect(sandboxInfo.sandboxId);
-
-      // Kill both claude and watch-claude processes
-      // Use || true to prevent command from failing if processes are not found
-      const killCommand = `pkill -f 'claude.*--print' || true; pkill -f 'uspark watch-claude' || true`;
-
-      const result = await sandbox.commands.run(killCommand, {
-        timeoutMs: 5000,
-      });
-
+    if (!sandboxInfo) {
       console.log(
-        `Interrupted session ${sessionId} in sandbox ${sandboxInfo.sandboxId}`,
+        `No sandbox found for session ${sessionId}, nothing to interrupt`,
       );
-      console.log("Kill command result:", result.stdout, result.stderr);
-    } catch (error) {
-      console.error(`Failed to interrupt session ${sessionId}:`, error);
-      // Don't throw - this is best-effort cleanup
+      return;
     }
+
+    // Connect to sandbox and kill Claude processes
+    const sandbox = await Sandbox.connect(sandboxInfo.sandboxId);
+
+    // Kill both claude and watch-claude processes
+    // Use || true to prevent command from failing if processes are not found
+    const killCommand = `pkill -f 'claude.*--print' || true; pkill -f 'uspark watch-claude' || true`;
+
+    const result = await sandbox.commands.run(killCommand, {
+      timeoutMs: 5000,
+    });
+
+    console.log(
+      `Interrupted session ${sessionId} in sandbox ${sandboxInfo.sandboxId}`,
+    );
+    console.log("Kill command result:", result.stdout, result.stderr);
   }
 
   /**
    * Clean up sandbox (optional - usually let it timeout)
    */
   static async closeSandbox(sandboxId: string): Promise<void> {
-    try {
-      const sandbox = await Sandbox.connect(sandboxId);
-      await sandbox.kill();
-      console.log(`Closed sandbox ${sandboxId}`);
-    } catch (error) {
-      console.error(`Failed to close sandbox ${sandboxId}:`, error);
-    }
+    const sandbox = await Sandbox.connect(sandboxId);
+    await sandbox.kill();
+    console.log(`Closed sandbox ${sandboxId}`);
   }
 }

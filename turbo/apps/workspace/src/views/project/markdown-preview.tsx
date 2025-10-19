@@ -2,7 +2,9 @@ import { useLastResolved } from 'ccstate-react'
 import { selectedFileContentHtml$ } from '../../signals/project/project'
 
 export function MarkdownPreview() {
-  const sanitizedHtml = useLastResolved(selectedFileContentHtml$)
+  const sanitizedHtml: string | undefined = useLastResolved(
+    selectedFileContentHtml$,
+  )
 
   if (!sanitizedHtml) {
     return null
