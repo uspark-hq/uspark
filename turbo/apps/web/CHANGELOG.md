@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.56.0](https://github.com/uspark-hq/uspark/compare/web-v0.55.4...web-v0.56.0) (2025-10-19)
+
+
+### Features
+
+* **scan:** enable initial scan for public github repositories ([#628](https://github.com/uspark-hq/uspark/issues/628)) ([fb60b58](https://github.com/uspark-hq/uspark/commit/fb60b58aa980a624e204bb1554b3eeb6d90bf262))
+
 ## [0.55.4](https://github.com/uspark-hq/uspark/compare/web-v0.55.3...web-v0.55.4) (2025-10-19)
 
 
