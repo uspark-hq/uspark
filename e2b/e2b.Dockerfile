@@ -7,7 +7,7 @@ RUN apt-get update && apt-get install -y git curl
 RUN npm install -g @anthropic-ai/claude-code@2.0.22
 
 # Install uspark CLI globally
-RUN npm install -g @uspark/cli@0.12.1
+RUN npm install -g @uspark/cli@0.12.2
 
 # Verify installations
 RUN claude --version
