@@ -58,7 +58,7 @@ export const handlers = [
   // GET /api/blob-store - Return store ID
   http.get(`${API_BASE_URL}/api/blob-store`, () => {
     return HttpResponse.json({
-      storeId: "mock-store-id",
+      store_id: "mock-store-id",
     });
   }),
 
