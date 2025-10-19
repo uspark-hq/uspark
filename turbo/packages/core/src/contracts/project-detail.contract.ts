@@ -7,27 +7,27 @@ const c = initContract();
 const SessionSchema = z.object({
   id: z.string(),
   title: z.string().nullable(),
-  createdAt: z.string().datetime(),
-  updatedAt: z.string().datetime(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
 });
 
 const GitHubRepositorySchema = z.object({
-  fullName: z.string(),
-  accountName: z.string(),
-  repoName: z.string(),
+  full_name: z.string(),
+  account_name: z.string(),
+  repo_name: z.string(),
 });
 
 const GitHubInstallationSchema = z.object({
   id: z.string(),
-  installationId: z.number(),
-  accountName: z.string(),
-  createdAt: z.coerce.date(),
-  updatedAt: z.coerce.date(),
+  installation_id: z.number(),
+  account_name: z.string(),
+  created_at: z.coerce.date(),
+  updated_at: z.coerce.date(),
 });
 
 // ============ Response Schemas ============
 const BlobStoreResponseSchema = z.object({
-  storeId: z.string(),
+  store_id: z.string(),
 });
 
 const ShareResponseSchema = z.object({
@@ -146,7 +146,7 @@ export const projectDetailContract = c.router({
     }),
     responses: {
       200: z.object({
-        lastBlockId: z.string().nullable(),
+        last_block_id: z.string().nullable(),
       }),
     },
     summary: "Get last block ID",
@@ -203,7 +203,7 @@ export const projectDetailContract = c.router({
       projectId: z.string(),
     }),
     body: z.object({
-      installationId: z.number(),
+      installation_id: z.number(),
     }),
     responses: {
       200: GitHubRepositoryResponseSchema,

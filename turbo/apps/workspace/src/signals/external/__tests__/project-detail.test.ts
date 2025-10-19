@@ -31,7 +31,7 @@ describe('project-detail signals', () => {
       const { store } = context
 
       const mockResponse = {
-        storeId: 'store-123',
+        store_id: 'store-123',
       }
 
       server.use(
@@ -123,8 +123,8 @@ describe('project-detail signals', () => {
           {
             id: 'session-1',
             title: 'Session 1',
-            createdAt: '2024-01-01T00:00:00Z',
-            updatedAt: '2024-01-01T00:00:00Z',
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: '2024-01-01T00:00:00Z',
           },
         ],
       }
@@ -150,8 +150,8 @@ describe('project-detail signals', () => {
       const mockResponse = {
         id: 'session-new',
         title: 'New Session',
-        createdAt: '2024-01-01T00:00:00Z',
-        updatedAt: '2024-01-01T00:00:00Z',
+        created_at: '2024-01-01T00:00:00Z',
+        updated_at: '2024-01-01T00:00:00Z',
       }
 
       server.use(
@@ -219,7 +219,7 @@ describe('project-detail signals', () => {
       const { store } = context
 
       const mockResponse = {
-        lastBlockId: 'block-123',
+        last_block_id: 'block-123',
       }
 
       server.use(
@@ -249,7 +249,7 @@ describe('project-detail signals', () => {
         http.get(
           '*/api/projects/:projectId/sessions/:sessionId/last-block-id',
           () => {
-            return HttpResponse.json({ lastBlockId: null })
+            return HttpResponse.json({ last_block_id: null })
           },
         ),
       )
@@ -260,7 +260,7 @@ describe('project-detail signals', () => {
       })
       const result = await store.get(blockIdSignal$)
 
-      expect(result).toStrictEqual({ lastBlockId: null })
+      expect(result).toStrictEqual({ last_block_id: null })
     })
   })
 
@@ -319,9 +319,9 @@ describe('project-detail signals', () => {
 
       const mockResponse = {
         repository: {
-          fullName: 'user/repo',
-          accountName: 'user',
-          repoName: 'repo',
+          full_name: 'user/repo',
+          account_name: 'user',
+          repo_name: 'repo',
         },
       }
 
@@ -350,10 +350,10 @@ describe('project-detail signals', () => {
         installations: [
           {
             id: 'install-1',
-            installationId: 12_345,
-            accountName: 'my-org',
-            createdAt: '2024-01-01T00:00:00Z',
-            updatedAt: '2024-01-01T00:00:00Z',
+            installation_id: 12_345,
+            account_name: 'my-org',
+            created_at: '2024-01-01T00:00:00Z',
+            updated_at: '2024-01-01T00:00:00Z',
           },
         ],
       }
@@ -375,9 +375,9 @@ describe('project-detail signals', () => {
 
       const mockResponse = {
         repository: {
-          fullName: 'user/new-repo',
-          accountName: 'user',
-          repoName: 'new-repo',
+          full_name: 'user/new-repo',
+          account_name: 'user',
+          repo_name: 'new-repo',
         },
       }
 
@@ -386,8 +386,8 @@ describe('project-detail signals', () => {
           '*/api/projects/:projectId/github/repository',
           async ({ params, request }) => {
             expect(params.projectId).toBe('project-123')
-            const body = (await request.json()) as { installationId: number }
-            expect(body.installationId).toBe(12_345)
+            const body = (await request.json()) as { installation_id: number }
+            expect(body.installation_id).toBe(12_345)
             return HttpResponse.json(mockResponse, { status: 201 })
           },
         ),

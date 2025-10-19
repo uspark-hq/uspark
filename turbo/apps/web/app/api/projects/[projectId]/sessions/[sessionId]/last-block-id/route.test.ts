@@ -146,7 +146,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/last-block-id", () => {
 
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data).toEqual({ lastBlockId: null });
+      expect(data).toEqual({ last_block_id: null });
     });
 
     it("should return the last block ID when session has one block", async () => {
@@ -180,7 +180,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/last-block-id", () => {
 
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data).toEqual({ lastBlockId: block!.id });
+      expect(data).toEqual({ last_block_id: block!.id });
     });
 
     it("should return the most recent block ID when session has multiple blocks", async () => {
@@ -237,7 +237,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/last-block-id", () => {
 
       expect(response.status).toBe(200);
       const data = await response.json();
-      expect(data).toEqual({ lastBlockId: block2!.id });
+      expect(data).toEqual({ last_block_id: block2!.id });
     });
   });
 });

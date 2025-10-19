@@ -226,7 +226,7 @@ export const createGithubRepository$ = command(
 
     return contractFetch(projectDetailContract.createGitHubRepository, {
       params: { projectId: params.projectId },
-      body: { installationId: params.installationId },
+      body: { installation_id: params.installationId },
       fetch: workspaceFetch,
       signal,
     })

@@ -97,7 +97,7 @@ export const selectedFileContent$ = computed(async (get) => {
   }
 
   const store = await get(blobStore$)
-  const contentUrl = getFileContentUrl(store.storeId, projectId, file.hash)
+  const contentUrl = getFileContentUrl(store.store_id, projectId, file.hash)
   const resp = await fetch(contentUrl)
   return await resp.text()
 })
@@ -353,7 +353,7 @@ export const startWatchSession$ = command(
         const projectId = get(projectId$)
 
         if (session && projectId) {
-          const { lastBlockId: serverLastBlockId } = await get(
+          const { last_block_id: serverLastBlockId } = await get(
             lastBlockId({
               projectId,
               sessionId: session.id,
