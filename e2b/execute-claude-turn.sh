@@ -95,8 +95,16 @@ if [[ -d "$WORKSPACE_DIR/.git" ]]; then
   log "Git repository detected, syncing latest changes..."
   cd "$WORKSPACE_DIR"
 
-  git reset --hard origin/main
-  git pull origin main
+  # Fetch remote branches first
+  log "Fetching remote branches..."
+  git fetch origin
+
+  # Detect the default branch
+  DEFAULT_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@' || echo "main")
+  log "Using default branch: $DEFAULT_BRANCH"
+
+  git reset --hard "origin/$DEFAULT_BRANCH"
+  git pull origin "$DEFAULT_BRANCH"
 
   # Ensure .gitignore contains .uspark
   if ! grep -q "^\.uspark$" .gitignore 2>/dev/null; then
