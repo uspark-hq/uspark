@@ -7,8 +7,6 @@ interface TurnDisplayProps {
 
 export function TurnDisplay({ turn }: TurnDisplayProps) {
   const hasBlocks = (turn.blocks as unknown[] | undefined)?.length > 0
-  const isInProgress =
-    turn.status === 'pending' || turn.status === 'in_progress'
 
   return (
     <div className="space-y-2">
@@ -20,15 +18,6 @@ export function TurnDisplay({ turn }: TurnDisplayProps) {
         <div className="text-[13px] leading-[1.5] whitespace-pre-wrap text-[#e3e3e3]">
           {turn.user_prompt}
         </div>
-        {isInProgress && (
-          <div className="mt-2 text-[#9cdcfe]">
-            <span className="inline-flex gap-0.5">
-              <span className="animate-pulse">.</span>
-              <span className="animate-pulse [animation-delay:200ms]">.</span>
-              <span className="animate-pulse [animation-delay:400ms]">.</span>
-            </span>
-          </div>
-        )}
       </div>
 
       {/* Assistant blocks */}
