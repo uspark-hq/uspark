@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { FileSystem } from "../fs";
+import { FileSystem } from "@uspark/core/yjs-filesystem";
 import * as Y from "yjs";
 
 describe("YJS FileSystem", () => {

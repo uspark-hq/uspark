@@ -1,0 +1,17 @@
+{
+  "name": "mcp-server-e2e",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4",
+    "@types/node": "^24.3.0"
+  }
+}

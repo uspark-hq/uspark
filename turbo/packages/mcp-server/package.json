@@ -1,0 +1,38 @@
+{
+  "name": "@uspark/mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for uSpark project synchronization",
+  "type": "module",
+  "bin": {
+    "uspark-mcp": "./dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.4",
+    "@uspark/core": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@uspark/eslint-config": "workspace:*",
+    "@uspark/typescript-config": "workspace:*",
+    "eslint": "^9.34.0",
+    "js-sha256": "^0.11.1",
+    "tsup": "^8.5.0",
+    "typescript": "5.9.2",
+    "vitest": "^3.2.4",
+    "yjs": "^13.6.27"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

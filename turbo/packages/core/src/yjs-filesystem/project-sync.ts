@@ -1,4 +1,4 @@
-import { FileSystem } from "./fs";
+import { FileSystem } from "./filesystem";
 import { writeFile, readFile, mkdir } from "fs/promises";
 import { put } from "@vercel/blob";
 import { dirname, join } from "path";
@@ -515,5 +515,12 @@ export class ProjectSync {
     }
 
     console.log(`🎉 Successfully pulled ${allFiles.size} files`);
+  }
+
+  /**
+   * Get all files from the filesystem
+   */
+  getAllFiles(): Map<string, { hash: string; mtime: number }> {
+    return this.fs.getAllFiles();
   }
 }

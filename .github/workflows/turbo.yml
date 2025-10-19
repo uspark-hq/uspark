@@ -20,6 +20,7 @@ jobs:
       cli-changed: ${{ steps.detect.outputs.cli-changed }}
       workspace-changed: ${{ steps.detect.outputs.workspace-changed }}
       web-e2e-changed: ${{ steps.detect.outputs.web-e2e-changed }}
+      mcp-server-changed: ${{ steps.detect.outputs.mcp-server-changed }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -39,6 +40,7 @@ jobs:
             echo "cli-changed=true" >> $GITHUB_OUTPUT
             echo "workspace-changed=true" >> $GITHUB_OUTPUT
             echo "web-e2e-changed=true" >> $GITHUB_OUTPUT
+            echo "mcp-server-changed=true" >> $GITHUB_OUTPUT
             exit 0
           fi
           
@@ -93,6 +95,16 @@ jobs:
           else
             echo "Changes detected in web e2e tests"
             echo "web-e2e-changed=true" >> $GITHUB_OUTPUT
+          fi
+
+          # Check MCP server package
+          cd ../../turbo/packages/mcp-server
+          if git diff --quiet HEAD^ HEAD .; then
+            echo "No changes detected in MCP server"
+            echo "mcp-server-changed=false" >> $GITHUB_OUTPUT
+          else
+            echo "Changes detected in MCP server"
+            echo "mcp-server-changed=true" >> $GITHUB_OUTPUT
           fi
 
   lint:
@@ -339,3 +351,28 @@ jobs:
           NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           API_HOST: ${{ needs.deploy-web.outputs.preview-url }}
+
+  # Run MCP Server E2E tests
+  mcp-server-e2e:
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
+    needs: [change-detection]
+    # Run if MCP server changed (optional: can also add || web-changed to test against real API)
+    if: github.event_name == 'pull_request' && needs.change-detection.outputs.mcp-server-changed == 'true'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/toolchain-init
+
+      - name: Build MCP server
+        run: cd turbo && pnpm --filter @uspark/mcp-server build
+
+      - name: Install E2E test dependencies
+        run: |
+          cd e2e/mcp-server
+          npm ci
+
+      - name: Run MCP E2E Tests
+        run: |
+          cd e2e/mcp-server
+          npm test

@@ -1,6 +1,6 @@
 import * as Y from "yjs";
 import { sha256 } from "js-sha256";
-import type { FileNode, BlobInfo } from "@uspark/core";
+import type { FileNode, BlobInfo } from "../types";
 
 export class FileSystem {
   private ydoc: Y.Doc;
