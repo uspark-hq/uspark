@@ -4,6 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useSessionPolling } from "./use-session-polling";
 import { BlockDisplay } from "./block-display";
 import { SessionSelector } from "./session-selector";
+import { useActiveTodos } from "./use-active-todos";
+import { ActiveTodosDisplay } from "./active-todos-display";
 
 // Local Block type used by this component
 interface LocalBlock {
@@ -75,6 +77,9 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
 
   // Poll for session updates
   const { turns, isPolling } = useSessionPolling(projectId, sessionId);
+
+  // Get active todos from the last in-progress turn
+  const activeTodos = useActiveTodos(turns);
 
   // Initialize or get existing session
   useEffect(() => {
@@ -434,6 +439,11 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
                           Waiting to start...
                         </div>
                       ) : null}
+
+                      {/* Display active todos if this is the last in-progress turn */}
+                      {turn.status === "in_progress" && activeTodos && (
+                        <ActiveTodosDisplay todos={activeTodos} />
+                      )}
                     </div>
                   </div>
                 </div>
