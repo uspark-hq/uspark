@@ -13,6 +13,9 @@ import {
 import { hasInstallationAccess } from "../../../src/lib/github/repository";
 import { InitialScanExecutor } from "../../../src/lib/initial-scan-executor";
 
+// Route segment config - allow up to 5 minutes for initial scan execution
+export const maxDuration = 300;
+
 /**
  * GET /api/projects
  * Returns list of user's projects
