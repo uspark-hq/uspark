@@ -69,14 +69,24 @@ export class InitialScanExecutor {
     }
 
     // Execute via normal Claude executor with optional GITHUB_TOKEN
-    await ClaudeExecutor.execute(
+    // Fire and forget - don't wait for execution to complete
+    ClaudeExecutor.execute(
       turnId,
       sessionId,
       projectId,
       scanPrompt,
       userId,
       Object.keys(extraEnvs).length > 0 ? extraEnvs : undefined,
-    );
+    ).catch((err) => {
+      console.error(
+        `Failed to execute initial scan for project ${projectId}:`,
+        err,
+      );
+      // Mark scan as failed
+      this.markScanFailed(projectId).catch((markErr) =>
+        console.error("Failed to mark scan as failed:", markErr),
+      );
+    });
 
     console.log(
       `Initial scan started for project ${projectId}, session ${sessionId}`,
