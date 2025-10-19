@@ -108,6 +108,9 @@ export const selectFile$ = command(({ get, set }, filePath: string) => {
   newSearchParams.set('file', filePath)
 
   set(updateSearchParams$, newSearchParams)
+
+  // Show file content when a file is selected
+  set(internalFileContentVisible$, true)
 })
 
 export const selectSession$ = command(({ get, set }, sessionId: string) => {
@@ -202,6 +205,23 @@ export const turns$ = computed(async (get) => {
       )
     }),
   )
+})
+
+// File content visibility state
+const internalFileContentVisible$ = state(false)
+
+export const fileContentVisible$ = computed((get) =>
+  get(internalFileContentVisible$),
+)
+
+export const closeFileContent$ = command(({ get, set }) => {
+  set(internalFileContentVisible$, false)
+
+  // Also clear the file selection from URL
+  const currentSearchParams = get(searchParams$)
+  const newSearchParams = new URLSearchParams(currentSearchParams)
+  newSearchParams.delete('file')
+  set(updateSearchParams$, newSearchParams)
 })
 
 const internalChatInput$ = state('')
