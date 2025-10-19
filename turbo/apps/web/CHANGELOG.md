@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.55.4](https://github.com/uspark-hq/uspark/compare/web-v0.55.3...web-v0.55.4) (2025-10-19)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.23.1
+
 ## [0.55.3](https://github.com/uspark-hq/uspark/compare/web-v0.55.2...web-v0.55.3) (2025-10-19)
 
 

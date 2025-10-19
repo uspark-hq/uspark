@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.12.4](https://github.com/uspark-hq/uspark/compare/cli-v0.12.3...cli-v0.12.4) (2025-10-19)
+
+
+### Bug Fixes
+
+* **api:** standardize api response field naming to snake_case ([#621](https://github.com/uspark-hq/uspark/issues/621)) ([47086ba](https://github.com/uspark-hq/uspark/commit/47086ba5254dc28418326477f7a13ab971d6dc33))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.23.1
+
 ## [0.12.3](https://github.com/uspark-hq/uspark/compare/cli-v0.12.2...cli-v0.12.3) (2025-10-19)
 
 
