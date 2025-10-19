@@ -1,6 +1,5 @@
 import chalk from "chalk";
-import { requireAuth } from "./shared";
-import { readdir } from "fs/promises";
+import { requireAuth, pushAllFiles } from "./shared";
 import { join } from "path";
 
 export async function pullCommand(
@@ -60,65 +59,18 @@ export async function pushCommand(
       chalk.blue(`Pushing all files to project ${options.projectId}...`),
     );
 
-    // Get all files in current directory recursively
+    const count = await pushAllFiles(
+      { token, apiUrl, sync },
+      options.projectId,
+      ".",
+    );
 
-    const getAllFiles = async (dir: string): Promise<string[]> => {
-      const files: string[] = [];
-      const entries = await readdir(dir, { withFileTypes: true });
-
-      for (const entry of entries) {
-        const fullPath = join(dir, entry.name);
-
-        // Skip common directories to exclude
-        if (entry.isDirectory()) {
-          if (
-            ["node_modules", ".git", ".next", "dist", ".turbo"].includes(
-              entry.name,
-            )
-          ) {
-            continue;
-          }
-          files.push(...(await getAllFiles(fullPath)));
-        } else {
-          // Skip system files
-          if (entry.name === ".DS_Store") {
-            continue;
-          }
-
-          // Get relative path from current directory
-          const relativePath = fullPath.startsWith("./")
-            ? fullPath.slice(2)
-            : fullPath;
-          files.push(relativePath);
-        }
-      }
-
-      return files;
-    };
-
-    const files = await getAllFiles(".");
-
-    if (files.length === 0) {
+    if (count === 0) {
       console.log(chalk.yellow("No files found to push"));
       return;
     }
 
-    console.log(chalk.blue(`Found ${files.length} files to push`));
-
-    // Convert to format expected by pushFiles
-    const filesToPush = files.map((filePath) => ({
-      filePath,
-      localPath: filePath,
-    }));
-
-    // Use batch push with fail-fast - all files in one operation
-    // This will throw on first error, ensuring atomic operation
-    await sync.pushFiles(options.projectId, filesToPush, {
-      token,
-      apiUrl,
-    });
-
-    console.log(chalk.green(`✓ Successfully pushed ${files.length} files`));
+    console.log(chalk.green(`✓ Successfully pushed ${count} files`));
     return;
   }
 

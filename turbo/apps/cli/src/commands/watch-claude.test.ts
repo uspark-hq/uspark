@@ -8,8 +8,9 @@ vi.mock("./shared", () => ({
   requireAuth: vi.fn().mockResolvedValue({
     token: "test-token",
     apiUrl: "https://www.uspark.ai",
+    sync: {},
   }),
-  syncFile: vi.fn().mockResolvedValue(undefined),
+  pushAllFiles: vi.fn().mockResolvedValue(5),
 }));
 
 // Mock chalk
@@ -17,6 +18,9 @@ vi.mock("chalk", () => ({
   default: {
     dim: (str: string) => str,
     red: (str: string) => str,
+    blue: (str: string) => str,
+    green: (str: string) => str,
+    yellow: (str: string) => str,
   },
 }));
 
@@ -42,84 +46,48 @@ describe("watch-claude", () => {
     );
   });
 
-  it("should detect Write tool_use and sync after tool_result", async () => {
-    // Import after mocking
-    const { syncFile } = await import("./shared");
-
-    // Create the exact JSON events from the user's output
+  it("should send stdout lines to callback API", async () => {
+    // Create test events
     const events = [
-      // tool_use event
       JSON.stringify({
         type: "assistant",
-        subtype: "tool_use",
         message: {
-          id: "msg_01BvHYxH8yfSxQtKLkPeKnRc",
+          id: "msg_test",
           type: "message",
           role: "assistant",
           content: [
             {
-              type: "tool_use",
-              id: "toolu_015LBZEJykuRthAH8dhkPzBu",
-              name: "Write",
-              input: {
-                file_path: "/workspaces/uspark/spec/test-time.md",
-                content: "# Test Time\\n\\nThis is a test file.",
-              },
+              type: "text",
+              text: "Hello",
             },
           ],
         },
       }),
-      // tool_result event (comes as type:"user" with content array)
       JSON.stringify({
-        type: "user",
-        message: {
-          id: "msg_result_01",
-          type: "message",
-          role: "user",
-          content: [
-            {
-              type: "tool_result",
-              tool_use_id: "toolu_015LBZEJykuRthAH8dhkPzBu",
-              content:
-                "File created successfully at: /workspaces/uspark/spec/test-time.md",
-            },
-          ],
-        },
+        type: "result",
+        subtype: "success",
+        is_error: false,
       }),
     ];
 
-    // Create a readable stream from the events
-    // Readable.from automatically ends the stream after all events are consumed
     mockStdin = Readable.from(events.map((e) => e + "\n"));
-
-    // Mock process.stdin and process.cwd
     const originalStdin = process.stdin;
-    const originalCwd = process.cwd;
 
     Object.defineProperty(process, "stdin", {
       value: mockStdin,
       writable: true,
     });
 
-    // Mock process.cwd to match the test file path
-    process.cwd = vi.fn(() => "/workspaces/uspark");
-
-    // Import and run the watch command
     const { watchClaudeCommand } = await import("./watch-claude");
-
-    // Run the command - it sets up readline and returns immediately
     watchClaudeCommand({
       projectId: "test-project-id",
       turnId: "turn_test",
       sessionId: "sess_test",
     });
 
-    // Wait for both syncFile and stdout callback to be called
-    // Readable.from sends data asynchronously, so we need to wait for
-    // the readline to process events and trigger both sync and callback operations
+    // Wait for callback to be called
     await vi.waitFor(
       () => {
-        expect(syncFile).toHaveBeenCalled();
         expect(stdoutCallbackSpy).toHaveBeenCalled();
       },
       {
@@ -128,23 +96,10 @@ describe("watch-claude", () => {
       },
     );
 
-    // Restore stdin and cwd
     Object.defineProperty(process, "stdin", {
       value: originalStdin,
       writable: true,
     });
-    process.cwd = originalCwd;
-
-    // Verify syncFile was called with correct arguments
-    expect(syncFile).toHaveBeenCalledWith(
-      {
-        token: "test-token",
-        apiUrl: "https://www.uspark.ai",
-      },
-      "test-project-id",
-      "spec/test-time.md", // Should be relative path
-      "spec/test-time.md", // localPath (same as filePath when no prefix)
-    );
 
     // Verify stdout callback was called with both event lines
     expect(stdoutCallbackSpy).toHaveBeenCalledTimes(2);
@@ -156,131 +111,9 @@ describe("watch-claude", () => {
     });
   });
 
-  it("should handle tool_use without matching tool_result", async () => {
-    const { syncFile } = await import("./shared");
+  it("should batch push files when prefix is specified on close", async () => {
+    const { pushAllFiles } = await import("./shared");
 
-    // Create events with tool_use but no tool_result
-    const events = [
-      JSON.stringify({
-        type: "assistant",
-        subtype: "tool_use",
-        message: {
-          id: "msg_test",
-          type: "message",
-          role: "assistant",
-          content: [
-            {
-              type: "tool_use",
-              id: "toolu_test",
-              name: "Write",
-              input: {
-                file_path: "/workspaces/uspark/spec/test.md",
-                content: "test",
-              },
-            },
-          ],
-        },
-      }),
-    ];
-
-    // Create stream that auto-ends after events
-    mockStdin = Readable.from(events.map((e) => e + "\n"));
-    const originalStdin = process.stdin;
-    Object.defineProperty(process, "stdin", {
-      value: mockStdin,
-      writable: true,
-    });
-
-    const { watchClaudeCommand } = await import("./watch-claude");
-    const commandPromise = watchClaudeCommand({
-      projectId: "test-project-id",
-      turnId: "turn_test",
-      sessionId: "sess_test",
-    });
-
-    // Wait for command to complete (no delays needed)
-    await commandPromise.catch(() => {});
-
-    Object.defineProperty(process, "stdin", {
-      value: originalStdin,
-      writable: true,
-    });
-
-    // syncFile should not be called without tool_result
-    expect(syncFile).not.toHaveBeenCalled();
-  });
-
-  it("should only track file modification tools", async () => {
-    const { syncFile } = await import("./shared");
-
-    // Create events with non-file-modification tool
-    const events = [
-      JSON.stringify({
-        type: "assistant",
-        subtype: "tool_use",
-        message: {
-          id: "msg_test",
-          type: "message",
-          role: "assistant",
-          content: [
-            {
-              type: "tool_use",
-              id: "toolu_test",
-              name: "Bash", // Not a file modification tool
-              input: {
-                command: "ls -la",
-              },
-            },
-          ],
-        },
-      }),
-      // tool_result event (comes as type:"user" with content array)
-      JSON.stringify({
-        type: "user",
-        message: {
-          id: "msg_result_02",
-          type: "message",
-          role: "user",
-          content: [
-            {
-              type: "tool_result",
-              tool_use_id: "toolu_test",
-              content: "file1.txt\nfile2.txt",
-            },
-          ],
-        },
-      }),
-    ];
-
-    // Create stream that auto-ends after events
-    mockStdin = Readable.from(events.map((e) => e + "\n"));
-    const originalStdin = process.stdin;
-    Object.defineProperty(process, "stdin", {
-      value: mockStdin,
-      writable: true,
-    });
-
-    const { watchClaudeCommand } = await import("./watch-claude");
-    const commandPromise = watchClaudeCommand({
-      projectId: "test-project-id",
-      turnId: "turn_test",
-      sessionId: "sess_test",
-    });
-
-    // Wait for command to complete (no delays needed)
-    await commandPromise.catch(() => {});
-
-    Object.defineProperty(process, "stdin", {
-      value: originalStdin,
-      writable: true,
-    });
-
-    // syncFile should not be called for non-file-modification tools
-    expect(syncFile).not.toHaveBeenCalled();
-  });
-
-  it("should send result block to callback API", async () => {
-    // Create a successful result block (matches production scenario)
     const events = [
       JSON.stringify({
         type: "result",
@@ -289,147 +122,15 @@ describe("watch-claude", () => {
       }),
     ];
 
-    // Create stream that auto-ends after events
     mockStdin = Readable.from(events.map((e) => e + "\n"));
     const originalStdin = process.stdin;
+
     Object.defineProperty(process, "stdin", {
       value: mockStdin,
       writable: true,
     });
 
     const { watchClaudeCommand } = await import("./watch-claude");
-    watchClaudeCommand({
-      projectId: "test-project-id",
-      turnId: "turn_test",
-      sessionId: "sess_test",
-    });
-
-    // Wait for callback to be called
-    await vi.waitFor(
-      () => {
-        expect(stdoutCallbackSpy).toHaveBeenCalled();
-      },
-      {
-        timeout: 1000,
-        interval: 10,
-      },
-    );
-
-    Object.defineProperty(process, "stdin", {
-      value: originalStdin,
-      writable: true,
-    });
-
-    // Verify result block was sent to callback API
-    expect(stdoutCallbackSpy).toHaveBeenCalledWith({
-      line: events[0],
-    });
-  });
-
-  it("should send failed result block to callback API", async () => {
-    // Create a failed result block
-    const events = [
-      JSON.stringify({
-        type: "result",
-        subtype: "error",
-        is_error: true,
-      }),
-    ];
-
-    // Create stream that auto-ends after events
-    mockStdin = Readable.from(events.map((e) => e + "\n"));
-    const originalStdin = process.stdin;
-    Object.defineProperty(process, "stdin", {
-      value: mockStdin,
-      writable: true,
-    });
-
-    const { watchClaudeCommand } = await import("./watch-claude");
-    watchClaudeCommand({
-      projectId: "test-project-id",
-      turnId: "turn_test",
-      sessionId: "sess_test",
-    });
-
-    // Wait for callback to be called
-    await vi.waitFor(
-      () => {
-        expect(stdoutCallbackSpy).toHaveBeenCalled();
-      },
-      {
-        timeout: 1000,
-        interval: 10,
-      },
-    );
-
-    Object.defineProperty(process, "stdin", {
-      value: originalStdin,
-      writable: true,
-    });
-
-    // Verify result block was sent to callback API
-    expect(stdoutCallbackSpy).toHaveBeenCalledWith({
-      line: events[0],
-    });
-  });
-
-  it("should use prefix to construct local path for file sync", async () => {
-    const { syncFile } = await import("./shared");
-
-    const events = [
-      JSON.stringify({
-        type: "assistant",
-        subtype: "tool_use",
-        message: {
-          id: "msg_01BvHYxH8yfSxQtKLkPeKnRc",
-          type: "message",
-          role: "assistant",
-          content: [
-            {
-              type: "tool_use",
-              id: "toolu_015LBZEJykuRthAH8dhkPzBu",
-              name: "Write",
-              input: {
-                file_path: "/workspaces/uspark/.uspark/tech-debt.md",
-                content: "# Tech Debt",
-              },
-            },
-          ],
-        },
-      }),
-      JSON.stringify({
-        type: "user",
-        message: {
-          id: "msg_result_01",
-          type: "message",
-          role: "user",
-          content: [
-            {
-              type: "tool_result",
-              tool_use_id: "toolu_015LBZEJykuRthAH8dhkPzBu",
-              content:
-                "File created successfully at: /workspaces/uspark/.uspark/tech-debt.md",
-            },
-          ],
-        },
-      }),
-    ];
-
-    mockStdin = Readable.from(events.map((e) => e + "\n"));
-
-    const originalStdin = process.stdin;
-    const originalCwd = process.cwd;
-
-    Object.defineProperty(process, "stdin", {
-      value: mockStdin,
-      writable: true,
-    });
-
-    process.cwd = vi.fn(() => "/workspaces/uspark");
-
-    const { watchClaudeCommand } = await import("./watch-claude");
-
-    // Run with prefix parameter
     watchClaudeCommand({
       projectId: "test-project-id",
       turnId: "turn_test",
@@ -437,12 +138,13 @@ describe("watch-claude", () => {
       prefix: ".uspark",
     });
 
+    // Wait for the stream to close and pushAllFiles to be called
     await vi.waitFor(
       () => {
-        expect(syncFile).toHaveBeenCalled();
+        expect(pushAllFiles).toHaveBeenCalled();
       },
       {
-        timeout: 1000,
+        timeout: 2000,
         interval: 10,
       },
     );
@@ -451,17 +153,160 @@ describe("watch-claude", () => {
       value: originalStdin,
       writable: true,
     });
-    process.cwd = originalCwd;
 
-    // Verify syncFile was called with stripped path and reconstructed local path
-    expect(syncFile).toHaveBeenCalledWith(
+    // Verify pushAllFiles was called with correct arguments
+    expect(pushAllFiles).toHaveBeenCalledWith(
       {
         token: "test-token",
         apiUrl: "https://www.uspark.ai",
+        sync: {},
       },
       "test-project-id",
-      "tech-debt.md", // Remote path (prefix stripped)
-      ".uspark/tech-debt.md", // Local path (reconstructed with prefix)
+      ".uspark",
+      ".uspark",
     );
+  });
+
+  it("should not push files when prefix is not specified", async () => {
+    const { pushAllFiles } = await import("./shared");
+
+    const events = [
+      JSON.stringify({
+        type: "result",
+        subtype: "success",
+        is_error: false,
+      }),
+    ];
+
+    mockStdin = Readable.from(events.map((e) => e + "\n"));
+    const originalStdin = process.stdin;
+
+    Object.defineProperty(process, "stdin", {
+      value: mockStdin,
+      writable: true,
+    });
+
+    const { watchClaudeCommand } = await import("./watch-claude");
+    const commandPromise = watchClaudeCommand({
+      projectId: "test-project-id",
+      turnId: "turn_test",
+      sessionId: "sess_test",
+    });
+
+    // Wait for command to complete
+    await commandPromise.catch(() => {});
+
+    // Give it extra time to ensure no unexpected calls
+    await new Promise((resolve) => setTimeout(resolve, 100));
+
+    Object.defineProperty(process, "stdin", {
+      value: originalStdin,
+      writable: true,
+    });
+
+    // pushAllFiles should not be called without prefix
+    expect(pushAllFiles).not.toHaveBeenCalled();
+  });
+
+  it("should handle empty directory gracefully", async () => {
+    const { pushAllFiles } = await import("./shared");
+
+    // Mock pushAllFiles to return 0 (no files)
+    vi.mocked(pushAllFiles).mockResolvedValueOnce(0);
+
+    const events = [
+      JSON.stringify({
+        type: "result",
+        subtype: "success",
+        is_error: false,
+      }),
+    ];
+
+    mockStdin = Readable.from(events.map((e) => e + "\n"));
+    const originalStdin = process.stdin;
+
+    Object.defineProperty(process, "stdin", {
+      value: mockStdin,
+      writable: true,
+    });
+
+    const { watchClaudeCommand } = await import("./watch-claude");
+    watchClaudeCommand({
+      projectId: "test-project-id",
+      turnId: "turn_test",
+      sessionId: "sess_test",
+      prefix: ".uspark",
+    });
+
+    // Wait for pushAllFiles to be called
+    await vi.waitFor(
+      () => {
+        expect(pushAllFiles).toHaveBeenCalled();
+      },
+      {
+        timeout: 2000,
+        interval: 10,
+      },
+    );
+
+    Object.defineProperty(process, "stdin", {
+      value: originalStdin,
+      writable: true,
+    });
+
+    expect(pushAllFiles).toHaveBeenCalled();
+  });
+
+  it("should wait for pending callbacks before pushing files", async () => {
+    const { pushAllFiles } = await import("./shared");
+
+    const events = [
+      JSON.stringify({
+        type: "assistant",
+        message: {
+          id: "msg_test",
+          type: "message",
+          role: "assistant",
+          content: [{ type: "text", text: "test" }],
+        },
+      }),
+    ];
+
+    mockStdin = Readable.from(events.map((e) => e + "\n"));
+    const originalStdin = process.stdin;
+
+    Object.defineProperty(process, "stdin", {
+      value: mockStdin,
+      writable: true,
+    });
+
+    const { watchClaudeCommand } = await import("./watch-claude");
+    watchClaudeCommand({
+      projectId: "test-project-id",
+      turnId: "turn_test",
+      sessionId: "sess_test",
+      prefix: ".uspark",
+    });
+
+    // Wait for both callback and pushAllFiles to be called
+    await vi.waitFor(
+      () => {
+        expect(stdoutCallbackSpy).toHaveBeenCalled();
+        expect(pushAllFiles).toHaveBeenCalled();
+      },
+      {
+        timeout: 2000,
+        interval: 10,
+      },
+    );
+
+    Object.defineProperty(process, "stdin", {
+      value: originalStdin,
+      writable: true,
+    });
+
+    // Both should have been called
+    expect(stdoutCallbackSpy).toHaveBeenCalled();
+    expect(pushAllFiles).toHaveBeenCalled();
   });
 });
