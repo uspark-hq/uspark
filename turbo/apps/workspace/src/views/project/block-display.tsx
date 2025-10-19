@@ -86,27 +86,16 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
       const content = block.content as BlockContent
       const resultData = typeof content === 'object' ? content : {}
       const hasError = 'error' in resultData && Boolean(resultData.error)
-      const result =
-        'result' in resultData && typeof resultData.result === 'string'
-          ? resultData.result
-          : ''
-      const error =
-        'error' in resultData && typeof resultData.error === 'string'
-          ? resultData.error
-          : ''
 
       return (
         <div
           className={`rounded border p-2 ${hasError ? 'border-[#6b3a3a] bg-[#4b2b2b]' : 'border-[#2d5f30] bg-[#1e4620]'}`}
         >
           <div
-            className={`mb-1 text-[11px] font-medium ${hasError ? 'text-[#f48771]' : 'text-[#89d185]'}`}
+            className={`text-[11px] font-medium ${hasError ? 'text-[#f48771]' : 'text-[#89d185]'}`}
           >
             {hasError ? 'Tool Error' : 'Tool Result'}
           </div>
-          <pre className="overflow-x-auto text-[11px] whitespace-pre-wrap text-[#d4d4d4]">
-            {error || result || JSON.stringify(block.content)}
-          </pre>
         </div>
       )
     }
