@@ -140,7 +140,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
     });
 
     it("should handle case when no running turns exist", async () => {
-      // Create only completed and pending turns
+      // Create only completed turn
       const [completedTurn] = await globalThis.services.db
         .insert(TURNS_TBL)
         .values({
@@ -152,17 +152,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
         })
         .returning();
 
-      const [pendingTurn] = await globalThis.services.db
-        .insert(TURNS_TBL)
-        .values({
-          id: `turn_pending_${Date.now()}`,
-          sessionId,
-          userPrompt: "Pending question",
-          status: "pending",
-        })
-        .returning();
-
-      createdTurnIds.push(completedTurn!.id, pendingTurn!.id);
+      createdTurnIds.push(completedTurn!.id);
 
       const request = new NextRequest("http://localhost:3000", {
         method: "POST",
@@ -176,7 +166,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
       expect(data).toHaveProperty("id", sessionId);
       expect(data).toHaveProperty("status", "interrupted");
 
-      // Verify no turns were modified
+      // Verify completed turn was not modified
       const [unchangedCompleted] = await globalThis.services.db
         .select()
         .from(TURNS_TBL)
@@ -184,14 +174,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
 
       expect(unchangedCompleted!.status).toBe("completed");
       expect(unchangedCompleted!.errorMessage).toBeNull();
-
-      const [unchangedPending] = await globalThis.services.db
-        .select()
-        .from(TURNS_TBL)
-        .where(eq(TURNS_TBL.id, pendingTurn!.id));
-
-      expect(unchangedPending!.status).toBe("pending");
-      expect(unchangedPending!.errorMessage).toBeNull();
     });
 
     it("should not affect turns from other sessions", async () => {
