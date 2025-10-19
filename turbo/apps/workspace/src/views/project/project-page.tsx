@@ -53,10 +53,11 @@ export function ProjectPage() {
       <div className="flex min-h-0 flex-1">
         {isFileContentVisible ? (
           <>
-            {/* 50/50 split: Chat window on left, file content on right */}
-            <div className="flex-1 border-r border-[#3e3e42]">
+            {/* Chat window - hidden on mobile when file is open, shown on desktop */}
+            <div className="hidden flex-1 border-r border-[#3e3e42] md:flex">
               <ChatWindow />
             </div>
+            {/* File content - full width on mobile, 50% on desktop */}
             <div className="flex-1">
               <FileContent />
             </div>
