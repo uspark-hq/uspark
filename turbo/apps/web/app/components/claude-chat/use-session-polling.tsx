@@ -1,12 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-
-interface Block {
-  id: string;
-  type: string;
-  content: Record<string, unknown>;
-}
+import type { Block } from "@uspark/core/contracts/turns.contract";
 
 interface Turn {
   id: string;

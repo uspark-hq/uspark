@@ -27,8 +27,7 @@ export const BlockSchema = z.object({
   id: z.string().startsWith("block_"),
   turnId: z.string().startsWith("turn_"),
   type: z.enum(["text", "code", "tool_use", "tool_result", "error"]),
-  content: z.string(),
-  metadata: z.record(z.string(), z.unknown()).optional(),
+  content: z.record(z.string(), z.unknown()), // Content is a JSON object, not a string
   createdAt: z.date().or(z.string()),
 });
 export type Block = z.infer<typeof BlockSchema>;
