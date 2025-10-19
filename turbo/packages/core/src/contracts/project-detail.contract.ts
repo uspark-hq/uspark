@@ -154,6 +154,24 @@ export const projectDetailContract = c.router({
       "Returns the ID of the most recent block in the session, or null if no blocks exist.",
   },
 
+  interruptSession: {
+    method: "POST",
+    path: "/api/projects/:projectId/sessions/:sessionId/interrupt",
+    pathParams: z.object({
+      projectId: z.string(),
+      sessionId: z.string(),
+    }),
+    body: z.object({}), // Empty body
+    responses: {
+      200: z.object({
+        success: z.boolean(),
+      }),
+    },
+    summary: "Interrupt running session",
+    description:
+      "Cancels any running turns in the session and stops E2B processes",
+  },
+
   // GitHub Integration
   getGitHubRepository: {
     method: "GET",

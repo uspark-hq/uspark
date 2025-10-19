@@ -112,7 +112,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
           sessionId,
           userPrompt: "Completed question",
           status: "completed",
-          startedAt: new Date(),
           completedAt: new Date(),
         })
         .returning();
@@ -194,7 +193,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/interrupt", () => {
           sessionId,
           userPrompt: "Completed question",
           status: "completed",
-          startedAt: new Date(),
           completedAt: new Date(),
         })
         .returning();

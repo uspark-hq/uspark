@@ -74,28 +74,13 @@ export function ChatWindow() {
 
             <div className="space-y-3">
               {turns && turns.length > 0 ? (
-                <>
-                  {turns.map((turn) => (
-                    <TurnDisplay key={turn.id} turn={turn} />
-                  ))}
-                  {turns.some(
-                    (turn) =>
-                      turn.status === 'pending' ||
-                      turn.status === 'in_progress',
-                  ) && (
-                    <div className="text-[#9cdcfe]">
-                      <span className="inline-flex gap-0.5">
-                        <span className="animate-pulse">.</span>
-                        <span className="animate-pulse [animation-delay:200ms]">
-                          .
-                        </span>
-                        <span className="animate-pulse [animation-delay:400ms]">
-                          .
-                        </span>
-                      </span>
-                    </div>
-                  )}
-                </>
+                turns.map((turn, index) => (
+                  <TurnDisplay
+                    key={turn.id}
+                    turn={turn}
+                    isLastTurn={index === turns.length - 1}
+                  />
+                ))
               ) : (
                 <div className="py-12 text-center text-[13px] text-[#969696]">
                   <div className="mb-2 text-3xl">✨</div>

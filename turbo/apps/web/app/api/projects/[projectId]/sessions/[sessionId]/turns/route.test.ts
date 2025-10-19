@@ -114,7 +114,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
   });
 
   describe("POST /api/projects/:projectId/sessions/:sessionId/turns", () => {
-    it("should create a new turn with pending status", async () => {
+    it("should create a new turn with running status", async () => {
       const userMessage = "What is the weather today?";
       const request = new NextRequest("http://localhost:3000", {
         method: "POST",
@@ -130,7 +130,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       expect(data.id).toMatch(/^turn_/);
       expect(data).toHaveProperty("session_id", sessionId);
       expect(data).toHaveProperty("user_message", userMessage);
-      expect(data).toHaveProperty("status", "pending");
+      expect(data).toHaveProperty("status", "running");
       expect(data).toHaveProperty("created_at");
 
       createdTurnIds.push(data.id);
@@ -144,8 +144,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
       expect(turn).toBeDefined();
       expect(turn!.sessionId).toBe(sessionId);
       expect(turn!.userPrompt).toBe(userMessage);
-      expect(turn!.status).toBe("pending");
-      expect(turn!.startedAt).toBeNull();
+      expect(turn!.status).toBe("running");
       expect(turn!.completedAt).toBeNull();
     });
   });
@@ -192,7 +191,6 @@ describe("/api/projects/:projectId/sessions/:sessionId/turns", () => {
         .update(TURNS_TBL)
         .set({
           status: "completed",
-          startedAt: new Date(),
           completedAt: new Date(),
         })
         .where(eq(TURNS_TBL.id, turn1Data.id));

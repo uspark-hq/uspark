@@ -17,6 +17,7 @@ export const PROJECTS_TBL = pgTable(
     // GitHub repository onboarding fields
     sourceRepoUrl: text("source_repo_url"), // Format: "owner/repo"
     sourceRepoInstallationId: integer("source_repo_installation_id"), // GitHub App installation ID for access
+    sourceRepoType: text("source_repo_type"), // 'installed' | 'public' - Type of GitHub repository access
     initialScanStatus: text("initial_scan_status"), // 'pending' | 'running' | 'completed' | 'failed' | null
     initialScanSessionId: text("initial_scan_session_id"), // Links to scanning session
   },

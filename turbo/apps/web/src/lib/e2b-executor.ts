@@ -404,6 +404,46 @@ uspark pull --all --project-id "${projectId}" --output-dir ~/workspace/.uspark -
   }
 
   /**
+   * Interrupt a running session by killing Claude processes in the sandbox
+   */
+  static async interruptSession(sessionId: string): Promise<void> {
+    try {
+      // Find sandbox for this session
+      const paginator: SandboxPaginator = await Sandbox.list();
+      const sandboxes: SandboxInfo[] = await paginator.nextItems();
+      const sandboxInfo = sandboxes.find(
+        (s: SandboxInfo) => s.metadata?.sessionId === sessionId,
+      );
+
+      if (!sandboxInfo) {
+        console.log(
+          `No sandbox found for session ${sessionId}, nothing to interrupt`,
+        );
+        return;
+      }
+
+      // Connect to sandbox and kill Claude processes
+      const sandbox = await Sandbox.connect(sandboxInfo.sandboxId);
+
+      // Kill both claude and watch-claude processes
+      // Use || true to prevent command from failing if processes are not found
+      const killCommand = `pkill -f 'claude.*--print' || true; pkill -f 'uspark watch-claude' || true`;
+
+      const result = await sandbox.commands.run(killCommand, {
+        timeoutMs: 5000,
+      });
+
+      console.log(
+        `Interrupted session ${sessionId} in sandbox ${sandboxInfo.sandboxId}`,
+      );
+      console.log("Kill command result:", result.stdout, result.stderr);
+    } catch (error) {
+      console.error(`Failed to interrupt session ${sessionId}:`, error);
+      // Don't throw - this is best-effort cleanup
+    }
+  }
+
+  /**
    * Clean up sandbox (optional - usually let it timeout)
    */
   static async closeSandbox(sandboxId: string): Promise<void> {
