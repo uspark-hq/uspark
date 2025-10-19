@@ -461,8 +461,13 @@ describe('projectPage - auto-create session', () => {
     // Input should be cleared
     expect(textarea).toHaveValue('')
 
-    // Session selector should appear
-    expect(screen.getByRole('combobox')).toBeInTheDocument()
+    // Session selector button should appear
+    // The button may show "Select session" or "Untitled Session" depending on whether the session is selected
+    const sessionButton = screen.getByRole('button', {
+      name: /Select session|Untitled Session/i,
+    })
+    expect(sessionButton).toBeInTheDocument()
+    expect(sessionButton).toHaveAttribute('aria-haspopup', 'true')
   })
 
   it('sends message to newly created session', async () => {
@@ -627,17 +632,24 @@ describe('projectPage - turn and blocks rendering', () => {
 
     // Verify all block types are rendered
     // This tests that turns$ correctly calls turnDetail and includes blocks
+
+    // Thinking block
     await expect(
       screen.findByText('Let me check the files...'),
     ).resolves.toBeInTheDocument()
+
+    // Content block
     await expect(
       screen.findByText('Here are the files in your project'),
     ).resolves.toBeInTheDocument()
+
+    // Tool use block shows tool name
     await expect(
-      screen.findByText((content) => {
-        return content.includes('README.md') && content.includes('package.json')
-      }),
+      screen.findByText('Tool: list_files'),
     ).resolves.toBeInTheDocument()
+
+    // Tool result block shows status label (content is now hidden)
+    await expect(screen.findByText('Tool Result')).resolves.toBeInTheDocument()
   })
 })
 
