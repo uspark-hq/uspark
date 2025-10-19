@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.55.0](https://github.com/uspark-hq/uspark/compare/web-v0.54.0...web-v0.55.0) (2025-10-19)
+
+
+### Features
+
+* **e2b:** sync project files on every turn with comprehensive logging ([#612](https://github.com/uspark-hq/uspark/issues/612)) ([21ee08b](https://github.com/uspark-hq/uspark/commit/21ee08bb3000bb2e1f07b0568f3a6e0e599751ec))
+
 ## [0.54.0](https://github.com/uspark-hq/uspark/compare/web-v0.53.0...web-v0.54.0) (2025-10-19)
 
 
