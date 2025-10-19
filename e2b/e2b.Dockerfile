@@ -13,10 +13,6 @@ RUN npm install -g @uspark/cli@0.12.2
 RUN claude --version
 RUN uspark --version
 
-# Add initialization script
-COPY init.sh /usr/local/bin/init.sh
-RUN chmod +x /usr/local/bin/init.sh
-
 # Add Claude turn execution script
 COPY execute-claude-turn.sh /usr/local/bin/execute-claude-turn.sh
 RUN chmod +x /usr/local/bin/execute-claude-turn.sh
@@ -29,6 +25,3 @@ RUN mkdir -p $HOME/workspace
 
 # Set working directory to user's home workspace
 WORKDIR /home/user/workspace
-
-# Set entrypoint to initialization script
-ENTRYPOINT ["/usr/local/bin/init.sh"]

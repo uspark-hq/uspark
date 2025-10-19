@@ -180,6 +180,7 @@ export class E2BExecutor {
         USPARK_TOKEN: sandboxToken,
         CLAUDE_CODE_OAUTH_TOKEN: claudeToken,
         ...(githubToken ? { GITHUB_TOKEN: githubToken } : {}),
+        ...(project?.sourceRepoUrl ? { REPO_URL: project.sourceRepoUrl } : {}),
         ...extraEnvs, // Merge any extra environment variables (may override GITHUB_TOKEN)
       },
     });
@@ -188,69 +189,14 @@ export class E2BExecutor {
       `Created new sandbox ${sandbox.sandboxId} for session ${sessionId}`,
     );
 
-    // Initialize sandbox (pull project files and clone git repo if available)
-    await this.initializeSandbox(
-      sandbox,
-      effectiveProjectId,
-      project?.sourceRepoUrl || null,
-    );
+    // Note: Workspace initialization (git clone/pull) happens in execute-claude-turn.sh
+    // This ensures the workspace is always up-to-date before each turn execution
 
     return {
       sandbox,
       projectId: effectiveProjectId,
       sourceRepoUrl: project?.sourceRepoUrl || null,
     };
-  }
-
-  /**
-   * Initialize sandbox with project files (only called once on sandbox creation)
-   * Clones the git repository if it exists
-   * @param projectId - The effective project ID (already resolved for dev/prod)
-   * @param sourceRepoUrl - GitHub repository in "owner/repo" format (null if no repo)
-   */
-  private static async initializeSandbox(
-    sandbox: Sandbox,
-    projectId: string,
-    sourceRepoUrl: string | null,
-  ): Promise<void> {
-    console.log(`Initializing sandbox for project ${projectId}`);
-
-    // Clone git repository if project has one
-    if (sourceRepoUrl) {
-      console.log(`Cloning GitHub repository: ${sourceRepoUrl}`);
-      const timestamp = Date.now();
-      const cloneScript = `
-echo "========================================" | tee /tmp/clone_${timestamp}.log
-echo "Git Clone - $(date)" | tee -a /tmp/clone_${timestamp}.log
-echo "Repository: ${sourceRepoUrl}" | tee -a /tmp/clone_${timestamp}.log
-echo "========================================" | tee -a /tmp/clone_${timestamp}.log
-
-# Use token for private repos, no token for public repos
-if [ -n "\${GITHUB_TOKEN}" ]; then
-  git clone https://\${GITHUB_TOKEN}@github.com/${sourceRepoUrl}.git ~/workspace 2>&1 | tee -a /tmp/clone_${timestamp}.log
-else
-  git clone https://github.com/${sourceRepoUrl}.git ~/workspace 2>&1 | tee -a /tmp/clone_${timestamp}.log
-fi
-
-echo "[Done] Clone completed at $(date)" | tee -a /tmp/clone_${timestamp}.log
-`;
-      const cloneResult = await sandbox.commands.run(cloneScript, {
-        timeoutMs: 0,
-      });
-
-      if (cloneResult.exitCode !== 0) {
-        throw new Error(
-          `Git clone failed (exit ${cloneResult.exitCode}): ${cloneResult.stderr || cloneResult.stdout}`,
-        );
-      }
-      console.log(`Repository cloned successfully`);
-    } else {
-      // No git repo - just create workspace directory
-      console.log("No Git repository - creating workspace directory");
-      await sandbox.commands.run("mkdir -p ~/workspace");
-    }
-
-    console.log("Sandbox initialized successfully");
   }
 
   /**
