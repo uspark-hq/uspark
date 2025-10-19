@@ -389,3 +389,12 @@ export const startWatchSession$ = command(
     } while (!IN_VITEST && !signal.aborted)
   },
 )
+
+// View mode state ('preview' | 'edit')
+const internalViewMode$ = state<'preview' | 'edit'>('preview')
+
+export const viewMode$ = computed((get) => get(internalViewMode$))
+
+export const setViewMode$ = command(({ set }, mode: 'preview' | 'edit') => {
+  set(internalViewMode$, mode)
+})

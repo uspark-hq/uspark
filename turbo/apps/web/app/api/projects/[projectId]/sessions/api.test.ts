@@ -121,7 +121,7 @@ describe("Claude Session Management API Integration", () => {
       expect(turnResponse.status).toBe(200);
       expect(turnResponse.data).toHaveProperty("id");
       expect(turnResponse.data.user_message).toBe("Test prompt");
-      expect(turnResponse.data.status).toBe("pending");
+      expect(turnResponse.data.status).toBe("running");
       turnId = turnResponse.data.id;
 
       // 2. List turns
