@@ -182,10 +182,15 @@ test.describe("New Project Multi-Step Flow", () => {
     // Repository type determines redirect:
     // - Installed repos → /projects/:id/init (scan progress)
     // - Public repos → /projects/:id (workspace directly)
+    //
+    // Note: Increased timeout to 30s to account for:
+    // - GitHub API verification time
+    // - Database operations
+    // - Serverless function cold starts
     await page.waitForURL((url) => {
       const urlString = url.toString();
       return /\/projects\/[a-z0-9-]{36}/.test(urlString);
-    }, { timeout: 10000 });
+    }, { timeout: 30000 });
 
     const finalUrl = page.url();
     expect(finalUrl).toMatch(/\/projects\/[a-z0-9-]{36}/);
