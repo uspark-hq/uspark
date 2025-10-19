@@ -44,6 +44,10 @@
       "entry": [],
       "project": ["src/**/*.ts"]
     },
+    "packages/core-node": {
+      "entry": [],
+      "project": ["src/**/*.ts"]
+    },
     "packages/ui": {
       "entry": ["src/test/setup.ts"],
       "project": ["src/**/*.{ts,tsx}"]
@@ -67,8 +71,7 @@
       "project": ["src/**/*.ts"],
       "tsup": {
         "config": ["tsup.config.ts"]
-      },
-      "ignoreDependencies": ["@vercel/blob"]
+      }
     }
   },
   "ignore": [

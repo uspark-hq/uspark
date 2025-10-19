@@ -19,14 +19,6 @@
     "./yjs-filesystem": {
       "import": "./src/yjs-filesystem/index.ts",
       "types": "./src/yjs-filesystem/index.ts"
-    },
-    "./yjs-filesystem/filesystem": {
-      "import": "./src/yjs-filesystem/filesystem.ts",
-      "types": "./src/yjs-filesystem/filesystem.ts"
-    },
-    "./yjs-filesystem/project-sync": {
-      "import": "./src/yjs-filesystem/project-sync.ts",
-      "types": "./src/yjs-filesystem/project-sync.ts"
     }
   },
   "scripts": {
@@ -45,7 +37,6 @@
   },
   "dependencies": {
     "@ts-rest/core": "3.53.0-rc.1",
-    "@vercel/blob": "^1.1.1",
     "js-sha256": "^0.11.1",
     "yjs": "^13.6.27",
     "zod": "^4.1.5"

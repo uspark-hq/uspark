@@ -1,5 +1,5 @@
 import type { UsparkConfig } from "../config.js";
-import { ProjectSync } from "@uspark/core/yjs-filesystem/project-sync";
+import { ProjectSync } from "@uspark/core-node";
 
 /**
  * Handle the uspark_list_files tool call

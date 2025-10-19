@@ -1,0 +1,41 @@
+{
+  "name": "@uspark/core-node",
+  "version": "0.1.0",
+  "description": "Node.js-specific utilities for uSpark (filesystem sync, YJS operations)",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    },
+    "./project-sync": {
+      "import": "./src/project-sync.ts",
+      "types": "./src/project-sync.ts"
+    },
+    "./filesystem": {
+      "import": "./src/filesystem.ts",
+      "types": "./src/filesystem.ts"
+    }
+  },
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --max-warnings 0",
+    "check-types": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@uspark/core": "workspace:*",
+    "@vercel/blob": "^1.1.1",
+    "js-sha256": "^0.11.1",
+    "yjs": "^13.6.27"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "@uspark/eslint-config": "workspace:*",
+    "@uspark/typescript-config": "workspace:*",
+    "eslint": "^9.34.0",
+    "typescript": "5.9.2",
+    "vitest": "^3.2.4"
+  }
+}
