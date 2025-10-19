@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.23.0](https://github.com/uspark-hq/uspark/compare/core-v0.22.0...core-v0.23.0) (2025-10-19)
+
+
+### Features
+
+* **sessions:** optimize turn state management and add interrupt functionality ([#602](https://github.com/uspark-hq/uspark/issues/602)) ([e62286f](https://github.com/uspark-hq/uspark/commit/e62286fedfc8192c9dcce42ff79aee94c7697e16))
+
 ## [0.22.0](https://github.com/uspark-hq/uspark/compare/core-v0.21.0...core-v0.22.0) (2025-10-18)
 
 

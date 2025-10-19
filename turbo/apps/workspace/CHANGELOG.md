@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.19.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.18.0...workspace-v1.19.0) (2025-10-19)
+
+
+### Features
+
+* **sessions:** optimize turn state management and add interrupt functionality ([#602](https://github.com/uspark-hq/uspark/issues/602)) ([e62286f](https://github.com/uspark-hq/uspark/commit/e62286fedfc8192c9dcce42ff79aee94c7697e16))
+* **workspace:** add markdown preview/edit mode toggle and fix turn status tests ([#605](https://github.com/uspark-hq/uspark/issues/605)) ([cd55bb7](https://github.com/uspark-hq/uspark/commit/cd55bb71a93f7d8b1d260c4202fbf99fd809a31b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.23.0
+
 ## [1.18.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.17.1...workspace-v1.18.0) (2025-10-19)
 
 
