@@ -30,11 +30,50 @@ This document defines code quality issues and anti-patterns to identify during c
 - Suggest deterministic alternatives to time-based solutions
 - Tests should handle real async behavior, not manipulate time
 
-## 6. Dynamic Import Analysis
-- Identify dynamic `import()` calls that could be static imports
-- Convert runtime dynamic imports to static imports at file top
-- Preserve type-only imports (JSDoc/TypeScript annotations)
-- Flag unnecessary async operations from dynamic imports
+## 6. Prohibition of Dynamic Imports
+- **ZERO tolerance for dynamic `import()` in production code** - use static imports only
+- **Prohibited patterns:**
+  - `await import("module")` - Use static `import` at file top instead
+  - `import("module").then(...)` - Use static `import` at file top instead
+  - Conditional imports like `if (condition) { await import(...) }` - Restructure code to use static imports
+- **Why dynamic imports are harmful:**
+  - Break tree-shaking and bundle optimization
+  - Add unnecessary async complexity to synchronous operations
+  - Make dependency analysis harder for tools
+  - Increase code complexity without real benefits
+  - Hide import errors until runtime instead of catching at build time
+- **Always use static imports:**
+  ```typescript
+  // ❌ Bad: Dynamic import adds unnecessary async
+  async function generateToken() {
+    const crypto = await import("crypto");
+    return crypto.randomBytes(32).toString("base64url");
+  }
+
+  // ✅ Good: Static import at file top
+  import { randomBytes } from "crypto";
+
+  function generateToken() {
+    return randomBytes(32).toString("base64url");
+  }
+
+  // ❌ Bad: Dynamic import for "lazy loading"
+  async function handleClick() {
+    const { E2BExecutor } = await import("./e2b-executor");
+    await E2BExecutor.doSomething();
+  }
+
+  // ✅ Good: Static import
+  import { E2BExecutor } from "./e2b-executor";
+
+  async function handleClick() {
+    await E2BExecutor.doSomething();
+  }
+  ```
+- **Rare exceptions (must be justified):**
+  - Truly optional dependencies that may not exist (e.g., dev-only tools)
+  - Route-based code splitting in Next.js (handled by framework automatically)
+  - Testing utilities that need to be mocked (prefer static imports with mocking instead)
 
 ## 7. Database and Service Mocking in Web Tests
 - Tests under `apps/web` should NOT mock `globalThis.services`
