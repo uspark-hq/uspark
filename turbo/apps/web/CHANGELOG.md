@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.56.1](https://github.com/uspark-hq/uspark/compare/web-v0.56.0...web-v0.56.1) (2025-10-19)
+
+
+### Bug Fixes
+
+* **turns:** remove obsolete pending and in_progress statuses ([#631](https://github.com/uspark-hq/uspark/issues/631)) ([af9c45a](https://github.com/uspark-hq/uspark/commit/af9c45a7027d2fd99884a3b2c18553db27ccc326))
+
 ## [0.56.0](https://github.com/uspark-hq/uspark/compare/web-v0.55.4...web-v0.56.0) (2025-10-19)
 
 
