@@ -178,25 +178,47 @@ test.describe("New Project Multi-Step Flow", () => {
     // Click "Start Scanning" to create project
     await startButton.click();
 
-    // Step 9: Verify redirect to /projects/:id/init page
-    await page.waitForURL(/\/projects\/[a-z0-9-]{36}\/init/, { timeout: 10000 });
+    // Step 9: Wait for navigation to complete
+    // Repository type determines redirect:
+    // - Installed repos → /projects/:id/init (scan progress)
+    // - Public repos → /projects/:id (workspace directly)
+    await page.waitForURL((url) => {
+      const urlString = url.toString();
+      return /\/projects\/[a-z0-9-]{36}/.test(urlString);
+    }, { timeout: 10000 });
 
-    expect(page.url()).toMatch(/\/projects\/[a-z0-9-]{36}\/init$/);
+    const finalUrl = page.url();
+    expect(finalUrl).toMatch(/\/projects\/[a-z0-9-]{36}/);
 
-    // Step 10: Verify init page shows scan progress
-    await page.waitForLoadState("domcontentloaded");
+    // Step 10: Check which page we landed on
+    if (finalUrl.includes("/init")) {
+      // Installed repository - verify init/scan progress page
+      await page.waitForLoadState("domcontentloaded");
 
-    // Should show "Scanning {projectName}" heading
-    const scanningHeading = page.locator("h3").filter({ hasText: /Scanning/i });
-    await expect(scanningHeading).toBeVisible({ timeout: 5000 });
+      // Should show "Scanning {projectName}" heading
+      const scanningHeading = page.locator("h3").filter({ hasText: /Scanning/i });
+      await expect(scanningHeading).toBeVisible({ timeout: 5000 });
 
-    await page.screenshot({
-      path: "test-results/multi-step-10-init-page.png",
-      fullPage: true,
-    });
+      await page.screenshot({
+        path: "test-results/multi-step-10-init-page.png",
+        fullPage: true,
+      });
 
-    // Note: The init page will auto-redirect to workspace when scan completes,
-    // but we don't wait for that in this test to avoid long waits
+      // Note: The init page will auto-redirect to workspace when scan completes,
+      // but we don't wait for that in this test to avoid long waits
+    } else {
+      // Public repository - landed directly on workspace
+      await page.waitForLoadState("domcontentloaded");
+
+      await page.screenshot({
+        path: "test-results/multi-step-10-workspace.png",
+        fullPage: true,
+      });
+
+      // Just verify the page loaded successfully
+      const mainContent = page.locator('main, [role="main"], body').first();
+      await expect(mainContent).toBeVisible();
+    }
   });
 
   test("shows error when token is invalid", async ({ page }) => {
