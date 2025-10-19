@@ -191,8 +191,6 @@ describe("InitialScanExecutor", () => {
         new Error("Invalid installation"),
       );
 
-      // Token retrieval happens before fire-and-forget execution,
-      // so error still propagates from getInstallationToken
       await expect(
         InitialScanExecutor.startScan(
           testProjectId,
@@ -202,7 +200,7 @@ describe("InitialScanExecutor", () => {
         ),
       ).rejects.toThrow("Invalid installation");
 
-      // Session was created before token failure (for error recovery)
+      // Verify session was created (so sessionId exists for error recovery)
       const [project] = await db
         .select()
         .from(PROJECTS_TBL)
