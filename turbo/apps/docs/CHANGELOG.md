@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.1](https://github.com/uspark-hq/uspark/compare/docs-v1.4.0...docs-v1.4.1) (2025-10-19)
+
+
+### Bug Fixes
+
+* **api:** remove duplicate variable declaration in turns route ([#641](https://github.com/uspark-hq/uspark/issues/641)) ([ce6a06c](https://github.com/uspark-hq/uspark/commit/ce6a06c679b17725495581faeed71e16926015e8))
+
 ## [1.4.0](https://github.com/uspark-hq/uspark/compare/docs-v1.3.2...docs-v1.4.0) (2025-09-13)
 
 

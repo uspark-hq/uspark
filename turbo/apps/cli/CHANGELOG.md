@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.12.5](https://github.com/uspark-hq/uspark/compare/cli-v0.12.4...cli-v0.12.5) (2025-10-19)
+
+
+### Bug Fixes
+
+* **api:** remove duplicate variable declaration in turns route ([#641](https://github.com/uspark-hq/uspark/issues/641)) ([ce6a06c](https://github.com/uspark-hq/uspark/commit/ce6a06c679b17725495581faeed71e16926015e8))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.24.0
+
 ## [0.12.4](https://github.com/uspark-hq/uspark/compare/cli-v0.12.3...cli-v0.12.4) (2025-10-19)
 
 

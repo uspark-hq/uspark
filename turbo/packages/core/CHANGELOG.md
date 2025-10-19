@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.24.0](https://github.com/uspark-hq/uspark/compare/core-v0.23.1...core-v0.24.0) (2025-10-19)
+
+
+### Features
+
+* **ui:** add block filtering to simplify turn display ([#643](https://github.com/uspark-hq/uspark/issues/643)) ([63ab1eb](https://github.com/uspark-hq/uspark/commit/63ab1eb20394fedc224619311b18c89856069c1d))
+
+
+### Bug Fixes
+
+* **api:** remove duplicate variable declaration in turns route ([#641](https://github.com/uspark-hq/uspark/issues/641)) ([ce6a06c](https://github.com/uspark-hq/uspark/commit/ce6a06c679b17725495581faeed71e16926015e8))
+
 ## [0.23.1](https://github.com/uspark-hq/uspark/compare/core-v0.23.0...core-v0.23.1) (2025-10-19)
 
 
