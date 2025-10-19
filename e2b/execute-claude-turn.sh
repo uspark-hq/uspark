@@ -86,15 +86,15 @@ log "Prerequisites validated"
 
 log "=== Phase 1: Syncing Project Files ==="
 
-# Create workspace directory if it doesn't exist
+# Ensure workspace directory exists
 mkdir -p "$WORKSPACE_DIR"
-cd "$WORKSPACE_DIR"
 
-# Check if this is a Git repository
-if [[ -d .git ]]; then
-  log "Git repository detected, syncing..."
+# Idempotent Git repository initialization and sync
+if [[ -d "$WORKSPACE_DIR/.git" ]]; then
+  # Repository already exists - sync latest changes
+  log "Git repository detected, syncing latest changes..."
+  cd "$WORKSPACE_DIR"
 
-  # Reset and pull latest changes
   git reset --hard origin/main
   git pull origin main
 
@@ -105,8 +105,36 @@ if [[ -d .git ]]; then
   fi
 
   log "Git sync completed"
+elif [[ -n "${REPO_URL:-}" ]]; then
+  # Repository doesn't exist but REPO_URL is provided - clone it
+  log "Cloning Git repository: $REPO_URL"
+
+  # Remove workspace if it exists but is not a git repo
+  if [[ -d "$WORKSPACE_DIR" ]]; then
+    log "Removing non-git workspace directory"
+    rm -rf "$WORKSPACE_DIR"
+  fi
+
+  # Clone repository
+  if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+    git clone "https://${GITHUB_TOKEN}@github.com/${REPO_URL}.git" "$WORKSPACE_DIR"
+  else
+    git clone "https://github.com/${REPO_URL}.git" "$WORKSPACE_DIR"
+  fi
+
+  cd "$WORKSPACE_DIR"
+
+  # Ensure .gitignore contains .uspark
+  if ! grep -q "^\.uspark$" .gitignore 2>/dev/null; then
+    log "Adding .uspark to .gitignore"
+    echo ".uspark" >> .gitignore
+  fi
+
+  log "Git clone completed"
 else
-  log "No Git repository found, skipping Git sync"
+  # No repository - just use workspace directory
+  log "No Git repository configured, using workspace directory"
+  cd "$WORKSPACE_DIR"
 fi
 
 # Pull uSpark project files
