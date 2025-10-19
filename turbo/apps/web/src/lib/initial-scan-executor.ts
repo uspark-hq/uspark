@@ -20,8 +20,8 @@ export class InitialScanExecutor {
   static async startScan(
     projectId: string,
     sourceRepoUrl: string, // "owner/repo"
-    installationId: number,
     userId: string,
+    installationId: number | null,
   ): Promise<{ sessionId: string; turnId: string }> {
     initServices();
     const db = globalThis.services.db;
@@ -61,17 +61,21 @@ export class InitialScanExecutor {
       })
       .where(eq(PROJECTS_TBL.id, projectId));
 
-    // Get GitHub token for cloning
-    const githubToken = await getInstallationToken(installationId);
+    // Get GitHub token for cloning (only for installed repos)
+    const extraEnvs: Record<string, string> = {};
+    if (installationId) {
+      const githubToken = await getInstallationToken(installationId);
+      extraEnvs.GITHUB_TOKEN = githubToken;
+    }
 
-    // Execute via normal Claude executor with GITHUB_TOKEN as extra env var
+    // Execute via normal Claude executor with optional GITHUB_TOKEN
     await ClaudeExecutor.execute(
       turnId,
       sessionId,
       projectId,
       scanPrompt,
       userId,
-      { GITHUB_TOKEN: githubToken },
+      Object.keys(extraEnvs).length > 0 ? extraEnvs : undefined,
     );
 
     console.log(

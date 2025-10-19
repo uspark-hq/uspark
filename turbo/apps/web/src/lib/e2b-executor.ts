@@ -236,7 +236,12 @@ if [ -d ~/workspace/.git ]; then
   git pull origin main 2>&1 | tee -a /tmp/sync_${timestamp}.log
 else
   echo "[Git] Cloning repository..." | tee -a /tmp/sync_${timestamp}.log
-  git clone https://\${GITHUB_TOKEN}@github.com/${sourceRepoUrl}.git ~/workspace 2>&1 | tee -a /tmp/sync_${timestamp}.log
+  # Use token for private repos, no token for public repos
+  if [ -n "\${GITHUB_TOKEN}" ]; then
+    git clone https://\${GITHUB_TOKEN}@github.com/${sourceRepoUrl}.git ~/workspace 2>&1 | tee -a /tmp/sync_${timestamp}.log
+  else
+    git clone https://github.com/${sourceRepoUrl}.git ~/workspace 2>&1 | tee -a /tmp/sync_${timestamp}.log
+  fi
 fi
 
 # Ensure .gitignore contains .uspark
