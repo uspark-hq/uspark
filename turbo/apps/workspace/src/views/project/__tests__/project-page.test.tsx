@@ -598,17 +598,24 @@ describe('projectPage - turn and blocks rendering', () => {
 
     // Verify all block types are rendered
     // This tests that turns$ correctly calls turnDetail and includes blocks
+
+    // Thinking block
     await expect(
       screen.findByText('Let me check the files...'),
     ).resolves.toBeInTheDocument()
+
+    // Content block
     await expect(
       screen.findByText('Here are the files in your project'),
     ).resolves.toBeInTheDocument()
+
+    // Tool use block shows tool name
     await expect(
-      screen.findByText((content) => {
-        return content.includes('README.md') && content.includes('package.json')
-      }),
+      screen.findByText('Tool: list_files'),
     ).resolves.toBeInTheDocument()
+
+    // Tool result block shows status label (content is now hidden)
+    await expect(screen.findByText('Tool Result')).resolves.toBeInTheDocument()
   })
 })
 
