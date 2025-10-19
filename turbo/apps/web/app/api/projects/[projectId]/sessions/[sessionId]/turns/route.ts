@@ -13,6 +13,9 @@ import { randomUUID } from "crypto";
 import { turnsContract } from "@uspark/core";
 import { ClaudeExecutor } from "../../../../../../../src/lib/claude-executor";
 
+// Route segment config - allow up to 5 minutes for sandbox creation and execution
+export const maxDuration = 300;
+
 // Extract types from contract
 type CreateTurnResponse = z.infer<
   (typeof turnsContract.createTurn.responses)[200]
