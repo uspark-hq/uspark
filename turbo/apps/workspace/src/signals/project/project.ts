@@ -1,8 +1,8 @@
 import type { FileItem } from '@uspark/core/yjs-filesystem'
 import { command, computed, state } from 'ccstate'
-import { delay } from 'signal-timers'
-import { marked } from 'marked'
 import DOMPurify from 'dompurify'
+import { marked } from 'marked'
+import { delay } from 'signal-timers'
 import { IN_VITEST } from '../../env'
 import {
   blobStore$,

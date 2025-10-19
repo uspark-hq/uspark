@@ -84,7 +84,8 @@
     color: #f48771;
     padding: 0.2em 0.4em;
     border-radius: 3px;
-    font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas,
+    font-family:
+      'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas,
       'Courier New', monospace;
     font-size: 0.9em;
   }
