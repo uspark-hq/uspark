@@ -31,7 +31,6 @@ export const shareCurrentFile$ = command(
 
     // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
     if (!result?.url) {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       toast.error('Failed to create share link')
       return
     }
@@ -41,7 +40,6 @@ export const shareCurrentFile$ = command(
     signal.throwIfAborted()
 
     // Show success toast
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
     toast.success('Share link copied to clipboard', {
       description: selectedFile.path,
     })

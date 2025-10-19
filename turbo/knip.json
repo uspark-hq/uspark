@@ -61,6 +61,14 @@
       "entry": [],
       "project": ["**/*.{js,json}"],
       "ignoreBinaries": ["caddy"]
+    },
+    "packages/mcp-server": {
+      "entry": ["src/index.ts"],
+      "project": ["src/**/*.ts"],
+      "tsup": {
+        "config": ["tsup.config.ts"]
+      },
+      "ignoreDependencies": ["@vercel/blob"]
     }
   },
   "ignore": [

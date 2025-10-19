@@ -6,27 +6,30 @@ export * from "./contracts";
 export * from "./types";
 export * from "./blob";
 // Export only browser-compatible YJS filesystem utilities
-// CLI and MCP server should import directly from "@uspark/core/yjs-filesystem"
+// Import from specific files to avoid bundling Node.js-only modules
 export {
   parseYjsFileSystem,
   getFileFromYjs,
   getBlobFromYjs,
+} from "./yjs-filesystem/parser";
+export {
   getBlobUrlPrefix,
   getBlobUrl,
   downloadFileContent,
   downloadFileBuffer,
+} from "./yjs-filesystem/blob-client";
+export {
   formatModifiedTime,
   getFileExtension,
   getFileName,
   getDirectoryPath,
-  formatFileSize,
-  generateContentHash,
-} from "./yjs-filesystem";
+} from "./yjs-filesystem/utils";
+export { formatFileSize, generateContentHash } from "./blob/utils";
 export type {
   YjsFileNode,
   YjsBlobInfo,
   FileItem,
   YjsFileSystem,
   YjsBlobConfig,
-} from "./yjs-filesystem";
+} from "./yjs-filesystem/types";
 export * from "./utils/blocks";
