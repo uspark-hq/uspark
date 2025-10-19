@@ -69,6 +69,11 @@ vi.mock("next/headers", () => ({
   })),
 }));
 
+// Mock GitHub auth functions for testing
+vi.mock("../lib/github/auth", () => ({
+  getInstallationToken: vi.fn().mockResolvedValue("mock_github_token"),
+}));
+
 interface CommandOptions {
   onStdout?: (data: string) => void;
   onStderr?: (data: string) => void;
