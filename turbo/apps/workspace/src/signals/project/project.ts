@@ -1,5 +1,7 @@
 import type { FileItem } from '@uspark/core/yjs-filesystem'
 import { command, computed, state } from 'ccstate'
+import DOMPurify from 'dompurify'
+import { marked } from 'marked'
 import { delay } from 'signal-timers'
 import { IN_VITEST } from '../../env'
 import {
@@ -100,6 +102,16 @@ export const selectedFileContent$ = computed(async (get) => {
   const contentUrl = getFileContentUrl(store.storeId, projectId, file.hash)
   const resp = await fetch(contentUrl)
   return await resp.text()
+})
+
+export const selectedFileContentHtml$ = computed(async (get) => {
+  const fileContent = await get(selectedFileContent$)
+  if (!fileContent) {
+    return undefined
+  }
+
+  const rawHtml = marked.parse(fileContent)
+  return DOMPurify.sanitize(rawHtml)
 })
 
 export const selectFile$ = command(({ get, set }, filePath: string) => {
