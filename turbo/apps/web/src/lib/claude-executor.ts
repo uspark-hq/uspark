@@ -23,14 +23,19 @@ export class ClaudeExecutor {
     initServices();
     const db = globalThis.services.db;
 
-    // Update turn status to in_progress
-    await db
-      .update(TURNS_TBL)
-      .set({
-        status: "in_progress",
-        startedAt: new Date(),
-      })
+    // Turn is already set to "running" when created, no need to update
+    // Just verify it's still in running state before executing
+    const [turn] = await db
+      .select()
+      .from(TURNS_TBL)
       .where(eq(TURNS_TBL.id, turnId));
+
+    if (!turn || turn.status !== "running") {
+      console.log(
+        `Turn ${turnId} is not in running state (status: ${turn?.status}), skipping execution`,
+      );
+      return;
+    }
 
     // Get or create sandbox for this session (with optional extra envs)
     const sandbox = await E2BExecutor.getSandboxForSession(

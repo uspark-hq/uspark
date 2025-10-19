@@ -148,6 +148,26 @@ export const sendMessage$ = command(
   },
 )
 
+export const interruptSession$ = command(
+  (
+    { get },
+    params: { projectId: string; sessionId: string },
+    signal: AbortSignal,
+  ) => {
+    const workspaceFetch = get(fetch$)
+
+    return contractFetch(projectDetailContract.interruptSession, {
+      params: {
+        projectId: params.projectId,
+        sessionId: params.sessionId,
+      },
+      body: {},
+      fetch: workspaceFetch,
+      signal,
+    })
+  },
+)
+
 export const lastBlockId = function (params: {
   projectId: string
   sessionId: string

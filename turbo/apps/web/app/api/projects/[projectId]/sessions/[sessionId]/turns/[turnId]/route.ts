@@ -84,8 +84,8 @@ export async function GET(
     session_id: turn.sessionId,
     user_prompt: turn.userPrompt,
     status: turn.status,
-    started_at: turn.startedAt,
     completed_at: turn.completedAt,
+    created_at: turn.createdAt,
     blocks: parsedBlocks,
   });
 }
