@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.55.2](https://github.com/uspark-hq/uspark/compare/web-v0.55.1...web-v0.55.2) (2025-10-19)
+
+
+### Bug Fixes
+
+* **initial-scan:** trigger scan for public repositories ([#619](https://github.com/uspark-hq/uspark/issues/619)) ([261856b](https://github.com/uspark-hq/uspark/commit/261856b924682fd53a465c771471902f862b0173))
+
 ## [0.55.1](https://github.com/uspark-hq/uspark/compare/web-v0.55.0...web-v0.55.1) (2025-10-19)
 
 
