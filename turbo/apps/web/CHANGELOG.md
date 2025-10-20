@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.59.1](https://github.com/uspark-hq/uspark/compare/web-v0.59.0...web-v0.59.1) (2025-10-20)
+
+
+### Bug Fixes
+
+* **cli:** move file sync from watch-claude to exec script ([#656](https://github.com/uspark-hq/uspark/issues/656)) ([18f9df3](https://github.com/uspark-hq/uspark/commit/18f9df3dbb1c318d6895003420006d4b34bbb4f6))
+
 ## [0.59.0](https://github.com/uspark-hq/uspark/compare/web-v0.58.0...web-v0.59.0) (2025-10-19)
 
 

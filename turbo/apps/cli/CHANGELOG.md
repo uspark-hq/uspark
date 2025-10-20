@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.12.6](https://github.com/uspark-hq/uspark/compare/cli-v0.12.5...cli-v0.12.6) (2025-10-20)
+
+
+### Bug Fixes
+
+* **cli:** move file sync from watch-claude to exec script ([#656](https://github.com/uspark-hq/uspark/issues/656)) ([18f9df3](https://github.com/uspark-hq/uspark/commit/18f9df3dbb1c318d6895003420006d4b34bbb4f6))
+
 ## [0.12.5](https://github.com/uspark-hq/uspark/compare/cli-v0.12.4...cli-v0.12.5) (2025-10-19)
 
 
