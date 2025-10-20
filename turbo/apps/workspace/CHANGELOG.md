@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.25.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.24.1...workspace-v1.25.0) (2025-10-20)
+
+
+### Features
+
+* **workspace:** add project name and github link to header ([#661](https://github.com/uspark-hq/uspark/issues/661)) ([7fc30f0](https://github.com/uspark-hq/uspark/commit/7fc30f013ceb8895eddc9d18cd79bb0c8925bc67))
+* **workspace:** show all tool calls and results in turn block list ([#659](https://github.com/uspark-hq/uspark/issues/659)) ([53c8aa7](https://github.com/uspark-hq/uspark/commit/53c8aa76bc721219a5c8d1d4d9d86cfe7f22001a))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.25.0
+
 ## [1.24.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.24.0...workspace-v1.24.1) (2025-10-20)
 
 
