@@ -23,6 +23,7 @@
     "ccstate": "^5.0.0",
     "ccstate-react": "^5.0.0",
     "dompurify": "^3.3.0",
+    "lucide-react": "^0.543.0",
     "marked": "^16.4.1",
     "path-to-regexp": "^8.3.0",
     "react": "^19.1.0",
