@@ -6,16 +6,33 @@ export default defineConfig({
   dts: true,
   sourcemap: true,
   clean: true,
-  shims: true,
   platform: "node",
   target: "node18",
   banner: {
-    js: "#!/usr/bin/env node",
+    js: "#!/usr/bin/env node\n",
   },
   // Bundle workspace packages but keep external dependencies external
   noExternal: [/@uspark\/.*/],
   external: [
-    // External npm packages that have native/dynamic requires
+    // Node.js built-ins - must be marked as external for Node.js platform
+    "assert",
+    "crypto",
+    "fs",
+    "fs/promises",
+    "path",
+    "stream",
+    "util",
+    "buffer",
+    "url",
+    "http",
+    "https",
+    "net",
+    "tls",
+    "zlib",
+    "events",
+    "os",
+    "child_process",
+    // External npm packages that should not be bundled
     "js-sha256",
     "yjs",
     "@vercel/blob",

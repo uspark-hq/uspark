@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import {
   createBlobStorage,
   getBlobStorage,
@@ -12,6 +12,7 @@ describe("Blob Storage Factory", () => {
   const originalEnv = process.env;
 
   beforeEach(() => {
+    vi.clearAllMocks();
     resetBlobStorage();
     // Reset environment
     process.env = { ...originalEnv };

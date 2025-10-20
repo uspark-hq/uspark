@@ -1,5 +1,5 @@
 import { MemoryBlobStorage } from "./memory-blob-storage";
-import { generateContentHash } from "./utils";
+import { generateContentHash } from "@uspark/core";
 
 export class BlobTestUtils {
   private storage = new MemoryBlobStorage();

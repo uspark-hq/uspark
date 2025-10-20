@@ -48,8 +48,10 @@ describe("ChatInterface", () => {
               blocks: [
                 {
                   id: "block-1",
-                  type: "content",
+                  turnId: "turn-1",
+                  type: "text",
                   content: { text: "Hello! How can I help you?" },
+                  createdAt: new Date(),
                 },
               ],
               startedAt: new Date().toISOString(),

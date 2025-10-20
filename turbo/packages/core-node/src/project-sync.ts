@@ -1,8 +1,8 @@
-import { FileSystem } from "./fs";
+import { FileSystem } from "./filesystem";
 import { writeFile, readFile, mkdir } from "fs/promises";
 import { put } from "@vercel/blob";
 import { dirname, join } from "path";
-import { sha256 } from "js-sha256";
+import { createHash } from "crypto";
 
 interface SyncOptions {
   token: string;
@@ -24,7 +24,7 @@ export class ProjectSync {
   }
 
   private async computeFileHash(content: string): Promise<string> {
-    return sha256(content);
+    return createHash("sha256").update(content).digest("hex");
   }
 
   private async fetchWithAuth(
@@ -190,12 +190,15 @@ export class ProjectSync {
       const blobResponse = await fetch(blobUrl);
 
       if (!blobResponse.ok) {
-        // Fallback: blob might not be uploaded yet, use empty content
-        console.warn(`Blob ${fileNode.hash} not found, using empty content`);
-        content = "";
-      } else {
-        content = await blobResponse.text();
+        throw new Error(
+          `Blob ${fileNode.hash} not found for ${filePath}. ` +
+            `Status: ${blobResponse.status}. ` +
+            `This indicates data corruption or incomplete sync. ` +
+            `URL: ${blobUrl}`,
+        );
       }
+
+      content = await blobResponse.text();
 
       this.fs.setBlob(fileNode.hash, content);
     }
@@ -501,18 +504,19 @@ export class ProjectSync {
         const blobResponse = await fetch(blobUrl);
 
         if (!blobResponse.ok) {
-          // Fallback: blob might not be uploaded yet, use empty content
-          console.warn(
-            `Blob ${fileNode.hash} not found for ${filePath}, using empty content`,
-          );
-          content = "";
-        } else {
-          content = await blobResponse.text();
-          this.log(
-            `✅ Downloaded ${content.length} bytes for ${filePath}`,
-            options.verbose,
+          throw new Error(
+            `Blob ${fileNode.hash} not found for ${filePath}. ` +
+              `Status: ${blobResponse.status}. ` +
+              `This indicates data corruption or incomplete sync. ` +
+              `URL: ${blobUrl}`,
           );
         }
+
+        content = await blobResponse.text();
+        this.log(
+          `✅ Downloaded ${content.length} bytes for ${filePath}`,
+          options.verbose,
+        );
 
         this.fs.setBlob(fileNode.hash, content);
       } else {
@@ -530,5 +534,12 @@ export class ProjectSync {
     }
 
     console.log(`🎉 Successfully pulled ${allFiles.size} files`);
+  }
+
+  /**
+   * Get all files from the filesystem
+   */
+  getAllFiles(): Map<string, { hash: string; mtime: number }> {
+    return this.fs.getAllFiles();
   }
 }

@@ -3,9 +3,12 @@ import type {
   BlobMetadata,
   UploadOptions,
   ListOptions,
-} from "./types";
-import { BlobNotFoundError } from "./types";
-import { generateContentHash, detectContentType } from "./utils";
+} from "@uspark/core";
+import {
+  BlobNotFoundError,
+  generateContentHash,
+  detectContentType,
+} from "@uspark/core";
 
 interface StoredBlob {
   content: Buffer;

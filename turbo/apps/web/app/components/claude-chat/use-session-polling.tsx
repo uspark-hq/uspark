@@ -1,12 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-
-interface Block {
-  id: string;
-  type: string;
-  content: Record<string, unknown>;
-}
+import type { Block } from "@uspark/core/contracts/turns.contract";
 
 interface Turn {
   id: string;
@@ -91,9 +86,8 @@ export function useSessionPolling(projectId: string, sessionId: string | null) {
               break;
             }
 
-            // Add a small delay before continuing to avoid tight loops
-            await new Promise((resolve) => setTimeout(resolve, 50));
-            continue; // Continue polling
+            // Continue polling immediately - server timeout prevents tight loops
+            continue;
           }
 
           // Parse the update response

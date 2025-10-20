@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "postbuild": "cp package.json dist/ && pnpm json -I -f dist/package.json -e 'delete this.private; delete this.scripts; delete this.devDependencies; delete this.dependencies[\"@uspark/core\"]; this.bin[\"uspark\"]=\"./index.js\"; this.files=[\".\"]'",
+    "postbuild": "cp package.json dist/ && pnpm json -I -f dist/package.json -e 'delete this.private; delete this.scripts; delete this.devDependencies; delete this.dependencies[\"@uspark/core\"]; delete this.dependencies[\"@uspark/core-node\"]; this.bin[\"uspark\"]=\"./index.js\"; this.files=[\".\"]'",
     "dev": "tsup --watch",
     "test": "vitest run",
     "test:watch": "vitest",
@@ -21,11 +21,13 @@
   },
   "dependencies": {
     "@uspark/core": "workspace:*",
+    "@uspark/core-node": "workspace:*",
     "@vercel/blob": "^1.1.1",
     "chalk": "^5.6.0",
     "commander": "^14.0.0",
     "js-sha256": "^0.11.1",
-    "signal-timers": "^1.0.4"
+    "signal-timers": "^1.0.4",
+    "yjs": "^13.6.27"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
@@ -36,7 +38,6 @@
     "msw": "^2.11.1",
     "tsup": "^8.5.0",
     "typescript": "5.9.2",
-    "vitest": "^3.2.4",
-    "yjs": "^13.6.21"
+    "vitest": "^3.2.4"
   }
 }

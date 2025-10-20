@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { MemoryBlobStorage } from "../memory-blob-storage";
-import { BlobNotFoundError } from "../types";
+import { BlobNotFoundError } from "@uspark/core";
 
 describe("MemoryBlobStorage", () => {
   let storage: MemoryBlobStorage;

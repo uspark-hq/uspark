@@ -75,8 +75,10 @@ export async function GET(
   // With JSON column type, content is already deserialized by Drizzle
   const parsedBlocks = blocks.map((block) => ({
     id: block.id,
+    turnId: block.turnId,
     type: block.type,
     content: block.content,
+    createdAt: block.createdAt,
   }));
 
   return NextResponse.json({
