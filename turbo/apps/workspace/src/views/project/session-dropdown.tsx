@@ -65,8 +65,9 @@ export function SessionDropdown({
         aria-expanded={isOpen}
       >
         <span className="max-w-[150px] truncate">
-          {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Need || to handle empty strings */}
-          {selectedSession?.title || 'Select session'}
+          {selectedSession?.title && selectedSession.title.trim() !== ''
+            ? selectedSession.title
+            : 'Select session'}
         </span>
         <svg
           className={`h-3 w-3 transition-transform ${isOpen ? 'rotate-180' : ''}`}
@@ -118,8 +119,9 @@ export function SessionDropdown({
                   >
                     <div className="flex items-center justify-between gap-2">
                       <span className="truncate">
-                        {/* eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Need || to handle empty strings */}
-                        {session.title || 'Untitled Session'}
+                        {session.title && session.title.trim() !== ''
+                          ? session.title
+                          : 'Untitled Session'}
                       </span>
                       {isSelected && (
                         <svg

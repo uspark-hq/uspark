@@ -72,7 +72,8 @@
       "tsup": {
         "config": ["tsup.config.ts"]
       },
-      "ignoreDependencies": ["@vercel/blob"]
+      "ignoreDependencies": ["@vercel/blob"],
+      "ignoreBinaries": ["tsup"]
     }
   },
   "ignore": [
