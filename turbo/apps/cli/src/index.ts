@@ -4,6 +4,7 @@ import chalk from "chalk";
 import { authenticate, logout, checkAuthStatus } from "./auth";
 import { pullCommand, pushCommand } from "./commands/sync";
 import { watchClaudeCommand } from "./commands/watch-claude";
+import { claudeWorkerCommand } from "./commands/claude-worker";
 
 const getApiUrl = () => process.env.API_HOST || "https://www.uspark.ai";
 
@@ -102,6 +103,15 @@ program
       await watchClaudeCommand(options);
     },
   );
+
+program
+  .command("claude-worker")
+  .description("Run Claude as a continuous worker to process tasks")
+  .requiredOption("--id <taskId>", "Task ID to process")
+  .requiredOption("--project-id <projectId>", "Project ID to sync changes to")
+  .action(async (options: { id: string; projectId: string }) => {
+    await claudeWorkerCommand(options);
+  });
 
 // Export for testing
 export { program };
