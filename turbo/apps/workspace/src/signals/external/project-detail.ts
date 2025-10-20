@@ -185,6 +185,18 @@ export const lastBlockId = function (params: {
   })
 }
 
+export const projectDetail = function (projectId: string) {
+  return computed(async (get) => {
+    const workspaceFetch = get(fetch$)
+
+    const response = await contractFetch(projectsContract.listProjects, {
+      fetch: workspaceFetch,
+    })
+
+    return response.projects.find((p) => p.id === projectId)
+  })
+}
+
 export const githubRepository = function (projectId: string) {
   return computed(
     async (get): Promise<{ repository: GitHubRepository | null }> => {

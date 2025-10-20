@@ -8,8 +8,10 @@ import {
   blobStore$,
   createSession$,
   getFileContentUrl,
+  githubRepository,
   interruptSession$,
   lastBlockId,
+  projectDetail,
   projectFiles,
   projectSessions,
   sendMessage$,
@@ -55,6 +57,24 @@ function findFirstFile(files: FileItem[]): FileItem | undefined {
 const projectId$ = computed((get) => {
   const pathParams = get(pathParams$)
   return pathParams?.projectId as string | undefined
+})
+
+export const currentProject$ = computed((get) => {
+  const projectId = get(projectId$)
+  if (!projectId) {
+    return undefined
+  }
+
+  return get(projectDetail(projectId))
+})
+
+export const currentGitHubRepository$ = computed((get) => {
+  const projectId = get(projectId$)
+  if (!projectId) {
+    return undefined
+  }
+
+  return get(githubRepository(projectId))
 })
 
 export const projectFiles$ = computed((get) => {
