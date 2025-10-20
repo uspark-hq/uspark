@@ -72,6 +72,10 @@ program
     "Output directory for pulled files (defaults to current directory)",
   )
   .option("--all", "Pull all files from the project")
+  .option(
+    "--prefix <prefix>",
+    "Only pull files with this path prefix (use with --all)",
+  )
   .option("--verbose", "Show detailed logging information")
   .action(
     async (
@@ -80,14 +84,16 @@ program
         projectId: string;
         outputDir?: string;
         all?: boolean;
+        prefix?: string;
         verbose?: boolean;
       },
     ) => {
       if (options.all) {
-        // Pull all files
+        // Pull all files (optionally filtered by prefix)
         await pullAllCommand({
           projectId: options.projectId,
           outputDir: options.outputDir,
+          prefix: options.prefix,
           verbose: options.verbose,
         });
       } else if (filePath) {

@@ -33,6 +33,7 @@ export async function pullAllCommand(options: {
   projectId: string;
   outputDir?: string;
   verbose?: boolean;
+  prefix?: string;
 }): Promise<void> {
   const { token, apiUrl, sync } = await requireAuth();
 
@@ -44,6 +45,7 @@ export async function pullAllCommand(options: {
       verbose: options.verbose,
     },
     options.outputDir,
+    options.prefix,
   );
 }
 
