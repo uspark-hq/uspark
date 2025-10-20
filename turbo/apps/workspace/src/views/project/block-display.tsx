@@ -65,37 +65,89 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
           ? toolData.parameters
           : {}
 
+      // Format parameters inline for compact display
+      let paramDisplay = ''
+      if (Object.keys(parameters).length > 0) {
+        // For common tools, extract the main parameter
+        if (toolName === 'Bash' && 'command' in parameters) {
+          paramDisplay = String(parameters.command)
+        } else if (toolName === 'Read' && 'file_path' in parameters) {
+          paramDisplay = String(parameters.file_path)
+        } else if (toolName === 'Edit' && 'file_path' in parameters) {
+          paramDisplay = String(parameters.file_path)
+        } else if (toolName === 'Write' && 'file_path' in parameters) {
+          paramDisplay = String(parameters.file_path)
+        } else if (toolName === 'Grep' && 'pattern' in parameters) {
+          paramDisplay = String(parameters.pattern)
+        } else {
+          // For other tools, show first parameter or count
+          const firstKey = Object.keys(parameters)[0]
+          if (firstKey && firstKey in parameters) {
+            const firstValue: unknown = parameters[firstKey]
+            paramDisplay =
+              typeof firstValue === 'string'
+                ? firstValue
+                : JSON.stringify(firstValue)
+          }
+        }
+      }
+
       return (
-        <div className="rounded border border-[#2d4f7c] bg-[#1e3a5f] p-2">
-          <div className="mb-1 text-[11px] font-medium text-[#569cd6]">
-            Tool: {toolName}
-          </div>
-          <details className="text-[13px]">
-            <summary className="cursor-pointer text-[#9cdcfe] transition-colors hover:text-[#569cd6]">
-              Parameters
-            </summary>
-            <pre className="mt-1.5 overflow-x-auto rounded border border-[#3e3e42] bg-[#1e1e1e] p-1.5 text-[11px] text-[#ce9178]">
-              {JSON.stringify(parameters, null, 2)}
-            </pre>
-          </details>
+        <div className="text-[11px] text-[#9cdcfe]">
+          {toolName}
+          {paramDisplay && (
+            <span className="ml-1 font-mono text-[#6a6a6a]">
+              {paramDisplay}
+            </span>
+          )}
         </div>
       )
     }
 
     case 'tool_result': {
       const content = block.content as BlockContent
-      const resultData = typeof content === 'object' ? content : {}
-      const hasError = 'error' in resultData && Boolean(resultData.error)
+      let resultContent = ''
+      let hasError = false
+
+      if (typeof content === 'object') {
+        if ('error' in content && content.error) {
+          hasError = true
+          resultContent =
+            typeof content.error === 'string'
+              ? content.error
+              : JSON.stringify(content.error)
+        } else if ('result' in content) {
+          // Standard field used by BlockFactory
+          resultContent =
+            typeof content.result === 'string'
+              ? content.result
+              : JSON.stringify(content.result)
+        } else if ('output' in content) {
+          // Alternative field for compatibility
+          resultContent =
+            typeof content.output === 'string'
+              ? content.output
+              : JSON.stringify(content.output)
+        } else if ('content' in content) {
+          resultContent = getTextContent(content.content)
+        } else {
+          resultContent = JSON.stringify(content)
+        }
+      } else {
+        resultContent = getTextContent(content)
+      }
 
       return (
         <div
-          className={`rounded border p-2 ${hasError ? 'border-[#6b3a3a] bg-[#4b2b2b]' : 'border-[#2d5f30] bg-[#1e4620]'}`}
+          className={`ml-2 max-h-[200px] overflow-hidden border-l-2 pl-2 font-mono text-[11px] leading-[1.4] ${
+            hasError
+              ? 'border-[#f48771] text-[#f48771]'
+              : 'border-[#3e3e42] text-[#d4d4d4]'
+          }`}
         >
-          <div
-            className={`text-[11px] font-medium ${hasError ? 'text-[#f48771]' : 'text-[#89d185]'}`}
-          >
-            {hasError ? 'Tool Error' : 'Tool Result'}
-          </div>
+          {resultContent || (
+            <span className="italic opacity-50">(no output)</span>
+          )}
         </div>
       )
     }
