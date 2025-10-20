@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.24.0...workspace-v1.24.1) (2025-10-20)
+
+
+### Bug Fixes
+
+* **workspace:** add missing w-full class to session panels ([#658](https://github.com/uspark-hq/uspark/issues/658)) ([821dee5](https://github.com/uspark-hq/uspark/commit/821dee5502215082b99de9325565c266ae4da42f))
+
 ## [1.24.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.23.0...workspace-v1.24.0) (2025-10-20)
 
 
