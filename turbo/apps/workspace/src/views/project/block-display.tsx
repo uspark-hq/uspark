@@ -145,9 +145,11 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
               : 'border-[#3e3e42] text-[#d4d4d4]'
           }`}
         >
-          {resultContent || (
-            <span className="italic opacity-50">(no output)</span>
-          )}
+          <pre className="font-mono whitespace-pre-wrap">
+            {resultContent || (
+              <span className="italic opacity-50">(no output)</span>
+            )}
+          </pre>
         </div>
       )
     }
