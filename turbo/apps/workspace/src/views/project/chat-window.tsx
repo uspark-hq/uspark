@@ -18,7 +18,7 @@ export function ChatWindow() {
   const mountTurnList = useSet(mountTurnList$)
 
   return (
-    <div className="flex h-full flex-col bg-[#1e1e1e]">
+    <div className="flex h-full w-full flex-col bg-[#1e1e1e]">
       <div className="flex h-8 items-center justify-between border-b border-[#3e3e42] px-3">
         <div className="text-[11px] font-semibold tracking-wide text-[#cccccc] uppercase">
           Assistant
