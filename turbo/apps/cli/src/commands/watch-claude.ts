@@ -1,6 +1,6 @@
 import { createInterface } from "readline";
 import chalk from "chalk";
-import { requireAuth, pushAllFiles } from "./shared";
+import { requireAuth } from "./shared";
 
 export async function watchClaudeCommand(options: {
   projectId: string;
@@ -64,33 +64,12 @@ export async function watchClaudeCommand(options: {
         await Promise.all(pendingCallbacks);
       }
 
-      // If prefix is specified, batch push all files from that directory
-      if (options.prefix) {
-        console.error(
-          chalk.blue(
-            `[uspark] Pushing all files from ${options.prefix} directory...`,
-          ),
-        );
-
-        const count = await pushAllFiles(
-          context,
-          options.projectId,
-          options.prefix,
-          options.prefix,
-        );
-
-        if (count === 0) {
-          console.error(chalk.yellow("[uspark] No files found to push"));
-        } else {
-          console.error(
-            chalk.green(`[uspark] ✓ Successfully pushed ${count} files`),
-          );
-        }
-      }
+      // File synchronization is handled externally by the caller (e.g., exec script)
+      // No file pushing is done here to avoid concurrent update conflicts
     } catch (error) {
       console.error(
         chalk.red(
-          `[uspark] Failed to push files: ${error instanceof Error ? error.message : String(error)}`,
+          `[uspark] Error during cleanup: ${error instanceof Error ? error.message : String(error)}`,
         ),
       );
       process.exit(1);

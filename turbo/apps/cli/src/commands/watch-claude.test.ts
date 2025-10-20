@@ -3,7 +3,6 @@ import { Readable } from "stream";
 import { http, HttpResponse } from "msw";
 import { server } from "../test/setup";
 import { watchClaudeCommand } from "./watch-claude";
-import { pushAllFiles } from "./shared";
 
 // Mock the shared module
 vi.mock("./shared", () => ({
@@ -12,7 +11,6 @@ vi.mock("./shared", () => ({
     apiUrl: "https://www.uspark.ai",
     sync: {},
   }),
-  pushAllFiles: vi.fn().mockResolvedValue(5),
 }));
 
 // Mock chalk
@@ -112,7 +110,7 @@ describe("watch-claude", () => {
     });
   });
 
-  it("should batch push files when prefix is specified on close", async () => {
+  it("should complete successfully when stream closes", async () => {
     const events = [
       JSON.stringify({
         type: "result",
@@ -129,6 +127,8 @@ describe("watch-claude", () => {
       writable: true,
     });
 
+    const exitSpy = vi.spyOn(process, "exit");
+
     watchClaudeCommand({
       projectId: "test-project-id",
       turnId: "turn_test",
@@ -136,10 +136,10 @@ describe("watch-claude", () => {
       prefix: ".uspark",
     });
 
-    // Wait for the stream to close and pushAllFiles to be called
+    // Wait for the stream to close
     await vi.waitFor(
       () => {
-        expect(pushAllFiles).toHaveBeenCalled();
+        expect(exitSpy).toHaveBeenCalledWith(0);
       },
       {
         timeout: 2000,
@@ -151,103 +151,12 @@ describe("watch-claude", () => {
       value: originalStdin,
       writable: true,
     });
-
-    // Verify pushAllFiles was called with correct arguments
-    expect(pushAllFiles).toHaveBeenCalledWith(
-      {
-        token: "test-token",
-        apiUrl: "https://www.uspark.ai",
-        sync: {},
-      },
-      "test-project-id",
-      ".uspark",
-      ".uspark",
-    );
   });
 
-  it("should not push files when prefix is not specified", async () => {
-    const events = [
-      JSON.stringify({
-        type: "result",
-        subtype: "success",
-        is_error: false,
-      }),
-    ];
+  // Tests removed: watch-claude no longer performs file pushing
+  // File synchronization is now handled externally by the exec script
 
-    mockStdin = Readable.from(events.map((e) => e + "\n"));
-    const originalStdin = process.stdin;
-
-    Object.defineProperty(process, "stdin", {
-      value: mockStdin,
-      writable: true,
-    });
-
-    const { watchClaudeCommand } = await import("./watch-claude");
-    const commandPromise = watchClaudeCommand({
-      projectId: "test-project-id",
-      turnId: "turn_test",
-      sessionId: "sess_test",
-    });
-
-    // Wait for command to complete
-    await commandPromise.catch(() => {});
-
-    Object.defineProperty(process, "stdin", {
-      value: originalStdin,
-      writable: true,
-    });
-
-    // pushAllFiles should not be called without prefix
-    expect(pushAllFiles).not.toHaveBeenCalled();
-  });
-
-  it("should handle empty directory gracefully", async () => {
-    // Mock pushAllFiles to return 0 (no files)
-    vi.mocked(pushAllFiles).mockResolvedValueOnce(0);
-
-    const events = [
-      JSON.stringify({
-        type: "result",
-        subtype: "success",
-        is_error: false,
-      }),
-    ];
-
-    mockStdin = Readable.from(events.map((e) => e + "\n"));
-    const originalStdin = process.stdin;
-
-    Object.defineProperty(process, "stdin", {
-      value: mockStdin,
-      writable: true,
-    });
-
-    watchClaudeCommand({
-      projectId: "test-project-id",
-      turnId: "turn_test",
-      sessionId: "sess_test",
-      prefix: ".uspark",
-    });
-
-    // Wait for pushAllFiles to be called
-    await vi.waitFor(
-      () => {
-        expect(pushAllFiles).toHaveBeenCalled();
-      },
-      {
-        timeout: 2000,
-        interval: 10,
-      },
-    );
-
-    Object.defineProperty(process, "stdin", {
-      value: originalStdin,
-      writable: true,
-    });
-
-    expect(pushAllFiles).toHaveBeenCalled();
-  });
-
-  it("should wait for pending callbacks before pushing files", async () => {
+  it("should wait for pending callbacks before exiting", async () => {
     const events = [
       JSON.stringify({
         type: "assistant",
@@ -268,6 +177,8 @@ describe("watch-claude", () => {
       writable: true,
     });
 
+    const exitSpy = vi.spyOn(process, "exit");
+
     watchClaudeCommand({
       projectId: "test-project-id",
       turnId: "turn_test",
@@ -275,11 +186,11 @@ describe("watch-claude", () => {
       prefix: ".uspark",
     });
 
-    // Wait for both callback and pushAllFiles to be called
+    // Wait for callback and exit to be called
     await vi.waitFor(
       () => {
         expect(stdoutCallbackSpy).toHaveBeenCalled();
-        expect(pushAllFiles).toHaveBeenCalled();
+        expect(exitSpy).toHaveBeenCalledWith(0);
       },
       {
         timeout: 2000,
@@ -292,8 +203,7 @@ describe("watch-claude", () => {
       writable: true,
     });
 
-    // Both should have been called
+    // Callback should have been called before exit
     expect(stdoutCallbackSpy).toHaveBeenCalled();
-    expect(pushAllFiles).toHaveBeenCalled();
   });
 });

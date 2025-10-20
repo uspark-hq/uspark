@@ -434,11 +434,15 @@ export class ProjectSync {
     projectId: string,
     options: SyncOptions,
     outputDir?: string,
+    prefix?: string,
   ): Promise<void> {
     const apiUrl = options.apiUrl;
     const token = options.token;
 
     this.log(`📦 Starting pull for project: ${projectId}`, options.verbose);
+    if (prefix) {
+      this.log(`📂 Filtering files with prefix: ${prefix}`, options.verbose);
+    }
 
     // 1. Sync from remote to get latest state
     this.log("🔄 Syncing from remote...", options.verbose);
@@ -446,7 +450,18 @@ export class ProjectSync {
 
     // 2. Get all files from the YJS document
     this.log("📁 Getting all files from YJS document...", options.verbose);
-    const allFiles = this.fs.getAllFiles();
+    const allFilesMap = this.fs.getAllFiles();
+
+    // Filter files by prefix if specified
+    const allFiles = prefix
+      ? new Map(
+          Array.from(allFilesMap).filter(
+            ([filePath]) =>
+              filePath.startsWith(prefix + "/") || filePath === prefix,
+          ),
+        )
+      : allFilesMap;
+
     this.log(`📊 Found ${allFiles.size} files in project`, options.verbose);
 
     if (allFiles.size === 0) {
