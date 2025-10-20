@@ -67,7 +67,7 @@
       "ignoreBinaries": ["caddy"]
     },
     "packages/mcp-server": {
-      "entry": ["src/index.ts"],
+      "entry": [],
       "project": ["src/**/*.ts"],
       "tsup": {
         "config": ["tsup.config.ts"]

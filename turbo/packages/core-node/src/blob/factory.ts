@@ -1,10 +1,10 @@
-import type { BlobStorageProvider } from "./types";
+import type { BlobStorageProvider } from "@uspark/core";
 import { VercelBlobStorage } from "./vercel-blob-storage";
 import { MemoryBlobStorage } from "./memory-blob-storage";
 
 export type BlobStorageType = "vercel" | "memory";
 
-export interface BlobStorageConfig {
+interface BlobStorageConfig {
   type: BlobStorageType;
   vercelToken?: string;
 }

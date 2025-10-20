@@ -7,8 +7,8 @@ import {
   type MockedFunction,
 } from "vitest";
 import { VercelBlobStorage } from "../vercel-blob-storage";
-import { BlobNotFoundError } from "../types";
-import { server, http, HttpResponse } from "../../test/msw-setup";
+import { BlobNotFoundError } from "@uspark/core";
+import { server, http, HttpResponse } from "@uspark/core/test/msw-setup";
 
 // Mock @vercel/blob
 vi.mock("@vercel/blob", () => {

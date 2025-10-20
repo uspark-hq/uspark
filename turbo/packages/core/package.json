@@ -28,8 +28,10 @@
     "check-types": "tsc --noEmit"
   },
   "devDependencies": {
+    "@types/node": "^24.3.0",
     "@uspark/eslint-config": "workspace:*",
     "@uspark/typescript-config": "workspace:*",
+    "@vercel/blob": "^1.1.1",
     "eslint": "^9.34.0",
     "msw": "^2.11.1",
     "typescript": "5.9.2",

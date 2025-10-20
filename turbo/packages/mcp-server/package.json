@@ -27,9 +27,11 @@
     "@uspark/eslint-config": "workspace:*",
     "@uspark/typescript-config": "workspace:*",
     "eslint": "^9.34.0",
+    "js-sha256": "^0.11.1",
     "tsup": "^8.5.0",
     "typescript": "5.9.2",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "yjs": "^13.6.27"
   },
   "publishConfig": {
     "access": "public"
