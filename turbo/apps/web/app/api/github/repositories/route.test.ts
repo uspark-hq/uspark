@@ -20,7 +20,9 @@ const mockAuth = vi.mocked(auth);
 
 describe("GET /api/github/repositories", () => {
   const testUserId = `test-user-repos-${Date.now()}-${process.pid}`;
-  const baseInstallationId = Math.floor(Date.now() / 1000);
+  // Combine pid and timestamp to ensure uniqueness within PostgreSQL integer range (-2147483648 to 2147483647)
+  const baseInstallationId =
+    (process.pid % 10000) * 100000 + (Math.floor(Date.now() / 1000) % 100000);
 
   beforeEach(async () => {
     vi.clearAllMocks();

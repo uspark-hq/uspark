@@ -73,7 +73,7 @@ describe("BlockDisplay", () => {
     expect(screen.getByText("File content here")).toBeInTheDocument();
   });
 
-  it("displays all tool_result content without collapsing", () => {
+  it("displays tool_result content with max 3 lines for non-Read tools", () => {
     const multiLineContent = "Line 1\nLine 2\nLine 3\nLine 4\nLine 5";
     const block = {
       id: "block-6",
@@ -87,15 +87,74 @@ describe("BlockDisplay", () => {
 
     render(<BlockDisplay block={block} />);
 
-    // Should show all lines (no collapsing)
+    // Should show first 3 lines
     expect(screen.getByText(/Line 1/)).toBeInTheDocument();
     expect(screen.getByText(/Line 2/)).toBeInTheDocument();
     expect(screen.getByText(/Line 3/)).toBeInTheDocument();
-    expect(screen.getByText(/Line 4/)).toBeInTheDocument();
-    expect(screen.getByText(/Line 5/)).toBeInTheDocument();
 
-    // Should not show expand/collapse arrows
-    expect(screen.queryByText("▶")).not.toBeInTheDocument();
-    expect(screen.queryByText("▼")).not.toBeInTheDocument();
+    // Should show ellipsis
+    expect(screen.getByText(/\.\.\./)).toBeInTheDocument();
+  });
+
+  it("displays Read tool result as summary", () => {
+    // Read tool output format with line numbers
+    const readContent =
+      "     1→const foo = 'bar';\n     2→const x = 42;\n     3→function test() {}";
+
+    // Create the tool_use block
+    const toolUseBlock = {
+      id: "block-6",
+      type: "tool_use",
+      content: {
+        tool_name: "Read",
+        parameters: { file_path: "/test.ts" },
+        tool_use_id: "tool-read-123",
+      },
+    };
+
+    // Create the tool_result block
+    const toolResultBlock = {
+      id: "block-7",
+      type: "tool_result",
+      content: {
+        tool_use_id: "tool-read-123",
+        result: readContent,
+        error: null,
+      },
+    };
+
+    // Provide both blocks so BlockDisplay can find the tool name
+    render(
+      <BlockDisplay
+        block={toolResultBlock}
+        blocks={[toolUseBlock, toolResultBlock]}
+      />,
+    );
+
+    // Should show line count summary
+    expect(screen.getByText("Read 3 Lines")).toBeInTheDocument();
+
+    // Should not show the actual content
+    expect(screen.queryByText(/const foo/)).not.toBeInTheDocument();
+  });
+
+  it("displays short content without truncation", () => {
+    const shortContent = "Line 1\nLine 2";
+    const block = {
+      id: "block-8",
+      type: "tool_result",
+      content: {
+        tool_use_id: "tool-123",
+        result: shortContent,
+        error: null,
+      },
+    };
+
+    render(<BlockDisplay block={block} />);
+
+    // Should show all lines without ellipsis
+    expect(screen.getByText(/Line 1/)).toBeInTheDocument();
+    expect(screen.getByText(/Line 2/)).toBeInTheDocument();
+    expect(screen.queryByText(/\.\.\./)).not.toBeInTheDocument();
   });
 });
