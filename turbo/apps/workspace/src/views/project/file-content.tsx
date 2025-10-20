@@ -63,7 +63,7 @@ export function FileContent() {
 
   if (isMarkdown) {
     return (
-      <div className="flex h-full flex-col bg-[#1e1e1e]">
+      <div className="flex h-full w-full flex-col bg-[#1e1e1e]">
         {/* Header with file name, mode toggle, and close button */}
         <div className="flex items-center justify-between border-b border-[#3e3e42] bg-[#252526] px-4 py-2">
           <div className="text-[13px] text-[#cccccc]">
