@@ -172,4 +172,129 @@ describe("filterBlocksForDisplay", () => {
     expect(result[1].id).toBe("block_2");
     expect(result[2].id).toBe("block_3");
   });
+
+  it("should reorder tool_result to appear after tool_use when they are out of order", () => {
+    const blocks: Block[] = [
+      createBlock("text", "block_1"),
+      {
+        id: "block_2",
+        turnId: "turn_test",
+        type: "tool_result" as const,
+        content: { tool_use_id: "tool_123", result: "Output" },
+        createdAt: new Date(),
+      },
+      {
+        id: "block_3",
+        turnId: "turn_test",
+        type: "tool_use" as const,
+        content: { tool_use_id: "tool_123", tool_name: "Bash", parameters: {} },
+        createdAt: new Date(),
+      },
+      createBlock("text", "block_4"),
+    ];
+
+    const result = filterBlocksForDisplay(blocks);
+
+    expect(result).toHaveLength(4);
+    expect(result[0].id).toBe("block_1");
+    expect(result[1].id).toBe("block_3"); // tool_use moved before tool_result
+    expect(result[2].id).toBe("block_2"); // tool_result moved after tool_use
+    expect(result[3].id).toBe("block_4");
+  });
+
+  it("should handle multiple tool_result/tool_use pairs that need reordering", () => {
+    const blocks: Block[] = [
+      createBlock("text", "block_1"),
+      {
+        id: "block_2",
+        turnId: "turn_test",
+        type: "tool_result" as const,
+        content: { tool_use_id: "tool_123", result: "Output 1" },
+        createdAt: new Date(),
+      },
+      {
+        id: "block_3",
+        turnId: "turn_test",
+        type: "tool_use" as const,
+        content: { tool_use_id: "tool_123", tool_name: "Bash", parameters: {} },
+        createdAt: new Date(),
+      },
+      {
+        id: "block_4",
+        turnId: "turn_test",
+        type: "tool_result" as const,
+        content: { tool_use_id: "tool_456", result: "Output 2" },
+        createdAt: new Date(),
+      },
+      {
+        id: "block_5",
+        turnId: "turn_test",
+        type: "tool_use" as const,
+        content: { tool_use_id: "tool_456", tool_name: "Read", parameters: {} },
+        createdAt: new Date(),
+      },
+      createBlock("text", "block_6"),
+    ];
+
+    const result = filterBlocksForDisplay(blocks);
+
+    expect(result).toHaveLength(6);
+    expect(result[0].id).toBe("block_1");
+    expect(result[1].id).toBe("block_3"); // First tool_use
+    expect(result[2].id).toBe("block_2"); // First tool_result
+    expect(result[3].id).toBe("block_5"); // Second tool_use
+    expect(result[4].id).toBe("block_4"); // Second tool_result
+    expect(result[5].id).toBe("block_6");
+  });
+
+  it("should not reorder when tool_use already comes before tool_result", () => {
+    const blocks: Block[] = [
+      createBlock("text", "block_1"),
+      {
+        id: "block_2",
+        turnId: "turn_test",
+        type: "tool_use" as const,
+        content: { tool_use_id: "tool_123", tool_name: "Bash", parameters: {} },
+        createdAt: new Date(),
+      },
+      {
+        id: "block_3",
+        turnId: "turn_test",
+        type: "tool_result" as const,
+        content: { tool_use_id: "tool_123", result: "Output" },
+        createdAt: new Date(),
+      },
+      createBlock("text", "block_4"),
+    ];
+
+    const result = filterBlocksForDisplay(blocks);
+
+    expect(result).toHaveLength(4);
+    expect(result).toEqual(blocks); // Should remain unchanged
+  });
+
+  it("should handle tool_result at end of blocks array", () => {
+    const blocks: Block[] = [
+      createBlock("text", "block_1"),
+      {
+        id: "block_2",
+        turnId: "turn_test",
+        type: "tool_use" as const,
+        content: { tool_use_id: "tool_123", tool_name: "Bash", parameters: {} },
+        createdAt: new Date(),
+      },
+      {
+        id: "block_3",
+        turnId: "turn_test",
+        type: "tool_result" as const,
+        content: { tool_use_id: "tool_123", result: "Output" },
+        createdAt: new Date(),
+      },
+    ];
+
+    const result = filterBlocksForDisplay(blocks);
+
+    expect(result).toHaveLength(3);
+    expect(result).toEqual(blocks); // Should remain unchanged
+  });
 });
