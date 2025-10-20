@@ -99,11 +99,19 @@ export const selectedFileItem$ = computed(async (get) => {
 
   const filePath = get(selectedFile$)
 
-  const file = filePath
-    ? findFileInTree(files.files, filePath)
-    : findFirstFile(files.files)
+  if (filePath) {
+    // If a file is explicitly specified in the URL, use it
+    return findFileInTree(files.files, filePath)
+  }
 
-  return file
+  // Default to wiki/00-README.md if it exists
+  const defaultFile = findFileInTree(files.files, 'wiki/00-README.md')
+  if (defaultFile) {
+    return defaultFile
+  }
+
+  // Fall back to the first file in the tree
+  return findFirstFile(files.files)
 })
 
 export const selectedFileContent$ = computed(async (get) => {
