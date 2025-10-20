@@ -137,9 +137,7 @@ describe('block display', () => {
       }
 
       render(<BlockDisplay block={block} />)
-      expect(
-        screen.getByText('Alternative output format'),
-      ).toBeInTheDocument()
+      expect(screen.getByText('Alternative output format')).toBeInTheDocument()
     })
 
     it('renders error message', () => {

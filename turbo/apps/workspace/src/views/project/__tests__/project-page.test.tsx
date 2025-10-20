@@ -647,9 +647,7 @@ describe('projectPage - turn and blocks rendering', () => {
     await expect(screen.findByText('list_files')).resolves.toBeInTheDocument()
 
     // Tool result block displays the actual result content
-    await expect(
-      screen.findByText(/README\.md/),
-    ).resolves.toBeInTheDocument()
+    await expect(screen.findByText(/README\.md/)).resolves.toBeInTheDocument()
   })
 })
 
