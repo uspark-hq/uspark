@@ -28,11 +28,10 @@ async function getAuthToken(): Promise<string> {
       const configContent = await readFile(configPath, "utf8");
       const config = JSON.parse(configContent);
       if (config.token) {
-        console.log("✅ Using token from CLI config");
         return config.token;
       }
     } catch (error) {
-      console.warn("⚠️ Failed to read CLI config:", error);
+      // Failed to read CLI config, will throw error below
     }
   }
 
@@ -62,8 +61,6 @@ describe("MCP Server Integration Tests", () => {
     if (!apiUrl) {
       throw new Error("USPARK_API_URL is required for MCP server e2e tests");
     }
-
-    console.log(`🌐 Testing MCP server against: ${apiUrl}`);
 
     // Create transport with test environment
     transport = new StdioClientTransport({
@@ -145,7 +142,6 @@ describe("MCP Server Integration Tests", () => {
       expect(result.content[0].type).toBe("text");
 
       const listText = (result.content[0] as { text: string }).text;
-      console.log("📋 List files result:", listText);
 
       // Should contain file list or indication of files
       expect(listText.length).toBeGreaterThan(0);
@@ -162,7 +158,6 @@ describe("MCP Server Integration Tests", () => {
       expect(result.content[0].type).toBe("text");
 
       const pullText = (result.content[0] as { text: string }).text;
-      console.log("⬇️ Pull result:", pullText);
 
       // Should contain success message
       expect(pullText).toContain("Successfully pulled");

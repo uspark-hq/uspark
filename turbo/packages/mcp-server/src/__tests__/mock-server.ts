@@ -89,86 +89,63 @@ class MockYjsServer {
 
 export const mockServer = new MockYjsServer();
 
-// Mock fetch for tests
-const originalFetch =
-  global.fetch || (() => Promise.reject(new Error("Fetch not available")));
+// MSW handlers for mocking HTTP requests
+import { http, HttpResponse } from "msw";
 
-global.fetch = async (url: string | URL | Request, init?: RequestInit) => {
-  const urlStr = url.toString();
+export const handlers = [
+  // Handle project GET requests
+  http.get("*/api/projects/:projectId", ({ params }) => {
+    const { projectId } = params;
+    const data = mockServer.getProject(projectId as string);
+    return HttpResponse.arrayBuffer(data, {
+      status: 200,
+      headers: { "Content-Type": "application/octet-stream" },
+    });
+  }),
 
-  // Handle project GET/PATCH requests
-  if (urlStr.includes("/api/projects/")) {
-    const match = urlStr.match(/\/api\/projects\/([^/?]+)/);
-    if (match && match[1]) {
-      const projectId = match[1];
-
-      if (init?.method === "PATCH") {
-        const body = init.body;
-        if (body instanceof Buffer) {
-          mockServer.patchProject(projectId, new Uint8Array(body));
-        } else if (body instanceof Uint8Array) {
-          mockServer.patchProject(projectId, body);
-        }
-        return new Response(null, { status: 200 });
-      } else {
-        const data = mockServer.getProject(projectId);
-        return new Response(data, {
-          status: 200,
-          headers: { "Content-Type": "application/octet-stream" },
-        });
-      }
-    }
-  }
+  // Handle project PATCH requests
+  http.patch("*/api/projects/:projectId", async ({ params, request }) => {
+    const { projectId } = params;
+    const body = await request.arrayBuffer();
+    mockServer.patchProject(projectId as string, new Uint8Array(body));
+    return new HttpResponse(null, { status: 200 });
+  }),
 
   // Handle blob-store endpoint
-  if (urlStr.includes("/api/blob-store")) {
-    return new Response(
-      JSON.stringify({
-        storeId: "mock-store-id",
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-  }
+  http.get("*/api/blob-store", () => {
+    return HttpResponse.json({
+      storeId: "mock-store-id",
+    });
+  }),
 
   // Handle blob token requests
-  if (urlStr.includes("/blob-token")) {
-    return new Response(
-      JSON.stringify({
-        token: "mock-blob-token",
-        expiresAt: new Date(Date.now() + 3600000).toISOString(),
-        uploadUrl: "http://localhost:3000/api/blobs/upload",
-        downloadUrlPrefix: "http://localhost:3000/api/blobs",
-      }),
-      {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
-  }
+  http.get("*/blob-token", () => {
+    return HttpResponse.json({
+      token: "mock-blob-token",
+      expiresAt: new Date(Date.now() + 3600000).toISOString(),
+      uploadUrl: "http://localhost:3000/api/blobs/upload",
+      downloadUrlPrefix: "http://localhost:3000/api/blobs",
+    });
+  }),
 
   // Handle public blob storage URLs
-  if (urlStr.includes(".public.blob.vercel-storage.com/projects/")) {
-    const match = urlStr.match(/projects\/([^/]+)\/([^/?]+)$/);
-    if (match && match[2]) {
-      const hash = match[2];
-      const content = mockServer.getBlobContent(hash);
+  http.get(
+    "*.public.blob.vercel-storage.com/projects/:projectId/:hash",
+    ({ params }) => {
+      const { hash } = params;
+      const content = mockServer.getBlobContent(hash as string);
 
       if (content !== undefined) {
-        return new Response(content, {
+        return new HttpResponse(content, {
           status: 200,
           headers: { "Content-Type": "text/plain" },
         });
       } else {
-        return new Response("Blob not found", {
+        return new HttpResponse("Blob not found", {
           status: 404,
           statusText: "Not Found",
         });
       }
-    }
-  }
-
-  return originalFetch(url, init);
-};
+    },
+  ),
+];

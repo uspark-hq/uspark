@@ -3,6 +3,10 @@ import { ProjectSync } from "@uspark/core-node";
 
 /**
  * Manages periodic synchronization of the uSpark project
+ *
+ * Note: MCP servers use stdout for protocol communication,
+ * so all diagnostic logs must go to stderr (console.error).
+ * We use prefixes to distinguish log levels: [INFO], [WARN], [ERROR]
  */
 export class SyncManager {
   private config: UsparkConfig;
@@ -24,12 +28,12 @@ export class SyncManager {
     // Start periodic sync
     this.intervalId = setInterval(() => {
       this.syncOnce().catch((error) => {
-        console.error("Periodic sync failed:", error);
+        console.error("[ERROR] Periodic sync failed:", error);
       });
     }, this.config.syncInterval);
 
     console.error(
-      `Periodic sync started (interval: ${this.config.syncInterval / 1000 / 60} minutes)`,
+      `[INFO] Periodic sync started (interval: ${this.config.syncInterval / 1000 / 60} minutes)`,
     );
   }
 
@@ -40,7 +44,7 @@ export class SyncManager {
     if (this.intervalId) {
       clearInterval(this.intervalId);
       this.intervalId = null;
-      console.error("Periodic sync stopped");
+      console.error("[INFO] Periodic sync stopped");
     }
   }
 
@@ -49,13 +53,13 @@ export class SyncManager {
    */
   private async syncOnce(): Promise<void> {
     if (this.isRunning) {
-      console.error("Sync already in progress, skipping...");
+      console.error("[WARN] Sync already in progress, skipping...");
       return;
     }
 
     this.isRunning = true;
     try {
-      console.error(`[${new Date().toISOString()}] Starting sync...`);
+      console.error(`[INFO] [${new Date().toISOString()}] Starting sync...`);
 
       const sync = new ProjectSync();
       await sync.pullAll(
@@ -70,11 +74,11 @@ export class SyncManager {
 
       this.lastSyncTime = new Date();
       console.error(
-        `[${this.lastSyncTime.toISOString()}] Sync completed successfully`,
+        `[INFO] [${this.lastSyncTime.toISOString()}] Sync completed successfully`,
       );
     } catch (error) {
       console.error(
-        `[${new Date().toISOString()}] Sync failed:`,
+        `[ERROR] [${new Date().toISOString()}] Sync failed:`,
         error instanceof Error ? error.message : String(error),
       );
       throw error;

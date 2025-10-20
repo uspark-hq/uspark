@@ -190,12 +190,15 @@ export class ProjectSync {
       const blobResponse = await fetch(blobUrl);
 
       if (!blobResponse.ok) {
-        // Fallback: blob might not be uploaded yet, use empty content
-        console.warn(`Blob ${fileNode.hash} not found, using empty content`);
-        content = "";
-      } else {
-        content = await blobResponse.text();
+        throw new Error(
+          `Blob ${fileNode.hash} not found for ${filePath}. ` +
+            `Status: ${blobResponse.status}. ` +
+            `This indicates data corruption or incomplete sync. ` +
+            `URL: ${blobUrl}`,
+        );
       }
+
+      content = await blobResponse.text();
 
       this.fs.setBlob(fileNode.hash, content);
     }
@@ -501,18 +504,19 @@ export class ProjectSync {
         const blobResponse = await fetch(blobUrl);
 
         if (!blobResponse.ok) {
-          // Fallback: blob might not be uploaded yet, use empty content
-          console.warn(
-            `Blob ${fileNode.hash} not found for ${filePath}, using empty content`,
-          );
-          content = "";
-        } else {
-          content = await blobResponse.text();
-          this.log(
-            `✅ Downloaded ${content.length} bytes for ${filePath}`,
-            options.verbose,
+          throw new Error(
+            `Blob ${fileNode.hash} not found for ${filePath}. ` +
+              `Status: ${blobResponse.status}. ` +
+              `This indicates data corruption or incomplete sync. ` +
+              `URL: ${blobUrl}`,
           );
         }
+
+        content = await blobResponse.text();
+        this.log(
+          `✅ Downloaded ${content.length} bytes for ${filePath}`,
+          options.verbose,
+        );
 
         this.fs.setBlob(fileNode.hash, content);
       } else {

@@ -110,7 +110,7 @@ export async function startServer(config: UsparkConfig): Promise<void> {
   await server.connect(transport);
 
   // Log to stderr (stdout is used for MCP communication)
-  console.error("uSpark MCP server running on stdio");
-  console.error(`Project ID: ${config.projectId}`);
-  console.error(`Output directory: ${config.outputDir}`);
+  console.error("[INFO] uSpark MCP server running on stdio");
+  console.error(`[INFO] Project ID: ${config.projectId}`);
+  console.error(`[INFO] Output directory: ${config.outputDir}`);
 }
