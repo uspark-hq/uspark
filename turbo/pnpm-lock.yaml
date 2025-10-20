@@ -53,15 +53,24 @@ importers:
       '@uspark/core-node':
         specifier: workspace:*
         version: link:../../packages/core-node
+      '@vercel/blob':
+        specifier: ^1.1.1
+        version: 1.1.1
       chalk:
         specifier: ^5.6.0
         version: 5.6.0
       commander:
         specifier: ^14.0.0
         version: 14.0.0
+      js-sha256:
+        specifier: ^0.11.1
+        version: 0.11.1
       signal-timers:
         specifier: ^1.0.4
         version: 1.0.4
+      yjs:
+        specifier: ^13.6.27
+        version: 13.6.27
     devDependencies:
       '@types/node':
         specifier: ^24.3.0
@@ -72,15 +81,9 @@ importers:
       '@uspark/typescript-config':
         specifier: workspace:*
         version: link:../../packages/typescript-config
-      '@vercel/blob':
-        specifier: ^1.1.1
-        version: 1.1.1
       eslint:
         specifier: ^9.34.0
         version: 9.34.0(jiti@2.5.1)
-      js-sha256:
-        specifier: ^0.11.1
-        version: 0.11.1
       json:
         specifier: ^11.0.0
         version: 11.0.0
@@ -96,9 +99,6 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(@vitest/browser@3.2.4)(@vitest/ui@3.2.4)(happy-dom@20.0.0)(jiti@2.5.1)(jsdom@26.1.0)(lightningcss@1.30.1)(msw@2.11.1(@types/node@24.3.0)(typescript@5.9.2))(tsx@4.20.5)
-      yjs:
-        specifier: ^13.6.27
-        version: 13.6.27
 
   apps/docs:
     dependencies:
@@ -551,6 +551,15 @@ importers:
       '@uspark/core-node':
         specifier: workspace:*
         version: link:../core-node
+      '@vercel/blob':
+        specifier: ^1.1.1
+        version: 1.1.1
+      js-sha256:
+        specifier: ^0.11.1
+        version: 0.11.1
+      yjs:
+        specifier: ^13.6.27
+        version: 13.6.27
     devDependencies:
       '@types/node':
         specifier: ^24.3.0
@@ -564,9 +573,6 @@ importers:
       eslint:
         specifier: ^9.34.0
         version: 9.34.0(jiti@2.5.1)
-      js-sha256:
-        specifier: ^0.11.1
-        version: 0.11.1
       tsup:
         specifier: ^8.5.0
         version: 8.5.0(jiti@2.5.1)(postcss@8.5.6)(tsx@4.20.5)(typescript@5.9.2)
@@ -576,9 +582,6 @@ importers:
       vitest:
         specifier: ^3.2.4
         version: 3.2.4(@types/debug@4.1.12)(@types/node@24.3.0)(@vitest/browser@3.2.4)(@vitest/ui@3.2.4)(happy-dom@20.0.0)(jiti@2.5.1)(jsdom@26.1.0)(lightningcss@1.30.1)(msw@2.11.1(@types/node@24.3.0)(typescript@5.9.2))(tsx@4.20.5)
-      yjs:
-        specifier: ^13.6.27
-        version: 13.6.27
 
   packages/proxy: {}
 

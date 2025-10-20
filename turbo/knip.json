@@ -71,7 +71,8 @@
       "project": ["src/**/*.ts"],
       "tsup": {
         "config": ["tsup.config.ts"]
-      }
+      },
+      "ignoreDependencies": ["@vercel/blob", "js-sha256", "yjs"]
     }
   },
   "ignore": [
