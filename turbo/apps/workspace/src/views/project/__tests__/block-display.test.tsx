@@ -107,13 +107,14 @@ describe('block display', () => {
   })
 
   describe('tool_result blocks', () => {
-    it('renders result output as string', () => {
+    it('renders result field as string', () => {
       const block: Block = {
         id: 'block-7',
         turnId: 'turn-1',
         type: 'tool_result',
         content: {
-          output: 'Command executed successfully',
+          result: 'Command executed successfully',
+          error: null,
         },
         createdAt: new Date(),
       }
@@ -124,6 +125,23 @@ describe('block display', () => {
       ).toBeInTheDocument()
     })
 
+    it('renders output field for compatibility', () => {
+      const block: Block = {
+        id: 'block-7b',
+        turnId: 'turn-1',
+        type: 'tool_result',
+        content: {
+          output: 'Alternative output format',
+        },
+        createdAt: new Date(),
+      }
+
+      render(<BlockDisplay block={block} />)
+      expect(
+        screen.getByText('Alternative output format'),
+      ).toBeInTheDocument()
+    })
+
     it('renders error message', () => {
       const block: Block = {
         id: 'block-8',
@@ -131,6 +149,7 @@ describe('block display', () => {
         type: 'tool_result',
         content: {
           error: 'File not found',
+          result: null,
         },
         createdAt: new Date(),
       }
@@ -139,13 +158,14 @@ describe('block display', () => {
       expect(screen.getByText('File not found')).toBeInTheDocument()
     })
 
-    it('renders multiline output', () => {
+    it('renders multiline result', () => {
       const block: Block = {
         id: 'block-9',
         turnId: 'turn-1',
         type: 'tool_result',
         content: {
-          output: 'Line 1\nLine 2\nLine 3',
+          result: 'Line 1\nLine 2\nLine 3',
+          error: null,
         },
         createdAt: new Date(),
       }
@@ -160,7 +180,8 @@ describe('block display', () => {
         turnId: 'turn-1',
         type: 'tool_result',
         content: {
-          output: '',
+          result: '',
+          error: null,
         },
         createdAt: new Date(),
       }

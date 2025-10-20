@@ -116,7 +116,14 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
             typeof content.error === 'string'
               ? content.error
               : JSON.stringify(content.error)
+        } else if ('result' in content) {
+          // Standard field used by BlockFactory
+          resultContent =
+            typeof content.result === 'string'
+              ? content.result
+              : JSON.stringify(content.result)
         } else if ('output' in content) {
+          // Alternative field for compatibility
           resultContent =
             typeof content.output === 'string'
               ? content.output
