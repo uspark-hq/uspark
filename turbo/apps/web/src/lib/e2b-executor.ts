@@ -324,7 +324,7 @@ export class E2BExecutor {
     // Environment variables set inline (TURN_ID and SESSION_ID)
     // Other vars (PROJECT_ID, USPARK_TOKEN, etc) are set at sandbox creation
     // All output (stdout and stderr) redirected to log file
-    const command = `TURN_ID="${effectiveTurnId}" SESSION_ID="${effectiveSessionId}" /usr/local/bin/execute-claude-turn.sh  2>&1 >> ${logFile}`;
+    const command = `TURN_ID="${effectiveTurnId}" SESSION_ID="${effectiveSessionId}" /usr/local/bin/execute-claude-turn.sh >> ${logFile} 2>&1`;
 
     // Run in background - command continues in sandbox even after client disconnects
     await sandbox.commands.run(command, {
