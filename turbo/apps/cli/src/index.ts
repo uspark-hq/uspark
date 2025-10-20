@@ -2,7 +2,7 @@ import { FOO } from "@uspark/core";
 import { Command } from "commander";
 import chalk from "chalk";
 import { authenticate, logout, checkAuthStatus } from "./auth";
-import { pullCommand, pullAllCommand, pushCommand } from "./commands/sync";
+import { pullCommand, pushCommand } from "./commands/sync";
 import { watchClaudeCommand } from "./commands/watch-claude";
 
 const getApiUrl = () => process.env.API_HOST || "https://www.uspark.ai";
@@ -61,73 +61,26 @@ authCommand
 
 program
   .command("pull")
-  .description("Pull file(s) from remote project")
-  .argument(
-    "[filePath]",
-    "File path to pull (omit with --all to pull entire project)",
-  )
-  .requiredOption("--project-id <projectId>", "Project ID")
+  .description("Pull all files from remote project to current directory")
   .option(
-    "--output-dir <directory>",
-    "Output directory for pulled files (defaults to current directory)",
+    "--project-id <projectId>",
+    "Project ID (required on first run, saved to .config.json)",
   )
-  .option("--all", "Pull all files from the project")
   .option("--verbose", "Show detailed logging information")
-  .action(
-    async (
-      filePath: string | undefined,
-      options: {
-        projectId: string;
-        outputDir?: string;
-        all?: boolean;
-        verbose?: boolean;
-      },
-    ) => {
-      if (options.all) {
-        // Pull all files
-        await pullAllCommand({
-          projectId: options.projectId,
-          outputDir: options.outputDir,
-          verbose: options.verbose,
-        });
-      } else if (filePath) {
-        // Pull single file
-        await pullCommand(filePath, {
-          projectId: options.projectId,
-          outputDir: options.outputDir,
-          verbose: options.verbose,
-        });
-      } else {
-        console.error(
-          chalk.red("Error: Either provide a file path or use --all flag"),
-        );
-        process.exit(1);
-      }
-    },
-  );
+  .action(async (options: { projectId?: string; verbose?: boolean }) => {
+    await pullCommand(options);
+  });
 
 program
   .command("push")
-  .description("Push file(s) to remote project")
-  .argument("[filePath]", "File path to push (required unless using --all)")
-  .requiredOption("--project-id <projectId>", "Project ID")
-  .option("--all", "Push all files in current directory")
-  .action(
-    async (
-      filePath: string | undefined,
-      options: { projectId: string; all?: boolean },
-    ) => {
-      // Validate arguments
-      if (!options.all && !filePath) {
-        console.error(
-          chalk.red("Error: File path is required unless using --all flag"),
-        );
-        process.exit(1);
-      }
-
-      await pushCommand(filePath, options);
-    },
-  );
+  .description("Push all files from current directory to remote project")
+  .option(
+    "--project-id <projectId>",
+    "Project ID (required on first run, saved to .config.json)",
+  )
+  .action(async (options: { projectId?: string }) => {
+    await pushCommand(options);
+  });
 
 program
   .command("watch-claude")

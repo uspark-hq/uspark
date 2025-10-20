@@ -18,6 +18,7 @@ import { http, HttpResponse } from "msw";
 import { mockServer } from "../../test/mock-server";
 import { server } from "../../test/setup";
 import { put } from "@vercel/blob";
+import { setOverrideProjectConfig } from "../../project-config";
 
 describe("sync commands", () => {
   let tempDir: string;
@@ -33,6 +34,12 @@ describe("sync commands", () => {
     process.env.USPARK_TOKEN = "test-token";
     process.env.USPARK_API_URL = "http://localhost:3000";
 
+    // Set project config override
+    setOverrideProjectConfig({
+      projectId: "proj-123",
+      version: "0",
+    });
+
     // Reset mock server
     mockServer.reset();
 
@@ -45,11 +52,6 @@ describe("sync commands", () => {
       downloadUrl:
         "https://mock-store-id.public.blob.vercel-storage.com/projects/test/mock-hash",
     });
-
-    // Mock console methods
-    console.log = vi.fn();
-    console.error = vi.fn();
-    console.warn = vi.fn();
   });
 
   afterEach(async () => {
@@ -60,18 +62,24 @@ describe("sync commands", () => {
     delete process.env.USPARK_TOKEN;
     delete process.env.USPARK_API_URL;
 
+    // Clear project config override
+    setOverrideProjectConfig(null);
+
     vi.restoreAllMocks();
   });
 
   describe("pushCommand", () => {
-    it("should push a single file successfully", async () => {
-      // Create a test file
-      await fs.writeFile("test.txt", "test content");
+    it("should push all files successfully", async () => {
+      // Create test files
+      await fs.writeFile("file1.txt", "content1");
+      await fs.mkdir("dir", { recursive: true });
+      await fs.writeFile("dir/file2.txt", "content2");
 
-      await pushCommand("test.txt", { projectId: "proj-123" });
+      await pushCommand({});
 
-      // Verify the file was pushed to the server
-      expect(mockServer.hasFile("proj-123", "test.txt")).toBe(true);
+      // Verify the files were pushed to the server
+      expect(mockServer.hasFile("proj-123", "file1.txt")).toBe(true);
+      expect(mockServer.hasFile("proj-123", "dir/file2.txt")).toBe(true);
     });
 
     it("should actually update the YDoc with pushed files", async () => {
@@ -80,17 +88,10 @@ describe("sync commands", () => {
       await fs.mkdir("dir", { recursive: true });
       await fs.writeFile("dir/file2.txt", "content2");
 
-      // Push the first file
-      await pushCommand("file1.txt", { projectId: "proj-123" });
+      // Push all files
+      await pushCommand({});
 
-      // Verify the file is in the YDoc
-      expect(mockServer.hasFile("proj-123", "file1.txt")).toBe(true);
-      expect(mockServer.hasFile("proj-123", "dir/file2.txt")).toBe(false);
-
-      // Push the second file
-      await pushCommand("dir/file2.txt", { projectId: "proj-123" });
-
-      // Verify both files are now in the YDoc
+      // Verify both files are in the YDoc
       expect(mockServer.hasFile("proj-123", "file1.txt")).toBe(true);
       expect(mockServer.hasFile("proj-123", "dir/file2.txt")).toBe(true);
 
@@ -106,7 +107,7 @@ describe("sync commands", () => {
       expect(file1Node.hash).toBeDefined();
     });
 
-    it("should push all files with --all flag", async () => {
+    it("should push all files and ignore excluded directories", async () => {
       // Create test files in different directories
       await fs.writeFile("file1.txt", "content1");
       await fs.mkdir("subdir");
@@ -120,10 +121,7 @@ describe("sync commands", () => {
       await fs.writeFile(".DS_Store", "should be ignored");
       await fs.writeFile("subdir/.DS_Store", "should be ignored");
 
-      await pushCommand(undefined, {
-        projectId: "proj-123",
-        all: true,
-      });
+      await pushCommand({});
 
       // Verify the files are actually in the YDoc
       expect(mockServer.hasFile("proj-123", "file1.txt")).toBe(true);
@@ -154,68 +152,56 @@ describe("sync commands", () => {
       );
 
       // Should throw on error (fail fast)
-      await expect(
-        pushCommand("file1.txt", {
-          projectId: "proj-123",
-        }),
-      ).rejects.toThrow("Failed to sync to remote");
+      await expect(pushCommand({})).rejects.toThrow("Failed to sync to remote");
     });
 
-    it("should fail fast on batch push with network error", async () => {
-      // Create test files
-      await fs.writeFile("file1.txt", "content1");
-      await fs.writeFile("file2.txt", "content2");
+    it("should use projectId from option if provided", async () => {
+      // Create test file
+      await fs.writeFile("test.txt", "test content");
 
-      // Mock server to return error on PATCH
-      server.use(
-        http.patch("http://localhost:3000/api/projects/proj-123", () => {
-          return HttpResponse.json({ error: "Server error" }, { status: 500 });
-        }),
-      );
+      // Use a different project ID
+      await pushCommand({ projectId: "proj-456" });
 
-      // Should throw on error (fail fast for batch)
-      await expect(
-        pushCommand(undefined, {
-          projectId: "proj-123",
-          all: true,
-        }),
-      ).rejects.toThrow("Failed to sync to remote");
-    });
-
-    it("should throw error when no file path", async () => {
-      await expect(
-        pushCommand(undefined, { projectId: "proj-123" }),
-      ).rejects.toThrow("File path is required");
-    });
-
-    it("should handle missing file error", async () => {
-      // Don't create the file, so it will be missing
-      await expect(
-        pushCommand("nonexistent.txt", { projectId: "proj-123" }),
-      ).rejects.toThrow();
+      // Verify the file was pushed to the correct project
+      expect(mockServer.hasFile("proj-456", "test.txt")).toBe(true);
+      expect(mockServer.hasFile("proj-123", "test.txt")).toBe(false);
     });
   });
 
   describe("pullCommand", () => {
-    it("should pull a file successfully", async () => {
-      // Add test file to the project using existing mockServer
+    it("should pull all files successfully", async () => {
+      // Add test files to the project using existing mockServer
       mockServer.addFileToProject("proj-123", "test.txt", "test file content");
+      mockServer.addFileToProject(
+        "proj-123",
+        "dir/file.txt",
+        "nested file content",
+      );
 
-      await pullCommand("test.txt", { projectId: "proj-123" });
+      await pullCommand({});
 
-      // Check that file was created
-      const fileExists = await fs
+      // Check that files were created
+      const file1Exists = await fs
         .access("test.txt")
         .then(() => true)
         .catch(() => false);
-      expect(fileExists).toBe(true);
+      expect(file1Exists).toBe(true);
 
-      // Check file content
-      const content = await fs.readFile("test.txt", "utf8");
-      expect(content).toBe("test file content");
+      const file2Exists = await fs
+        .access("dir/file.txt")
+        .then(() => true)
+        .catch(() => false);
+      expect(file2Exists).toBe(true);
+
+      // Check file contents
+      const content1 = await fs.readFile("test.txt", "utf8");
+      expect(content1).toBe("test file content");
+
+      const content2 = await fs.readFile("dir/file.txt", "utf8");
+      expect(content2).toBe("nested file content");
     });
 
-    it("should pull a file to custom output path", async () => {
+    it("should pull to current directory", async () => {
       // Add test file to the project using existing mockServer
       mockServer.addFileToProject(
         "proj-123",
@@ -223,24 +209,35 @@ describe("sync commands", () => {
         "remote file content",
       );
 
-      // Create the directory structure
-      await fs.mkdir("local", { recursive: true });
+      await pullCommand({});
 
-      await pullCommand("remote/file.txt", {
-        projectId: "proj-123",
-        outputDir: "local",
-      });
-
-      // Check that file was created in the correct location (maintains original path structure)
+      // Check that file was created in current directory with original path structure
       const fileExists = await fs
-        .access("local/remote/file.txt")
+        .access("remote/file.txt")
         .then(() => true)
         .catch(() => false);
       expect(fileExists).toBe(true);
 
       // Check file content
-      const content = await fs.readFile("local/remote/file.txt", "utf8");
+      const content = await fs.readFile("remote/file.txt", "utf8");
       expect(content).toBe("remote file content");
+    });
+
+    it("should use projectId from option if provided", async () => {
+      // Add test file to a different project
+      mockServer.addFileToProject("proj-456", "test.txt", "test content");
+
+      await pullCommand({ projectId: "proj-456" });
+
+      // Check that file was pulled
+      const fileExists = await fs
+        .access("test.txt")
+        .then(() => true)
+        .catch(() => false);
+      expect(fileExists).toBe(true);
+
+      const content = await fs.readFile("test.txt", "utf8");
+      expect(content).toBe("test content");
     });
 
     it("should handle project not found error", async () => {
@@ -270,9 +267,7 @@ describe("sync commands", () => {
         ),
       );
 
-      await expect(
-        pullCommand("test.txt", { projectId: "nonexistent" }),
-      ).rejects.toThrow();
+      await expect(pullCommand({ projectId: "nonexistent" })).rejects.toThrow();
     });
   });
 });

@@ -148,11 +148,17 @@ fi
 # Pull uSpark project files
 log "Pulling uSpark project files..."
 
-uspark pull \
-  --all \
-  --project-id "$PROJECT_ID" \
-  --output-dir "$USPARK_OUTPUT_DIR" \
-  --verbose
+# Ensure .uspark directory exists
+mkdir -p "$USPARK_OUTPUT_DIR"
+cd "$USPARK_OUTPUT_DIR"
+
+# Pull all project files to current directory (.uspark)
+# First run will create .uspark.config.json automatically
+log "Pulling files..."
+uspark pull --project-id "$PROJECT_ID" --verbose
+
+# Return to workspace directory
+cd "$WORKSPACE_DIR"
 
 log "Project files synced successfully"
 
