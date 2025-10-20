@@ -41,10 +41,12 @@ async function getAuthToken(): Promise<string> {
   return "test-token";
 }
 
+// Check if we have a real API URL at module load time
+const hasRealApi = !!process.env.USPARK_API_URL;
+
 describe("MCP Server Integration Tests", () => {
   let client: Client;
   let transport: StdioClientTransport;
-  let hasRealApi: boolean;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -60,9 +62,8 @@ describe("MCP Server Integration Tests", () => {
     // Get auth token
     const authToken = await getAuthToken();
 
-    // Check if we have a real API URL
+    // Get API URL
     const apiUrl = process.env.USPARK_API_URL || "http://localhost:3000";
-    hasRealApi = !!process.env.USPARK_API_URL;
 
     if (hasRealApi) {
       console.log(`🌐 Testing against real API: ${apiUrl}`);
