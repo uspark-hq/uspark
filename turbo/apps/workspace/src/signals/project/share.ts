@@ -1,13 +1,26 @@
-import { command } from 'ccstate'
-import { toast } from 'sonner'
+import { command, computed, state } from 'ccstate'
 import { shareFile$ } from '../external/project-detail'
 import { pathParams$ } from '../route'
 import { selectedFileItem$ } from './project'
 
 /**
- * Share the currently selected file and copy the share link to clipboard
+ * Share URL and popover visibility state
  */
-export const shareCurrentFile$ = command(
+const shareUrl$ = state<string | null>(null)
+const isSharePopoverOpen$ = state(false)
+
+/**
+ * Public computed signals for reading state
+ */
+export const shareUrlValue$ = computed((get) => get(shareUrl$))
+export const isSharePopoverOpenValue$ = computed((get) =>
+  get(isSharePopoverOpen$),
+)
+
+/**
+ * Generate share link for the currently selected file
+ */
+export const generateShareLink$ = command(
   async ({ get, set }, signal: AbortSignal) => {
     const selectedFile = await get(selectedFileItem$)
     signal.throwIfAborted()
@@ -18,7 +31,7 @@ export const shareCurrentFile$ = command(
       return
     }
 
-    // Call share API
+    // Call share API to generate link
     const result = await set(
       shareFile$,
       {
@@ -29,13 +42,15 @@ export const shareCurrentFile$ = command(
     )
     signal.throwIfAborted()
 
-    // Copy to clipboard
-    await navigator.clipboard.writeText(result.url)
-    signal.throwIfAborted()
-
-    // Show success toast
-    toast.success('Share link copied to clipboard', {
-      description: selectedFile.path,
-    })
+    // Store the share URL and open popover
+    set(shareUrl$, result.url)
+    set(isSharePopoverOpen$, true)
   },
 )
+
+/**
+ * Close the share popover
+ */
+export const closeSharePopover$ = command(({ set }) => {
+  set(isSharePopoverOpen$, false)
+})

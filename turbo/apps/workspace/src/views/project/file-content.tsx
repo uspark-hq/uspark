@@ -1,4 +1,5 @@
 import { useGet, useLastResolved, useSet } from 'ccstate-react'
+import { toast } from 'sonner'
 import {
   closeFileContent$,
   selectedFileContent$,
@@ -6,7 +7,12 @@ import {
   setViewMode$,
   viewMode$,
 } from '../../signals/project/project'
-import { shareCurrentFile$ } from '../../signals/project/share'
+import {
+  closeSharePopover$,
+  generateShareLink$,
+  isSharePopoverOpenValue$,
+  shareUrlValue$,
+} from '../../signals/project/share'
 import { rootSignal$ } from '../../signals/root-signal'
 import { onDomEventFn } from '../../signals/utils'
 import { MarkdownEditor } from './markdown-editor'
@@ -18,10 +24,29 @@ export function FileContent() {
   const closeFileContent = useSet(closeFileContent$)
   const mode = useLastResolved(viewMode$) ?? 'preview'
   const setViewMode = useSet(setViewMode$)
-  const shareFile = useSet(shareCurrentFile$)
+  const generateShareLink = useSet(generateShareLink$)
+  const closeSharePopover = useSet(closeSharePopover$)
+  const isSharePopoverOpen = useLastResolved(isSharePopoverOpenValue$) ?? false
+  const shareUrl = useLastResolved(shareUrlValue$)
   const signal = useGet(rootSignal$)
 
-  const handleShare = onDomEventFn(() => shareFile(signal))
+  const handleShare = onDomEventFn(() => generateShareLink(signal))
+
+  const handleCopyLink = () => {
+    if (!shareUrl) {
+      return
+    }
+
+    navigator.clipboard
+      .writeText(shareUrl)
+      .then(() => {
+        toast.success('Link copied to clipboard')
+        closeSharePopover()
+      })
+      .catch(() => {
+        toast.error('Failed to copy link')
+      })
+  }
 
   if (!fileContent) {
     return (
@@ -46,30 +71,79 @@ export function FileContent() {
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Share button */}
-            <button
-              onClick={handleShare}
-              className="flex items-center gap-1.5 rounded border border-[#3e3e42] bg-[#2a2d2e] px-3 py-1 text-[12px] text-[#cccccc] transition-colors hover:bg-[#3e3e42] hover:text-[#ffffff]"
-              title="Share file"
-            >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+            {/* Share button with popover */}
+            <div className="relative">
+              <button
+                onClick={handleShare}
+                className="flex items-center gap-1.5 rounded border border-[#3e3e42] bg-[#2a2d2e] px-3 py-1 text-[12px] text-[#cccccc] transition-colors hover:bg-[#3e3e42] hover:text-[#ffffff]"
+                title="Share file"
               >
-                <circle cx="18" cy="5" r="3" />
-                <circle cx="6" cy="12" r="3" />
-                <circle cx="18" cy="19" r="3" />
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-              </svg>
-              <span>Share</span>
-            </button>
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <circle cx="18" cy="5" r="3" />
+                  <circle cx="6" cy="12" r="3" />
+                  <circle cx="18" cy="19" r="3" />
+                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                </svg>
+                <span>Share</span>
+              </button>
+
+              {/* Share popover */}
+              {isSharePopoverOpen && shareUrl && (
+                <div className="absolute top-full right-0 z-50 mt-2 w-[400px] rounded-md border border-[#3e3e42] bg-[#252526] p-4 shadow-lg">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h3 className="text-[13px] font-semibold text-[#cccccc]">
+                      Share Link
+                    </h3>
+                    <button
+                      onClick={closeSharePopover}
+                      className="flex h-5 w-5 items-center justify-center rounded text-[#cccccc] transition-colors hover:bg-[#2a2d2e] hover:text-[#ffffff]"
+                      aria-label="Close"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="mb-3 flex items-center gap-2 rounded border border-[#3e3e42] bg-[#1e1e1e] p-2">
+                    <input
+                      type="text"
+                      value={shareUrl}
+                      readOnly
+                      className="flex-1 bg-transparent text-[12px] text-[#cccccc] outline-none"
+                    />
+                  </div>
+
+                  <button
+                    onClick={handleCopyLink}
+                    className="w-full rounded bg-[#0e639c] px-3 py-2 text-[12px] font-medium text-white transition-colors hover:bg-[#1177bb]"
+                  >
+                    Copy Link
+                  </button>
+                </div>
+              )}
+            </div>
 
             {/* Preview/Edit toggle buttons */}
             <div className="flex overflow-hidden rounded border border-[#3e3e42]">

@@ -4,16 +4,12 @@ import { testContext } from '../../__tests__/context'
 import { server } from '../../../mocks/node'
 import { setupProjectPage } from '../../../views/project/test-helpers'
 import { setupMock } from '../../test-utils'
-import { shareCurrentFile$ } from '../share'
-
-// Mock sonner at the top level
-vi.mock<typeof import('sonner')>('sonner', () => ({
-  toast: {
-    success: vi.fn(),
-    error: vi.fn(),
-  },
-  Toaster: () => null,
-}))
+import {
+  closeSharePopover$,
+  generateShareLink$,
+  isSharePopoverOpenValue$,
+  shareUrlValue$,
+} from '../share'
 
 // Setup Clerk mock
 setupMock()
@@ -25,13 +21,6 @@ describe('share', () => {
   const testContent = '# Test\n\nTest content for sharing'
 
   beforeEach(async () => {
-    // Mock clipboard API
-    vi.stubGlobal('navigator', {
-      clipboard: {
-        writeText: vi.fn().mockResolvedValue(undefined),
-      },
-    })
-
     // Setup project page with file
     await setupProjectPage(`/projects/${projectId}?file=test.md`, context, {
       projectId,
@@ -50,8 +39,8 @@ describe('share', () => {
     vi.unstubAllGlobals()
   })
 
-  describe('shareCurrentFile$', () => {
-    it('should create share link and copy to clipboard', async () => {
+  describe('generateShareLink$', () => {
+    it('should generate share link and open popover', async () => {
       const mockShareResponse = {
         id: 'share-123',
         url: 'https://example.com/share/token123',
@@ -65,14 +54,66 @@ describe('share', () => {
         }),
       )
 
-      // Execute the share command
-      await context.store.set(shareCurrentFile$, context.signal)
+      // Execute the generate share link command
+      await context.store.set(generateShareLink$, context.signal)
 
-      // Verify clipboard was called with the share URL
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
-        mockShareResponse.url,
+      // Verify share URL was set
+      const shareUrl = context.store.get(shareUrlValue$)
+      expect(shareUrl).toBe(mockShareResponse.url)
+
+      // Verify popover is open
+      const isOpen = context.store.get(isSharePopoverOpenValue$)
+      expect(isOpen).toBeTruthy()
+    })
+
+    it('should not generate link when no file is selected', async () => {
+      // Create a fresh context without any files
+      const emptyContext = testContext()
+      await setupProjectPage(`/projects/${projectId}`, emptyContext, {
+        projectId,
+        files: [],
+      })
+
+      // Execute the generate share link command
+      await emptyContext.store.set(generateShareLink$, emptyContext.signal)
+
+      // Verify share URL was not set
+      const shareUrl = emptyContext.store.get(shareUrlValue$)
+      expect(shareUrl).toBeNull()
+
+      // Verify popover is not open
+      const isOpen = emptyContext.store.get(isSharePopoverOpenValue$)
+      expect(isOpen).toBeFalsy()
+    })
+  })
+
+  describe('closeSharePopover$', () => {
+    it('should close the share popover', async () => {
+      // First open the popover by generating a link
+      const mockShareResponse = {
+        id: 'share-123',
+        url: 'https://example.com/share/token123',
+        token: 'token123',
+      }
+
+      server.use(
+        http.post('*/api/share', () => {
+          return HttpResponse.json(mockShareResponse)
+        }),
       )
+
+      await context.store.set(generateShareLink$, context.signal)
+
+      // Verify popover is open
+      let isOpen = context.store.get(isSharePopoverOpenValue$)
+      expect(isOpen).toBeTruthy()
+
+      // Close the popover
+      context.store.set(closeSharePopover$)
+
+      // Verify popover is closed
+      isOpen = context.store.get(isSharePopoverOpenValue$)
+      expect(isOpen).toBeFalsy()
     })
   })
 })
