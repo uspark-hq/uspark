@@ -9,11 +9,42 @@ import {
 } from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { resolve } from "path";
+import { resolve, join } from "path";
+import { readFile } from "fs/promises";
+import { existsSync } from "fs";
+import { homedir } from "os";
+
+// Load token from CLI config if available
+async function getAuthToken(): Promise<string> {
+  // First check environment variable
+  if (process.env.USPARK_TOKEN) {
+    return process.env.USPARK_TOKEN;
+  }
+
+  // Try to read from CLI config
+  const configPath = join(homedir(), ".uspark", "config.json");
+  if (existsSync(configPath)) {
+    try {
+      const configContent = await readFile(configPath, "utf8");
+      const config = JSON.parse(configContent);
+      if (config.token) {
+        console.log("✅ Using token from CLI config");
+        return config.token;
+      }
+    } catch (error) {
+      console.warn("⚠️ Failed to read CLI config:", error);
+    }
+  }
+
+  // Fallback to test token
+  console.log("⚠️ Using test token (no CLI config found)");
+  return "test-token";
+}
 
 describe("MCP Server Integration Tests", () => {
   let client: Client;
   let transport: StdioClientTransport;
+  let hasRealApi: boolean;
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -26,14 +57,27 @@ describe("MCP Server Integration Tests", () => {
       "../../../turbo/packages/mcp-server/dist/index.js",
     );
 
+    // Get auth token
+    const authToken = await getAuthToken();
+
+    // Check if we have a real API URL
+    const apiUrl = process.env.USPARK_API_URL || "http://localhost:3000";
+    hasRealApi = !!process.env.USPARK_API_URL;
+
+    if (hasRealApi) {
+      console.log(`🌐 Testing against real API: ${apiUrl}`);
+    } else {
+      console.log("🏠 Running offline tests only");
+    }
+
     // Create transport with test environment
     transport = new StdioClientTransport({
       command: "node",
       args: [serverPath],
       env: {
-        USPARK_TOKEN: process.env.USPARK_TOKEN || "test-token",
+        USPARK_TOKEN: authToken,
         USPARK_PROJECT_ID: process.env.USPARK_PROJECT_ID || "test-project",
-        USPARK_API_URL: process.env.USPARK_API_URL || "http://localhost:3000",
+        USPARK_API_URL: apiUrl,
         USPARK_SYNC_INTERVAL: "3600000",
         USPARK_OUTPUT_DIR: ".uspark-test",
       },
@@ -96,8 +140,8 @@ describe("MCP Server Integration Tests", () => {
     });
 
     // Note: uspark_pull and uspark_list_files require a real API server
-    // These are marked as optional and will be skipped if no API_URL is set
-    it.skipIf(!process.env.USPARK_API_URL)(
+    // These tests will be skipped if no USPARK_API_URL is provided
+    it.skipIf(!hasRealApi)(
       "should execute uspark_list_files tool",
       async () => {
         const result = await client.callTool({
@@ -108,10 +152,16 @@ describe("MCP Server Integration Tests", () => {
         expect(result.isError).toBeFalsy();
         expect(result.content).toHaveLength(1);
         expect(result.content[0].type).toBe("text");
+
+        const listText = (result.content[0] as { text: string }).text;
+        console.log("📋 List files result:", listText);
+
+        // Should contain file list or indication of files
+        expect(listText.length).toBeGreaterThan(0);
       },
     );
 
-    it.skipIf(!process.env.USPARK_API_URL)(
+    it.skipIf(!hasRealApi)(
       "should execute uspark_pull tool",
       async () => {
         const result = await client.callTool({
@@ -124,6 +174,9 @@ describe("MCP Server Integration Tests", () => {
         expect(result.content[0].type).toBe("text");
 
         const pullText = (result.content[0] as { text: string }).text;
+        console.log("⬇️ Pull result:", pullText);
+
+        // Should contain success message
         expect(pullText).toContain("Successfully pulled");
       },
     );

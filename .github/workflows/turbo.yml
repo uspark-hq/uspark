@@ -352,14 +352,14 @@ jobs:
           CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
           API_HOST: ${{ needs.deploy-web.outputs.preview-url }}
 
-  # Run MCP Server E2E tests
+  # Run MCP Server E2E tests against deployed preview
   mcp-server-e2e:
     runs-on: ubuntu-latest
     container:
       image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
-    needs: [change-detection]
-    # Run if MCP server changed (optional: can also add || web-changed to test against real API)
-    if: github.event_name == 'pull_request' && needs.change-detection.outputs.mcp-server-changed == 'true'
+    needs: [change-detection, deploy-web]
+    # Run if MCP server changed and web deployment succeeded
+    if: github.event_name == 'pull_request' && needs.change-detection.outputs.mcp-server-changed == 'true' && needs.deploy-web.outputs.preview-url != ''
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/toolchain-init
@@ -367,12 +367,30 @@ jobs:
       - name: Build MCP server
         run: cd turbo && pnpm --filter @uspark/mcp-server build
 
-      - name: Install E2E test dependencies
+      - name: Install E2E dependencies
+        run: cd e2e && npm install
+
+      - name: Install Playwright browsers
+        run: cd e2e && npx playwright install chromium
+
+      - name: Authenticate CLI for MCP tests
         run: |
-          cd e2e/mcp-server
-          npm ci
+          echo "Authenticating for MCP tests with ${{ needs.deploy-web.outputs.preview-url }}"
+          cd e2e && npm run auth
+        env:
+          API_HOST: ${{ needs.deploy-web.outputs.preview-url }}
+          CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+
+      - name: Install MCP E2E test dependencies
+        run: cd e2e/mcp-server && npm ci
 
       - name: Run MCP E2E Tests
         run: |
+          echo "Testing MCP server against API: ${{ needs.deploy-web.outputs.preview-url }}"
           cd e2e/mcp-server
           npm test
+        env:
+          USPARK_API_URL: ${{ needs.deploy-web.outputs.preview-url }}
+          CLERK_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
