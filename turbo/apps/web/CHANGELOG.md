@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.60.0](https://github.com/uspark-hq/uspark/compare/web-v0.59.1...web-v0.60.0) (2025-10-20)
+
+
+### Features
+
+* **mcp-server:** add Model Context Protocol server with build fixes ([#646](https://github.com/uspark-hq/uspark/issues/646)) ([3f49d3b](https://github.com/uspark-hq/uspark/commit/3f49d3beac31c5b8359480fe1fa6c5c8b97cfa5b))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.25.0
+
 ## [0.59.1](https://github.com/uspark-hq/uspark/compare/web-v0.59.0...web-v0.59.1) (2025-10-20)
 
 

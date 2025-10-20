@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.25.0](https://github.com/uspark-hq/uspark/compare/core-v0.24.0...core-v0.25.0) (2025-10-20)
+
+
+### Features
+
+* **mcp-server:** add Model Context Protocol server with build fixes ([#646](https://github.com/uspark-hq/uspark/issues/646)) ([3f49d3b](https://github.com/uspark-hq/uspark/commit/3f49d3beac31c5b8359480fe1fa6c5c8b97cfa5b))
+* **workspace:** show all tool calls and results in turn block list ([#659](https://github.com/uspark-hq/uspark/issues/659)) ([53c8aa7](https://github.com/uspark-hq/uspark/commit/53c8aa76bc721219a5c8d1d4d9d86cfe7f22001a))
+
 ## [0.24.0](https://github.com/uspark-hq/uspark/compare/core-v0.23.1...core-v0.24.0) (2025-10-19)
 
 
