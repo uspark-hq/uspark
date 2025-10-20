@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.61.0](https://github.com/uspark-hq/uspark/compare/web-v0.60.1...web-v0.61.0) (2025-10-20)
+
+
+### Features
+
+* **web:** improve home page ux and github repo input ([#667](https://github.com/uspark-hq/uspark/issues/667)) ([d202995](https://github.com/uspark-hq/uspark/commit/d202995be76e628947a5c58e7688b57621d27318))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.25.1
+
 ## [0.60.1](https://github.com/uspark-hq/uspark/compare/web-v0.60.0...web-v0.60.1) (2025-10-20)
 
 
