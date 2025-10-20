@@ -75,7 +75,7 @@ export function RepoInput({ onRepoVerified }: RepoInputProps) {
     <div className="space-y-3">
       <div className="relative">
         <Input
-          placeholder="Enter GitHub URL or owner/repo (e.g., facebook/react)"
+          placeholder="Enter GitHub URL or owner/repo (e.g., uspark-hq/uspark)"
           value={input}
           onChange={handleInputChange}
           onKeyDown={handleKeyDown}

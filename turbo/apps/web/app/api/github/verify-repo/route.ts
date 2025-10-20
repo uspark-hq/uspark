@@ -143,24 +143,32 @@ export async function POST(request: Request) {
  * - https://github.com/owner/repo
  * - https://github.com/owner/repo.git
  * - git@github.com:owner/repo.git
+ *
+ * Supports repository names with dots, underscores, hyphens per GitHub's naming rules.
+ * Valid characters: [A-Za-z0-9_.-]
  */
 function normalizeRepoUrl(input: string): string | null {
   // Remove whitespace
   input = input.trim();
 
   // Pattern 1: already in owner/repo format
-  if (/^[\w-]+\/[\w-]+$/.test(input)) {
+  // GitHub allows: alphanumeric, hyphens, underscores, and periods
+  if (/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(input)) {
     return input;
   }
 
-  // Pattern 2: HTTPS URL
-  const httpsMatch = input.match(/github\.com\/([^/]+\/[^/.]+)/);
+  // Pattern 2: HTTPS URL (e.g., https://github.com/owner/repo or https://github.com/owner/repo.git)
+  const httpsMatch = input.match(
+    /github\.com\/([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+?)(?:\.git)?$/,
+  );
   if (httpsMatch?.[1]) {
     return httpsMatch[1];
   }
 
-  // Pattern 3: Git SSH URL
-  const sshMatch = input.match(/github\.com:([^/]+\/[^/.]+)/);
+  // Pattern 3: Git SSH URL (e.g., git@github.com:owner/repo.git)
+  const sshMatch = input.match(
+    /github\.com:([A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+?)(?:\.git)?$/,
+  );
   if (sshMatch?.[1]) {
     return sshMatch[1];
   }

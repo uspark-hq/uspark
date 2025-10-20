@@ -2,12 +2,20 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import Terminal from "react-console-emulator";
 import styles from "./TerminalHome.module.css";
 
 export function TerminalHome() {
   const router = useRouter();
   const { isSignedIn } = useAuth();
+
+  // Auto-redirect to projects page if user is already signed in
+  useEffect(() => {
+    if (isSignedIn) {
+      router.push("/projects");
+    }
+  }, [isSignedIn, router]);
 
   const commands = {
     about: {
