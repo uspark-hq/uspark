@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.59.0](https://github.com/uspark-hq/uspark/compare/web-v0.58.0...web-v0.59.0) (2025-10-19)
+
+
+### Features
+
+* **e2b:** add runtime claude code configuration for uspark agent ([#652](https://github.com/uspark-hq/uspark/issues/652)) ([6d35831](https://github.com/uspark-hq/uspark/commit/6d35831ecc445efbe7e3ad5ba1f5c76748fd1657))
+
 ## [0.58.0](https://github.com/uspark-hq/uspark/compare/web-v0.57.0...web-v0.58.0) (2025-10-19)
 
 
