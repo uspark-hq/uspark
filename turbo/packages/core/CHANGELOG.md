@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.25.1](https://github.com/uspark-hq/uspark/compare/core-v0.25.0...core-v0.25.1) (2025-10-20)
+
+
+### Bug Fixes
+
+* correct tool display order and preserve line breaks in project details ([#669](https://github.com/uspark-hq/uspark/issues/669)) ([dc038b8](https://github.com/uspark-hq/uspark/commit/dc038b845096b5a40389d383121d50d399572e78))
+
 ## [0.25.0](https://github.com/uspark-hq/uspark/compare/core-v0.24.0...core-v0.25.0) (2025-10-20)
 
 
