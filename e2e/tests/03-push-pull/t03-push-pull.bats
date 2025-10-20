@@ -26,46 +26,26 @@ teardown() {
     rm -rf "$TEST_DIR"
 }
 
-@test "CLI push and pull single file" {
-    # Create a test file
-    echo "foo" > foo.md
-
-    # Push the file
-    run cli_with_host push foo.md --project-id "$PROJECT_ID"
-    assert_success
-    assert_output --partial "Successfully pushed"
-
-    # Delete the local file
-    rm foo.md
-    assert [ ! -f foo.md ]
-
-    # Pull the file back
-    run cli_with_host pull foo.md --project-id "$PROJECT_ID"
-    assert_success
-    assert_output --partial "Successfully pulled"
-
-    # Verify the file exists and has correct content
-    assert [ -f foo.md ]
-    assert [ "$(cat foo.md)" = "foo" ]
-}
-
-@test "CLI push --all and pull --all with multiple files" {
+@test "CLI push and pull all files" {
     # Create test files
     echo "foo" > foo.md
     echo "bar" > bar.md
 
-    # Push all files
-    run cli_with_host push --all --project-id "$PROJECT_ID"
+    # Push all files (first run requires --project-id)
+    run cli_with_host push --project-id "$PROJECT_ID"
     assert_success
     assert_output --partial "Successfully pushed 2 files"
 
-    # Delete local files
+    # Verify .config.json was created
+    assert [ -f .config.json ]
+
+    # Delete local files (keep .config.json)
     rm foo.md bar.md
     assert [ ! -f foo.md ]
     assert [ ! -f bar.md ]
 
-    # Pull all files back
-    run cli_with_host pull --all --project-id "$PROJECT_ID"
+    # Pull all files back (uses .config.json)
+    run cli_with_host pull
     assert_success
     assert_output --partial "Successfully pulled"
 
@@ -86,7 +66,7 @@ teardown() {
     echo "// Code" > src/index.js
 
     # Push all files
-    run cli_with_host push --all --project-id "$PROJECT_ID"
+    run cli_with_host push --project-id "$PROJECT_ID"
     assert_success
     assert_output --partial "Successfully pushed 3 files"
 
@@ -94,7 +74,7 @@ teardown() {
     rm -rf README.md docs src
 
     # Pull all files back
-    run cli_with_host pull --all --project-id "$PROJECT_ID"
+    run cli_with_host pull
     assert_success
 
     # Verify directory structure and content
@@ -106,42 +86,49 @@ teardown() {
     assert [ "$(cat src/index.js)" = "// Code" ]
 }
 
-@test "CLI pull overwrites existing file" {
-    # Create initial file
-    echo "original" > test.md
+@test "CLI pull overwrites existing files" {
+    # Create initial files
+    echo "original1" > test1.md
+    echo "original2" > test2.md
 
-    # Push the file
-    run cli_with_host push test.md --project-id "$PROJECT_ID"
+    # Push the files
+    run cli_with_host push --project-id "$PROJECT_ID"
     assert_success
 
-    # Modify local file
-    echo "modified locally" > test.md
-    assert [ "$(cat test.md)" = "modified locally" ]
+    # Modify local files
+    echo "modified locally" > test1.md
+    echo "also modified" > test2.md
+    assert [ "$(cat test1.md)" = "modified locally" ]
+    assert [ "$(cat test2.md)" = "also modified" ]
 
-    # Pull should overwrite with remote version
-    run cli_with_host pull test.md --project-id "$PROJECT_ID"
+    # Pull should overwrite with remote versions
+    run cli_with_host pull
     assert_success
 
-    # Verify it was overwritten
-    assert [ "$(cat test.md)" = "original" ]
+    # Verify files were overwritten
+    assert [ "$(cat test1.md)" = "original1" ]
+    assert [ "$(cat test2.md)" = "original2" ]
 }
 
 @test "CLI handles files with special characters in names" {
-    # Create file with spaces and special characters
-    echo "content" > "my file (1).md"
+    # Create files with spaces and special characters
+    echo "content1" > "my file (1).md"
+    echo "content2" > "test & file.txt"
 
-    # Push the file
-    run cli_with_host push "my file (1).md" --project-id "$PROJECT_ID"
+    # Push all files
+    run cli_with_host push --project-id "$PROJECT_ID"
     assert_success
 
     # Delete and pull back
-    rm "my file (1).md"
-    run cli_with_host pull "my file (1).md" --project-id "$PROJECT_ID"
+    rm "my file (1).md" "test & file.txt"
+    run cli_with_host pull
     assert_success
 
     # Verify
     assert [ -f "my file (1).md" ]
-    assert [ "$(cat "my file (1).md")" = "content" ]
+    assert [ -f "test & file.txt" ]
+    assert [ "$(cat "my file (1).md")" = "content1" ]
+    assert [ "$(cat "test & file.txt")" = "content2" ]
 }
 
 @test "CLI pull from empty project" {
@@ -149,9 +136,59 @@ teardown() {
     local EMPTY_PROJECT_ID="empty-project-$(date +%s)"
 
     # Pull from empty project should succeed without error
-    run cli_with_host pull --all --project-id "$EMPTY_PROJECT_ID"
+    run cli_with_host pull --project-id "$EMPTY_PROJECT_ID"
     assert_success
 
-    # No files should be created
-    assert [ -z "$(ls -A)" ]
+    # Only .config.json should be created
+    local file_count=$(ls -A | grep -v "^\.config\.json$" | wc -l)
+    assert [ "$file_count" -eq 0 ]
+}
+
+@test "CLI push with no files shows appropriate message" {
+    # Empty directory (except potential .config.json)
+    # Push should indicate no files found
+    run cli_with_host push --project-id "$PROJECT_ID"
+    assert_success
+    assert_output --partial "No files found to push"
+}
+
+@test "CLI version increments after each push" {
+    # Create a file and push
+    echo "v1" > file.md
+    run cli_with_host push --project-id "$PROJECT_ID"
+    assert_success
+    assert_output --partial "(version 1)"
+
+    # Modify and push again
+    echo "v2" > file.md
+    run cli_with_host push
+    assert_success
+    assert_output --partial "(version 2)"
+
+    # Push again
+    echo "v3" > file.md
+    run cli_with_host push
+    assert_success
+    assert_output --partial "(version 3)"
+}
+
+@test "CLI project-id override works" {
+    # Create files in first project
+    echo "project1" > file.md
+    run cli_with_host push --project-id "$PROJECT_ID"
+    assert_success
+
+    # Use a different project ID explicitly
+    local PROJECT_ID_2="test-project-2-$(date +%s)"
+    echo "project2" > file2.md
+    run cli_with_host push --project-id "$PROJECT_ID_2"
+    assert_success
+
+    # Pull from first project should get original file
+    rm -f file.md file2.md
+    run cli_with_host pull --project-id "$PROJECT_ID"
+    assert_success
+    assert [ -f file.md ]
+    assert [ "$(cat file.md)" = "project1" ]
+    assert [ ! -f file2.md ]
 }
