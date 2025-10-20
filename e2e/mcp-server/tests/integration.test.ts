@@ -36,13 +36,8 @@ async function getAuthToken(): Promise<string> {
     }
   }
 
-  // Fallback to test token
-  console.log("⚠️ Using test token (no CLI config found)");
-  return "test-token";
+  throw new Error("No authentication token found. Please set USPARK_TOKEN or authenticate CLI.");
 }
-
-// Check if we have a real API URL at module load time
-const hasRealApi = !!process.env.USPARK_API_URL;
 
 describe("MCP Server Integration Tests", () => {
   let client: Client;
@@ -62,14 +57,13 @@ describe("MCP Server Integration Tests", () => {
     // Get auth token
     const authToken = await getAuthToken();
 
-    // Get API URL
-    const apiUrl = process.env.USPARK_API_URL || "http://localhost:3000";
-
-    if (hasRealApi) {
-      console.log(`🌐 Testing against real API: ${apiUrl}`);
-    } else {
-      console.log("🏠 Running offline tests only");
+    // Get API URL (required for this test suite)
+    const apiUrl = process.env.USPARK_API_URL;
+    if (!apiUrl) {
+      throw new Error("USPARK_API_URL is required for MCP server e2e tests");
     }
+
+    console.log(`🌐 Testing MCP server against: ${apiUrl}`);
 
     // Create transport with test environment
     transport = new StdioClientTransport({
@@ -140,46 +134,38 @@ describe("MCP Server Integration Tests", () => {
       expect(statusText).toContain("test-project");
     });
 
-    // Note: uspark_pull and uspark_list_files require a real API server
-    // These tests will be skipped if no USPARK_API_URL is provided
-    it.skipIf(!hasRealApi)(
-      "should execute uspark_list_files tool",
-      async () => {
-        const result = await client.callTool({
-          name: "uspark_list_files",
-          arguments: {},
-        });
+    it("should execute uspark_list_files tool", async () => {
+      const result = await client.callTool({
+        name: "uspark_list_files",
+        arguments: {},
+      });
 
-        expect(result.isError).toBeFalsy();
-        expect(result.content).toHaveLength(1);
-        expect(result.content[0].type).toBe("text");
+      expect(result.isError).toBeFalsy();
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
 
-        const listText = (result.content[0] as { text: string }).text;
-        console.log("📋 List files result:", listText);
+      const listText = (result.content[0] as { text: string }).text;
+      console.log("📋 List files result:", listText);
 
-        // Should contain file list or indication of files
-        expect(listText.length).toBeGreaterThan(0);
-      },
-    );
+      // Should contain file list or indication of files
+      expect(listText.length).toBeGreaterThan(0);
+    });
 
-    it.skipIf(!hasRealApi)(
-      "should execute uspark_pull tool",
-      async () => {
-        const result = await client.callTool({
-          name: "uspark_pull",
-          arguments: {},
-        });
+    it("should execute uspark_pull tool", async () => {
+      const result = await client.callTool({
+        name: "uspark_pull",
+        arguments: {},
+      });
 
-        expect(result.isError).toBeFalsy();
-        expect(result.content).toHaveLength(1);
-        expect(result.content[0].type).toBe("text");
+      expect(result.isError).toBeFalsy();
+      expect(result.content).toHaveLength(1);
+      expect(result.content[0].type).toBe("text");
 
-        const pullText = (result.content[0] as { text: string }).text;
-        console.log("⬇️ Pull result:", pullText);
+      const pullText = (result.content[0] as { text: string }).text;
+      console.log("⬇️ Pull result:", pullText);
 
-        // Should contain success message
-        expect(pullText).toContain("Successfully pulled");
-      },
-    );
+      // Should contain success message
+      expect(pullText).toContain("Successfully pulled");
+    });
   });
 });
