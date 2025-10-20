@@ -21,7 +21,7 @@ describe("filterBlocksForDisplay", () => {
     expect(filterBlocksForDisplay([])).toEqual([]);
   });
 
-  it("should hide all tool_use blocks", () => {
+  it("should keep all tool_use blocks", () => {
     const blocks: Block[] = [
       createBlock("text", "block_1"),
       createBlock("tool_use", "block_2"),
@@ -32,36 +32,39 @@ describe("filterBlocksForDisplay", () => {
 
     const result = filterBlocksForDisplay(blocks);
 
-    expect(result).toHaveLength(3);
+    expect(result).toHaveLength(5);
     expect(result[0].id).toBe("block_1");
-    expect(result[1].id).toBe("block_3");
-    expect(result[2].id).toBe("block_5");
-    expect(result.every((block) => block.type !== "tool_use")).toBe(true);
+    expect(result[1].id).toBe("block_2");
+    expect(result[2].id).toBe("block_3");
+    expect(result[3].id).toBe("block_4");
+    expect(result[4].id).toBe("block_5");
   });
 
-  it("should keep only the last tool_result block", () => {
+  it("should keep all tool_result blocks", () => {
     const blocks: Block[] = [
       createBlock("text", "block_1"),
       createBlock("tool_use", "block_2"),
-      createBlock("tool_result", "block_3"), // First tool_result - should be hidden
+      createBlock("tool_result", "block_3"), // First tool_result - kept
       createBlock("tool_use", "block_4"),
-      createBlock("tool_result", "block_5"), // Second tool_result - should be kept
+      createBlock("tool_result", "block_5"), // Second tool_result - kept
       createBlock("text", "block_6"),
     ];
 
     const result = filterBlocksForDisplay(blocks);
 
-    expect(result).toHaveLength(3);
+    expect(result).toHaveLength(6);
     expect(result[0].id).toBe("block_1");
-    expect(result[1].id).toBe("block_5"); // Only the last tool_result
-    expect(result[2].id).toBe("block_6");
+    expect(result[1].id).toBe("block_2");
+    expect(result[2].id).toBe("block_3");
+    expect(result[3].id).toBe("block_4");
+    expect(result[4].id).toBe("block_5");
+    expect(result[5].id).toBe("block_6");
 
     const toolResults = result.filter((block) => block.type === "tool_result");
-    expect(toolResults).toHaveLength(1);
-    expect(toolResults[0].id).toBe("block_5");
+    expect(toolResults).toHaveLength(2);
   });
 
-  it("should keep all other block types", () => {
+  it("should keep all block types", () => {
     const blocks: Block[] = [
       createBlock("text", "block_1"),
       createBlock("code", "block_2"),
@@ -74,7 +77,7 @@ describe("filterBlocksForDisplay", () => {
     expect(result).toEqual(blocks);
   });
 
-  it("should handle blocks with only tool_use (all hidden)", () => {
+  it("should handle blocks with only tool_use", () => {
     const blocks: Block[] = [
       createBlock("tool_use", "block_1"),
       createBlock("tool_use", "block_2"),
@@ -82,48 +85,42 @@ describe("filterBlocksForDisplay", () => {
 
     const result = filterBlocksForDisplay(blocks);
 
-    expect(result).toHaveLength(0);
+    expect(result).toHaveLength(2);
+    expect(result).toEqual(blocks);
   });
 
-  it("should handle blocks with only one tool_result (kept)", () => {
+  it("should handle blocks with multiple tool_results", () => {
     const blocks: Block[] = [
       createBlock("text", "block_1"),
       createBlock("tool_result", "block_2"),
-      createBlock("text", "block_3"),
+      createBlock("tool_result", "block_3"),
+      createBlock("text", "block_4"),
     ];
 
     const result = filterBlocksForDisplay(blocks);
 
-    expect(result).toHaveLength(3);
-    expect(result[1].type).toBe("tool_result");
+    expect(result).toHaveLength(4);
+    expect(result).toEqual(blocks);
   });
 
   it("should handle complex scenario with multiple tool sequences", () => {
     const blocks: Block[] = [
       createBlock("text", "block_1"),
-      createBlock("tool_use", "block_2"), // Hidden
-      createBlock("tool_result", "block_3"), // Hidden (not last)
+      createBlock("tool_use", "block_2"),
+      createBlock("tool_result", "block_3"),
       createBlock("text", "block_4"),
-      createBlock("tool_use", "block_5"), // Hidden
-      createBlock("tool_result", "block_6"), // Hidden (not last)
-      createBlock("tool_use", "block_7"), // Hidden
-      createBlock("tool_result", "block_8"), // Kept (last)
+      createBlock("tool_use", "block_5"),
+      createBlock("tool_result", "block_6"),
+      createBlock("tool_use", "block_7"),
+      createBlock("tool_result", "block_8"),
       createBlock("text", "block_9"),
       createBlock("code", "block_10"),
     ];
 
     const result = filterBlocksForDisplay(blocks);
 
-    expect(result).toHaveLength(5);
-    expect(result[0].id).toBe("block_1");
-    expect(result[1].id).toBe("block_4");
-    expect(result[2].id).toBe("block_8"); // Only the last tool_result
-    expect(result[3].id).toBe("block_9");
-    expect(result[4].id).toBe("block_10");
-
-    const toolResults = result.filter((block) => block.type === "tool_result");
-    expect(toolResults).toHaveLength(1);
-    expect(toolResults[0].id).toBe("block_8");
+    expect(result).toHaveLength(10);
+    expect(result).toEqual(blocks);
   });
 
   it("should handle blocks with no tool_use or tool_result", () => {
@@ -138,7 +135,7 @@ describe("filterBlocksForDisplay", () => {
     expect(result).toEqual(blocks);
   });
 
-  it("should preserve order of kept blocks", () => {
+  it("should preserve order of all blocks", () => {
     const blocks: Block[] = [
       createBlock("text", "block_1"),
       createBlock("tool_use", "block_2"),
@@ -150,10 +147,29 @@ describe("filterBlocksForDisplay", () => {
 
     const result = filterBlocksForDisplay(blocks);
 
-    expect(result).toHaveLength(4);
+    expect(result).toHaveLength(6);
     expect(result[0].type).toBe("text");
-    expect(result[1].type).toBe("code");
-    expect(result[2].type).toBe("error");
-    expect(result[3].type).toBe("tool_result");
+    expect(result[1].type).toBe("tool_use");
+    expect(result[2].type).toBe("code");
+    expect(result[3].type).toBe("tool_use");
+    expect(result[4].type).toBe("error");
+    expect(result[5].type).toBe("tool_result");
+  });
+
+  it("should filter out null or undefined blocks", () => {
+    const blocks = [
+      createBlock("text", "block_1"),
+      null,
+      createBlock("tool_use", "block_2"),
+      undefined,
+      createBlock("text", "block_3"),
+    ] as unknown as Block[];
+
+    const result = filterBlocksForDisplay(blocks);
+
+    expect(result).toHaveLength(3);
+    expect(result[0].id).toBe("block_1");
+    expect(result[1].id).toBe("block_2");
+    expect(result[2].id).toBe("block_3");
   });
 });
