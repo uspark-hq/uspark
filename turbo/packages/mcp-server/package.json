@@ -20,7 +20,8 @@
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.0.4",
     "@uspark/core": "workspace:*",
-    "@uspark/core-node": "workspace:*"
+    "@uspark/core-node": "workspace:*",
+    "@vercel/blob": "^1.1.1"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
