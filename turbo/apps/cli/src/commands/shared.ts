@@ -44,8 +44,8 @@ async function getAllFiles(dir: string): Promise<string[]> {
       }
       files.push(...(await getAllFiles(fullPath)));
     } else {
-      // Skip system files
-      if (entry.name === ".DS_Store") {
+      // Skip system files and config files
+      if (entry.name === ".DS_Store" || entry.name === ".config.json") {
         continue;
       }
 

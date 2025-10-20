@@ -2,21 +2,29 @@ import { describe, it, expect, beforeEach, afterEach } from "vitest";
 import { tmpdir } from "os";
 import { join } from "path";
 import { mkdtemp, readFile, rm } from "fs/promises";
-import { readdirSync, statSync } from "fs";
+import { readdirSync } from "fs";
 import { mockServer } from "../test/mock-server";
 
 // Import the pull command functions for direct testing
-import { pullCommand, pullAllCommand } from "../commands/sync";
+import { pullCommand } from "../commands/sync";
 
 // Import config module with override capability
 import { setOverrideConfig } from "../config";
+import { setOverrideProjectConfig } from "../project-config";
 
 describe("pull command", () => {
   let tempDir: string;
+  let originalCwd: string;
 
   beforeEach(async () => {
+    // Save original working directory
+    originalCwd = process.cwd();
+
     // Create a temporary directory for test files
     tempDir = await mkdtemp(join(tmpdir(), "uspark-test-"));
+
+    // Change to temp directory for tests
+    process.chdir(tempDir);
 
     // Reset mock server state
     mockServer.reset();
@@ -26,84 +34,50 @@ describe("pull command", () => {
       token: "test_token",
       apiUrl: "http://localhost:3000",
     });
+
+    // Set up project config override
+    setOverrideProjectConfig({
+      projectId: "test-project",
+      version: "0",
+    });
   });
 
   afterEach(async () => {
+    // Restore original working directory
+    process.chdir(originalCwd);
+
     // Cleanup temporary directory
     await rm(tempDir, { recursive: true, force: true });
 
-    // Clear config override
+    // Clear config overrides
     setOverrideConfig(null);
+    setOverrideProjectConfig(null);
   });
 
-  it("should pull a file from mock server to local filesystem", async () => {
+  it("should pull all files from mock server to current directory", async () => {
     const projectId = "test-project";
-    const filePath = "src/hello.ts";
-    const fileContent = "export const greeting = 'Hello, World!';";
+    const files = {
+      "src/hello.ts": "export const greeting = 'Hello, World!';",
+      "config/app.json": '{"name": "test-app", "version": "1.0.0"}',
+    };
 
-    // Setup mock server with test file
-    mockServer.addFileToProject(projectId, filePath, fileContent);
-
-    // Execute pull command with output directory
-    await pullCommand(filePath, {
-      projectId,
-      outputDir: tempDir,
+    // Setup mock server with test files
+    Object.entries(files).forEach(([path, content]) => {
+      mockServer.addFileToProject(projectId, path, content);
     });
 
-    // Verify file was written to local filesystem with correct path
-    const outputPath = join(tempDir, filePath);
-    const pulledContent = await readFile(outputPath, "utf8");
-    expect(pulledContent).toBe(fileContent);
+    // Execute pull command
+    await pullCommand({});
+
+    // Verify files were written to current directory
+    for (const [filePath, expectedContent] of Object.entries(files)) {
+      const pulledContent = await readFile(filePath, "utf8");
+      expect(pulledContent).toBe(expectedContent);
+    }
   });
 
-  it("should pull file to same path when no output specified", async () => {
-    const projectId = "test-project-2";
-    const filePath = "config/app.json";
-    const fileContent = '{"name": "test-app", "version": "1.0.0"}';
-
-    // Setup mock server
-    mockServer.addFileToProject(projectId, filePath, fileContent);
-
-    // Execute pull command without outputDir - should pull to current directory
-    await pullCommand(filePath, {
-      projectId,
-    });
-
-    // Verify file was written to current directory structure
-    const pulledContent = await readFile(filePath, "utf8");
-    expect(pulledContent).toBe(fileContent);
-  });
-});
-
-describe("pull --all command", () => {
-  let tempDir: string;
-
-  beforeEach(async () => {
-    // Create a temporary directory for test files
-    tempDir = await mkdtemp(join(tmpdir(), "uspark-test-"));
-
-    // Reset mock server state
-    mockServer.reset();
-
-    // Set up config override for testing
-    setOverrideConfig({
-      token: "test_token",
-      apiUrl: "http://localhost:3000",
-    });
-  });
-
-  afterEach(async () => {
-    // Cleanup temporary directory
-    await rm(tempDir, { recursive: true, force: true });
-
-    // Clear config override
-    setOverrideConfig(null);
-  });
-
-  it("should pull all files from a project", async () => {
-    const projectId = "multi-file-project";
-
-    // Setup mock server with multiple test files
+  it("should pull files to current directory with nested structure", async () => {
+    const projectId = "test-project";
     const files = {
       "src/index.ts": "export const main = () => console.log('main');",
       "src/utils.ts": "export const helper = (x: number) => x * 2;",
@@ -111,42 +85,53 @@ describe("pull --all command", () => {
       "README.md": "# Test Project\n\nThis is a test project.",
     };
 
+    // Setup mock server with multiple test files
     Object.entries(files).forEach(([path, content]) => {
       mockServer.addFileToProject(projectId, path, content);
     });
 
-    // Execute pull --all command
-    await pullAllCommand({
-      projectId,
-      outputDir: tempDir,
-    });
+    // Execute pull command
+    await pullCommand({});
 
-    // Verify all files were written to local filesystem
+    // Verify all files were written to current directory
     for (const [filePath, expectedContent] of Object.entries(files)) {
-      const outputPath = join(tempDir, filePath);
-      const pulledContent = await readFile(outputPath, "utf8");
+      const pulledContent = await readFile(filePath, "utf8");
       expect(pulledContent).toBe(expectedContent);
     }
   });
 
-  it("should handle empty project gracefully and create output directory", async () => {
+  it("should use projectId from option if provided", async () => {
+    const projectId = "different-project";
+    const filePath = "test.txt";
+    const fileContent = "test content";
+
+    // Setup mock server with test file
+    mockServer.addFileToProject(projectId, filePath, fileContent);
+
+    // Execute pull command with explicit projectId
+    await pullCommand({ projectId });
+
+    // Verify file was pulled
+    const pulledContent = await readFile(filePath, "utf8");
+    expect(pulledContent).toBe(fileContent);
+  });
+
+  it("should handle empty project gracefully", async () => {
     const projectId = "empty-project";
-    const outputDir = join(tempDir, "empty-output");
+
+    // Update project config to use empty project
+    setOverrideProjectConfig({
+      projectId,
+      version: "0",
+    });
 
     // Don't add any files to the project
 
-    // Execute pull --all command - should not throw
-    await pullAllCommand({
-      projectId,
-      outputDir,
-    });
+    // Execute pull command - should not throw
+    await pullCommand({});
 
-    // Verify directory was created even though no files were pulled
-    const stat = statSync(outputDir);
-    expect(stat.isDirectory()).toBe(true);
-
-    // Verify no files were created inside the directory
-    const files = readdirSync(outputDir);
-    expect(files).toHaveLength(0);
+    // Verify no files were created (directory should still be empty except for .config.json if created)
+    const files = readdirSync(tempDir);
+    expect(files.length).toBeLessThanOrEqual(1); // May contain .config.json from override
   });
 });

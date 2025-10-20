@@ -4,6 +4,7 @@ import { tmpdir } from "os";
 import { join } from "path";
 import { mkdtemp, writeFile, rm } from "fs/promises";
 import { setOverrideConfig } from "../config";
+import { setOverrideProjectConfig } from "../project-config";
 import { put } from "@vercel/blob";
 
 // Mock @vercel/blob
@@ -26,6 +27,12 @@ describe("Push Multiple Different Blobs", () => {
       apiUrl: "http://localhost:3000",
     });
 
+    // Setup project config
+    setOverrideProjectConfig({
+      projectId: testProjectId,
+      version: "0",
+    });
+
     // Reset mocks
     vi.clearAllMocks();
 
@@ -44,6 +51,7 @@ describe("Push Multiple Different Blobs", () => {
   afterEach(async () => {
     await rm(tempDir, { recursive: true, force: true });
     setOverrideConfig(null);
+    setOverrideProjectConfig(null);
     vi.restoreAllMocks();
   });
 
@@ -54,10 +62,7 @@ describe("Push Multiple Different Blobs", () => {
     await writeFile("file3.md", "content-three");
 
     // Push all files
-    await pushCommand(undefined, {
-      projectId: testProjectId,
-      all: true,
-    });
+    await pushCommand({});
 
     // CRITICAL: Verify put was called 3 times (one for each unique content)
     expect(put).toHaveBeenCalledTimes(3);
@@ -86,10 +91,7 @@ describe("Push Multiple Different Blobs", () => {
     await writeFile("file4.md", "duplicate-content"); // Same as file1 & file2
 
     // Push all files
-    await pushCommand(undefined, {
-      projectId: testProjectId,
-      all: true,
-    });
+    await pushCommand({});
 
     // Should upload only 2 blobs (unique contents only)
     expect(put).toHaveBeenCalledTimes(2);
@@ -109,10 +111,7 @@ describe("Push Multiple Different Blobs", () => {
     await writeFile("hello.md", "hello");
 
     // Push all files
-    await pushCommand(undefined, {
-      projectId: testProjectId,
-      all: true,
-    });
+    await pushCommand({});
 
     // MUST upload 3 blobs for 3 different contents
     expect(put).toHaveBeenCalledTimes(3);
@@ -129,13 +128,13 @@ describe("Push Multiple Different Blobs", () => {
   it("should not re-upload blobs on second push of same content", async () => {
     // First push
     await writeFile("test.md", "test-content");
-    await pushCommand("test.md", { projectId: testProjectId });
+    await pushCommand({});
 
     expect(put).toHaveBeenCalledTimes(1);
     vi.clearAllMocks();
 
     // Second push of same file (no changes)
-    await pushCommand("test.md", { projectId: testProjectId });
+    await pushCommand({});
 
     // Should NOT upload blob again
     expect(put).toHaveBeenCalledTimes(0);
@@ -147,10 +146,7 @@ describe("Push Multiple Different Blobs", () => {
     await writeFile("b.txt", "beta");
     await writeFile("c.txt", "gamma");
 
-    await pushCommand(undefined, {
-      projectId: testProjectId,
-      all: true,
-    });
+    await pushCommand({});
 
     // Should upload 3 blobs for 3 unique contents
     expect(put).toHaveBeenCalledTimes(3);

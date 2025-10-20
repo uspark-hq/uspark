@@ -1,99 +1,106 @@
 import chalk from "chalk";
 import { requireAuth, pushAllFiles } from "./shared";
-import { join } from "path";
+import {
+  getProjectId,
+  updateProjectVersion,
+  getProjectVersion,
+  saveProjectConfig,
+  loadProjectConfig,
+} from "../project-config";
 
-export async function pullCommand(
-  filePath: string,
-  options: { projectId: string; outputDir?: string; verbose?: boolean },
-): Promise<void> {
-  const { token, apiUrl, sync } = await requireAuth();
-
-  console.log(
-    chalk.blue(`Pulling ${filePath} from project ${options.projectId}...`),
-  );
-
-  await sync.pullFile(
-    options.projectId,
-    filePath,
-    {
-      token,
-      apiUrl,
-      verbose: options.verbose,
-    },
-    options.outputDir,
-  );
-
-  const outputPath = options.outputDir
-    ? join(options.outputDir, filePath)
-    : filePath;
-  console.log(chalk.green(`✓ Successfully pulled to ${outputPath}`));
-}
-
-export async function pullAllCommand(options: {
-  projectId: string;
-  outputDir?: string;
+export async function pullCommand(options: {
+  projectId?: string;
   verbose?: boolean;
-  prefix?: string;
 }): Promise<void> {
   const { token, apiUrl, sync } = await requireAuth();
 
+  // Get project ID from config or option
+  const projectId = options.projectId || (await getProjectId());
+
+  // If no project ID found, require it from options
+  if (!projectId) {
+    console.error(
+      chalk.red(
+        "Error: No project ID found. Please provide --project-id on first run.",
+      ),
+    );
+    process.exit(1);
+  }
+
+  // Initialize config if it doesn't exist
+  const existingConfig = await loadProjectConfig();
+  if (!existingConfig) {
+    await saveProjectConfig({
+      projectId,
+      version: "0",
+    });
+    console.log(chalk.gray(`  Initialized project config: .config.json`));
+  }
+
+  console.log(chalk.blue(`Pulling all files from project ${projectId}...`));
+
   await sync.pullAll(
-    options.projectId,
+    projectId,
     {
       token,
       apiUrl,
       verbose: options.verbose,
     },
-    options.outputDir,
-    options.prefix,
+    ".", // Always pull to current directory
+  );
+
+  console.log(
+    chalk.green(`✓ Successfully pulled all files to current directory`),
   );
 }
 
-export async function pushCommand(
-  filePath: string | undefined,
-  options: { projectId: string; all?: boolean },
-): Promise<void> {
+export async function pushCommand(options: {
+  projectId?: string;
+}): Promise<void> {
   const { token, apiUrl, sync } = await requireAuth();
 
-  // Handle --all flag for batch push
-  if (options.all) {
-    console.log(
-      chalk.blue(`Pushing all files to project ${options.projectId}...`),
+  // Get project ID from config or option
+  const projectId = options.projectId || (await getProjectId());
+
+  // If no project ID found, require it from options
+  if (!projectId) {
+    console.error(
+      chalk.red(
+        "Error: No project ID found. Please provide --project-id on first run.",
+      ),
     );
+    process.exit(1);
+  }
 
-    const count = await pushAllFiles(
-      { token, apiUrl, sync },
-      options.projectId,
-      ".",
-    );
+  // Initialize config if it doesn't exist
+  const existingConfig = await loadProjectConfig();
+  if (!existingConfig) {
+    await saveProjectConfig({
+      projectId,
+      version: "0",
+    });
+    console.log(chalk.gray(`  Initialized project config: .config.json`));
+  }
 
-    if (count === 0) {
-      console.log(chalk.yellow("No files found to push"));
-      return;
-    }
+  console.log(chalk.blue(`Pushing all files to project ${projectId}...`));
 
-    console.log(chalk.green(`✓ Successfully pushed ${count} files`));
+  const count = await pushAllFiles(
+    { token, apiUrl, sync },
+    projectId,
+    ".", // Always push from current directory
+  );
+
+  if (count === 0) {
+    console.log(chalk.yellow("No files found to push"));
     return;
   }
 
-  // Single file push
-  if (!filePath) {
-    throw new Error("File path is required");
-  }
+  // Increment version after successful push
+  const currentVersion = await getProjectVersion();
+  const newVersion = currentVersion ? String(Number(currentVersion) + 1) : "1";
+  await updateProjectVersion(newVersion);
 
   console.log(
-    chalk.blue(`Pushing ${filePath} to project ${options.projectId}...`),
+    chalk.green(`✓ Successfully pushed ${count} files (version ${newVersion})`),
   );
-
-  await sync.pushFile(
-    options.projectId,
-    filePath,
-    {
-      token,
-      apiUrl,
-    },
-    filePath,
-  );
-
-  console.log(chalk.green(`✓ Successfully pushed ${filePath}`));
 }
