@@ -356,7 +356,11 @@ export function ChatInterface({ projectId }: ChatInterfaceProps) {
                     >
                       {turn.blocks && turn.blocks.length > 0 ? (
                         filterBlocksForDisplay(turn.blocks).map((block) => (
-                          <BlockDisplay key={block.id} block={block} />
+                          <BlockDisplay
+                            key={block.id}
+                            block={block}
+                            blocks={turn.blocks}
+                          />
                         ))
                       ) : turn.status === "in_progress" ? (
                         <div

@@ -6,16 +6,77 @@ interface BlockProps {
     type: string;
     content: Record<string, unknown>;
   };
+  blocks?: Array<{
+    id: string;
+    type: string;
+    content: Record<string, unknown>;
+  }>;
+}
+
+// Helper function to find tool_use block by tool_use_id
+function findToolUse(
+  blocks: Array<{ id: string; type: string; content: Record<string, unknown> }>,
+  toolUseId: string,
+): { tool_name: string } | null {
+  const toolUseBlock = blocks.find(
+    (b) =>
+      b.type === "tool_use" && (b.content?.tool_use_id as string) === toolUseId,
+  );
+  if (toolUseBlock?.content?.tool_name) {
+    return { tool_name: toolUseBlock.content.tool_name as string };
+  }
+  return null;
+}
+
+// Helper function to count lines in Read tool result
+function countReadLines(result: string): number {
+  const lines = result.split("\n");
+  return lines.filter((line) => /^\s+\d+→/.test(line)).length;
+}
+
+// Helper function to get first N lines
+function getFirstNLines(text: string, n: number): string {
+  const lines = text.split("\n");
+  if (lines.length <= n) {
+    return text;
+  }
+  return lines.slice(0, n).join("\n") + "\n...";
 }
 
 // Helper function to get tool result text
-function getToolResultText(content: Record<string, unknown>): string {
-  return (content?.error as string)
-    ? `Error: ${content.error as string}`
-    : (content?.result as string) || "No result";
+function getToolResultText(
+  content: Record<string, unknown>,
+  toolName?: string,
+): {
+  text: string;
+  isCollapsed: boolean;
+} {
+  if (content?.error as string) {
+    return {
+      text: `Error: ${content.error as string}`,
+      isCollapsed: false,
+    };
+  }
+
+  const result = (content?.result as string) || "No result";
+
+  // Check if this is a Read tool result based on tool name
+  if (toolName === "Read") {
+    const lineCount = countReadLines(result);
+    return {
+      text: `Read ${lineCount} Lines`,
+      isCollapsed: true,
+    };
+  }
+
+  // For other tools, show max 3 lines
+  return {
+    text: getFirstNLines(result, 3),
+    isCollapsed: result.split("\n").length > 3,
+  };
 }
 
-export function BlockDisplay({ block }: BlockProps) {
+export function BlockDisplay({ block, blocks = [] }: BlockProps) {
   const renderContent = () => {
     switch (block.type) {
       case "thinking":
@@ -92,7 +153,15 @@ export function BlockDisplay({ block }: BlockProps) {
         );
 
       case "tool_result": {
-        const resultText = getToolResultText(block.content);
+        // Find the corresponding tool_use block to get the tool name
+        const toolUseId = block.content?.tool_use_id as string;
+        const toolUse = toolUseId ? findToolUse(blocks, toolUseId) : null;
+        const toolName = toolUse?.tool_name;
+
+        const { text: resultText, isCollapsed } = getToolResultText(
+          block.content,
+          toolName,
+        );
 
         return (
           <div
@@ -128,8 +197,9 @@ export function BlockDisplay({ block }: BlockProps) {
                 fontFamily: "monospace",
                 whiteSpace: "pre-wrap",
                 wordBreak: "break-word",
-                maxHeight: "300px",
-                overflow: "auto",
+                ...(isCollapsed
+                  ? {}
+                  : { maxHeight: "300px", overflow: "auto" }),
               }}
             >
               {resultText}
