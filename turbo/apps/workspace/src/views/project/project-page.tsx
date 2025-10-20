@@ -5,16 +5,15 @@ import {
   currentProject$,
   fileContentVisible$,
 } from '../../signals/project/project'
-import { ChatWindow } from './chat-window'
 import { FileContent } from './file-content'
 import { FileTreePopover } from './file-tree-popover'
+import { LeftPanel } from './left-panel'
+import { SessionChatArea } from './session-chat-area'
 
 /**
- * ProjectPage component that provides the main workspace layout.
- * Features a dynamic layout that adapts based on file selection:
- * - Default: Full-screen chat window
- * - File selected: 50/50 split between chat and file viewer
- * - File tree accessible via popover in top-right corner
+ * ProjectPage component with two-column layout:
+ * - Left: Session list with new session input (320px fixed)
+ * - Right: Selected session chat OR file content (mutually exclusive)
  *
  * @returns The complete project workspace interface
  */
@@ -65,25 +64,15 @@ export function ProjectPage() {
         </div>
       </div>
 
-      {/* Main content area */}
+      {/* Main content area - fixed two-column layout */}
       <div className="flex min-h-0 flex-1">
-        {isFileContentVisible ? (
-          <>
-            {/* Chat window - hidden on mobile when file is open, shown on desktop */}
-            <div className="hidden flex-1 border-r border-[#3e3e42] md:flex">
-              <ChatWindow />
-            </div>
-            {/* File content - full width on mobile, 50% on desktop */}
-            <div className="flex-1">
-              <FileContent />
-            </div>
-          </>
-        ) : (
-          /* Full-screen chat window */
-          <div className="flex-1">
-            <ChatWindow />
-          </div>
-        )}
+        {/* Left panel: Session list (320px fixed) */}
+        <LeftPanel />
+
+        {/* Right panel: Session chat OR file content */}
+        <div className="flex-1">
+          {isFileContentVisible ? <FileContent /> : <SessionChatArea />}
+        </div>
       </div>
     </div>
   )
