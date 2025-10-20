@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.24.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.23.0...workspace-v1.24.0) (2025-10-20)
+
+
+### Features
+
+* **workspace:** replace share toast with popover for better clipboard support ([#654](https://github.com/uspark-hq/uspark/issues/654)) ([01cfc76](https://github.com/uspark-hq/uspark/commit/01cfc7618178cef49e0112fc29a8c8da87864380))
+
 ## [1.23.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.22.0...workspace-v1.23.0) (2025-10-19)
 
 
