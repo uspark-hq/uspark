@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { tmpdir } from "os";
 import { join } from "path";
 import { mkdtemp, rm, readFile, readdir } from "fs/promises";
@@ -13,6 +13,7 @@ describe("MCP Tool Handlers", () => {
   let config: UsparkConfig;
 
   beforeEach(async () => {
+    vi.clearAllMocks();
     tempDir = await mkdtemp(join(tmpdir(), "uspark-mcp-test-"));
     mockServer.reset();
 

@@ -73,40 +73,26 @@ function createServer(config: UsparkConfig): Server {
     async (request: CallToolRequest) => {
       const { name } = request.params;
 
-      try {
-        switch (name) {
-          case "uspark_pull":
-            return await handleUsparkPull(config);
+      switch (name) {
+        case "uspark_pull":
+          return await handleUsparkPull(config);
 
-          case "uspark_status":
-            return await handleUsparkStatus(config);
+        case "uspark_status":
+          return await handleUsparkStatus(config);
 
-          case "uspark_list_files":
-            return await handleUsparkListFiles(config);
+        case "uspark_list_files":
+          return await handleUsparkListFiles(config);
 
-          default:
-            return {
-              content: [
-                {
-                  type: "text",
-                  text: `Unknown tool: ${name}`,
-                },
-              ],
-              isError: true,
-            };
-        }
-      } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : String(error);
-        return {
-          content: [
-            {
-              type: "text",
-              text: `Error executing ${name}: ${errorMessage}`,
-            },
-          ],
-          isError: true,
-        };
+        default:
+          return {
+            content: [
+              {
+                type: "text",
+                text: `Unknown tool: ${name}`,
+              },
+            ],
+            isError: true,
+          };
       }
     },
   );

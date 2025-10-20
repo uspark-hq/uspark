@@ -1,4 +1,12 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import {
+  describe,
+  it,
+  expect,
+  beforeAll,
+  beforeEach,
+  afterAll,
+  vi,
+} from "vitest";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { resolve } from "path";
@@ -6,6 +14,10 @@ import { resolve } from "path";
 describe("MCP Server Integration Tests", () => {
   let client: Client;
   let transport: StdioClientTransport;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
 
   beforeAll(async () => {
     // Path to built MCP server

@@ -29,13 +29,7 @@ export const shareCurrentFile$ = command(
     )
     signal.throwIfAborted()
 
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    if (!result?.url) {
-      toast.error('Failed to create share link')
-      return
-    }
-
-    // Copy to clipboard
+    // Copy to clipboard (type system guarantees url exists)
     await navigator.clipboard.writeText(result.url)
     signal.throwIfAborted()
 
