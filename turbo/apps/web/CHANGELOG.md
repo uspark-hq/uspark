@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.60.1](https://github.com/uspark-hq/uspark/compare/web-v0.60.0...web-v0.60.1) (2025-10-20)
+
+
+### Bug Fixes
+
+* **e2b:** correct shell redirection order for log capture ([#664](https://github.com/uspark-hq/uspark/issues/664)) ([6eaded8](https://github.com/uspark-hq/uspark/commit/6eaded80e3c24026941334b4af379fa2e8cbd4b4))
+
 ## [0.60.0](https://github.com/uspark-hq/uspark/compare/web-v0.59.1...web-v0.60.0) (2025-10-20)
 
 
