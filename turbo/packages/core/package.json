@@ -19,6 +19,10 @@
     "./yjs-filesystem": {
       "import": "./src/yjs-filesystem/index.ts",
       "types": "./src/yjs-filesystem/index.ts"
+    },
+    "./test/msw-setup": {
+      "import": "./src/test/msw-setup.ts",
+      "types": "./src/test/msw-setup.ts"
     }
   },
   "scripts": {

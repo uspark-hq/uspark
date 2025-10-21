@@ -16,6 +16,12 @@ test.describe("GitHub Onboarding Flow", () => {
       emailAddress: "e2e+clerk_test@uspark.ai",
     });
 
+    // Ensure user has no GitHub installation by disconnecting if exists
+    // This makes the test deterministic regardless of previous test state
+    await page.request.post("/api/github/disconnect").catch(() => {
+      // If no installation exists, this will fail with 404 - that's OK
+    });
+
     // Navigate directly to onboarding page
     await page.goto("/onboarding/github");
     await page.waitForLoadState("networkidle");
@@ -25,9 +31,7 @@ test.describe("GitHub Onboarding Flow", () => {
     await expect(heading).toBeVisible();
 
     // Verify value propositions are shown
-    await expect(
-      page.getByText("Seamless Repository Sync")
-    ).toBeVisible();
+    await expect(page.getByText("Seamless Repository Sync")).toBeVisible();
     await expect(page.getByText("Real-time Updates")).toBeVisible();
     await expect(page.getByText("You Control Access")).toBeVisible();
 
@@ -40,7 +44,7 @@ test.describe("GitHub Onboarding Flow", () => {
 
     // Verify disclaimer text
     await expect(
-      page.getByText(/By connecting your GitHub account/)
+      page.getByText(/By connecting your GitHub account/),
     ).toBeVisible();
   });
 
@@ -79,6 +83,11 @@ test.describe("GitHub Onboarding Flow", () => {
     await clerk.signIn({
       page,
       emailAddress: "e2e+clerk_test@uspark.ai",
+    });
+
+    // Ensure user has no GitHub installation
+    await page.request.post("/api/github/disconnect").catch(() => {
+      // If no installation exists, this will fail with 404 - that's OK
     });
 
     // Try to access projects page
@@ -120,7 +129,7 @@ test.describe("GitHub Onboarding Flow", () => {
     // We can't test the actual OAuth flow, but we can verify the button click initiates navigation
     const navigationPromise = page.waitForURL(
       (url) => url.pathname.includes("/api/github/install"),
-      { timeout: 5000 }
+      { timeout: 5000 },
     );
 
     await connectButton.click();
