@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.26.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.25.1...workspace-v1.26.0) (2025-10-21)
+
+
+### Features
+
+* **workspace:** default to wiki/00-README.md on project page ([#674](https://github.com/uspark-hq/uspark/issues/674)) ([a1c4466](https://github.com/uspark-hq/uspark/commit/a1c44669d16681be49948214de690fff7249875a))
+* **workspace:** refactor project page to two-column layout with session list ([#677](https://github.com/uspark-hq/uspark/issues/677)) ([17dd781](https://github.com/uspark-hq/uspark/commit/17dd7816db03af9ba5c6e755c1df05fcd1123f10))
+
+
+### Bug Fixes
+
+* **workspace:** improve header icon and text alignment ([#673](https://github.com/uspark-hq/uspark/issues/673)) ([b57dd68](https://github.com/uspark-hq/uspark/commit/b57dd687404f7972b664cfb2dcffd384a947be46))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.26.0
+
 ## [1.25.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.25.0...workspace-v1.25.1) (2025-10-20)
 
 

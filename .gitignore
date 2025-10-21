@@ -153,3 +153,5 @@ settings.local.json
 .certs/
 
 vitest-report.json
+
+.uspark

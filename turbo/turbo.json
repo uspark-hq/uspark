@@ -25,7 +25,12 @@
     "USPARK_TOKEN_FOR_DEV",
     "PROJECT_ID_FOR_DEV",
     "TURN_ID_FOR_DEV",
-    "SESSION_ID_FOR_DEV"
+    "SESSION_ID_FOR_DEV",
+    "MAX_ITERATIONS",
+    "SLEEP_DURATION_MS",
+    "FAKE_CLAUDE_SLEEP",
+    "FAKE_CLAUDE_ERROR",
+    "FAKE_CLAUDE_OUTPUT"
   ],
   "tasks": {
     "build": {
