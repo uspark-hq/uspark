@@ -2,15 +2,17 @@ import { spawn } from "child_process";
 import { createInterface } from "readline";
 import chalk from "chalk";
 import { requireAuth } from "./shared";
+import { WorkerApiClient } from "../worker-api";
 
 const SLEEP_SIGNAL = "###USPARK_WORKER_SLEEP###";
 const DEFAULT_SLEEP_DURATION_MS = 60000; // 60 seconds
+const HEARTBEAT_INTERVAL_MS = 30000; // 30 seconds
 
 export async function claudeWorkerCommand(options: {
   id: string;
   projectId: string;
 }): Promise<void> {
-  await requireAuth();
+  const context = await requireAuth();
 
   const { id, projectId } = options;
 
@@ -27,6 +29,79 @@ export async function claudeWorkerCommand(options: {
   console.log(chalk.cyan(`[uspark] Starting Claude Worker #${id}`));
   console.log(chalk.cyan(`[uspark] Project ID: ${projectId}`));
   console.log(chalk.cyan(`[uspark] Press Ctrl+C to stop\n`));
+
+  // Initialize worker API client
+  const workerApi = new WorkerApiClient(context.apiUrl, context.token);
+  let workerId: string | null = null;
+  let heartbeatTimer: NodeJS.Timeout | null = null;
+
+  // Register worker with the server
+  try {
+    console.log(chalk.blue("[uspark] Registering worker..."));
+    const worker = await workerApi.registerWorker(projectId, {
+      name: `worker-${id}`,
+    });
+    workerId = worker.id;
+    console.log(chalk.green(`[uspark] Worker registered: ${workerId}\n`));
+
+    // Start heartbeat timer
+    heartbeatTimer = setInterval(async () => {
+      if (!workerId) return;
+
+      try {
+        await workerApi.sendHeartbeat(projectId, workerId);
+        console.log(chalk.gray("[uspark] Heartbeat sent"));
+      } catch (error) {
+        console.error(
+          chalk.red(
+            `[uspark] Failed to send heartbeat: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+        );
+      }
+    }, HEARTBEAT_INTERVAL_MS);
+  } catch (error) {
+    console.error(
+      chalk.red(
+        `[uspark] Failed to register worker: ${error instanceof Error ? error.message : String(error)}`,
+      ),
+    );
+    throw error;
+  }
+
+  // Cleanup function
+  const cleanup = async () => {
+    if (heartbeatTimer) {
+      clearInterval(heartbeatTimer);
+      heartbeatTimer = null;
+    }
+
+    if (workerId) {
+      try {
+        console.log(chalk.blue("\n[uspark] Unregistering worker..."));
+        await workerApi.unregisterWorker(projectId, workerId);
+        console.log(chalk.green("[uspark] Worker unregistered"));
+      } catch (error) {
+        console.error(
+          chalk.red(
+            `[uspark] Failed to unregister worker: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+        );
+      }
+    }
+  };
+
+  // Handle process termination
+  process.on("SIGINT", async () => {
+    console.log(chalk.yellow("\n[uspark] Received SIGINT, shutting down..."));
+    await cleanup();
+    process.exit(0);
+  });
+
+  process.on("SIGTERM", async () => {
+    console.log(chalk.yellow("\n[uspark] Received SIGTERM, shutting down..."));
+    await cleanup();
+    process.exit(0);
+  });
 
   let iteration = 0;
 
@@ -72,6 +147,9 @@ export async function claudeWorkerCommand(options: {
       await sleep(sleepDurationMs);
     }
   }
+
+  // Cleanup after completing all iterations
+  await cleanup();
 }
 
 /**
