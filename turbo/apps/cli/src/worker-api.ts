@@ -39,7 +39,7 @@ export class WorkerApiClient {
     },
   ): Promise<Worker> {
     const response = await fetch(
-      `${this.apiUrl}/api/projects/${projectId}/workers/register`,
+      `${this.apiUrl}/api/projects/${projectId}/workers`,
       {
         method: "POST",
         headers: {

@@ -32,61 +32,43 @@ export async function claudeWorkerCommand(options: {
 
   // Initialize worker API client
   const workerApi = new WorkerApiClient(context.apiUrl, context.token);
-  let workerId: string | null = null;
-  let heartbeatTimer: NodeJS.Timeout | null = null;
 
-  // Register worker with the server (non-fatal if it fails)
-  try {
-    console.log(chalk.blue("[uspark] Registering worker..."));
-    const worker = await workerApi.registerWorker(projectId, {
-      name: `worker-${id}`,
-    });
-    workerId = worker.id;
-    console.log(chalk.green(`[uspark] Worker registered: ${workerId}\n`));
+  // Register worker with the server
+  console.log(chalk.blue("[uspark] Registering worker..."));
+  const worker = await workerApi.registerWorker(projectId, {
+    name: `worker-${id}`,
+  });
+  const workerId = worker.id;
+  console.log(chalk.green(`[uspark] Worker registered: ${workerId}\n`));
 
-    // Start heartbeat timer
-    heartbeatTimer = setInterval(async () => {
-      if (!workerId) return;
-
-      try {
-        await workerApi.sendHeartbeat(projectId, workerId);
-        console.log(chalk.gray("[uspark] Heartbeat sent"));
-      } catch (error) {
-        console.error(
-          chalk.red(
-            `[uspark] Failed to send heartbeat: ${error instanceof Error ? error.message : String(error)}`,
-          ),
-        );
-      }
-    }, HEARTBEAT_INTERVAL_MS);
-  } catch (error) {
-    console.error(
-      chalk.yellow(
-        `[uspark] Worker registration failed (continuing anyway): ${error instanceof Error ? error.message : String(error)}`,
-      ),
-    );
-    // Continue without worker tracking - it's not critical for operation
-  }
+  // Start heartbeat timer
+  const heartbeatTimer = setInterval(async () => {
+    try {
+      await workerApi.sendHeartbeat(projectId, workerId);
+      console.log(chalk.gray("[uspark] Heartbeat sent"));
+    } catch (error) {
+      console.error(
+        chalk.red(
+          `[uspark] Failed to send heartbeat: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+      );
+    }
+  }, HEARTBEAT_INTERVAL_MS);
 
   // Cleanup function
   const cleanup = async () => {
-    if (heartbeatTimer) {
-      clearInterval(heartbeatTimer);
-      heartbeatTimer = null;
-    }
+    clearInterval(heartbeatTimer);
 
-    if (workerId) {
-      try {
-        console.log(chalk.blue("\n[uspark] Unregistering worker..."));
-        await workerApi.unregisterWorker(projectId, workerId);
-        console.log(chalk.green("[uspark] Worker unregistered"));
-      } catch (error) {
-        console.error(
-          chalk.red(
-            `[uspark] Failed to unregister worker: ${error instanceof Error ? error.message : String(error)}`,
-          ),
-        );
-      }
+    try {
+      console.log(chalk.blue("\n[uspark] Unregistering worker..."));
+      await workerApi.unregisterWorker(projectId, workerId);
+      console.log(chalk.green("[uspark] Worker unregistered"));
+    } catch (error) {
+      console.error(
+        chalk.red(
+          `[uspark] Failed to unregister worker: ${error instanceof Error ? error.message : String(error)}`,
+        ),
+      );
     }
   };
 
