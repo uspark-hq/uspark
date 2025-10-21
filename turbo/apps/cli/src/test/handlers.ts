@@ -96,47 +96,22 @@ function createHandlers() {
       }),
 
       // Worker management API
-      // POST /api/projects/:projectId/workers - Register worker
+      // POST /api/projects/:projectId/workers/heartbeat - Send heartbeat (upsert)
       http.post(
-        `${API_BASE_URL}/api/projects/:projectId/workers`,
+        `${API_BASE_URL}/api/projects/:projectId/workers/heartbeat`,
         ({ params }) => {
           const { projectId } = params;
           return HttpResponse.json({
             id: `worker-${Date.now()}`,
-            projectId,
-            userId: "test-user",
+            project_id: projectId,
+            user_id: "test-user",
             name: "test-worker",
             status: "active",
-            lastHeartbeatAt: new Date().toISOString(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
+            last_heartbeat_at: new Date().toISOString(),
+            metadata: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
           });
-        },
-      ),
-
-      // PATCH /api/projects/:projectId/workers/:workerId - Send heartbeat
-      http.patch(
-        `${API_BASE_URL}/api/projects/:projectId/workers/:workerId`,
-        ({ params }) => {
-          const { projectId, workerId } = params;
-          return HttpResponse.json({
-            id: workerId,
-            projectId,
-            userId: "test-user",
-            name: "test-worker",
-            status: "active",
-            lastHeartbeatAt: new Date().toISOString(),
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-          });
-        },
-      ),
-
-      // DELETE /api/projects/:projectId/workers/:workerId - Unregister worker
-      http.delete(
-        `${API_BASE_URL}/api/projects/:projectId/workers/:workerId`,
-        () => {
-          return HttpResponse.json({ success: true });
         },
       ),
     );

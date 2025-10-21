@@ -20,7 +20,7 @@ interface Worker {
 }
 
 /**
- * Worker API client for managing worker registration and heartbeats
+ * Worker API client for sending heartbeats
  */
 export class WorkerApiClient {
   constructor(
@@ -29,9 +29,9 @@ export class WorkerApiClient {
   ) {}
 
   /**
-   * Register a new worker for the project
+   * Send heartbeat (creates or updates worker)
    */
-  async registerWorker(
+  async sendHeartbeat(
     projectId: string,
     options?: {
       name?: string;
@@ -39,7 +39,7 @@ export class WorkerApiClient {
     },
   ): Promise<Worker> {
     const response = await fetch(
-      `${this.apiUrl}/api/projects/${projectId}/workers`,
+      `${this.apiUrl}/api/projects/${projectId}/workers/heartbeat`,
       {
         method: "POST",
         headers: {
@@ -58,77 +58,19 @@ export class WorkerApiClient {
         error_description?: string;
       };
       throw new Error(
-        `Failed to register worker: ${error.error_description || response.statusText}`,
+        error.error_description ||
+          `Failed to send heartbeat: ${response.statusText}`,
       );
     }
 
     return (await response.json()) as Worker;
   }
 
-  /**
-   * Send heartbeat for a worker
-   */
-  async sendHeartbeat(projectId: string, workerId: string): Promise<Worker> {
-    const response = await fetch(
-      `${this.apiUrl}/api/projects/${projectId}/workers/${workerId}/heartbeat`,
-      {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-        },
-      },
-    );
-
-    if (!response.ok) {
-      const error = (await response.json().catch(() => ({}))) as {
-        error_description?: string;
-      };
-      throw new Error(
-        `Failed to send heartbeat: ${error.error_description || response.statusText}`,
-      );
-    }
-
-    return (await response.json()) as Worker;
-  }
-
-  /**
-   * Unregister a worker
-   */
-  async unregisterWorker(
-    projectId: string,
-    workerId: string,
-  ): Promise<{ success: boolean }> {
-    const response = await fetch(
-      `${this.apiUrl}/api/projects/${projectId}/workers/${workerId}`,
-      {
-        method: "DELETE",
-        headers: {
-          Authorization: `Bearer ${this.token}`,
-        },
-      },
-    );
-
-    if (!response.ok) {
-      const error = (await response.json().catch(() => ({}))) as {
-        error_description?: string;
-      };
-      throw new Error(
-        `Failed to unregister worker: ${error.error_description || response.statusText}`,
-      );
-    }
-
-    return (await response.json()) as { success: boolean };
-  }
-
-  /**
-   * Get default worker metadata
-   */
   private getDefaultMetadata(): WorkerMetadata {
     return {
       hostname: os.hostname(),
       platform: os.platform(),
       nodeVersion: process.version,
-      // CLI version will be added when we have access to package.json
     };
   }
 }

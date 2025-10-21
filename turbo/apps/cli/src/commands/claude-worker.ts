@@ -33,18 +33,12 @@ export async function claudeWorkerCommand(options: {
   // Initialize worker API client
   const workerApi = new WorkerApiClient(context.apiUrl, context.token);
 
-  // Register worker with the server
-  console.log(chalk.blue("[uspark] Registering worker..."));
-  const worker = await workerApi.registerWorker(projectId, {
-    name: `worker-${id}`,
-  });
-  const workerId = worker.id;
-  console.log(chalk.green(`[uspark] Worker registered: ${workerId}\n`));
-
-  // Start heartbeat timer
-  const heartbeatTimer = setInterval(async () => {
+  // Start heartbeat timer - sends heartbeat every 30 seconds
+  setInterval(async () => {
     try {
-      await workerApi.sendHeartbeat(projectId, workerId);
+      await workerApi.sendHeartbeat(projectId, {
+        name: `worker-${id}`,
+      });
       console.log(chalk.gray("[uspark] Heartbeat sent"));
     } catch (error) {
       console.error(
@@ -54,36 +48,6 @@ export async function claudeWorkerCommand(options: {
       );
     }
   }, HEARTBEAT_INTERVAL_MS);
-
-  // Cleanup function
-  const cleanup = async () => {
-    clearInterval(heartbeatTimer);
-
-    try {
-      console.log(chalk.blue("\n[uspark] Unregistering worker..."));
-      await workerApi.unregisterWorker(projectId, workerId);
-      console.log(chalk.green("[uspark] Worker unregistered"));
-    } catch (error) {
-      console.error(
-        chalk.red(
-          `[uspark] Failed to unregister worker: ${error instanceof Error ? error.message : String(error)}`,
-        ),
-      );
-    }
-  };
-
-  // Handle process termination
-  process.on("SIGINT", async () => {
-    console.log(chalk.yellow("\n[uspark] Received SIGINT, shutting down..."));
-    await cleanup();
-    process.exit(0);
-  });
-
-  process.on("SIGTERM", async () => {
-    console.log(chalk.yellow("\n[uspark] Received SIGTERM, shutting down..."));
-    await cleanup();
-    process.exit(0);
-  });
 
   let iteration = 0;
 
@@ -129,9 +93,6 @@ export async function claudeWorkerCommand(options: {
       await sleep(sleepDurationMs);
     }
   }
-
-  // Cleanup after completing all iterations
-  await cleanup();
 }
 
 /**
