@@ -45,6 +45,14 @@ export default defineConfig({
       },
 
       {
+        test: {
+          name: "core-node",
+          root: "./packages/core-node",
+          environment: "node",
+        },
+      },
+
+      {
         plugins: [react()],
         test: {
           name: "web",

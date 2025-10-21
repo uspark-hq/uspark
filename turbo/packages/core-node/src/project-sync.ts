@@ -12,9 +12,17 @@ interface SyncOptions {
 
 export class ProjectSync {
   private fs: FileSystem;
+  private version: number | null = null;
 
   constructor(fs?: FileSystem) {
     this.fs = fs || new FileSystem();
+  }
+
+  /**
+   * Get the current version number from the server
+   */
+  getVersion(): number | null {
+    return this.version;
   }
 
   private log(message: string, verbose?: boolean) {
@@ -86,6 +94,13 @@ export class ProjectSync {
       throw new Error(`Failed to fetch project: ${response.statusText}`);
     }
 
+    // Read and save version from response header
+    const versionHeader = response.headers.get("X-Version");
+    if (versionHeader) {
+      this.version = parseInt(versionHeader, 10);
+      this.log(`📌 Server version: ${this.version}`, options.verbose);
+    }
+
     this.log(
       `✅ Received project data (${response.headers.get("content-length")} bytes)`,
       options.verbose,
@@ -114,7 +129,20 @@ export class ProjectSync {
 
     // Only sync if there are actual changes
     if (update.length === 0) {
+      this.log("ℹ️  No changes to sync", options.verbose);
       return; // No changes to sync
+    }
+
+    // Prepare headers with version if available
+    const headers: Record<string, string> = {
+      "Content-Type": "application/octet-stream",
+    };
+    if (this.version !== null) {
+      headers["X-Version"] = this.version.toString();
+      this.log(
+        `📤 Sending update with version: ${this.version}`,
+        options.verbose,
+      );
     }
 
     const response = await this.fetchWithAuth(
@@ -122,15 +150,33 @@ export class ProjectSync {
       token,
       {
         method: "PATCH",
-        headers: {
-          "Content-Type": "application/octet-stream",
-        },
+        headers,
         body: Buffer.from(update),
       },
     );
 
+    // Handle version conflict (409)
+    if (response.status === 409) {
+      const errorData = await response.json().catch(() => ({}));
+      const serverVersion = errorData.currentVersion || "unknown";
+      throw new Error(
+        `Version conflict: Local version ${this.version} does not match server version ${serverVersion}. ` +
+          `Please pull the latest changes and try again.`,
+      );
+    }
+
     if (!response.ok) {
       throw new Error(`Failed to sync to remote: ${response.statusText}`);
+    }
+
+    // Update version from response header
+    const newVersionHeader = response.headers.get("X-Version");
+    if (newVersionHeader) {
+      this.version = parseInt(newVersionHeader, 10);
+      this.log(
+        `✅ Synced successfully, new version: ${this.version}`,
+        options.verbose,
+      );
     }
 
     // Mark the current state as synced
