@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { getUserId } from "../../../../../../src/lib/auth/get-user-id";
 import { initServices } from "../../../../../../src/lib/init-services";
 import { WORKERS_TBL } from "../../../../../../src/db/schema/workers";
 import { PROJECTS_TBL } from "../../../../../../src/db/schema/projects";
@@ -13,7 +13,7 @@ export async function POST(
   request: NextRequest,
   context: { params: Promise<{ projectId: string; workerId: string }> },
 ) {
-  const { userId } = await auth();
+  const userId = await getUserId();
 
   if (!userId) {
     return NextResponse.json(
@@ -107,7 +107,7 @@ export async function DELETE(
   request: NextRequest,
   context: { params: Promise<{ projectId: string; workerId: string }> },
 ) {
-  const { userId } = await auth();
+  const userId = await getUserId();
 
   if (!userId) {
     return NextResponse.json(
