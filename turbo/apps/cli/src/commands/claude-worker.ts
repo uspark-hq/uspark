@@ -34,7 +34,7 @@ export async function claudeWorkerCommand(options: {
   const workerApi = new WorkerApiClient(context.apiUrl, context.token);
 
   // Start heartbeat timer - sends heartbeat every 30 seconds
-  setInterval(async () => {
+  const heartbeatTimer = setInterval(async () => {
     try {
       await workerApi.sendHeartbeat(projectId, {
         name: `worker-${id}`,
@@ -51,47 +51,52 @@ export async function claudeWorkerCommand(options: {
 
   let iteration = 0;
 
-  while (iteration < maxIterations) {
-    iteration++;
-    console.log(chalk.yellow(`\n=== Iteration ${iteration} ===`));
+  try {
+    while (iteration < maxIterations) {
+      iteration++;
+      console.log(chalk.yellow(`\n=== Iteration ${iteration} ===`));
 
-    try {
-      // Phase 1: Pull files from remote
-      console.log(chalk.blue("[uspark] Phase 1: Pulling files..."));
-      await syncFiles("pull", projectId);
+      try {
+        // Phase 1: Pull files from remote
+        console.log(chalk.blue("[uspark] Phase 1: Pulling files..."));
+        await syncFiles("pull", projectId);
 
-      // Phase 2: Execute Claude
-      console.log(chalk.blue("[uspark] Phase 2: Executing Claude..."));
-      const shouldSleep = await executeClaude(id);
+        // Phase 2: Execute Claude
+        console.log(chalk.blue("[uspark] Phase 2: Executing Claude..."));
+        const shouldSleep = await executeClaude(id);
 
-      // Phase 3: Push files to remote
-      console.log(chalk.blue("[uspark] Phase 3: Pushing files..."));
-      await syncFiles("push", projectId);
+        // Phase 3: Push files to remote
+        console.log(chalk.blue("[uspark] Phase 3: Pushing files..."));
+        await syncFiles("push", projectId);
 
-      // Phase 4: Determine next action
-      if (shouldSleep) {
+        // Phase 4: Determine next action
+        if (shouldSleep) {
+          console.log(
+            chalk.yellow(
+              `[uspark] Sleep signal detected. Waiting ${sleepDurationMs / 1000} seconds...`,
+            ),
+          );
+          await sleep(sleepDurationMs);
+        } else {
+          console.log(chalk.green("[uspark] Continuing immediately..."));
+        }
+      } catch (error) {
+        console.error(
+          chalk.red(
+            `[uspark] Error in iteration ${iteration}: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+        );
         console.log(
           chalk.yellow(
-            `[uspark] Sleep signal detected. Waiting ${sleepDurationMs / 1000} seconds...`,
+            `[uspark] Waiting ${sleepDurationMs / 1000} seconds before retry...`,
           ),
         );
         await sleep(sleepDurationMs);
-      } else {
-        console.log(chalk.green("[uspark] Continuing immediately..."));
       }
-    } catch (error) {
-      console.error(
-        chalk.red(
-          `[uspark] Error in iteration ${iteration}: ${error instanceof Error ? error.message : String(error)}`,
-        ),
-      );
-      console.log(
-        chalk.yellow(
-          `[uspark] Waiting ${sleepDurationMs / 1000} seconds before retry...`,
-        ),
-      );
-      await sleep(sleepDurationMs);
     }
+  } finally {
+    // Clean up heartbeat timer to allow process to exit
+    clearInterval(heartbeatTimer);
   }
 }
 
