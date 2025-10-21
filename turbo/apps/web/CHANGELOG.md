@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.61.1](https://github.com/uspark-hq/uspark/compare/web-v0.61.0...web-v0.61.1) (2025-10-21)
+
+
+### Bug Fixes
+
+* **web:** use tool name for accurate result display and fix flaky tests ([#672](https://github.com/uspark-hq/uspark/issues/672)) ([883d939](https://github.com/uspark-hq/uspark/commit/883d939b7d07787722ba3c3a999622fbc210238c))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.26.0
+
 ## [0.61.0](https://github.com/uspark-hq/uspark/compare/web-v0.60.1...web-v0.61.0) (2025-10-20)
 
 
