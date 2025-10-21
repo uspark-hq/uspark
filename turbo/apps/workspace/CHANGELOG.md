@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.27.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.26.0...workspace-v1.27.0) (2025-10-21)
+
+
+### Features
+
+* **workspace:** auto-scroll to chat bottom on project page load ([#679](https://github.com/uspark-hq/uspark/issues/679)) ([884c8a0](https://github.com/uspark-hq/uspark/commit/884c8a03d0560b76d479877c4a8e2be636cba440))
+
 ## [1.26.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.25.1...workspace-v1.26.0) (2025-10-21)
 
 
