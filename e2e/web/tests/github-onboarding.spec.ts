@@ -91,7 +91,7 @@ test.describe("GitHub Onboarding Flow", () => {
     });
 
     // Try to access projects page
-    await page.goto("/projects");
+    await page.goto("/projects", { waitUntil: "domcontentloaded" });
     await page.waitForLoadState("networkidle");
 
     // Check where we ended up
