@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.62.0](https://github.com/uspark-hq/uspark/compare/web-v0.61.1...web-v0.62.0) (2025-10-21)
+
+
+### Features
+
+* **cli:** add verbose mode and plan workflow for uspark agent ([#686](https://github.com/uspark-hq/uspark/issues/686)) ([6f33a92](https://github.com/uspark-hq/uspark/commit/6f33a928a3241b829b9ecddbac50dca430ac98f3))
+
 ## [0.61.1](https://github.com/uspark-hq/uspark/compare/web-v0.61.0...web-v0.61.1) (2025-10-21)
 
 
