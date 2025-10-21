@@ -23,6 +23,7 @@ export const setupProjectPage$ = command(
     )
 
     // Wait for sessions to load
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
     const sessions = await get(projectSessions$)
     signal.throwIfAborted()
 
