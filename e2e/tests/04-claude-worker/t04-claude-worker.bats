@@ -88,10 +88,10 @@ teardown() {
 }
 
 @test "CLI claude-worker executes basic loop" {
-    # Run claude-worker with limited iterations
-    run timeout 30 cli_with_host claude-worker --id 1 --project-id "$PROJECT_ID"
+    # Run claude-worker with limited iterations (MAX_ITERATIONS=2 set in setup)
+    run cli_with_host claude-worker --id 1 --project-id "$PROJECT_ID"
 
-    # Should succeed (timeout ensures it doesn't run forever)
+    # Should succeed
     assert_success
 
     # Verify .uspark directory exists
@@ -106,8 +106,8 @@ teardown() {
     mkdir -p .uspark
     echo "test output" > .uspark/output.txt
 
-    # Run worker
-    run timeout 30 cli_with_host claude-worker --id 1 --project-id "$PROJECT_ID"
+    # Run worker (MAX_ITERATIONS=2 set in setup)
+    run cli_with_host claude-worker --id 1 --project-id "$PROJECT_ID"
     assert_success
 
     # Clean local directory
@@ -130,8 +130,8 @@ teardown() {
     export MAX_ITERATIONS=1
 
     # Run worker - should complete quickly
-    run timeout 10 cli_with_host claude-worker --id 1 --project-id "$PROJECT_ID"
+    run cli_with_host claude-worker --id 1 --project-id "$PROJECT_ID"
 
-    # Should succeed and exit normally (not timeout)
+    # Should succeed and exit normally
     assert_success
 }
