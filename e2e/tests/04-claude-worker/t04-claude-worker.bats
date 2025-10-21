@@ -102,17 +102,19 @@ teardown() {
 }
 
 @test "CLI claude-worker syncs files between iterations" {
-    # Create fake claude that writes a file
+    # Create fake claude that writes a file to .uspark directory
     cat > "$FAKE_CLAUDE_PATH" << 'FAKECLAUDE'
 #!/usr/bin/env bash
 # Read prompt from stdin
 cat > /dev/null
 
-# Create a test file to verify sync
-echo "Worker created this file" > worker-output.txt
+# Create a test file in .uspark directory to verify sync
+# Claude runs in project root, so we create file in .uspark/
+mkdir -p .uspark
+echo "Worker created this file" > .uspark/worker-output.txt
 
 # Output stream-json format
-echo '{"type":"assistant","message":{"id":"msg_test","type":"message","role":"assistant","content":[{"type":"text","text":"Created worker-output.txt"}]}}'
+echo '{"type":"assistant","message":{"id":"msg_test","type":"message","role":"assistant","content":[{"type":"text","text":"Created .uspark/worker-output.txt"}]}}'
 
 # Output sleep signal to stop after first iteration
 echo "###USPARK_WORKER_SLEEP###"
