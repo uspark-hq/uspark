@@ -102,9 +102,25 @@ teardown() {
 }
 
 @test "CLI claude-worker syncs files between iterations" {
-    # Create a test file that should be pushed
-    mkdir -p .uspark
-    echo "test output" > .uspark/output.txt
+    # Create fake claude that writes a file
+    cat > "$FAKE_CLAUDE_PATH" << 'FAKECLAUDE'
+#!/usr/bin/env bash
+# Read prompt from stdin
+cat > /dev/null
+
+# Create a test file to verify sync
+echo "Worker created this file" > worker-output.txt
+
+# Output stream-json format
+echo '{"type":"assistant","message":{"id":"msg_test","type":"message","role":"assistant","content":[{"type":"text","text":"Created worker-output.txt"}]}}'
+
+# Output sleep signal to stop after first iteration
+echo "###USPARK_WORKER_SLEEP###"
+
+# Output success result
+echo '{"type":"result","subtype":"success","is_error":false}'
+FAKECLAUDE
+    chmod +x "$FAKE_CLAUDE_PATH"
 
     # Run worker (MAX_ITERATIONS=2 set in setup)
     run cli_with_host claude-worker --id 1 --project-id "$PROJECT_ID"
@@ -120,9 +136,9 @@ teardown() {
     assert_success
     cd ..
 
-    # Verify the file exists in pulled content
-    assert [ -f .uspark/output.txt ]
-    assert [ "$(cat .uspark/output.txt)" = "test output" ]
+    # Verify the file created by fake claude exists in pulled content
+    assert [ -f .uspark/worker-output.txt ]
+    assert [ "$(cat .uspark/worker-output.txt)" = "Worker created this file" ]
 }
 
 @test "CLI claude-worker respects MAX_ITERATIONS environment variable" {
