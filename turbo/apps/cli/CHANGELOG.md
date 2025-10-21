@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.14.0](https://github.com/uspark-hq/uspark/compare/cli-v0.13.2...cli-v0.14.0) (2025-10-21)
+
+
+### Features
+
+* **cli:** add claude-worker command for autonomous task execution ([#676](https://github.com/uspark-hq/uspark/issues/676)) ([5da038a](https://github.com/uspark-hq/uspark/commit/5da038ab73c7bd35ff402c0fe316265f1c7adc4f))
+
 ## [0.13.2](https://github.com/uspark-hq/uspark/compare/cli-v0.13.1...cli-v0.13.2) (2025-10-21)
 
 
