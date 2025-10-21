@@ -113,6 +113,13 @@
       "when": 1760832825591,
       "tag": "0015_cooing_blade",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1761021281732,
+      "tag": "0016_fearless_shinko_yamashiro",
+      "breakpoints": true
     }
   ]
 }
