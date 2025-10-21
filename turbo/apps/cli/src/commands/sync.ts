@@ -91,9 +91,7 @@ export async function pushCommand(options: {
   );
 
   if (changedCount === 0) {
-    console.log(
-      chalk.gray("ℹ️  No changes to push (all files are up to date)"),
-    );
+    console.log(chalk.gray("No changes to push (all files are up to date)"));
     return;
   }
 
