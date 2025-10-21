@@ -2,6 +2,7 @@
  * Tests for turn list container element management
  */
 
+import { delay } from 'signal-timers'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { testContext } from '../../__tests__/context'
 import { setupProjectPage } from '../../../views/project/test-helpers'
@@ -112,24 +113,43 @@ describe('triggerReloadTurn$', () => {
       },
     )
 
-    // Create and mount a container element
-    const mockElement = document.createElement('div')
-    Object.defineProperty(mockElement, 'scrollHeight', {
+    // Wait for the container element to be mounted by SessionChatArea
+    // (SessionChatArea only mounts the container after selectedSession$ resolves)
+    let containerEl: HTMLElement | null = null
+    let attempts = 0
+    while (!containerEl && attempts < 50) {
+      await delay(10, { signal: context.signal })
+      containerEl = context.store.get(turnListContainerEl$)
+      attempts++
+    }
+    expect(containerEl).toBeTruthy()
+
+    // Set scrollHeight and scrollTop properties on the real element
+    let scrollTopValue = 0
+    Object.defineProperty(containerEl, 'scrollHeight', {
       value: 1000,
       writable: true,
+      configurable: true,
     })
-    Object.defineProperty(mockElement, 'scrollTop', {
-      value: 0,
-      writable: true,
+    Object.defineProperty(containerEl, 'scrollTop', {
+      get() {
+        return scrollTopValue
+      },
+      set(value: number) {
+        scrollTopValue = value
+      },
+      configurable: true,
     })
 
-    context.store.set(mountTurnList$, mockElement)
+    // Verify initial state
+    expect(containerEl.scrollTop).toBe(0)
+    expect(containerEl.scrollHeight).toBe(1000)
 
     // Trigger reload with auto-scroll enabled (default)
     await context.store.set(triggerReloadTurn$, context.signal)
 
     // Verify scroll happened
-    expect(mockElement.scrollTop).toBe(1000)
+    expect(containerEl.scrollTop).toBe(1000)
   })
 
   it.skip('should not scroll when auto-scroll is disabled', async () => {

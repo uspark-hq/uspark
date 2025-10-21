@@ -147,6 +147,7 @@ export const selectFile$ = command(({ get, set }, filePath: string) => {
   const newSearchParams = new URLSearchParams(currentSearchParams)
 
   newSearchParams.set('file', filePath)
+  newSearchParams.delete('sessionId') // Deselect any session
 
   set(updateSearchParams$, newSearchParams)
 
@@ -159,13 +160,17 @@ export const selectSession$ = command(({ get, set }, sessionId: string) => {
   const newSearchParams = new URLSearchParams(currentSearchParams)
 
   newSearchParams.set('sessionId', sessionId)
+  newSearchParams.delete('file') // Deselect any file
 
   set(updateSearchParams$, newSearchParams)
+
+  // Hide file content when a session is selected
+  set(internalFileContentVisible$, false)
 })
 
 const internalReloadSessions$ = state(0)
 
-export const projectSessions$ = computed((get) => {
+const projectSessions$ = computed((get) => {
   get(internalReloadSessions$)
 
   const projectId = get(projectId$)
@@ -174,6 +179,73 @@ export const projectSessions$ = computed((get) => {
   }
 
   return get(projectSessions(projectId))
+})
+
+/**
+ * Helper function to extract preview text from the latest turn
+ */
+function extractPreviewText(latestTurn?: {
+  user_prompt: string
+  status: string
+}): string {
+  if (!latestTurn) {
+    return 'No messages yet'
+  }
+
+  // For simplicity and performance, always show user prompt
+  // (Showing AI response would require fetching full turn details)
+  const preview = latestTurn.user_prompt.slice(0, 50)
+  return preview + (latestTurn.user_prompt.length > 50 ? '...' : '')
+}
+
+/**
+ * Sessions with pre-computed display information for the session list
+ */
+export const sessionsWithDisplayInfo$ = computed(async (get) => {
+  get(internalReloadSessions$)
+
+  const projectSessionsResp = await get(projectSessions$)
+  const projectId = get(projectId$)
+
+  if (!projectSessionsResp || !projectId) {
+    return []
+  }
+
+  const sessionsWithInfo = await Promise.all(
+    projectSessionsResp.sessions.map(async (session) => {
+      const turnsResp = await get(
+        sessionTurns({
+          projectId,
+          sessionId: session.id,
+          limit: 1,
+          offset: 0,
+        }),
+      )
+
+      const latestTurn = turnsResp.turns[0] as
+        | (typeof turnsResp.turns)[0]
+        | undefined
+
+      return {
+        id: session.id,
+        title: session.title,
+        createdAt: session.created_at,
+        // Pre-computed display data
+        previewText: extractPreviewText(latestTurn),
+        status: latestTurn ? latestTurn.status : undefined,
+        lastActivityTime: latestTurn
+          ? latestTurn.created_at
+          : session.created_at,
+      }
+    }),
+  )
+
+  // Sort by last activity time (most recent first)
+  return sessionsWithInfo.sort(
+    (a, b) =>
+      new Date(b.lastActivityTime).getTime() -
+      new Date(a.lastActivityTime).getTime(),
+  )
 })
 
 const sessionId$ = computed((get) => {
@@ -301,33 +373,26 @@ export const updateChatInput$ = command(({ set }, value: string) => {
   set(internalChatInput$, value)
 })
 
+// New session input (for creating new sessions from left panel)
+const internalNewSessionInput$ = state('')
+
+export const newSessionInput$ = computed((get) => get(internalNewSessionInput$))
+
+export const updateNewSessionInput$ = command(({ set }, value: string) => {
+  set(internalNewSessionInput$, value)
+})
+
 export const sendChatMessage$ = command(
   async ({ get, set }, signal: AbortSignal) => {
     const projectId = get(projectId$)
-    let session = await get(selectedSession$)
+    const session = await get(selectedSession$)
     signal.throwIfAborted()
 
     const message = get(internalChatInput$)
 
-    if (!projectId || !message.trim()) {
+    // Only send message if there's a selected session
+    if (!projectId || !session || !message.trim()) {
       return
-    }
-
-    if (!session) {
-      const newSession = await set(
-        createSession$,
-        { projectId, title: '' },
-        signal,
-      )
-
-      const searchParams = get(searchParams$)
-      const newSearchParams = new URLSearchParams(searchParams)
-      newSearchParams.set('sessionId', newSession.id)
-      set(updateSearchParams$, newSearchParams)
-
-      set(internalReloadSessions$, (x) => x + 1)
-
-      session = newSession
     }
 
     await set(
@@ -341,6 +406,49 @@ export const sendChatMessage$ = command(
     )
 
     set(internalChatInput$, '')
+    await set(triggerReloadTurn$, signal)
+  },
+)
+
+export const createSessionWithMessage$ = command(
+  async ({ get, set }, signal: AbortSignal) => {
+    const projectId = get(projectId$)
+    const message = get(internalNewSessionInput$)
+
+    if (!projectId || !message.trim()) {
+      return
+    }
+
+    // 1. Create new session
+    const newSession = await set(
+      createSession$,
+      { projectId, title: '' },
+      signal,
+    )
+
+    // 2. Select the new session (switches right panel to this session's chat)
+    const searchParams = get(searchParams$)
+    const newSearchParams = new URLSearchParams(searchParams)
+    newSearchParams.set('sessionId', newSession.id)
+    newSearchParams.delete('file') // Deselect any file
+    set(updateSearchParams$, newSearchParams)
+
+    // 3. Send the first message
+    await set(
+      sendMessage$,
+      {
+        projectId,
+        sessionId: newSession.id,
+        userMessage: message.trim(),
+      },
+      signal,
+    )
+
+    // 4. Clear the input
+    set(internalNewSessionInput$, '')
+
+    // 5. Reload sessions and turns
+    set(internalReloadSessions$, (x) => x + 1)
     await set(triggerReloadTurn$, signal)
   },
 )
