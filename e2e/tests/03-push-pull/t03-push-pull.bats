@@ -149,7 +149,7 @@ teardown() {
     # Push should indicate no files found
     run cli_with_host push --project-id "$PROJECT_ID"
     assert_success
-    assert_output --partial "No files found to push"
+    assert_output --partial "No changes to push"
 }
 
 @test "CLI version increments after each push" {

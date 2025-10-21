@@ -84,14 +84,14 @@ export async function pushCommand(options: {
 
   console.log(chalk.blue(`Pushing all files to project ${projectId}...`));
 
-  const count = await pushAllFiles(
+  const changedCount = await pushAllFiles(
     { token, apiUrl, sync },
     projectId,
     ".", // Always push from current directory
   );
 
-  if (count === 0) {
-    console.log(chalk.yellow("No files found to push"));
+  if (changedCount === 0) {
+    console.log(chalk.gray("No changes to push (all files are up to date)"));
     return;
   }
 
@@ -101,6 +101,8 @@ export async function pushCommand(options: {
   await updateProjectVersion(newVersion);
 
   console.log(
-    chalk.green(`✓ Successfully pushed ${count} files (version ${newVersion})`),
+    chalk.green(
+      `✓ Successfully pushed ${changedCount} files (version ${newVersion})`,
+    ),
   );
 }

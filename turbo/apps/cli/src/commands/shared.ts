@@ -101,10 +101,10 @@ export async function pushAllFiles(
   });
 
   // Use batch push with fail-fast
-  await context.sync.pushFiles(projectId, filesToPush, {
+  const changedCount = await context.sync.pushFiles(projectId, filesToPush, {
     token: context.token,
     apiUrl: context.apiUrl,
   });
 
-  return files.length;
+  return changedCount;
 }
