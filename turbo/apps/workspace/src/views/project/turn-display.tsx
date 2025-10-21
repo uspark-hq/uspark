@@ -10,6 +10,23 @@ export function TurnDisplay({ turn, isLastTurn = false }: TurnDisplayProps) {
   const hasBlocks = (turn.blocks as unknown[] | undefined)?.length > 0
   const isRunning = turn.status === 'running'
 
+  // Build tool_use_id -> tool_name mapping
+  const toolNameMap = new Map<string, string>()
+  if (hasBlocks) {
+    for (const block of turn.blocks) {
+      if (
+        block.type === 'tool_use' &&
+        typeof block.content === 'object' &&
+        'tool_use_id' in block.content &&
+        'tool_name' in block.content
+      ) {
+        const toolUseId = String(block.content.tool_use_id)
+        const toolName = String(block.content.tool_name)
+        toolNameMap.set(toolUseId, toolName)
+      }
+    }
+  }
+
   return (
     <div className="space-y-2">
       {/* User message */}
@@ -34,9 +51,21 @@ export function TurnDisplay({ turn, isLastTurn = false }: TurnDisplayProps) {
       {/* Assistant blocks */}
       {hasBlocks ? (
         <div className="space-y-1.5 pl-3">
-          {filterBlocksForDisplay(turn.blocks).map((block) => (
-            <BlockDisplay key={block.id} block={block} />
-          ))}
+          {filterBlocksForDisplay(turn.blocks).map((block) => {
+            // Extract tool name for tool_result blocks
+            let toolName: string | undefined
+            if (
+              block.type === 'tool_result' &&
+              typeof block.content === 'object' &&
+              'tool_use_id' in block.content
+            ) {
+              const toolUseId = String(block.content.tool_use_id)
+              toolName = toolNameMap.get(toolUseId)
+            }
+            return (
+              <BlockDisplay key={block.id} block={block} toolName={toolName} />
+            )
+          })}
         </div>
       ) : turn.status === 'running' ? (
         <div className="rounded border border-[#3e3e42] bg-[#2d2d30] p-2 pl-5">

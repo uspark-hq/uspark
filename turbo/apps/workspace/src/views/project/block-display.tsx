@@ -4,6 +4,7 @@ type Block = GetTurnResponse['blocks'][number]
 
 interface BlockDisplayProps {
   block: Block
+  toolName?: string
 }
 
 // Runtime type for block content (schema is incorrect - content can be object)
@@ -24,7 +25,7 @@ function getTextContent(content: unknown): string {
   return JSON.stringify(content)
 }
 
-export function BlockDisplay({ block }: BlockDisplayProps) {
+export function BlockDisplay({ block, toolName }: BlockDisplayProps) {
   switch (block.type) {
     case 'text':
     case 'content': {
@@ -93,7 +94,7 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
       }
 
       return (
-        <div className="text-[11px] text-[#9cdcfe]">
+        <div className="truncate text-[11px] text-[#9cdcfe]">
           {toolName}
           {paramDisplay && (
             <span className="ml-1 font-mono text-[#6a6a6a]">
@@ -137,17 +138,52 @@ export function BlockDisplay({ block }: BlockDisplayProps) {
         resultContent = getTextContent(content)
       }
 
+      // Special handling for Read tool
+      if (toolName === 'Read' && !hasError && resultContent) {
+        const lines = resultContent.split('\n')
+        return (
+          <div className="ml-2 border-l-2 border-[#3e3e42] pl-2 font-mono text-[11px] text-[#6a6a6a]">
+            Read {lines.length} {lines.length === 1 ? 'line' : 'lines'}
+          </div>
+        )
+      }
+
+      // For other tools, limit to 3 lines
+      if (!resultContent) {
+        return (
+          <div
+            className={`ml-2 border-l-2 pl-2 font-mono text-[11px] leading-[1.4] ${
+              hasError
+                ? 'border-[#f48771] text-[#f48771]'
+                : 'border-[#3e3e42] text-[#d4d4d4]'
+            }`}
+          >
+            <pre className="font-mono whitespace-pre-wrap">
+              <span className="italic opacity-50">(no output)</span>
+            </pre>
+          </div>
+        )
+      }
+
+      const lines = resultContent.split('\n')
+      const displayLines = lines.slice(0, 3)
+      const remainingLines = lines.length - 3
+
       return (
         <div
-          className={`ml-2 max-h-[200px] overflow-hidden border-l-2 pl-2 font-mono text-[11px] leading-[1.4] ${
+          className={`ml-2 border-l-2 pl-2 font-mono text-[11px] leading-[1.4] ${
             hasError
               ? 'border-[#f48771] text-[#f48771]'
               : 'border-[#3e3e42] text-[#d4d4d4]'
           }`}
         >
           <pre className="font-mono whitespace-pre-wrap">
-            {resultContent || (
-              <span className="italic opacity-50">(no output)</span>
+            {displayLines.join('\n')}
+            {remainingLines > 0 && (
+              <span className="text-[#6a6a6a]">
+                {'\n'}+{remainingLines}{' '}
+                {remainingLines === 1 ? 'line' : 'lines'}
+              </span>
             )}
           </pre>
         </div>

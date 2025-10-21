@@ -156,7 +156,7 @@ describe('block display', () => {
       expect(screen.getByText('File not found')).toBeInTheDocument()
     })
 
-    it('renders multiline result', () => {
+    it('renders multiline result (up to 3 lines)', () => {
       const block: Block = {
         id: 'block-9',
         turnId: 'turn-1',
@@ -170,6 +170,65 @@ describe('block display', () => {
 
       render(<BlockDisplay block={block} />)
       expect(screen.getByText(/Line 1.*Line 2.*Line 3/s)).toBeInTheDocument()
+      // Should not show "+X lines" since we have exactly 3 lines
+      expect(screen.queryByText(/\+\d+ lines?/)).not.toBeInTheDocument()
+    })
+
+    it('truncates results longer than 3 lines', () => {
+      const block: Block = {
+        id: 'block-9b',
+        turnId: 'turn-1',
+        type: 'tool_result',
+        content: {
+          result: 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5',
+          error: null,
+        },
+        createdAt: new Date(),
+      }
+
+      const { container } = render(<BlockDisplay block={block} />)
+      // Check that the first 3 lines are visible
+      expect(container.textContent).toContain('Line 1')
+      expect(container.textContent).toContain('Line 2')
+      expect(container.textContent).toContain('Line 3')
+      // Check that the "+2 lines" indicator is shown
+      expect(screen.getByText('+2 lines')).toBeInTheDocument()
+      // Line 4 and 5 should not be visible
+      expect(container.textContent).not.toContain('Line 4')
+    })
+
+    it('shows Read tool result as line count', () => {
+      const block: Block = {
+        id: 'block-9c',
+        turnId: 'turn-1',
+        type: 'tool_result',
+        content: {
+          result: 'Line 1\nLine 2\nLine 3\nLine 4\nLine 5',
+          error: null,
+        },
+        createdAt: new Date(),
+      }
+
+      render(<BlockDisplay block={block} toolName="Read" />)
+      expect(screen.getByText('Read 5 lines')).toBeInTheDocument()
+      // Should not show the actual content
+      expect(screen.queryByText('Line 1')).not.toBeInTheDocument()
+    })
+
+    it('shows Read tool result with singular form for 1 line', () => {
+      const block: Block = {
+        id: 'block-9d',
+        turnId: 'turn-1',
+        type: 'tool_result',
+        content: {
+          result: 'Single line',
+          error: null,
+        },
+        createdAt: new Date(),
+      }
+
+      render(<BlockDisplay block={block} toolName="Read" />)
+      expect(screen.getByText('Read 1 line')).toBeInTheDocument()
     })
 
     it('renders no output message when content is empty', () => {
