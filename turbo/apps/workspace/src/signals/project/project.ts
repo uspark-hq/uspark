@@ -142,18 +142,33 @@ export const selectedFileContentHtml$ = computed(async (get) => {
   return DOMPurify.sanitize(rawHtml)
 })
 
-export const selectFile$ = command(({ get, set }, filePath: string) => {
-  const currentSearchParams = get(searchParams$)
-  const newSearchParams = new URLSearchParams(currentSearchParams)
+export const selectFile$ = command(
+  async ({ get, set }, filePath: string, signal: AbortSignal) => {
+    const currentSearchParams = get(searchParams$)
+    const newSearchParams = new URLSearchParams(currentSearchParams)
 
-  newSearchParams.set('file', filePath)
-  newSearchParams.delete('sessionId') // Deselect any session
+    newSearchParams.set('file', filePath)
+    newSearchParams.delete('sessionId') // Deselect any session
 
-  set(updateSearchParams$, newSearchParams)
+    set(updateSearchParams$, newSearchParams)
 
-  // Show file content when a file is selected
-  set(internalFileContentVisible$, true)
-})
+    // Show file content when a file is selected
+    set(internalFileContentVisible$, true)
+
+    // Wait for file content to load
+    await get(selectedFileContentHtml$)
+    signal.throwIfAborted()
+
+    // Wait for next tick to ensure DOM is updated
+    await delay(0, { signal })
+
+    // Scroll to top
+    const container = get(internalFileContentContainerEl$)
+    if (container) {
+      container.scrollTop = 0
+    }
+  },
+)
 
 export const selectSession$ = command(({ get, set }, sessionId: string) => {
   const currentSearchParams = get(searchParams$)
@@ -364,6 +379,22 @@ export const closeFileContent$ = command(({ get, set }) => {
   newSearchParams.delete('file')
   set(updateSearchParams$, newSearchParams)
 })
+
+// File content container element for scrolling
+const internalFileContentContainerEl$ = state<HTMLDivElement | null>(null)
+
+const internalMountFileContentContainer$ = command(
+  ({ set }, el: HTMLDivElement, signal: AbortSignal) => {
+    set(internalFileContentContainerEl$, el)
+    signal.addEventListener('abort', () => {
+      set(internalFileContentContainerEl$, null)
+    })
+  },
+)
+
+export const mountFileContentContainer$ = onRef(
+  internalMountFileContentContainer$,
+)
 
 const internalChatInput$ = state('')
 

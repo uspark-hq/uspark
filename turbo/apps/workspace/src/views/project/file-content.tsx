@@ -40,12 +40,10 @@ export function FileContent() {
     navigator.clipboard
       .writeText(shareUrl)
       .then(() => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         toast.success('Link copied to clipboard')
         closeSharePopover()
       })
       .catch(() => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
         toast.error('Failed to copy link')
       })
   }

@@ -1,10 +1,12 @@
 import type { FileItem } from '@uspark/core/yjs-filesystem'
-import { useLastResolved, useLoadable, useSet } from 'ccstate-react'
+import { useGet, useLastResolved, useLoadable, useSet } from 'ccstate-react'
+import { pageSignal$ } from '../../signals/page-signal'
 import {
   projectFiles$,
   selectedFileItem$,
   selectFile$,
 } from '../../signals/project/project'
+import { detach, Reason } from '../../signals/utils'
 
 interface FileTreeItemProps {
   item: FileItem
@@ -16,10 +18,11 @@ function FileTreeItem({ item, level }: FileTreeItemProps) {
   const selectFile = useSet(selectFile$)
   const selectedFile = useLastResolved(selectedFileItem$)
   const isSelected = selectedFile?.path === item.path
+  const signal = useGet(pageSignal$)
 
   const handleClick = () => {
     if (item.type === 'file') {
-      selectFile(item.path)
+      detach(selectFile(item.path, signal), Reason.DomCallback)
     }
   }
 
