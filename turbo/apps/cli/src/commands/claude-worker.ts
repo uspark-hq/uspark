@@ -35,7 +35,7 @@ export async function claudeWorkerCommand(options: {
   let workerId: string | null = null;
   let heartbeatTimer: NodeJS.Timeout | null = null;
 
-  // Register worker with the server
+  // Register worker with the server (non-fatal if it fails)
   try {
     console.log(chalk.blue("[uspark] Registering worker..."));
     const worker = await workerApi.registerWorker(projectId, {
@@ -61,11 +61,11 @@ export async function claudeWorkerCommand(options: {
     }, HEARTBEAT_INTERVAL_MS);
   } catch (error) {
     console.error(
-      chalk.red(
-        `[uspark] Failed to register worker: ${error instanceof Error ? error.message : String(error)}`,
+      chalk.yellow(
+        `[uspark] Worker registration failed (continuing anyway): ${error instanceof Error ? error.message : String(error)}`,
       ),
     );
-    throw error;
+    // Continue without worker tracking - it's not critical for operation
   }
 
   // Cleanup function
