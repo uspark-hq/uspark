@@ -40,7 +40,7 @@ EOF
     cd ..
 
     # Create fake claude command that will be used instead of real Claude
-    export FAKE_CLAUDE_PATH="$TEST_DIR/fake-claude"
+    export FAKE_CLAUDE_PATH="$TEST_DIR/claude"
     cat > "$FAKE_CLAUDE_PATH" << 'FAKECLAUDE'
 #!/usr/bin/env bash
 
