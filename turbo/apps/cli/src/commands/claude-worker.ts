@@ -2,15 +2,17 @@ import { spawn } from "child_process";
 import { createInterface } from "readline";
 import chalk from "chalk";
 import { requireAuth } from "./shared";
+import { WorkerApiClient } from "../worker-api";
 
 const SLEEP_SIGNAL = "###USPARK_WORKER_SLEEP###";
 const DEFAULT_SLEEP_DURATION_MS = 60000; // 60 seconds
+const HEARTBEAT_INTERVAL_MS = 30000; // 30 seconds
 
 export async function claudeWorkerCommand(options: {
   id: string;
   projectId: string;
 }): Promise<void> {
-  await requireAuth();
+  const context = await requireAuth();
 
   const { id, projectId } = options;
 
@@ -28,49 +30,73 @@ export async function claudeWorkerCommand(options: {
   console.log(chalk.cyan(`[uspark] Project ID: ${projectId}`));
   console.log(chalk.cyan(`[uspark] Press Ctrl+C to stop\n`));
 
-  let iteration = 0;
+  // Initialize worker API client
+  const workerApi = new WorkerApiClient(context.apiUrl, context.token);
 
-  while (iteration < maxIterations) {
-    iteration++;
-    console.log(chalk.yellow(`\n=== Iteration ${iteration} ===`));
-
+  // Start heartbeat timer - sends heartbeat every 30 seconds
+  const heartbeatTimer = setInterval(async () => {
     try {
-      // Phase 1: Pull files from remote
-      console.log(chalk.blue("[uspark] Phase 1: Pulling files..."));
-      await syncFiles("pull", projectId);
-
-      // Phase 2: Execute Claude
-      console.log(chalk.blue("[uspark] Phase 2: Executing Claude..."));
-      const shouldSleep = await executeClaude(id);
-
-      // Phase 3: Push files to remote
-      console.log(chalk.blue("[uspark] Phase 3: Pushing files..."));
-      await syncFiles("push", projectId);
-
-      // Phase 4: Determine next action
-      if (shouldSleep) {
-        console.log(
-          chalk.yellow(
-            `[uspark] Sleep signal detected. Waiting ${sleepDurationMs / 1000} seconds...`,
-          ),
-        );
-        await sleep(sleepDurationMs);
-      } else {
-        console.log(chalk.green("[uspark] Continuing immediately..."));
-      }
+      await workerApi.sendHeartbeat(projectId, {
+        name: `worker-${id}`,
+      });
+      console.log(chalk.gray("[uspark] Heartbeat sent"));
     } catch (error) {
       console.error(
         chalk.red(
-          `[uspark] Error in iteration ${iteration}: ${error instanceof Error ? error.message : String(error)}`,
+          `[uspark] Failed to send heartbeat: ${error instanceof Error ? error.message : String(error)}`,
         ),
       );
-      console.log(
-        chalk.yellow(
-          `[uspark] Waiting ${sleepDurationMs / 1000} seconds before retry...`,
-        ),
-      );
-      await sleep(sleepDurationMs);
     }
+  }, HEARTBEAT_INTERVAL_MS);
+
+  let iteration = 0;
+
+  try {
+    while (iteration < maxIterations) {
+      iteration++;
+      console.log(chalk.yellow(`\n=== Iteration ${iteration} ===`));
+
+      try {
+        // Phase 1: Pull files from remote
+        console.log(chalk.blue("[uspark] Phase 1: Pulling files..."));
+        await syncFiles("pull", projectId);
+
+        // Phase 2: Execute Claude
+        console.log(chalk.blue("[uspark] Phase 2: Executing Claude..."));
+        const shouldSleep = await executeClaude(id);
+
+        // Phase 3: Push files to remote
+        console.log(chalk.blue("[uspark] Phase 3: Pushing files..."));
+        await syncFiles("push", projectId);
+
+        // Phase 4: Determine next action
+        if (shouldSleep) {
+          console.log(
+            chalk.yellow(
+              `[uspark] Sleep signal detected. Waiting ${sleepDurationMs / 1000} seconds...`,
+            ),
+          );
+          await sleep(sleepDurationMs);
+        } else {
+          console.log(chalk.green("[uspark] Continuing immediately..."));
+        }
+      } catch (error) {
+        console.error(
+          chalk.red(
+            `[uspark] Error in iteration ${iteration}: ${error instanceof Error ? error.message : String(error)}`,
+          ),
+        );
+        console.log(
+          chalk.yellow(
+            `[uspark] Waiting ${sleepDurationMs / 1000} seconds before retry...`,
+          ),
+        );
+        await sleep(sleepDurationMs);
+      }
+    }
+  } finally {
+    // Clean up heartbeat timer to allow process to exit
+    clearInterval(heartbeatTimer);
   }
 }
 
