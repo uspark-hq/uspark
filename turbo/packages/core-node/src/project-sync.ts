@@ -1,5 +1,5 @@
 import { FileSystem } from "./filesystem";
-import { writeFile, readFile, mkdir } from "fs/promises";
+import { writeFile, readFile, mkdir, access } from "fs/promises";
 import { put } from "@vercel/blob";
 import { dirname, join } from "path";
 import { createHash } from "crypto";
@@ -157,7 +157,9 @@ export class ProjectSync {
 
     // Handle version conflict (409)
     if (response.status === 409) {
-      const errorData = await response.json().catch(() => ({}));
+      const errorData = (await response.json().catch(() => ({}))) as {
+        currentVersion?: number;
+      };
       const serverVersion = errorData.currentVersion || "unknown";
       throw new Error(
         `Version conflict: Local version ${this.version} does not match server version ${serverVersion}. ` +
@@ -517,7 +519,7 @@ export class ProjectSync {
     this.log(`📊 Found ${allFiles.size} files in project`, options.verbose);
 
     if (allFiles.size === 0) {
-      console.log("ℹ️  No files found in project");
+      console.log("No files found in project");
       // Create output directory even when there are no files
       if (outputDir) {
         await mkdir(outputDir, { recursive: true });
@@ -530,13 +532,44 @@ export class ProjectSync {
     const storeId = await this.getStoreId(apiUrl, token);
     this.log(`🏪 Store ID: ${storeId}`, options.verbose);
 
-    // 4. Download all files - fail fast on any error
+    // 4. Download only changed files - fail fast on any error
     this.log("⬇️  Starting file downloads...", options.verbose);
+    let downloaded = 0;
+
     for (const [filePath, fileNode] of allFiles) {
       this.log(
         `📄 Processing file: ${filePath} (hash: ${fileNode.hash})`,
         options.verbose,
       );
+
+      const localPath = outputDir ? join(outputDir, filePath) : filePath;
+
+      // Check if local file exists and has the same hash
+      let shouldDownload = true;
+      try {
+        await access(localPath);
+        // File exists, check if hash matches
+        const localContent = await readFile(localPath, "utf8");
+        const localHash = await this.computeFileHash(localContent);
+
+        if (localHash === fileNode.hash) {
+          // Hash matches, skip download
+          shouldDownload = false;
+          this.log(`⏭️  Skipping ${filePath} (hash matches)`, options.verbose);
+        } else {
+          this.log(
+            `🔄 Hash mismatch for ${filePath}: local=${localHash}, remote=${fileNode.hash}`,
+            options.verbose,
+          );
+        }
+      } catch {
+        // File doesn't exist, need to download
+        this.log(`📥 File doesn't exist locally: ${filePath}`, options.verbose);
+      }
+
+      if (!shouldDownload) {
+        continue;
+      }
 
       // Get blob content from FileSystem or fetch from remote
       let content = this.fs.getBlob(fileNode.hash);
@@ -573,16 +606,20 @@ export class ProjectSync {
       }
 
       // Write to local filesystem
-      const localPath = outputDir ? join(outputDir, filePath) : filePath;
       this.log(`💾 Writing to: ${localPath}`, options.verbose);
       await mkdir(dirname(localPath), { recursive: true });
       await writeFile(localPath, content, "utf8");
 
+      downloaded++;
       // Always show progress for each file
-      console.log(`✓ ${filePath}`);
+      console.log(`+ ${filePath}`);
     }
 
-    console.log(`🎉 Successfully pulled ${allFiles.size} files`);
+    if (downloaded > 0) {
+      console.log(`Successfully pulled ${downloaded} files`);
+    } else {
+      console.log("All files are up to date");
+    }
   }
 
   /**
