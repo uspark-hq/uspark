@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.29.0...workspace-v1.30.0) (2025-10-21)
+
+
+### Features
+
+* **workspace:** improve turn block display with smart truncation ([#693](https://github.com/uspark-hq/uspark/issues/693)) ([3cc459d](https://github.com/uspark-hq/uspark/commit/3cc459da3afabed8ed34841e27433697dea1f0c6))
+
 ## [1.29.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.28.0...workspace-v1.29.0) (2025-10-21)
 
 
