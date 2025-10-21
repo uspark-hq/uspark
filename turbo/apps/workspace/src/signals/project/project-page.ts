@@ -23,8 +23,13 @@ export const setupProjectPage$ = command(
     )
 
     // Wait for sessions to load
-    await get(projectSessions$)
+    const sessions = await get(projectSessions$)
     signal.throwIfAborted()
+
+    // Only scroll if sessions are loaded
+    if (!sessions) {
+      return
+    }
 
     // Wait for DOM to render
     await delay(100, { signal })
