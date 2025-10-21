@@ -174,7 +174,7 @@ log "Prompt file: $PROMPT_FILE"
 # 2. Pipe to Claude Code with streaming JSON output
 # 3. Pipe to uspark watch-claude for real-time processing and file sync
 cat "$PROMPT_FILE" | \
-  claude --print --verbose \
+  claude --continue --print --verbose \
     --output-format stream-json \
     --dangerously-skip-permissions | \
   uspark watch-claude \
