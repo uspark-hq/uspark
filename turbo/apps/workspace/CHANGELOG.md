@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.29.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.28.0...workspace-v1.29.0) (2025-10-21)
+
+
+### Features
+
+* **workspace:** scroll file content to top when switching files ([#691](https://github.com/uspark-hq/uspark/issues/691)) ([9093a33](https://github.com/uspark-hq/uspark/commit/9093a33554a868b145ed0760f24590bec443b807))
+
 ## [1.28.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.27.0...workspace-v1.28.0) (2025-10-21)
 
 
