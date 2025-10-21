@@ -1,18 +1,38 @@
 import { command } from 'ccstate'
 import { createElement } from 'react'
+import { delay } from 'signal-timers'
 import { ProjectPage } from '../../views/project/project-page'
 import { updatePage$ } from '../react-router'
 import { detach, Reason } from '../utils'
-import { startWatchSession$ } from './project'
+import {
+  projectSessions$,
+  startWatchSession$,
+  turnListContainerEl$,
+} from './project'
 
-export const setupProjectPage$ = command(({ set }, signal: AbortSignal) => {
-  signal.throwIfAborted()
+export const setupProjectPage$ = command(
+  async ({ get, set }, signal: AbortSignal) => {
+    signal.throwIfAborted()
 
-  set(updatePage$, createElement(ProjectPage))
+    set(updatePage$, createElement(ProjectPage))
 
-  detach(
-    set(startWatchSession$, signal),
-    Reason.Daemon,
-    'Watch session for new blocks',
-  )
-})
+    detach(
+      set(startWatchSession$, signal),
+      Reason.Daemon,
+      'Watch session for new blocks',
+    )
+
+    // Wait for sessions to load
+    await get(projectSessions$)
+    signal.throwIfAborted()
+
+    // Wait for DOM to render
+    await delay(100, { signal })
+
+    // Scroll to bottom
+    const container = get(turnListContainerEl$)
+    if (container) {
+      container.scrollTop = container.scrollHeight
+    }
+  },
+)
