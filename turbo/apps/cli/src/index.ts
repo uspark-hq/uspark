@@ -93,12 +93,14 @@ program
     "--prefix <prefix>",
     "Only watch files under this prefix directory and strip it when uploading",
   )
+  .option("--verbose", "Show full JSON output instead of just result field")
   .action(
     async (options: {
       projectId: string;
       turnId: string;
       sessionId: string;
       prefix?: string;
+      verbose?: boolean;
     }) => {
       await watchClaudeCommand(options);
     },

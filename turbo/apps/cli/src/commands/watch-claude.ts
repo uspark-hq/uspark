@@ -7,6 +7,7 @@ export async function watchClaudeCommand(options: {
   turnId: string;
   sessionId: string;
   prefix?: string;
+  verbose?: boolean;
 }): Promise<void> {
   const context = await requireAuth();
 
@@ -20,16 +21,25 @@ export async function watchClaudeCommand(options: {
   });
 
   rl.on("line", async (line: string) => {
-    // Always pass through the output transparently
-    console.log(line);
-
     // Parse JSON line - all input should be valid JSON from Claude CLI
+    let parsedLine;
     try {
-      JSON.parse(line);
+      parsedLine = JSON.parse(line);
     } catch {
       // Skip non-JSON lines silently (e.g., debug output, warnings)
       // Don't send to callback API if not valid JSON
       return;
+    }
+
+    // Output based on verbose mode
+    if (options.verbose) {
+      // Verbose mode: output full JSON
+      console.log(line);
+    } else {
+      // Non-verbose mode: only output result field if present
+      if (parsedLine.result) {
+        console.log(parsedLine.result);
+      }
     }
 
     // Send stdout line to callback API (non-blocking)
