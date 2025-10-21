@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.26.0](https://github.com/uspark-hq/uspark/compare/core-v0.25.1...core-v0.26.0) (2025-10-21)
+
+
+### Features
+
+* **core-node:** add version tracking and conflict detection for push/pull ([#678](https://github.com/uspark-hq/uspark/issues/678)) ([9e089ec](https://github.com/uspark-hq/uspark/commit/9e089ec35209d9f901ae46fe2a41624e9c72e074))
+
 ## [0.25.1](https://github.com/uspark-hq/uspark/compare/core-v0.25.0...core-v0.25.1) (2025-10-20)
 
 
