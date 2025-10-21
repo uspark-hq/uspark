@@ -336,7 +336,7 @@ export class ProjectSync {
     projectId: string,
     files: Array<{ filePath: string; localPath?: string }>,
     options: SyncOptions,
-  ): Promise<void> {
+  ): Promise<number> {
     const apiUrl = options.apiUrl;
     const token = options.token;
 
@@ -477,6 +477,9 @@ export class ProjectSync {
 
     // 7. Sync everything to remote in one PATCH request
     await this.syncToRemote(projectId, options);
+
+    // Return the number of files that were actually changed
+    return toAdd.size + toUpdate.size + toDelete.size;
   }
 
   async pullAll(
