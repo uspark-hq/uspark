@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.15.0](https://github.com/uspark-hq/uspark/compare/cli-v0.14.0...cli-v0.15.0) (2025-10-21)
+
+
+### Features
+
+* **cli:** add verbose mode and plan workflow for uspark agent ([#686](https://github.com/uspark-hq/uspark/issues/686)) ([6f33a92](https://github.com/uspark-hq/uspark/commit/6f33a928a3241b829b9ecddbac50dca430ac98f3))
+
+
+### Bug Fixes
+
+* **cli:** prevent version increment when no files changed ([#684](https://github.com/uspark-hq/uspark/issues/684)) ([22894d3](https://github.com/uspark-hq/uspark/commit/22894d34320085a1b4359461586b7521f96305d0))
+
 ## [0.14.0](https://github.com/uspark-hq/uspark/compare/cli-v0.13.2...cli-v0.14.0) (2025-10-21)
 
 

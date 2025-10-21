@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.28.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.27.0...workspace-v1.28.0) (2025-10-21)
+
+
+### Features
+
+* **e2b:** add --continue flag to claude command in execute script ([#683](https://github.com/uspark-hq/uspark/issues/683)) ([d1978c4](https://github.com/uspark-hq/uspark/commit/d1978c4e2e5cf601dc4138301c933e50d1d2266e))
+
 ## [1.27.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.26.0...workspace-v1.27.0) (2025-10-21)
 
 
