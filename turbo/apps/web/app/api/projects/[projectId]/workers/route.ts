@@ -5,6 +5,23 @@ import { WORKERS_TBL } from "../../../../../src/db/schema/workers";
 import { PROJECTS_TBL } from "../../../../../src/db/schema/projects";
 import { eq, and, desc } from "drizzle-orm";
 import { randomUUID } from "crypto";
+import { z } from "zod";
+
+// Worker timeout constant - workers are considered inactive after 60 seconds without heartbeat
+const WORKER_TIMEOUT_MS = 60_000;
+
+// Input validation schema for worker registration
+const registerWorkerSchema = z.object({
+  name: z.string().optional(),
+  metadata: z
+    .object({
+      hostname: z.string().optional(),
+      platform: z.string().optional(),
+      cliVersion: z.string().optional(),
+      nodeVersion: z.string().optional(),
+    })
+    .optional(),
+});
 
 /**
  * POST /api/projects/:projectId/workers/register
@@ -47,9 +64,33 @@ export async function POST(
     );
   }
 
-  // Parse request body
-  const body = await request.json();
-  const { name, metadata } = body;
+  // Parse and validate request body
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json(
+      {
+        error: "invalid_json",
+        error_description: "Request body must be valid JSON",
+      },
+      { status: 400 },
+    );
+  }
+
+  const parseResult = registerWorkerSchema.safeParse(body);
+  if (!parseResult.success) {
+    return NextResponse.json(
+      {
+        error: "invalid_request",
+        error_description:
+          parseResult.error.issues[0]?.message || "Invalid request body",
+      },
+      { status: 400 },
+    );
+  }
+
+  const { name, metadata } = parseResult.data;
 
   // Create new worker
   const workerId = `worker_${randomUUID()}`;
@@ -134,11 +175,11 @@ export async function GET(
     .where(eq(WORKERS_TBL.projectId, projectId))
     .orderBy(desc(WORKERS_TBL.lastHeartbeatAt));
 
-  // Update status based on last heartbeat (workers are inactive if no heartbeat in 60 seconds)
+  // Update status based on last heartbeat
   const now = new Date();
   const workersWithStatus = workers.map((worker) => {
     const timeSinceHeartbeat = now.getTime() - worker.lastHeartbeatAt.getTime();
-    const isActive = timeSinceHeartbeat < 60000; // 60 seconds
+    const isActive = timeSinceHeartbeat < WORKER_TIMEOUT_MS;
 
     return {
       id: worker.id,

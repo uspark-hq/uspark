@@ -10,6 +10,6 @@ CREATE TABLE "workers" (
 	"updated_at" timestamp DEFAULT now() NOT NULL
 );
 --> statement-breakpoint
-ALTER TABLE "turns" ALTER COLUMN "status" SET DEFAULT 'running';--> statement-breakpoint
 ALTER TABLE "workers" ADD CONSTRAINT "workers_project_id_projects_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."projects"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
-ALTER TABLE "turns" DROP COLUMN "started_at";
+CREATE INDEX "workers_project_id_idx" ON "workers" USING btree ("project_id");--> statement-breakpoint
+CREATE INDEX "workers_user_project_idx" ON "workers" USING btree ("user_id","project_id");
