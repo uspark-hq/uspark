@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.63.0](https://github.com/uspark-hq/uspark/compare/web-v0.62.0...web-v0.63.0) (2025-10-21)
+
+
+### Features
+
+* **cli:** integrate server-side worker tracking in claude-worker ([#682](https://github.com/uspark-hq/uspark/issues/682)) ([241e820](https://github.com/uspark-hq/uspark/commit/241e8203f0f62205f7393b6d0ea5401b276eb9ee))
+
 ## [0.62.0](https://github.com/uspark-hq/uspark/compare/web-v0.61.1...web-v0.62.0) (2025-10-21)
 
 
