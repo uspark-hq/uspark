@@ -276,6 +276,92 @@ stderr | test file
 - Any test file importing `msw` or using `setupServer`
 - Look for MSW warnings in test output
 
+## Flaky E2E Tests Due to Deployment Timing
+**Issue:** Web E2E tests (`web-e2e`) fail intermittently with network errors due to race conditions with Vercel preview deployment.
+**Source:** PR #686 - October 21, 2025
+**Status:** 🟡 **TEMPORARILY MITIGATED** (not properly fixed)
+**Severity:** MEDIUM
+**Problem:**
+- E2E tests depend on Vercel preview deployment being fully ready
+- Tests start as soon as deployment job completes, but Vercel URL may not be immediately available
+- Causes `ERR_ABORTED` errors when navigating to pages
+- Currently masked by enabling test retries (2 retries in CI)
+
+**Specific Failing Tests:**
+- `e2e/web/tests/github-onboarding.spec.ts`:
+  - "displays onboarding page when user has no github installation" - Line 26: `page.goto("/onboarding/github")`
+  - "projects page redirects to onboarding without github" - Line 94: `page.goto("/projects")`
+
+**Error Symptoms:**
+```
+Error: page.goto: net::ERR_ABORTED at https://uspark-xxx.vercel.app/onboarding/github
+Error: page.goto: net::ERR_ABORTED at https://uspark-xxx.vercel.app/projects
+```
+
+**Current Temporary Solution (NOT IDEAL):**
+```typescript
+// e2e/web/playwright.config.ts
+retries: process.env.CI ? 2 : 0,  // Masks the problem with retries
+```
+
+**Why This Is Wrong:**
+- Retries hide the root cause instead of fixing it
+- Tests may still fail if all retries encounter the same timing issue
+- Increases CI execution time unnecessarily
+- Violates the principle that tests should be deterministic
+
+**Proper Solution (TODO):**
+1. **Add explicit deployment readiness check:**
+   ```typescript
+   // In CI workflow before running E2E tests
+   async function waitForDeployment(url: string) {
+     const maxAttempts = 30;
+     for (let i = 0; i < maxAttempts; i++) {
+       try {
+         const response = await fetch(url);
+         if (response.ok) return;
+       } catch {}
+       await new Promise(resolve => setTimeout(resolve, 2000));
+     }
+     throw new Error('Deployment not ready');
+   }
+   ```
+
+2. **Add retry logic with exponential backoff in tests:**
+   ```typescript
+   // In test helpers
+   async function gotoWithRetry(page: Page, url: string) {
+     for (let i = 0; i < 3; i++) {
+       try {
+         await page.goto(url, { waitUntil: 'networkidle', timeout: 10000 });
+         return;
+       } catch (error) {
+         if (i === 2) throw error;
+         await page.waitForTimeout(Math.pow(2, i) * 1000);
+       }
+     }
+   }
+   ```
+
+3. **Add health check endpoint:**
+   ```typescript
+   // app/api/health/route.ts
+   export async function GET() {
+     return Response.json({ status: 'ready' });
+   }
+   ```
+
+**Impact:**
+- Tests are not truly reliable, failures are just hidden
+- Developers may not notice real deployment issues
+- Slower CI execution due to retry overhead
+
+**Action Required:**
+- Remove the retry band-aid solution
+- Implement proper deployment readiness checks
+- Add robust error handling in navigation helpers
+- Set retries back to 0 once root cause is fixed
+
 ## Test Database Setup Refactoring
 **Issue:** Tests in route.test.ts files heavily rely on manual database operations for setup, which duplicates logic already implemented in API endpoints.
 **Problem:** 
@@ -380,6 +466,7 @@ beforeEach(async () => {
 - Hardcoded URLs: **0** ✅ RESOLVED
 - Database test isolation: **Unique IDs implemented** ✅ RESOLVED
 - MSW unhandled requests: **Needs investigation** 🔴 ACTIVE
+- Flaky E2E tests: **Temporarily mitigated with retries** 🟡 NEEDS PROPER FIX
 
 ### Target State
 - Direct DB operations: **0 files**
@@ -428,6 +515,7 @@ beforeEach(async () => {
 6. **MSW Integration** 🟡 - Started migrating from fetch mocking to MSW (October 2025)
 
 ### Remaining Work:
+- **Flaky E2E Tests** 🟡 - Remove retry band-aid and implement proper deployment readiness checks
 - **MSW Unhandled Requests** 🔴 - Need to fix handler patterns to eliminate warnings
 - **Test Code `any` Types** - 3 violations in test files (low priority)
 - **Direct DB Operations in Tests** - 12 files need refactoring to use API endpoints
@@ -441,4 +529,4 @@ The most critical technical debt items have been resolved, significantly improvi
 
 ---
 
-*Last updated: 2025-10-18*
+*Last updated: 2025-10-21*
