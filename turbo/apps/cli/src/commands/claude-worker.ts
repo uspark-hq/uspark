@@ -84,7 +84,11 @@ export async function claudeWorkerCommand(options: {
           );
           await sleep(sleepDurationMs);
         } else if (action === "continue") {
-          console.log(chalk.green("[uspark] Continue signal detected. Proceeding immediately..."));
+          console.log(
+            chalk.green(
+              "[uspark] Continue signal detected. Proceeding immediately...",
+            ),
+          );
         } else {
           console.log(chalk.green("[uspark] Continuing immediately..."));
         }
