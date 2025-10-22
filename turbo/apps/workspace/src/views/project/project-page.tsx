@@ -64,13 +64,13 @@ export function ProjectPage() {
         </div>
       </div>
 
-      {/* Main content area - fixed two-column layout */}
+      {/* Main content area - 1:1 split two-column layout */}
       <div className="flex min-h-0 flex-1">
-        {/* Left panel: Session list (320px fixed) */}
+        {/* Left panel: Session list (50% width) */}
         <LeftPanel />
 
-        {/* Right panel: Session chat OR file content */}
-        <div className="flex-1">
+        {/* Right panel: Session chat OR file content (50% width) */}
+        <div className="w-1/2">
           {isFileContentVisible ? <FileContent /> : <SessionChatArea />}
         </div>
       </div>
