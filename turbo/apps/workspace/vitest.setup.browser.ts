@@ -10,7 +10,7 @@ beforeAll(async () => {
   })
   await worker.start({
     quiet: true,
-    onUnhandledRequest: 'bypass',
+    onUnhandledRequest: 'error',
   })
   controller.signal.throwIfAborted()
 

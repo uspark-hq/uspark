@@ -8,7 +8,7 @@ export const server = setupServer();
 // Setup MSW lifecycle hooks
 beforeAll(() => {
   server.listen({
-    onUnhandledRequest: "warn",
+    onUnhandledRequest: "error",
   });
 });
 
