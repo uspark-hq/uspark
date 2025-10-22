@@ -11,10 +11,11 @@ const HEARTBEAT_INTERVAL_MS = 30000; // 30 seconds
 export async function claudeWorkerCommand(options: {
   id: string;
   projectId: string;
+  verbose?: boolean;
 }): Promise<void> {
   const context = await requireAuth();
 
-  const { id, projectId } = options;
+  const { id, projectId, verbose = false } = options;
 
   // Support max iterations for testing (via environment variable)
   const maxIterations = process.env.MAX_ITERATIONS
@@ -63,7 +64,7 @@ export async function claudeWorkerCommand(options: {
 
         // Phase 2: Execute Claude
         console.log(chalk.blue("[uspark] Phase 2: Executing Claude..."));
-        const shouldSleep = await executeClaude(id);
+        const shouldSleep = await executeClaude(id, verbose);
 
         // Phase 3: Push files to remote
         console.log(chalk.blue("[uspark] Phase 3: Pushing files..."));
@@ -133,7 +134,10 @@ async function syncFiles(
  * Execute Claude with the worker prompt
  * Returns true if sleep signal was detected
  */
-async function executeClaude(taskId: string): Promise<boolean> {
+async function executeClaude(
+  taskId: string,
+  verbose: boolean,
+): Promise<boolean> {
   const prompt = buildWorkerPrompt(taskId);
 
   return new Promise((resolve, reject) => {
@@ -165,12 +169,25 @@ async function executeClaude(taskId: string): Promise<boolean> {
     });
 
     rl.on("line", (line: string) => {
-      // Pass through all output
-      console.log(line);
-
       // Check for sleep signal
       if (line.includes(SLEEP_SIGNAL)) {
         sleepDetected = true;
+      }
+
+      // Filter output based on verbose flag
+      if (verbose) {
+        // In verbose mode, output everything
+        console.log(line);
+      } else {
+        // In non-verbose mode, only output the result field from result blocks
+        try {
+          const block = JSON.parse(line);
+          if (block.type === "result" && "result" in block) {
+            console.log(block.result);
+          }
+        } catch {
+          // Not JSON or parsing error - skip silently
+        }
       }
     });
 
