@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.32.0...workspace-v1.32.1) (2025-10-22)
+
+
+### Bug Fixes
+
+* **workspace:** prevent infinite refresh of workers api ([#722](https://github.com/uspark-hq/uspark/issues/722)) ([8c7d4df](https://github.com/uspark-hq/uspark/commit/8c7d4df890c51e7e6b2db447b0f243a5daf33cfd))
+
 ## [1.32.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.31.1...workspace-v1.32.0) (2025-10-22)
 
 
