@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.1](https://github.com/uspark-hq/uspark/compare/cli-v0.17.0...cli-v0.17.1) (2025-10-22)
+
+
+### Bug Fixes
+
+* address code review issues from 2025-10-21 ([#706](https://github.com/uspark-hq/uspark/issues/706)) ([3cb4d0b](https://github.com/uspark-hq/uspark/commit/3cb4d0ba7e84a69999a69d8fa336e1e12dd359fa))
+
 ## [0.17.0](https://github.com/uspark-hq/uspark/compare/cli-v0.16.1...cli-v0.17.0) (2025-10-22)
 
 
