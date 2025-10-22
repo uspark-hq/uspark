@@ -317,3 +317,65 @@ export async function getUserRepositories(
 
   return allRepos;
 }
+
+/**
+ * GitHub repository details
+ */
+type RepositoryDetails = {
+  id: number;
+  name: string;
+  fullName: string;
+  stargazersCount: number;
+  url: string;
+  private: boolean;
+};
+
+/**
+ * Gets detailed information about a GitHub repository
+ *
+ * @param repoUrl - Repository URL in "owner/repo" format
+ * @param installationId - Optional GitHub App installation ID for private repos
+ * @returns Repository details including star count, or null if not found
+ */
+export async function getRepositoryDetails(
+  repoUrl: string,
+  installationId?: number | null,
+): Promise<RepositoryDetails | null> {
+  try {
+    // Parse owner and repo from the URL format "owner/repo"
+    const [owner, repo] = repoUrl.split("/");
+    if (!owner || !repo) {
+      return null;
+    }
+
+    // If we have an installation ID, use authenticated request
+    // Otherwise, use unauthenticated request for public repos
+    let octokit;
+    if (installationId) {
+      octokit = await createInstallationOctokit(installationId);
+    } else {
+      // For public repos without installation, use Octokit without auth
+      const { Octokit } = await import("@octokit/core");
+      octokit = new Octokit();
+    }
+
+    // Fetch repository details
+    const { data } = await octokit.request("GET /repos/{owner}/{repo}", {
+      owner,
+      repo,
+    });
+
+    return {
+      id: data.id,
+      name: data.name,
+      fullName: data.full_name,
+      stargazersCount: data.stargazers_count,
+      url: data.html_url,
+      private: data.private,
+    };
+  } catch (error) {
+    // Return null if repository not found or access denied
+    console.error(`Error fetching repository details for ${repoUrl}:`, error);
+    return null;
+  }
+}

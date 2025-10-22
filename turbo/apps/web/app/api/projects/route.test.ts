@@ -21,6 +21,7 @@ vi.mock("@clerk/nextjs/server", () => ({
 // Mock GitHub repository functions
 vi.mock("../../../src/lib/github/repository", () => ({
   hasInstallationAccess: vi.fn(),
+  getRepositoryDetails: vi.fn(),
 }));
 
 // Mock InitialScanExecutor
@@ -33,11 +34,15 @@ vi.mock("../../../src/lib/initial-scan-executor", () => ({
 }));
 
 import { auth } from "@clerk/nextjs/server";
-import { hasInstallationAccess } from "../../../src/lib/github/repository";
+import {
+  hasInstallationAccess,
+  getRepositoryDetails,
+} from "../../../src/lib/github/repository";
 import { InitialScanExecutor } from "../../../src/lib/initial-scan-executor";
 
 const mockAuth = vi.mocked(auth);
 const mockHasInstallationAccess = vi.mocked(hasInstallationAccess);
+const mockGetRepositoryDetails = vi.mocked(getRepositoryDetails);
 const mockStartScan = vi.mocked(InitialScanExecutor.startScan);
 
 describe("/api/projects", () => {
@@ -48,6 +53,9 @@ describe("/api/projects", () => {
     vi.clearAllMocks();
     // Mock successful authentication by default
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
+
+    // Mock getRepositoryDetails to return null by default
+    mockGetRepositoryDetails.mockResolvedValue(null);
 
     // Clean up any projects created in previous tests
     // Note: Since we don't have a DELETE endpoint yet, we'll track created projects

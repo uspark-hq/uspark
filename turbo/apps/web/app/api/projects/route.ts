@@ -10,7 +10,10 @@ import {
   CreateProjectRequestSchema,
   CreateProjectResponseSchema,
 } from "@uspark/core";
-import { hasInstallationAccess } from "../../../src/lib/github/repository";
+import {
+  hasInstallationAccess,
+  getRepositoryDetails,
+} from "../../../src/lib/github/repository";
 import { InitialScanExecutor } from "../../../src/lib/initial-scan-executor";
 
 // Route segment config - allow up to 5 minutes for initial scan execution
@@ -36,22 +39,45 @@ export async function GET() {
       created_at: PROJECTS_TBL.createdAt,
       updated_at: PROJECTS_TBL.updatedAt,
       source_repo_url: PROJECTS_TBL.sourceRepoUrl,
+      source_repo_installation_id: PROJECTS_TBL.sourceRepoInstallationId,
       initial_scan_status: PROJECTS_TBL.initialScanStatus,
       initial_scan_session_id: PROJECTS_TBL.initialScanSessionId,
     })
     .from(PROJECTS_TBL)
     .where(eq(PROJECTS_TBL.userId, userId));
 
-  // Convert dates to ISO strings
-  const projects = projectsData.map((project) => ({
-    ...project,
-    created_at: project.created_at.toISOString(),
-    updated_at: project.updated_at.toISOString(),
-  }));
+  // Fetch GitHub stars for projects with repositories
+  const projectsWithStars = await Promise.all(
+    projectsData.map(async (project) => {
+      let stargazers_count: number | null = null;
+
+      // Only fetch stars if project has a GitHub repository
+      if (project.source_repo_url) {
+        const repoDetails = await getRepositoryDetails(
+          project.source_repo_url,
+          project.source_repo_installation_id,
+        );
+        if (repoDetails) {
+          stargazers_count = repoDetails.stargazersCount;
+        }
+      }
+
+      return {
+        id: project.id,
+        name: project.name,
+        created_at: project.created_at.toISOString(),
+        updated_at: project.updated_at.toISOString(),
+        source_repo_url: project.source_repo_url,
+        initial_scan_status: project.initial_scan_status,
+        initial_scan_session_id: project.initial_scan_session_id,
+        stargazers_count,
+      };
+    }),
+  );
 
   // Validate response with schema
   const response = ListProjectsResponseSchema.parse({
-    projects,
+    projects: projectsWithStars,
   });
   return NextResponse.json(response);
 }

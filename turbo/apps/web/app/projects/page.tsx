@@ -26,7 +26,7 @@ import {
   CardTitle,
   Skeleton,
 } from "@uspark/ui";
-import { Trash2, FolderOpen, Plus } from "lucide-react";
+import { Trash2, FolderOpen, Plus, Star } from "lucide-react";
 
 import type { Project } from "@uspark/core";
 import { type ListProjectsResponse } from "@uspark/core/contracts/projects.contract";
@@ -308,10 +308,19 @@ export default function ProjectsListPage() {
               </CardHeader>
               {project.source_repo_url && (
                 <CardContent>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-2">
                     <Badge variant="secondary" className="text-xs">
                       {project.source_repo_url}
                     </Badge>
+                    {project.stargazers_count !== null &&
+                      project.stargazers_count !== undefined && (
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="font-medium">
+                            {project.stargazers_count.toLocaleString()}
+                          </span>
+                        </div>
+                      )}
                   </div>
                 </CardContent>
               )}
