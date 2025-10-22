@@ -10,7 +10,6 @@ const getApiUrl = () => process.env.API_HOST || "https://www.uspark.ai";
 
 const program = new Command();
 
-// CLI configuration and version
 program
   .name("uspark")
   .description("uSpark CLI - A modern build tool")
@@ -115,12 +114,8 @@ program
     await claudeWorkerCommand(options);
   });
 
-// Export for testing
 export { program };
 
-// Parse arguments when run directly
-// Check if this file is being executed directly as a CLI
-// Also check for 'uspark' in the command name for global installs
 if (
   process.argv[1]?.endsWith("index.js") ||
   process.argv[1]?.endsWith("index.ts") ||
@@ -128,4 +123,3 @@ if (
 ) {
   program.parse();
 }
-// Trigger CLI E2E tests
