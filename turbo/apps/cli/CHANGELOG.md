@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.16.1](https://github.com/uspark-hq/uspark/compare/cli-v0.16.0...cli-v0.16.1) (2025-10-22)
+
+
+### Bug Fixes
+
+* **cli:** remove unnecessary comments from index.ts ([#700](https://github.com/uspark-hq/uspark/issues/700)) ([759f447](https://github.com/uspark-hq/uspark/commit/759f44763b1560e800eec4eb41b7bfbd3f8812de))
+
 ## [0.16.0](https://github.com/uspark-hq/uspark/compare/cli-v0.15.0...cli-v0.16.0) (2025-10-21)
 
 
