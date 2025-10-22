@@ -2,6 +2,7 @@ import { createInstallationOctokit, getInstallationDetails } from "./client";
 import { initServices } from "../init-services";
 import { githubRepos, githubInstallations } from "../../db/schema/github";
 import { eq, and } from "drizzle-orm";
+import { Octokit } from "@octokit/core";
 
 /**
  * Repository creation result
@@ -355,7 +356,6 @@ export async function getRepositoryDetails(
       octokit = await createInstallationOctokit(installationId);
     } else {
       // For public repos without installation, use Octokit without auth
-      const { Octokit } = await import("@octokit/core");
       octokit = new Octokit();
     }
 
