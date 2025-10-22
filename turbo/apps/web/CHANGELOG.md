@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.64.0](https://github.com/uspark-hq/uspark/compare/web-v0.63.0...web-v0.64.0) (2025-10-22)
+
+
+### Features
+
+* **web:** implement vercel cron sessions for automated project monitoring ([#696](https://github.com/uspark-hq/uspark/issues/696)) ([0b16388](https://github.com/uspark-hq/uspark/commit/0b16388e98c66ab3f83c1e1896270676ffa85974))
+
 ## [0.63.0](https://github.com/uspark-hq/uspark/compare/web-v0.62.0...web-v0.63.0) (2025-10-21)
 
 
