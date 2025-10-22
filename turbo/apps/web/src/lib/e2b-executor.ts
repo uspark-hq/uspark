@@ -24,6 +24,42 @@ interface ExecutionResult {
 }
 
 /**
+ * Create Task Command for Claude Code
+ * This is written to ~/.claude/commands/create-task.md in the sandbox
+ */
+const CREATE_TASK_COMMAND = `Create a new task file in ~/workspace/.uspark/tasks/ directory.
+
+## Instructions
+
+1. **Generate task name**: Create a brief 3-4 word slug from the task description (e.g., "add-user-auth", "fix-api-bug")
+
+2. **Check for template**: Look for ~/workspace/.uspark/tasks/TEMPLATE.md
+   - If it exists, use it as the structure for the new task file
+   - If it doesn't exist, create a simple task file with these sections:
+     - # Task: [Title]
+     - ## Objective
+     - ## Plan
+     - ## Progress
+     - ## Completion
+
+3. **Create task file**: Write the task file as ~/workspace/.uspark/tasks/tasks-[NAME].md
+
+4. **Fill in content**:
+   - Add task objective and description
+   - Include the approved plan (if this is from plan mode workflow)
+   - Initialize the progress section
+
+5. **Confirm**: Let the user know the task file has been created and its location
+
+## Example
+
+For a task to "add user authentication feature":
+- File name: \`~/workspace/.uspark/tasks/tasks-add-user-auth.md\`
+- Use TEMPLATE.md structure if available
+- Fill in the objective and plan sections
+`;
+
+/**
  * uSpark Agent configuration for Claude Code
  * This is written to ~/.claude/CLAUDE.md in the sandbox at runtime
  */
@@ -39,8 +75,22 @@ You are **uSpark**, an AI-powered Dev Manager Agent. Your expertise includes:
 
 - **Working Directory**: \`~/workspace\`
 - **Documentation Output**: When you need to create documentation, you MUST write markdown files exclusively in the \`~/workspace/.uspark\` directory
-- **Task Management**: Use \`~/workspace/.uspark/tasks/\` directory for task planning and tracking
 - All documentation must be in markdown format
+
+### .uspark Directory Structure
+
+- **\`~/workspace/.uspark/wiki/\`**: Project technical documentation
+  - Use this for analyzing and documenting project architecture, APIs, build processes, deployment pipelines, etc.
+  - Create well-structured markdown files to capture your findings about the codebase
+
+- **\`~/workspace/.uspark/tasks/\`**: Active task list
+  - Store currently active tasks that are in progress or pending
+  - Each task file should track planning and implementation progress
+  - Optional: Create \`TEMPLATE.md\` in this directory to define a standard structure for all task files
+
+- **\`~/workspace/.uspark/tasks/archive/\`**: Completed tasks
+  - Move finished task files here for historical reference
+  - Keep the active tasks directory clean and focused
 
 ## Plan Mode Workflow
 
@@ -78,14 +128,20 @@ When plan mode is triggered:
 4. **Wait for user approval** - Do NOT make any code changes until the user confirms approval
 
 5. **Create task file** - After user approves the plan:
-   - Create a new task file in \`~/workspace/.uspark/tasks/\`
-   - Use naming pattern: \`task-1.md\`, \`task-2.md\`, etc. (use the next available number)
-   - Include the full approved plan in the task file
-   - Track implementation progress in this file
+   - Use the \`/create-task\` command to create a new task file
+   - The command will automatically:
+     - Generate appropriate file name (tasks-NAME.md format)
+     - Use TEMPLATE.md if available
+     - Set up the task structure
+   - Alternatively, manually create the task file following the naming pattern: \`tasks-NAME.md\`
 
 6. **Execute the plan** - Implement changes according to the approved plan
 
 7. **Update task file** - Document completion status and any deviations from the plan
+
+8. **Archive completed tasks** - After completing a task:
+   - Move the task file from \`~/workspace/.uspark/tasks/\` to \`~/workspace/.uspark/tasks/archive/\`
+   - This keeps the active tasks directory clean and organized
 
 ### Critical Rules
 
@@ -109,19 +165,26 @@ export class E2BExecutor {
   /**
    * Initialize Claude Code configuration in sandbox
    * Writes uSpark agent config to ~/.claude/CLAUDE.md
+   * and custom commands to ~/.claude/commands/
    */
   private static async initializeClaudeConfig(sandbox: Sandbox): Promise<void> {
     const claudeConfigPath = "/home/user/.claude/CLAUDE.md";
+    const commandsDir = "/home/user/.claude/commands";
+    const createTaskCommandPath = `${commandsDir}/create-task.md`;
 
-    // Create .claude directory if it doesn't exist
-    await sandbox.commands.run("mkdir -p /home/user/.claude", {
+    // Create .claude and commands directories if they don't exist
+    await sandbox.commands.run("mkdir -p /home/user/.claude/commands", {
       timeoutMs: 5000,
     });
 
     // Write CLAUDE.md configuration
     await sandbox.files.write(claudeConfigPath, USPARK_CLAUDE_CONFIG);
 
+    // Write create-task command
+    await sandbox.files.write(createTaskCommandPath, CREATE_TASK_COMMAND);
+
     console.log(`Initialized Claude Code config at ${claudeConfigPath}`);
+    console.log(`Initialized create-task command at ${createTaskCommandPath}`);
   }
 
   /**
