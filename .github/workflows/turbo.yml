@@ -342,6 +342,28 @@ jobs:
           npx playwright install chromium
           # Note: install-deps is not needed as dependencies are already in the container
 
+      - name: Wait for deployment to be ready
+        run: |
+          echo "Checking deployment readiness at ${{ needs.deploy-web.outputs.preview-url }}"
+          HEALTH_URL="${{ needs.deploy-web.outputs.preview-url }}/api/health"
+          MAX_ATTEMPTS=30
+          INTERVAL=2
+
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Attempt $i/$MAX_ATTEMPTS: Checking $HEALTH_URL"
+            if curl -sf "$HEALTH_URL" | grep -q '"status":"ready"'; then
+              echo "✅ Deployment is ready!"
+              exit 0
+            fi
+            if [ $i -lt $MAX_ATTEMPTS ]; then
+              echo "⏳ Deployment not ready yet, waiting ${INTERVAL}s before next attempt..."
+              sleep $INTERVAL
+            fi
+          done
+
+          echo "❌ Deployment not ready after $MAX_ATTEMPTS attempts"
+          exit 1
+
       - name: Run Playwright E2E Tests
         run: |
           echo "Testing web app at: ${{ needs.deploy-web.outputs.preview-url }}"

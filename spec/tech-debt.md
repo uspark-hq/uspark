@@ -289,7 +289,7 @@ stderr | test file
 ## Flaky E2E Tests Due to Deployment Timing
 **Issue:** Web E2E tests (`web-e2e`) fail intermittently with network errors due to race conditions with Vercel preview deployment.
 **Source:** PR #686 - October 21, 2025
-**Status:** 🟡 **TEMPORARILY MITIGATED** (not properly fixed)
+**Status:** ✅ **RESOLVED** (October 22, 2025)
 **Severity:** MEDIUM
 **Problem:**
 - E2E tests depend on Vercel preview deployment being fully ready
@@ -308,69 +308,41 @@ Error: page.goto: net::ERR_ABORTED at https://uspark-xxx.vercel.app/onboarding/g
 Error: page.goto: net::ERR_ABORTED at https://uspark-xxx.vercel.app/projects
 ```
 
-**Current Temporary Solution (NOT IDEAL):**
+**Previous Temporary Solution (REMOVED):**
 ```typescript
 // e2e/web/playwright.config.ts
 retries: process.env.CI ? 2 : 0,  // Masks the problem with retries
 ```
 
-**Why This Is Wrong:**
+**Why This Was Wrong:**
 - Retries hide the root cause instead of fixing it
 - Tests may still fail if all retries encounter the same timing issue
 - Increases CI execution time unnecessarily
 - Violates the principle that tests should be deterministic
 
-**Proper Solution (TODO):**
-1. **Add explicit deployment readiness check:**
-   ```typescript
-   // In CI workflow before running E2E tests
-   async function waitForDeployment(url: string) {
-     const maxAttempts = 30;
-     for (let i = 0; i < maxAttempts; i++) {
-       try {
-         const response = await fetch(url);
-         if (response.ok) return;
-       } catch {}
-       await new Promise(resolve => setTimeout(resolve, 2000));
-     }
-     throw new Error('Deployment not ready');
-   }
-   ```
+**Solution Implemented:** ✅
+1. **Created health check endpoint:**
+   - Added `/turbo/apps/web/app/api/health/route.ts`
+   - Returns `{ status: 'ready' }` for deployment verification
 
-2. **Add retry logic with exponential backoff in tests:**
-   ```typescript
-   // In test helpers
-   async function gotoWithRetry(page: Page, url: string) {
-     for (let i = 0; i < 3; i++) {
-       try {
-         await page.goto(url, { waitUntil: 'networkidle', timeout: 10000 });
-         return;
-       } catch (error) {
-         if (i === 2) throw error;
-         await page.waitForTimeout(Math.pow(2, i) * 1000);
-       }
-     }
-   }
-   ```
+2. **Added deployment readiness check in GitHub Actions:**
+   - Added "Wait for deployment to be ready" step in `.github/workflows/turbo.yml`
+   - Runs after deployment, before E2E tests
+   - Polls health endpoint (max 30 attempts × 2s = 60s timeout)
+   - Uses `curl` to check if deployment returns `{"status":"ready"}`
+   - Fails CI if deployment not ready after timeout
 
-3. **Add health check endpoint:**
-   ```typescript
-   // app/api/health/route.ts
-   export async function GET() {
-     return Response.json({ status: 'ready' });
-   }
-   ```
+3. **Removed retry band-aid:**
+   - Changed `retries: process.env.CI ? 2 : 0` to `retries: 0` in `playwright.config.ts`
+   - Tests now fail fast if there's a genuine issue, not after multiple retries
 
-**Impact:**
-- Tests are not truly reliable, failures are just hidden
-- Developers may not notice real deployment issues
-- Slower CI execution due to retry overhead
-
-**Action Required:**
-- Remove the retry band-aid solution
-- Implement proper deployment readiness checks
-- Add robust error handling in navigation helpers
-- Set retries back to 0 once root cause is fixed
+**Resolution Impact:**
+- ✅ Tests are now deterministic and truly reliable
+- ✅ Deployment readiness verified in CI workflow before tests run
+- ✅ Simpler solution: no Playwright setup code, no per-test retry logic
+- ✅ Faster CI execution (no unnecessary retries)
+- ✅ Clear error messages when genuine deployment issues occur
+- ✅ Works only in CI where needed, doesn't affect local development
 
 ## Test Database Setup Refactoring
 **Issue:** Tests in route.test.ts files heavily rely on manual database operations for setup, which duplicates logic already implemented in API endpoints.
@@ -476,7 +448,7 @@ beforeEach(async () => {
 - Hardcoded URLs: **0** ✅ RESOLVED
 - Database test isolation: **Unique IDs implemented** ✅ RESOLVED
 - MSW unhandled requests: **0 warnings** ✅ RESOLVED (standardized to "error" mode)
-- Flaky E2E tests: **Temporarily mitigated with retries** 🟡 NEEDS PROPER FIX
+- Flaky E2E tests: **Properly fixed with deployment readiness check** ✅ RESOLVED
 
 ### Target State
 - Direct DB operations: **0 files**
@@ -486,6 +458,7 @@ beforeEach(async () => {
 - ~~Try-catch violations: **0 unnecessary blocks**~~ ✅ ACHIEVED
 - ~~Hardcoded URLs: **0**~~ ✅ ACHIEVED
 - ~~Database test isolation: **Transaction-based with rollback**~~ ✅ ACHIEVED (via unique IDs)
+- ~~Flaky E2E tests: **Proper deployment readiness checks**~~ ✅ ACHIEVED
 
 ## Prevention Strategy
 
@@ -523,9 +496,9 @@ beforeEach(async () => {
 4. **Try-Catch Cleanup** ✅ - Removed unnecessary defensive programming patterns
 5. **Test Mock Cleanup** ✅ - Added `vi.clearAllMocks()` to all 17 test files (PR #272)
 6. **MSW Unhandled Requests** ✅ - Standardized configuration to "error" mode across all packages (October 22, 2025)
+7. **Flaky E2E Tests** ✅ - Implemented proper deployment readiness checks in CI workflow (October 22, 2025)
 
 ### Remaining Work:
-- **Flaky E2E Tests** 🟡 - Remove retry band-aid and implement proper deployment readiness checks
 - **Test Code `any` Types** - 3 violations in test files (low priority)
 - **Direct DB Operations in Tests** - 12 files need refactoring to use API endpoints
 
