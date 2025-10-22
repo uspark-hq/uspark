@@ -14,6 +14,7 @@ import {
   projectDetail,
   projectFiles,
   projectSessions,
+  projectWorkers,
   sendMessage$,
   sessionTurns,
   turnDetail,
@@ -75,6 +76,15 @@ export const currentGitHubRepository$ = computed((get) => {
   }
 
   return get(githubRepository(projectId))
+})
+
+export const currentProjectWorkers$ = computed((get) => {
+  const projectId = get(projectId$)
+  if (!projectId) {
+    return undefined
+  }
+
+  return get(projectWorkers(projectId))
 })
 
 export const projectFiles$ = computed((get) => {

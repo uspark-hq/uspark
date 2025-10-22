@@ -7,8 +7,7 @@ import {
 } from '@uspark/ui'
 import { useLastResolved } from 'ccstate-react'
 import { Activity } from 'lucide-react'
-import { projectWorkers } from '../../signals/external/project-detail'
-import { currentProject$ } from '../../signals/project/project'
+import { currentProjectWorkers$ } from '../../signals/project/project'
 
 const WORKER_TIMEOUT_MS = 60_000 // 60 seconds
 
@@ -20,13 +19,7 @@ function isWorkerActive(lastHeartbeatAt: string): boolean {
 }
 
 export function WorkersPopover() {
-  const project = useLastResolved(currentProject$)
-  const projectId = project?.id
-
-  // Always call the hook, but pass undefined when no project
-  const workersData = useLastResolved(
-    projectId ? projectWorkers(projectId) : undefined,
-  )
+  const workersData = useLastResolved(currentProjectWorkers$)
 
   const activeWorkers = workersData?.workers.filter((w) =>
     isWorkerActive(w.last_heartbeat_at),
