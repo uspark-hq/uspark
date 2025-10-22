@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.27.0](https://github.com/uspark-hq/uspark/compare/core-v0.26.0...core-v0.27.0) (2025-10-22)
+
+
+### Features
+
+* **workspace:** add workers list popover with shadcn UI ([#720](https://github.com/uspark-hq/uspark/issues/720)) ([4b6209e](https://github.com/uspark-hq/uspark/commit/4b6209e0e4731cbbd4bf0582b74001c37165fd23))
+
 ## [0.26.0](https://github.com/uspark-hq/uspark/compare/core-v0.25.1...core-v0.26.0) (2025-10-21)
 
 
