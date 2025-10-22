@@ -26,7 +26,7 @@ import {
   CardTitle,
   Skeleton,
 } from "@uspark/ui";
-import { Trash2, FolderOpen, Plus } from "lucide-react";
+import { Trash2, FolderOpen, Plus, Star } from "lucide-react";
 
 import type { Project } from "@uspark/core";
 import { type ListProjectsResponse } from "@uspark/core/contracts/projects.contract";
@@ -43,6 +43,8 @@ export default function ProjectsListPage() {
   const [hasGitHubInstallation, setHasGitHubInstallation] = useState<
     boolean | null
   >(null);
+  // Store star counts separately, keyed by repo URL
+  const [starCounts, setStarCounts] = useState<Record<string, number>>({});
 
   // Navigate to project - check if init is completed
   const navigateToProject = async (project: Project) => {
@@ -110,6 +112,42 @@ export default function ProjectsListPage() {
 
     loadProjects();
   }, []);
+
+  // Load star counts for projects with repositories
+  useEffect(() => {
+    if (projects.length === 0) return;
+
+    const loadStarCounts = async () => {
+      // Fetch star counts for all projects with repositories
+      const reposToFetch = projects.filter((p) => p.source_repo_url);
+
+      for (const project of reposToFetch) {
+        if (!project.source_repo_url) continue;
+
+        try {
+          const response = await fetch(
+            `/api/github/repo-stats?repoUrl=${encodeURIComponent(project.source_repo_url)}`,
+          );
+
+          if (response.ok) {
+            const data = await response.json();
+            setStarCounts((prev) => ({
+              ...prev,
+              [project.source_repo_url!]: data.stargazersCount,
+            }));
+          }
+        } catch (err) {
+          // Silently fail for individual repos - don't block UI
+          console.error(
+            `Failed to fetch stars for ${project.source_repo_url}:`,
+            err,
+          );
+        }
+      }
+    };
+
+    loadStarCounts();
+  }, [projects]);
 
   // Redirect to GitHub onboarding if no installation
   useEffect(() => {
@@ -308,10 +346,21 @@ export default function ProjectsListPage() {
               </CardHeader>
               {project.source_repo_url && (
                 <CardContent>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-between gap-2">
                     <Badge variant="secondary" className="text-xs">
                       {project.source_repo_url}
                     </Badge>
+                    {project.source_repo_url &&
+                      starCounts[project.source_repo_url] !== undefined && (
+                        <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                          <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
+                          <span className="font-medium">
+                            {starCounts[
+                              project.source_repo_url
+                            ]!.toLocaleString()}
+                          </span>
+                        </div>
+                      )}
                   </div>
                 </CardContent>
               )}
