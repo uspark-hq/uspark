@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.30.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.30.0...workspace-v1.30.1) (2025-10-22)
+
+
+### Bug Fixes
+
+* **workspace:** fix truncate not working in tool_use block display ([#698](https://github.com/uspark-hq/uspark/issues/698)) ([e6bcb7d](https://github.com/uspark-hq/uspark/commit/e6bcb7da71b58030c2e1d794348266dcd203d9cf))
+
 ## [1.30.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.29.0...workspace-v1.30.0) (2025-10-21)
 
 
