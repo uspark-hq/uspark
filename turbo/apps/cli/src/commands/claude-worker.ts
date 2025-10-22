@@ -6,6 +6,7 @@ import { WorkerApiClient } from "../worker-api";
 import { getOrCreateWorkerId } from "../project-config";
 
 const SLEEP_SIGNAL = "###USPARK_WORKER_SLEEP###";
+const CONTINUE_SIGNAL = "###USPARK_WORKER_CONTINUE###";
 const DEFAULT_SLEEP_DURATION_MS = 60000; // 60 seconds
 const HEARTBEAT_INTERVAL_MS = 30000; // 30 seconds
 
@@ -68,20 +69,26 @@ export async function claudeWorkerCommand(options: {
 
         // Phase 2: Execute Claude
         console.log(chalk.blue("[uspark] Phase 2: Executing Claude..."));
-        const shouldSleep = await executeClaude(workerId, verbose);
+        const action = await executeClaude(workerId, verbose);
 
         // Phase 3: Push files to remote
         console.log(chalk.blue("[uspark] Phase 3: Pushing files..."));
         await syncFiles("push", projectId);
 
         // Phase 4: Determine next action
-        if (shouldSleep) {
+        if (action === "sleep") {
           console.log(
             chalk.yellow(
               `[uspark] Sleep signal detected. Waiting ${sleepDurationMs / 1000} seconds...`,
             ),
           );
           await sleep(sleepDurationMs);
+        } else if (action === "continue") {
+          console.log(
+            chalk.green(
+              "[uspark] Continue signal detected. Proceeding immediately...",
+            ),
+          );
         } else {
           console.log(chalk.green("[uspark] Continuing immediately..."));
         }
@@ -136,12 +143,12 @@ async function syncFiles(
 
 /**
  * Execute Claude with the worker prompt
- * Returns true if sleep signal was detected
+ * Returns the detected action signal: "sleep", "continue", or "none"
  */
 async function executeClaude(
   workerId: string,
   verbose: boolean,
-): Promise<boolean> {
+): Promise<"sleep" | "continue" | "none"> {
   const prompt = buildWorkerPrompt(workerId);
 
   return new Promise((resolve, reject) => {
@@ -160,7 +167,7 @@ async function executeClaude(
       },
     );
 
-    let sleepDetected = false;
+    let detectedAction: "sleep" | "continue" | "none" = "none";
 
     // Send prompt to stdin
     proc.stdin.write(prompt);
@@ -173,9 +180,11 @@ async function executeClaude(
     });
 
     rl.on("line", (line: string) => {
-      // Check for sleep signal
+      // Check for action signals
       if (line.includes(SLEEP_SIGNAL)) {
-        sleepDetected = true;
+        detectedAction = "sleep";
+      } else if (line.includes(CONTINUE_SIGNAL)) {
+        detectedAction = "continue";
       }
 
       // Filter output based on verbose flag
@@ -197,7 +206,7 @@ async function executeClaude(
 
     proc.on("close", (code) => {
       if (code === 0) {
-        resolve(sleepDetected);
+        resolve(detectedAction);
       } else {
         reject(new Error(`Claude process failed with exit code ${code}`));
       }
@@ -213,11 +222,43 @@ async function executeClaude(
  * Build the worker prompt
  */
 function buildWorkerPrompt(workerId: string): string {
-  return `You are a uSpark Worker. Your tasks:
-1. Read the task from .uspark/tasks/task-${workerId}.md
-2. Understand the current progress and execute the next step
-3. Update the task file to record your progress
-4. If the task is completed or cannot continue, output: ${SLEEP_SIGNAL}
+  return `You are uSpark Worker #${workerId}. Follow these steps in order:
+
+## Step 1: Check for Your Assigned Task
+
+Look in \`.uspark/tasks/\` directory for task files (tasks-*.md format) that:
+- Are NOT completed (check status field in the file)
+- Have \`workerId: ${workerId}\` assigned
+
+If you find such a task:
+- Continue working on that task
+- Update the task file with your progress
+- If the task is completed, update the status to "completed" and move the file to \`.uspark/tasks/archive/\`
+- Then output: ${SLEEP_SIGNAL}
+
+## Step 2: Claim a New Task (if no assigned task found)
+
+If no task with your workerId is found, look for tasks that:
+- Are NOT completed
+- Have NO workerId assigned (either missing workerId field or workerId is empty)
+
+If you find such a task:
+- Add \`workerId: ${workerId}\` to the task file (add it near the top, after the title)
+- Report: "Claimed task: [task file name]"
+- Then output: ${CONTINUE_SIGNAL}
+
+## Step 3: Sleep (if no tasks available)
+
+If there are no tasks to work on or claim:
+- Output: ${SLEEP_SIGNAL}
+
+## Important Notes
+
+- Task files are named \`tasks-NAME.md\` (e.g., \`tasks-add-user-auth.md\`)
+- Completed tasks should be in \`.uspark/tasks/archive/\`, not in \`.uspark/tasks/\`
+- Use ${SLEEP_SIGNAL} when you finish working on a task or find no tasks (causes worker to sleep)
+- Use ${CONTINUE_SIGNAL} when you claim a new task (causes worker to continue immediately)
+- Do NOT create new tasks - only work on existing ones
 `;
 }
 
