@@ -58,26 +58,22 @@ async function exchangeToken(
 export async function authenticate(apiUrl?: string): Promise<void> {
   // Use provided apiUrl or get from config/env
   const targetApiUrl = apiUrl || (await getApiUrl());
-  console.log(chalk.blue("🔐 Initiating authentication..."));
+  console.log(chalk.blue("Initiating authentication..."));
 
   // Request device code
   const deviceAuth = await requestDeviceCode(targetApiUrl);
 
-  console.log(chalk.green("\n✓ Device code generated"));
+  console.log(chalk.green("\nDevice code generated"));
 
   // Construct verification URL from API URL
   const verificationUrl = `${targetApiUrl}/cli-auth`;
   console.log(chalk.cyan(`\nTo authenticate, visit: ${verificationUrl}`));
+  console.log(`And enter this code: ${chalk.bold(deviceAuth.user_code)}`);
   console.log(
-    chalk.yellow(`And enter this code: ${chalk.bold(deviceAuth.user_code)}`),
-  );
-  console.log(
-    chalk.gray(
-      `\nThe code expires in ${Math.floor(deviceAuth.expires_in / 60)} minutes.`,
-    ),
+    `\nThe code expires in ${Math.floor(deviceAuth.expires_in / 60)} minutes.`,
   );
 
-  console.log(chalk.blue("\n⏳ Waiting for authentication..."));
+  console.log(chalk.blue("\nWaiting for authentication..."));
 
   // Poll for token
   const startTime = Date.now();
@@ -105,8 +101,8 @@ export async function authenticate(apiUrl?: string): Promise<void> {
         apiUrl: targetApiUrl,
       });
 
-      console.log(chalk.green("\n✓ Authentication successful!"));
-      console.log(chalk.gray("Your credentials have been saved."));
+      console.log(chalk.green("\nAuthentication successful!"));
+      console.log("Your credentials have been saved.");
       return;
     }
 
@@ -119,7 +115,7 @@ export async function authenticate(apiUrl?: string): Promise<void> {
     // Handle other errors
     if (tokenResult.error === "expired_token") {
       console.log(
-        chalk.red("\n✗ The device code has expired. Please try again."),
+        chalk.red("\nThe device code has expired. Please try again."),
       );
       process.exit(1);
     }
@@ -127,7 +123,7 @@ export async function authenticate(apiUrl?: string): Promise<void> {
     if (tokenResult.error) {
       console.log(
         chalk.red(
-          `\n✗ Authentication failed: ${tokenResult.error_description || tokenResult.error}`,
+          `\nAuthentication failed: ${tokenResult.error_description || tokenResult.error}`,
         ),
       );
       process.exit(1);
@@ -135,31 +131,31 @@ export async function authenticate(apiUrl?: string): Promise<void> {
   }
 
   // Timeout
-  console.log(chalk.red("\n✗ Authentication timed out. Please try again."));
+  console.log(chalk.red("\nAuthentication timed out. Please try again."));
   process.exit(1);
 }
 
 export async function logout(): Promise<void> {
   await clearConfig();
-  console.log(chalk.green("✓ Successfully logged out"));
-  console.log(chalk.gray("Your credentials have been cleared."));
+  console.log(chalk.green("Successfully logged out"));
+  console.log("Your credentials have been cleared.");
 }
 
 export async function checkAuthStatus(): Promise<void> {
   const config = await loadConfig();
 
   if (config.token) {
-    console.log(chalk.green("✓ Authenticated"));
-    console.log(chalk.gray("You are logged in to uSpark."));
+    console.log(chalk.green("Authenticated"));
+    console.log("You are logged in to uSpark.");
   } else {
-    console.log(chalk.yellow("⚠ Not authenticated"));
-    console.log(chalk.gray("Run 'uspark auth login' to authenticate."));
+    console.log(chalk.yellow("Not authenticated"));
+    console.log("Run 'uspark auth login' to authenticate.");
   }
 
   // Also check for environment variable
   if (process.env.USPARK_TOKEN) {
     console.log(
-      chalk.blue("ℹ Using token from USPARK_TOKEN environment variable"),
+      chalk.blue("Using token from USPARK_TOKEN environment variable"),
     );
   }
 }
