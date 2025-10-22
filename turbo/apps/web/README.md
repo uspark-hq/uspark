@@ -47,5 +47,65 @@ This application requires the following environment variables to be configured:
 - `GH_APP_PRIVATE_KEY` - GitHub App private key
 - `GH_WEBHOOK_SECRET` - GitHub webhook secret
 - `DEFAULT_CLAUDE_TOKEN` - Default Claude API token
+- `CRON_SECRET` - Secret token for authenticating Vercel Cron requests (production only)
+- `BLOB_READ_WRITE_TOKEN` - Vercel Blob storage token for file content access
 
 For local development, copy `.env.local.example` to `.env.local` and fill in the values.
+
+## Cron Sessions
+
+This application supports automatic cron sessions that execute tasks on a schedule. The system automatically manages cron sessions based on the presence of a `cron.md` file in your project.
+
+### How It Works
+
+Every 10 minutes, the system:
+
+1. **Scans all projects** in the database
+2. **Checks each project** for a `cron.md` file in its YJS filesystem
+3. **For projects with cron.md**:
+   - Automatically creates or reuses a cron session (type: "cron")
+   - Checks if the last turn in the cron session is still running
+   - If the last turn is not running (or no turns exist), creates a new turn
+   - Uses the content of `cron.md` as the prompt for the new turn
+
+### Setup
+
+1. **Configure environment variable** (production only):
+
+   ```bash
+   CRON_SECRET=<random-secure-token>
+   ```
+
+2. **Add cron.md to your project**:
+   - Create a file named `cron.md` in your project's YJS filesystem
+   - Write the prompt you want to execute every 10 minutes
+
+3. **That's it!** The system will automatically:
+   - Create a cron session for your project
+   - Execute the prompt every 10 minutes (if previous turn completed)
+
+### Example cron.md
+
+```markdown
+Check project status and run all tests. Report any failures or issues found.
+Ensure code quality standards are maintained.
+```
+
+### Notes
+
+- The cron job is configured in `vercel.json` and only runs in **production** (Vercel deployment)
+- Cron schedule: `*/10 * * * *` (every 10 minutes)
+- Multiple projects can each have their own `cron.md` and cron session
+- To stop cron execution: simply delete or rename the `cron.md` file
+- The system prevents overlapping executions (waits for previous turn to complete)
+- Cron sessions are automatically created, no manual session creation needed
+
+### Performance
+
+The cron job uses **cursor-based pagination** to efficiently process projects:
+
+- Processes projects in batches of 100
+- Uses ID-based cursor for efficient database queries
+- Avoids loading all projects into memory at once
+- Continues processing until all projects are checked
+- Suitable for systems with thousands of projects
