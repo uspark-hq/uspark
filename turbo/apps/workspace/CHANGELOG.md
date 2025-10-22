@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.31.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.30.1...workspace-v1.31.0) (2025-10-22)
+
+
+### Features
+
+* **workspace:** implement 1:1 split layout for project detail page ([#702](https://github.com/uspark-hq/uspark/issues/702)) ([8c98b96](https://github.com/uspark-hq/uspark/commit/8c98b96d4498298aad46d7967b18d9e319054646))
+
 ## [1.30.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.30.0...workspace-v1.30.1) (2025-10-22)
 
 
