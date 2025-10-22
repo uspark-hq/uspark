@@ -64,6 +64,9 @@ FAKECLAUDE
 
     # Set max iterations to prevent infinite loop
     export MAX_ITERATIONS=2
+
+    # Set short sleep duration for faster tests (default is 60000ms)
+    export SLEEP_DURATION_MS=100
 }
 
 teardown() {
