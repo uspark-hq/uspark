@@ -20,21 +20,11 @@ setup() {
     # Create .uspark directory structure
     mkdir -p .uspark/tasks
 
-    # Create a simple task file
-    cat > .uspark/tasks/task-1.md << 'EOF'
-# Task: Create Hello File
+    # Note: The worker will auto-generate a workerId and look for
+    # .uspark/tasks/task-{workerId}.md. The fake Claude doesn't
+    # actually read the task file, so we don't need to create it here.
 
-## Status
-in_progress
-
-## Description
-Create a file called hello.txt with "Hello from Worker!"
-
-## Progress
-- [ ] Create hello.txt file
-EOF
-
-    # Push the task file to the remote project
+    # Initialize the remote project with .uspark directory structure
     cd .uspark
     cli_with_host push --project-id "$PROJECT_ID"
     cd ..
@@ -89,7 +79,7 @@ teardown() {
 
 @test "CLI claude-worker executes basic loop" {
     # Run claude-worker with limited iterations (MAX_ITERATIONS=2 set in setup)
-    run cli_with_host claude-worker --id 1 --project-id "$PROJECT_ID"
+    run cli_with_host claude-worker --project-id "$PROJECT_ID"
 
     # Should succeed
     assert_success
@@ -97,8 +87,10 @@ teardown() {
     # Verify .uspark directory exists
     assert [ -d .uspark ]
 
-    # Verify task file was pulled
-    assert [ -f .uspark/tasks/task-1.md ]
+    # Verify .config.json was created with workerId
+    assert [ -f .uspark/.config.json ]
+    run grep -q "workerId" .uspark/.config.json
+    assert_success
 }
 
 @test "CLI claude-worker syncs files between iterations" {
@@ -125,7 +117,7 @@ FAKECLAUDE
     chmod +x "$FAKE_CLAUDE_PATH"
 
     # Run worker (MAX_ITERATIONS=2 set in setup)
-    run cli_with_host claude-worker --id 1 --project-id "$PROJECT_ID"
+    run cli_with_host claude-worker --project-id "$PROJECT_ID"
     assert_success
 
     # Clean local directory
@@ -148,7 +140,7 @@ FAKECLAUDE
     export MAX_ITERATIONS=1
 
     # Run worker - should complete quickly
-    run cli_with_host claude-worker --id 1 --project-id "$PROJECT_ID"
+    run cli_with_host claude-worker --project-id "$PROJECT_ID"
 
     # Should succeed and exit normally
     assert_success
