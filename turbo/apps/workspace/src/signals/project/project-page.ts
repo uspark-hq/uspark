@@ -20,11 +20,18 @@ export const setupProjectPage$ = command(
 
     // Scroll to bottom after initial render
     try {
-      // Wait for DOM to render
-      await delay(300, { signal })
+      // Wait for DOM container to be available (poll with exponential backoff)
+      let container = get(turnListContainerEl$)
+      let attempts = 0
+      const maxAttempts = 10
 
-      // Scroll to bottom
-      const container = get(turnListContainerEl$)
+      while (!container && attempts < maxAttempts) {
+        await delay(0, { signal }) // Wait for next tick
+        container = get(turnListContainerEl$)
+        attempts++
+      }
+
+      // Scroll to bottom if container is available
       if (container) {
         container.scrollTop = container.scrollHeight
       }

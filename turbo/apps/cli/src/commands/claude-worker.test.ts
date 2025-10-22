@@ -155,13 +155,13 @@ describe("claude-worker", () => {
     expect(calls.length).toBeGreaterThanOrEqual(9);
 
     // First iteration - First call: uspark pull
-    expect(calls[0][0]).toBe("uspark");
-    expect(calls[0][1]).toEqual(["pull", "--project-id", "test-project"]);
-    expect(calls[0][2]?.cwd).toBe(".uspark");
+    expect(calls[0]?.[0]).toBe("uspark");
+    expect(calls[0]?.[1]).toEqual(["pull", "--project-id", "test-project"]);
+    expect(calls[0]?.[2]?.cwd).toBe(".uspark");
 
     // First iteration - Second call: claude
-    expect(calls[1][0]).toBe("claude");
-    expect(calls[1][1]).toEqual([
+    expect(calls[1]?.[0]).toBe("claude");
+    expect(calls[1]?.[1]).toEqual([
       "--continue",
       "--print",
       "--verbose",
@@ -171,9 +171,9 @@ describe("claude-worker", () => {
     ]);
 
     // First iteration - Third call: uspark push
-    expect(calls[2][0]).toBe("uspark");
-    expect(calls[2][1]).toEqual(["push", "--project-id", "test-project"]);
-    expect(calls[2][2]?.cwd).toBe(".uspark");
+    expect(calls[2]?.[0]).toBe("uspark");
+    expect(calls[2]?.[1]).toEqual(["push", "--project-id", "test-project"]);
+    expect(calls[2]?.[2]?.cwd).toBe(".uspark");
   });
 
   it("should detect sleep signal and continue to next iteration", async () => {
