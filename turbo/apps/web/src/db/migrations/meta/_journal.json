@@ -127,6 +127,13 @@
       "when": 1761085500000,
       "tag": "0017_add_sessions_type_index",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1761168480338,
+      "tag": "0018_brown_human_torch",
+      "breakpoints": true
     }
   ]
 }

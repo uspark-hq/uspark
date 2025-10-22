@@ -66,10 +66,8 @@ export async function GET(
       id: worker.id,
       project_id: worker.projectId,
       user_id: worker.userId,
-      name: worker.name,
       status: isActive ? "active" : "inactive",
       last_heartbeat_at: worker.lastHeartbeatAt.toISOString(),
-      metadata: worker.metadata,
       created_at: worker.createdAt.toISOString(),
       updated_at: worker.updatedAt.toISOString(),
     };

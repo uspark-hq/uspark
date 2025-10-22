@@ -1,20 +1,9 @@
-import os from "os";
-
-interface WorkerMetadata {
-  hostname?: string;
-  platform?: string;
-  cliVersion?: string;
-  nodeVersion?: string;
-}
-
 interface Worker {
   id: string;
   project_id: string;
   user_id: string;
-  name: string | null;
   status: string;
   last_heartbeat_at: string;
-  metadata: WorkerMetadata | null;
   created_at: string;
   updated_at: string;
 }
@@ -31,13 +20,7 @@ export class WorkerApiClient {
   /**
    * Send heartbeat (creates or updates worker)
    */
-  async sendHeartbeat(
-    projectId: string,
-    options?: {
-      name?: string;
-      metadata?: WorkerMetadata;
-    },
-  ): Promise<Worker> {
+  async sendHeartbeat(projectId: string, workerId: string): Promise<Worker> {
     const response = await fetch(
       `${this.apiUrl}/api/projects/${projectId}/workers/heartbeat`,
       {
@@ -47,8 +30,7 @@ export class WorkerApiClient {
           Authorization: `Bearer ${this.token}`,
         },
         body: JSON.stringify({
-          name: options?.name || os.hostname(),
-          metadata: options?.metadata || this.getDefaultMetadata(),
+          worker_id: workerId,
         }),
       },
     );
@@ -64,13 +46,5 @@ export class WorkerApiClient {
     }
 
     return (await response.json()) as Worker;
-  }
-
-  private getDefaultMetadata(): WorkerMetadata {
-    return {
-      hostname: os.hostname(),
-      platform: os.platform(),
-      nodeVersion: process.version,
-    };
   }
 }
