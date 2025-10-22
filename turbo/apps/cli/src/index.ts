@@ -108,14 +108,11 @@ program
 program
   .command("claude-worker")
   .description("Run Claude as a continuous worker to process tasks")
-  .requiredOption("--id <taskId>", "Task ID to process")
   .requiredOption("--project-id <projectId>", "Project ID to sync changes to")
   .option("--verbose", "Show full JSON output instead of just result field")
-  .action(
-    async (options: { id: string; projectId: string; verbose?: boolean }) => {
-      await claudeWorkerCommand(options);
-    },
-  );
+  .action(async (options: { projectId: string; verbose?: boolean }) => {
+    await claudeWorkerCommand(options);
+  });
 
 export { program };
 
