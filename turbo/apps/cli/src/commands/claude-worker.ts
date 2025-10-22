@@ -41,9 +41,7 @@ export async function claudeWorkerCommand(options: {
   // Start heartbeat timer - sends heartbeat every 30 seconds
   const heartbeatTimer = setInterval(async () => {
     try {
-      await workerApi.sendHeartbeat(projectId, {
-        name: `worker-${workerId}`,
-      });
+      await workerApi.sendHeartbeat(projectId, workerId);
       console.log(chalk.gray("[uspark] Heartbeat sent"));
     } catch (error) {
       console.error(

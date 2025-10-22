@@ -5,19 +5,10 @@ import { WORKERS_TBL } from "../../../../../../src/db/schema/workers";
 import { PROJECTS_TBL } from "../../../../../../src/db/schema/projects";
 import { eq, and } from "drizzle-orm";
 import { z } from "zod";
-import crypto from "crypto";
 
 // Input validation schema for heartbeat
 const heartbeatSchema = z.object({
-  name: z.string().optional(),
-  metadata: z
-    .object({
-      hostname: z.string().optional(),
-      platform: z.string().optional(),
-      cliVersion: z.string().optional(),
-      nodeVersion: z.string().optional(),
-    })
-    .optional(),
+  worker_id: z.string().min(1, "worker_id is required"),
 });
 
 /**
@@ -87,12 +78,7 @@ export async function POST(
     );
   }
 
-  const { name, metadata } = parseResult.data;
-
-  // Generate deterministic worker ID based on userId, projectId, and hostname
-  const hostname = metadata?.hostname || name || "unknown";
-  const workerKey = `${userId}:${projectId}:${hostname}`;
-  const workerId = `worker_${crypto.createHash("sha256").update(workerKey).digest("hex").substring(0, 16)}`;
+  const { worker_id: workerId } = parseResult.data;
 
   // Upsert worker (insert or update)
   const now = new Date();
@@ -104,8 +90,6 @@ export async function POST(
       lastHeartbeatAt: now,
       updatedAt: now,
       status: "active",
-      ...(name && { name }),
-      ...(metadata && { metadata }),
     })
     .where(eq(WORKERS_TBL.id, workerId))
     .returning();
@@ -120,10 +104,8 @@ export async function POST(
         id: workerId,
         projectId,
         userId,
-        name: name || hostname,
         status: "active",
         lastHeartbeatAt: now,
-        metadata: metadata || null,
       })
       .returning();
 
@@ -138,10 +120,8 @@ export async function POST(
     id: worker.id,
     project_id: projectId,
     user_id: userId,
-    name: worker.name,
     status: worker.status,
     last_heartbeat_at: worker.lastHeartbeatAt.toISOString(),
-    metadata: worker.metadata,
     created_at: worker.createdAt.toISOString(),
     updated_at: worker.updatedAt.toISOString(),
   };
