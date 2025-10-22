@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.17.0](https://github.com/uspark-hq/uspark/compare/cli-v0.16.1...cli-v0.17.0) (2025-10-22)
+
+
+### Features
+
+* **cli:** add verbose flag to claude-worker command ([#704](https://github.com/uspark-hq/uspark/issues/704)) ([aea9f2b](https://github.com/uspark-hq/uspark/commit/aea9f2b977b8c06fb634dcc4f7104a15484a1774))
+
 ## [0.16.1](https://github.com/uspark-hq/uspark/compare/cli-v0.16.0...cli-v0.16.1) (2025-10-22)
 
 
