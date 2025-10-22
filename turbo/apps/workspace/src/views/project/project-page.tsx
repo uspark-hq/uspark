@@ -9,6 +9,7 @@ import { FileContent } from './file-content'
 import { FileTreePopover } from './file-tree-popover'
 import { LeftPanel } from './left-panel'
 import { SessionChatArea } from './session-chat-area'
+import { WorkersPopover } from './workers-popover'
 
 /**
  * ProjectPage component with two-column layout:
@@ -60,6 +61,7 @@ export function ProjectPage() {
               <span>GitHub</span>
             </a>
           )}
+          <WorkersPopover />
           <FileTreePopover />
         </div>
       </div>

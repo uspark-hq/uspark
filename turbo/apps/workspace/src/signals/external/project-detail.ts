@@ -5,6 +5,7 @@ import {
 } from '@uspark/core/contracts/project-detail.contract'
 import { projectsContract } from '@uspark/core/contracts/projects.contract'
 import { turnsContract } from '@uspark/core/contracts/turns.contract'
+import { workersContract } from '@uspark/core/contracts/workers.contract'
 import { parseYjsFileSystem, type FileItem } from '@uspark/core/yjs-filesystem'
 import { command, computed } from 'ccstate'
 import { fetch$ } from '../fetch'
@@ -251,4 +252,15 @@ export const getFileContentUrl = (
   fileHash: string,
 ): string => {
   return `https://${storeId}.public.blob.vercel-storage.com/projects/${projectId}/${fileHash}`
+}
+
+export const projectWorkers = function (projectId: string) {
+  return computed(async (get) => {
+    const workspaceFetch = get(fetch$)
+
+    return await contractFetch(workersContract.listWorkers, {
+      params: { projectId },
+      fetch: workspaceFetch,
+    })
+  })
 }
