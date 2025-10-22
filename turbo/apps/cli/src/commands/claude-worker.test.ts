@@ -12,6 +12,11 @@ vi.mock("./shared", () => ({
   }),
 }));
 
+// Mock project-config
+vi.mock("../project-config", () => ({
+  getOrCreateWorkerId: vi.fn().mockResolvedValue("test-worker-id-12345"),
+}));
+
 // Mock chalk
 vi.mock("chalk", () => ({
   default: {
@@ -20,12 +25,20 @@ vi.mock("chalk", () => ({
     yellow: (str: string) => str,
     green: (str: string) => str,
     red: (str: string) => str,
+    gray: (str: string) => str,
   },
 }));
 
 // Mock child_process
 vi.mock("child_process", () => ({
   spawn: vi.fn(),
+}));
+
+// Mock WorkerApiClient
+vi.mock("../worker-api", () => ({
+  WorkerApiClient: vi.fn().mockImplementation(() => ({
+    sendHeartbeat: vi.fn().mockResolvedValue(undefined),
+  })),
 }));
 
 // Helper to create a mock child process
@@ -143,7 +156,6 @@ describe("claude-worker", () => {
 
   it("should execute pull -> claude -> push cycle", async () => {
     await claudeWorkerCommand({
-      id: "1",
       projectId: "test-project",
     });
 
@@ -178,7 +190,6 @@ describe("claude-worker", () => {
 
   it("should detect sleep signal and continue to next iteration", async () => {
     await claudeWorkerCommand({
-      id: "1",
       projectId: "test-project",
     });
 
@@ -233,7 +244,6 @@ describe("claude-worker", () => {
     });
 
     await claudeWorkerCommand({
-      id: "1",
       projectId: "test-project",
     });
 
@@ -278,7 +288,6 @@ describe("claude-worker", () => {
     });
 
     await claudeWorkerCommand({
-      id: "1",
       projectId: "test-project",
     });
 
