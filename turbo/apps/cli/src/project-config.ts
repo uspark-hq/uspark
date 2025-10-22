@@ -1,10 +1,12 @@
 import { readFile, writeFile } from "fs/promises";
 import { existsSync } from "fs";
 import { join } from "path";
+import { randomUUID } from "crypto";
 
 interface ProjectConfig {
   projectId: string;
   version?: string;
+  workerId?: string;
 }
 
 const CONFIG_FILENAME = ".config.json";
@@ -77,4 +79,22 @@ export async function updateProjectVersion(
     );
   }
   await saveProjectConfig({ ...config, version }, dir);
+}
+
+export async function getOrCreateWorkerId(
+  dir: string = process.cwd(),
+): Promise<string> {
+  const config = await loadProjectConfig(dir);
+
+  // If config doesn't exist or doesn't have a workerId, generate a new one
+  if (!config?.workerId) {
+    const workerId = randomUUID();
+    await saveProjectConfig(
+      { ...(config || {}), workerId } as ProjectConfig,
+      dir,
+    );
+    return workerId;
+  }
+
+  return config.workerId;
 }
