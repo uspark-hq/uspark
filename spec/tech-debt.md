@@ -210,9 +210,19 @@ useEffect(() => {
 ## MSW Unhandled Requests in Tests
 **Issue:** Tests using MSW (Mock Service Worker) have unhandled HTTP requests that pass through without being intercepted.
 **Source:** Code review October 2025
-**Status:** 🔴 **ACTIVE**
+**Status:** ✅ **RESOLVED** (October 22, 2025)
 **Severity:** MEDIUM
-**Problem:**
+**Resolution:** Standardized MSW configuration across all packages to use `onUnhandledRequest: "error"` and fixed all unhandled requests
+
+**Changes Made:**
+- Updated `/turbo/packages/core/src/test/msw-setup.ts` to use "error" mode
+- Updated `/turbo/apps/web/src/test/msw-setup.ts` to use "error" mode (removed custom warning logging)
+- Updated `/turbo/apps/workspace/vitest.setup.browser.ts` to use "error" mode
+- Added missing handler for `/api/github/repositories` in global MSW handlers
+- Fixed `contract-fetch-simple.test.ts` to use proper MSW handlers instead of expecting network failures
+- Removed duplicate MSW server setup from `github-repo-selector.test.tsx`
+
+**Problem (Previously):**
 - MSW warns about unhandled requests but tests still pass
 - Indicates missing or incorrect request handlers
 - Tests may be making real network calls instead of using mocks
@@ -465,7 +475,7 @@ beforeEach(async () => {
 - Timer cleanup issues: **0** ✅ RESOLVED
 - Hardcoded URLs: **0** ✅ RESOLVED
 - Database test isolation: **Unique IDs implemented** ✅ RESOLVED
-- MSW unhandled requests: **Needs investigation** 🔴 ACTIVE
+- MSW unhandled requests: **0 warnings** ✅ RESOLVED (standardized to "error" mode)
 - Flaky E2E tests: **Temporarily mitigated with retries** 🟡 NEEDS PROPER FIX
 
 ### Target State
@@ -512,11 +522,10 @@ beforeEach(async () => {
 3. **Hardcoded URLs** ✅ - All URLs now use centralized configuration (PR #259)
 4. **Try-Catch Cleanup** ✅ - Removed unnecessary defensive programming patterns
 5. **Test Mock Cleanup** ✅ - Added `vi.clearAllMocks()` to all 17 test files (PR #272)
-6. **MSW Integration** 🟡 - Started migrating from fetch mocking to MSW (October 2025)
+6. **MSW Unhandled Requests** ✅ - Standardized configuration to "error" mode across all packages (October 22, 2025)
 
 ### Remaining Work:
 - **Flaky E2E Tests** 🟡 - Remove retry band-aid and implement proper deployment readiness checks
-- **MSW Unhandled Requests** 🔴 - Need to fix handler patterns to eliminate warnings
 - **Test Code `any` Types** - 3 violations in test files (low priority)
 - **Direct DB Operations in Tests** - 12 files need refactoring to use API endpoints
 
@@ -529,4 +538,4 @@ The most critical technical debt items have been resolved, significantly improvi
 
 ---
 
-*Last updated: 2025-10-21*
+*Last updated: 2025-10-22*

@@ -1,69 +1,11 @@
 /**
  * @vitest-environment jsdom
  */
-import {
-  describe,
-  it,
-  expect,
-  vi,
-  beforeEach,
-  beforeAll,
-  afterAll,
-  afterEach,
-} from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { GitHubRepoSelector } from "../github-repo-selector";
-import { http, HttpResponse } from "msw";
-import { setupServer } from "msw/node";
-
-const mockRepositories = [
-  {
-    id: 1,
-    name: "repo-1",
-    fullName: "owner1/repo-1",
-    installationId: 123,
-    private: false,
-    url: "https://github.com/owner1/repo-1",
-  },
-  {
-    id: 2,
-    name: "repo-2",
-    fullName: "owner1/repo-2",
-    installationId: 123,
-    private: true,
-    url: "https://github.com/owner1/repo-2",
-  },
-  {
-    id: 3,
-    name: "repo-3",
-    fullName: "owner2/repo-3",
-    installationId: 456,
-    private: false,
-    url: "https://github.com/owner2/repo-3",
-  },
-];
-
-// Setup MSW server
-const server = setupServer(
-  http.get("*/api/github/repositories", () => {
-    return HttpResponse.json({ repositories: mockRepositories });
-  }),
-);
-
-beforeAll(() => {
-  server.listen({ onUnhandledRequest: "error" });
-});
-
-afterEach(() => {
-  vi.clearAllMocks();
-  server.resetHandlers();
-});
-
-afterAll(() => {
-  server.close();
-});
 
 describe("GitHubRepoSelector", () => {
   beforeEach(() => {

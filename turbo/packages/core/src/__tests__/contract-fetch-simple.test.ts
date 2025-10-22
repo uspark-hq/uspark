@@ -2,11 +2,11 @@ import { describe, it, expect } from "vitest";
 import { initContract } from "@ts-rest/core";
 import { z } from "zod";
 import { contractFetch, ContractFetchError } from "../contract-fetch";
+import { server, http, HttpResponse } from "../test/msw-setup";
 
 // 创建一个简单的测试合约
 const c = initContract();
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const simpleContract = c.router({
   getUser: {
     method: "GET",
@@ -65,6 +65,26 @@ describe("contractFetch simple test", () => {
 
     expect(assertGetUserType).toBeDefined();
     expect(assertCreateUserType).toBeDefined();
+  });
+
+  it("should build correct request URL with path params", async () => {
+    // Set up MSW handler for this test
+    server.use(
+      http.get("https://api.example.com/api/users/:id", ({ params }) => {
+        return HttpResponse.json({
+          id: params.id as string,
+          name: "Test User",
+        });
+      }),
+    );
+
+    const result = await contractFetch(simpleContract.getUser, {
+      baseUrl: "https://api.example.com",
+      params: { id: "user123" },
+    });
+
+    expect(result.id).toBe("user123");
+    expect(result.name).toBe("Test User");
   });
 
   it("should handle ContractFetchError type", () => {
