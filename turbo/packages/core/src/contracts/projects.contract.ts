@@ -48,11 +48,6 @@ export const ProjectSchema = z.object({
     .nullable()
     .optional()
     .describe("Session ID for initial scan"),
-  stargazers_count: z
-    .number()
-    .nullable()
-    .optional()
-    .describe("GitHub repository star count"),
 });
 
 /**
