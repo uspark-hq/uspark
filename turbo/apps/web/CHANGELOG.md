@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.0.0](https://github.com/uspark-hq/uspark/compare/web-v0.64.0...web-v1.0.0) (2025-10-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* **workers:** use client-generated worker id in heartbeat ([#713](https://github.com/uspark-hq/uspark/issues/713))
+
+### Features
+
+* implement task management system for uSpark workers ([#712](https://github.com/uspark-hq/uspark/issues/712)) ([e761d4f](https://github.com/uspark-hq/uspark/commit/e761d4f871bdb6de4b769d5828b7f1017d1458ff))
+* **workers:** use client-generated worker id in heartbeat ([#713](https://github.com/uspark-hq/uspark/issues/713)) ([6fb7af6](https://github.com/uspark-hq/uspark/commit/6fb7af68a89e18c5cd0ca6d48c6a7c2d06e1f8b7))
+
+
+### Performance Improvements
+
+* **e2e:** reduce claude-worker test duration from 3+ minutes to seconds ([#714](https://github.com/uspark-hq/uspark/issues/714)) ([60e1900](https://github.com/uspark-hq/uspark/commit/60e1900bb479ef34a0d09adef9dea9658388cd61))
+
 ## [0.64.0](https://github.com/uspark-hq/uspark/compare/web-v0.63.0...web-v0.64.0) (2025-10-22)
 
 

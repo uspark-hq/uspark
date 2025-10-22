@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.0.0](https://github.com/uspark-hq/uspark/compare/cli-v0.17.1...cli-v1.0.0) (2025-10-22)
+
+
+### ⚠ BREAKING CHANGES
+
+* **workers:** use client-generated worker id in heartbeat ([#713](https://github.com/uspark-hq/uspark/issues/713))
+
+### Features
+
+* **cli:** auto-generate worker id for claude-worker command ([#710](https://github.com/uspark-hq/uspark/issues/710)) ([86eb204](https://github.com/uspark-hq/uspark/commit/86eb204317be5d816ffaccd65db76ffadedf3a2e))
+* implement task management system for uSpark workers ([#712](https://github.com/uspark-hq/uspark/issues/712)) ([e761d4f](https://github.com/uspark-hq/uspark/commit/e761d4f871bdb6de4b769d5828b7f1017d1458ff))
+* **workers:** use client-generated worker id in heartbeat ([#713](https://github.com/uspark-hq/uspark/issues/713)) ([6fb7af6](https://github.com/uspark-hq/uspark/commit/6fb7af68a89e18c5cd0ca6d48c6a7c2d06e1f8b7))
+
+
+### Bug Fixes
+
+* **cli:** improve auth output visibility by removing emojis and fixing colors ([#709](https://github.com/uspark-hq/uspark/issues/709)) ([3e3a849](https://github.com/uspark-hq/uspark/commit/3e3a84958ee7587f27f5e257257498b1557f964a))
+
+
+### Performance Improvements
+
+* **e2e:** reduce claude-worker test duration from 3+ minutes to seconds ([#714](https://github.com/uspark-hq/uspark/issues/714)) ([60e1900](https://github.com/uspark-hq/uspark/commit/60e1900bb479ef34a0d09adef9dea9658388cd61))
+
 ## [0.17.1](https://github.com/uspark-hq/uspark/compare/cli-v0.17.0...cli-v0.17.1) (2025-10-22)
 
 
