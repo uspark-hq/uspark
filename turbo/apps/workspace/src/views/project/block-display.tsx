@@ -94,10 +94,10 @@ export function BlockDisplay({ block, toolName }: BlockDisplayProps) {
       }
 
       return (
-        <div className="truncate text-[11px] text-[#9cdcfe]">
-          {toolName}
+        <div className="flex items-center gap-1 overflow-hidden text-[11px] text-[#9cdcfe]">
+          <span className="shrink-0">{toolName}</span>
           {paramDisplay && (
-            <span className="ml-1 font-mono text-[#6a6a6a]">
+            <span className="truncate font-mono text-[#6a6a6a]">
               {paramDisplay}
             </span>
           )}
