@@ -3,6 +3,7 @@ import { getUserId } from "../../../src/lib/auth/get-user-id";
 import * as Y from "yjs";
 import { initServices } from "../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
+import { GITHUB_REPO_STATS_TBL } from "../../../src/db/schema/github-repo-stats";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
@@ -18,6 +19,65 @@ import { InitialScanExecutor } from "../../../src/lib/initial-scan-executor";
 
 // Route segment config - allow up to 5 minutes for initial scan execution
 export const maxDuration = 300;
+
+/**
+ * Helper function to get cached repository stars
+ * Checks cache first (1 hour TTL), then fetches from GitHub if needed
+ */
+async function getCachedRepoStars(
+  repoUrl: string,
+  installationId: number | null,
+): Promise<number | null> {
+  const db = globalThis.services.db;
+  const now = new Date();
+  const ONE_HOUR_MS = 60 * 60 * 1000;
+
+  // Check cache
+  const cached = await db
+    .select()
+    .from(GITHUB_REPO_STATS_TBL)
+    .where(eq(GITHUB_REPO_STATS_TBL.repoUrl, repoUrl))
+    .limit(1);
+
+  // Return cached data if less than 1 hour old
+  if (cached.length > 0 && cached[0]) {
+    const cacheAge = now.getTime() - cached[0].lastFetchedAt.getTime();
+    if (cacheAge < ONE_HOUR_MS) {
+      return cached[0].stargazersCount;
+    }
+  }
+
+  // Fetch fresh data from GitHub
+  const repoDetails = await getRepositoryDetails(repoUrl, installationId);
+
+  if (!repoDetails) {
+    return null;
+  }
+
+  // Upsert into cache
+  await db
+    .insert(GITHUB_REPO_STATS_TBL)
+    .values({
+      repoUrl,
+      stargazersCount: repoDetails.stargazersCount,
+      forksCount: 0,
+      openIssuesCount: null,
+      installationId,
+      lastFetchedAt: now,
+      updatedAt: now,
+    })
+    .onConflictDoUpdate({
+      target: GITHUB_REPO_STATS_TBL.repoUrl,
+      set: {
+        stargazersCount: repoDetails.stargazersCount,
+        installationId,
+        lastFetchedAt: now,
+        updatedAt: now,
+      },
+    });
+
+  return repoDetails.stargazersCount;
+}
 
 /**
  * GET /api/projects
@@ -46,20 +106,17 @@ export async function GET() {
     .from(PROJECTS_TBL)
     .where(eq(PROJECTS_TBL.userId, userId));
 
-  // Fetch GitHub stars for projects with repositories
+  // Fetch GitHub stars for projects with repositories (with caching)
   const projectsWithStars = await Promise.all(
     projectsData.map(async (project) => {
       let stargazers_count: number | null = null;
 
       // Only fetch stars if project has a GitHub repository
       if (project.source_repo_url) {
-        const repoDetails = await getRepositoryDetails(
+        stargazers_count = await getCachedRepoStars(
           project.source_repo_url,
           project.source_repo_installation_id,
         );
-        if (repoDetails) {
-          stargazers_count = repoDetails.stargazersCount;
-        }
       }
 
       return {
