@@ -76,11 +76,18 @@ Every 10 minutes, the system:
    CRON_SECRET=<random-secure-token>
    ```
 
-2. **Add cron.md to your project**:
+2. **Configure Vercel Cron Job** (production only):
+   - Go to your Vercel project settings → Cron Jobs
+   - Add a new cron job:
+     - **Path**: `/api/cron/process-cron-sessions`
+     - **Schedule**: `*/10 * * * *` (every 10 minutes)
+   - The cron job will use the `CRON_SECRET` for authentication
+
+3. **Add cron.md to your project**:
    - Create a file named `cron.md` in your project's YJS filesystem
    - Write the prompt you want to execute every 10 minutes
 
-3. **That's it!** The system will automatically:
+4. **That's it!** The system will automatically:
    - Create a cron session for your project
    - Execute the prompt every 10 minutes (if previous turn completed)
 

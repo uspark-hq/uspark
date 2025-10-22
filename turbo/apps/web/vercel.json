@@ -1,8 +1,0 @@
-{
-  "crons": [
-    {
-      "path": "/api/cron/process-cron-sessions",
-      "schedule": "*/10 * * * *"
-    }
-  ]
-}
