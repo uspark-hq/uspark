@@ -1,5 +1,24 @@
 # Changelog
 
+## [1.1.0](https://github.com/uspark-hq/uspark/compare/web-v1.0.0...web-v1.1.0) (2025-10-22)
+
+
+### Features
+
+* **projects:** add github star count display to projects ([#718](https://github.com/uspark-hq/uspark/issues/718)) ([1673f24](https://github.com/uspark-hq/uspark/commit/1673f242fbe38373941562d934c72c0f36b44e9e))
+
+
+### Bug Fixes
+
+* **e2e:** add deployment readiness check in ci workflow ([#717](https://github.com/uspark-hq/uspark/issues/717)) ([1d1eb64](https://github.com/uspark-hq/uspark/commit/1d1eb64827296355e8779ac16c30f720fc9d0539))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.27.0
+
 ## [1.0.0](https://github.com/uspark-hq/uspark/compare/web-v0.64.0...web-v1.0.0) (2025-10-22)
 
 

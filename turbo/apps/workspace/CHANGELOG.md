@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.32.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.31.1...workspace-v1.32.0) (2025-10-22)
+
+
+### Features
+
+* **workspace:** add workers list popover with shadcn UI ([#720](https://github.com/uspark-hq/uspark/issues/720)) ([4b6209e](https://github.com/uspark-hq/uspark/commit/4b6209e0e4731cbbd4bf0582b74001c37165fd23))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.27.0
+
 ## [1.31.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.31.0...workspace-v1.31.1) (2025-10-22)
 
 
