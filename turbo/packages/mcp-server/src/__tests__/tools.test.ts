@@ -48,8 +48,8 @@ describe("MCP Tool Handlers", () => {
 
       expect(result.isError).toBeUndefined();
       expect(result.content).toHaveLength(1);
-      expect(result.content[0].text).toContain("Successfully pulled 2 files");
-      expect(result.content[0].text).toContain("test-project");
+      expect(result.content[0]?.text).toContain("Successfully pulled 2 files");
+      expect(result.content[0]?.text).toContain("test-project");
 
       // Verify files were written to disk
       const readmeContent = await readFile(join(tempDir, "README.md"), "utf8");
@@ -66,7 +66,7 @@ describe("MCP Tool Handlers", () => {
       const result = await handleUsparkPull(config);
 
       expect(result.isError).toBeUndefined();
-      expect(result.content[0].text).toContain("Successfully pulled 0 files");
+      expect(result.content[0]?.text).toContain("Successfully pulled 0 files");
 
       // Verify output directory was created
       const files = await readdir(tempDir);
@@ -84,7 +84,7 @@ describe("MCP Tool Handlers", () => {
 
       // With current mock setup, this will succeed with empty project
       expect(result.isError).toBeUndefined();
-      expect(result.content[0].text).toContain("0 files");
+      expect(result.content[0]?.text).toContain("0 files");
     });
   });
 
@@ -93,7 +93,7 @@ describe("MCP Tool Handlers", () => {
       const result = await handleUsparkStatus(config);
 
       expect(result.content).toHaveLength(1);
-      const statusText = result.content[0].text;
+      const statusText = result.content[0]?.text;
 
       expect(statusText).toContain("uSpark MCP Server Status");
       expect(statusText).toContain("test-project");
@@ -118,7 +118,7 @@ describe("MCP Tool Handlers", () => {
       expect(result.isError).toBeUndefined();
       expect(result.content).toHaveLength(1);
 
-      const listText = result.content[0].text;
+      const listText = result.content[0]?.text;
       expect(listText).toContain("3 total");
       // Files are sorted alphabetically
       expect(listText).toContain("README.md");
@@ -130,7 +130,7 @@ describe("MCP Tool Handlers", () => {
       const result = await handleUsparkListFiles(config);
 
       expect(result.isError).toBeUndefined();
-      expect(result.content[0].text).toContain("No files found");
+      expect(result.content[0]?.text).toContain("No files found");
     });
 
     it("should return error on failure", async () => {
@@ -142,7 +142,7 @@ describe("MCP Tool Handlers", () => {
 
       // Empty project returns "No files found", which is not an error
       expect(result.isError).toBeUndefined();
-      expect(result.content[0].text).toContain("No files found");
+      expect(result.content[0]?.text).toContain("No files found");
     });
   });
 });

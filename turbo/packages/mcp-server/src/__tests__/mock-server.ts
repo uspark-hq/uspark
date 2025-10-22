@@ -97,7 +97,7 @@ export const handlers = [
   http.get("*/api/projects/:projectId", ({ params }) => {
     const { projectId } = params;
     const data = mockServer.getProject(projectId as string);
-    return HttpResponse.arrayBuffer(data, {
+    return HttpResponse.arrayBuffer(data.buffer, {
       status: 200,
       headers: { "Content-Type": "application/octet-stream" },
     });
