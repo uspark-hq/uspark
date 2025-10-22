@@ -6,15 +6,10 @@ import { handlers } from "./msw-handlers";
 // Create MSW server instance with default handlers
 export const server = setupServer(...handlers);
 
-// Configure MSW to log all unhandled requests
-server.events.on("request:unhandled", ({ request }) => {
-  console.warn(`[MSW] Unhandled ${request.method} request to ${request.url}`);
-});
-
 // Setup MSW lifecycle hooks
 beforeAll(() => {
   server.listen({
-    onUnhandledRequest: "bypass", // Let unhandled requests pass through
+    onUnhandledRequest: "error",
   });
 });
 

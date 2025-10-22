@@ -301,6 +301,38 @@ const projectsHandlers = [
     });
   }),
 
+  // GitHub repositories endpoint
+  http.get("*/api/github/repositories", () => {
+    return HttpResponse.json({
+      repositories: [
+        {
+          id: 1,
+          name: "repo-1",
+          fullName: "owner1/repo-1",
+          installationId: 123,
+          private: false,
+          url: "https://github.com/owner1/repo-1",
+        },
+        {
+          id: 2,
+          name: "repo-2",
+          fullName: "owner1/repo-2",
+          installationId: 123,
+          private: true,
+          url: "https://github.com/owner1/repo-2",
+        },
+        {
+          id: 3,
+          name: "repo-3",
+          fullName: "owner2/repo-3",
+          installationId: 456,
+          private: false,
+          url: "https://github.com/owner2/repo-3",
+        },
+      ],
+    });
+  }),
+
   // GET /api/projects/:projectId - Get project YJS data
   http.get("*/api/projects/:projectId", () => {
     // Mock empty YJS document (for testing)
