@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/uspark-hq/uspark/compare/mcp-server-v0.2.2...mcp-server-v0.2.3) (2025-10-22)
+
+
+### Bug Fixes
+
+* address code review issues from 2025-10-21 ([#706](https://github.com/uspark-hq/uspark/issues/706)) ([3cb4d0b](https://github.com/uspark-hq/uspark/commit/3cb4d0ba7e84a69999a69d8fa336e1e12dd359fa))
+
 ## [0.2.2](https://github.com/uspark-hq/uspark/compare/mcp-server-v0.2.1...mcp-server-v0.2.2) (2025-10-21)
 
 
