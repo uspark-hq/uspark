@@ -1,5 +1,4 @@
 import {
-  Badge,
   Button,
   HoverCard,
   HoverCardContent,
@@ -37,12 +36,9 @@ export function WorkersPopover() {
           aria-label="View active workers"
         >
           <Activity className="h-4 w-4" />
-          <span>workers</span>
-          {activeCount > 0 && (
-            <Badge variant="default" className="ml-1">
-              {activeCount}
-            </Badge>
-          )}
+          <span>
+            {activeCount} {activeCount === 1 ? 'worker' : 'workers'}
+          </span>
         </Button>
       </HoverCardTrigger>
       <HoverCardContent
