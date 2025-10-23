@@ -29,14 +29,26 @@ export function BlockDisplay({ block, toolName }: BlockDisplayProps) {
   switch (block.type) {
     case 'text':
     case 'content': {
+      const content = block.content
+      const hasHtml = typeof content === 'object' && 'html' in content
+
       return (
         <div className="rounded border border-[#3e3e42] bg-[#2d2d30] p-2">
           <div className="mb-1 text-[11px] font-medium text-[#4ec9b0]">
             Assistant
           </div>
-          <div className="text-[13px] leading-[1.5] whitespace-pre-wrap text-[#d4d4d4]">
-            {getTextContent(block.content)}
-          </div>
+          {hasHtml ? (
+            <div
+              className="markdown-preview text-[13px] leading-[1.5] text-[#d4d4d4]"
+              dangerouslySetInnerHTML={{
+                __html: String(content.html),
+              }}
+            />
+          ) : (
+            <div className="text-[13px] leading-[1.5] whitespace-pre-wrap text-[#d4d4d4]">
+              {getTextContent(block.content)}
+            </div>
+          )}
         </div>
       )
     }

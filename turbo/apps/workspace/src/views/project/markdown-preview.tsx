@@ -5,9 +5,7 @@ import {
 } from '../../signals/project/project'
 
 export function MarkdownPreview() {
-  const sanitizedHtml: string | undefined = useLastResolved(
-    selectedFileContentHtml$,
-  )
+  const sanitizedHtml = useLastResolved(selectedFileContentHtml$)
   const mountContainer = useSet(mountFileContentContainer$)
 
   if (!sanitizedHtml) {

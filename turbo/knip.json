@@ -27,7 +27,8 @@
     },
     "apps/docs": {
       "entry": ["source.config.ts"],
-      "project": ["**/*.{ts,tsx,mdx,js,mjs}"]
+      "project": ["**/*.{ts,tsx,mdx,js,mjs}"],
+      "ignoreBinaries": ["fumadocs-mdx"]
     },
     "apps/workspace": {
       "entry": [

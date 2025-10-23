@@ -1,3 +1,4 @@
+import type { GetTurnResponse } from '@uspark/core'
 import type { FileItem } from '@uspark/core/yjs-filesystem'
 import { command, computed, state } from 'ccstate'
 import DOMPurify from 'dompurify'
@@ -315,6 +316,24 @@ export const turnListContainerEl$ = computed((get) =>
   get(internalTurnListContainerEl$),
 )
 
+/**
+ * Helper function to extract text content from block content
+ */
+function getTextContent(content: unknown): string {
+  if (typeof content === 'string') {
+    return content
+  }
+  if (
+    content &&
+    typeof content === 'object' &&
+    'text' in content &&
+    typeof content.text === 'string'
+  ) {
+    return content.text
+  }
+  return JSON.stringify(content)
+}
+
 export const turns$ = computed(async (get) => {
   get(internalReloadTurn$)
 
@@ -334,7 +353,7 @@ export const turns$ = computed(async (get) => {
     }),
   )
 
-  return Promise.all(
+  const rawTurns = await Promise.all(
     resp.turns.map((turn) => {
       return get(
         turnDetail({
@@ -344,6 +363,45 @@ export const turns$ = computed(async (get) => {
         }),
       )
     }),
+  )
+
+  /**
+   * Process blocks to add markdown HTML rendering for text/content blocks
+   */
+  async function processBlocksMarkdown(
+    blocks: GetTurnResponse['blocks'],
+  ): Promise<GetTurnResponse['blocks']> {
+    const processedBlocks = blocks.map(async (block) => {
+      // Only process text and content block types
+      if (block.type === 'text' || block.type === 'content') {
+        const textContent = getTextContent(block.content)
+        const rawHtml = await marked.parse(textContent)
+        const sanitizedHtml = DOMPurify.sanitize(rawHtml)
+
+        // Add html field to block content
+        return {
+          ...block,
+          content: {
+            ...(typeof block.content === 'object' ? block.content : {}),
+            html: sanitizedHtml,
+          },
+        }
+      }
+
+      // Return other block types unchanged
+      return block
+    })
+
+    const result = await Promise.all(processedBlocks)
+    return result
+  }
+
+  // Process markdown for all turns
+  return await Promise.all(
+    rawTurns.map(async (turn) => ({
+      ...turn,
+      blocks: await processBlocksMarkdown(turn.blocks),
+    })),
   )
 })
 
