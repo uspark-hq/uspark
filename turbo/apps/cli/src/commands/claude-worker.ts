@@ -153,7 +153,6 @@ async function executeClaude(
     const proc = spawn(
       "claude",
       [
-        "--continue",
         "--print",
         "--verbose",
         "--output-format",

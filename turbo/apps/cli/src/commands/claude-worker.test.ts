@@ -174,7 +174,6 @@ describe("claude-worker", () => {
     // First iteration - Second call: claude
     expect(calls[1]?.[0]).toBe("claude");
     expect(calls[1]?.[1]).toEqual([
-      "--continue",
       "--print",
       "--verbose",
       "--output-format",
