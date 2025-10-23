@@ -160,4 +160,22 @@
   .markdown-preview em {
     font-style: italic;
   }
+
+  /* Mermaid diagram styling */
+  .markdown-preview .mermaid {
+    background-color: #252526;
+    border: 1px solid #3e3e42;
+    border-radius: 4px;
+    padding: 1em;
+    margin: 1em 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100px;
+  }
+
+  .markdown-preview .mermaid svg {
+    max-width: 100%;
+    height: auto;
+  }
 }
