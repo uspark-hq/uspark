@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.0](https://github.com/uspark-hq/uspark/compare/web-v1.1.0...web-v1.2.0) (2025-10-23)
+
+
+### Features
+
+* **web:** enhance initial scan prompt with commit analysis and improved structure ([#731](https://github.com/uspark-hq/uspark/issues/731)) ([4dbe127](https://github.com/uspark-hq/uspark/commit/4dbe12713e1cb508a7a2e87b584322f25bdbd75a))
+
 ## [1.1.0](https://github.com/uspark-hq/uspark/compare/web-v1.0.0...web-v1.1.0) (2025-10-22)
 
 
