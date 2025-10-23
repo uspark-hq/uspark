@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.33.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.32.2...workspace-v1.33.0) (2025-10-23)
+
+
+### Features
+
+* **workspace:** add markdown rendering for chat turn blocks ([#729](https://github.com/uspark-hq/uspark/issues/729)) ([b39a214](https://github.com/uspark-hq/uspark/commit/b39a2145eb7985012e2cd555db714406326c94f6))
+
+
+### Bug Fixes
+
+* **workspace:** improve workers count display format ([#728](https://github.com/uspark-hq/uspark/issues/728)) ([aec4463](https://github.com/uspark-hq/uspark/commit/aec446359fe0ae70c8f766fe4aa9730ca3571fca))
+
 ## [1.32.2](https://github.com/uspark-hq/uspark/compare/workspace-v1.32.1...workspace-v1.32.2) (2025-10-23)
 
 
