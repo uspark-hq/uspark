@@ -3,7 +3,6 @@ import type { FileItem } from '@uspark/core/yjs-filesystem'
 import { command, computed, state } from 'ccstate'
 import DOMPurify from 'dompurify'
 import { marked } from 'marked'
-import mermaid from 'mermaid'
 import { delay } from 'signal-timers'
 import { IN_VITEST } from '../../env'
 import {
@@ -150,70 +149,8 @@ export const selectedFileContentHtml$ = computed(async (get) => {
     return undefined
   }
 
-  // Step 1: Parse Markdown to HTML
-  let rawHtml = await marked.parse(fileContent)
-
-  // Step 2: Find and render mermaid code blocks
-  const mermaidRegex =
-    /<pre><code class="language-mermaid">([\s\S]*?)<\/code><\/pre>/g
-  const mermaidBlocks: { match: string; code: string; id: string }[] = []
-  let mermaidIndex = 0
-
-  // Find all mermaid blocks
-  let match
-  while ((match = mermaidRegex.exec(rawHtml)) !== null) {
-    const encodedCode = match[1]
-    // Decode HTML entities
-    const code = encodedCode
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&amp;/g, '&')
-      .replace(/&quot;/g, '"')
-      .replace(/&#39;/g, "'")
-
-    mermaidBlocks.push({
-      match: match[0],
-      code,
-      id: `mermaid-${mermaidIndex.toString()}`,
-    })
-    mermaidIndex++
-  }
-
-  // Step 3: Render all mermaid blocks to SVG
-  if (mermaidBlocks.length > 0) {
-    // Ensure mermaid is initialized
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: 'dark',
-      themeVariables: {
-        background: '#1e1e1e',
-        primaryColor: '#333',
-        primaryTextColor: '#fff',
-        primaryBorderColor: '#555',
-        lineColor: '#888',
-        secondaryColor: '#444',
-        tertiaryColor: '#222',
-      },
-    })
-
-    const renderPromises = mermaidBlocks.map(async ({ id, code, match }) => {
-      const { svg } = await mermaid.render(id, code)
-      return { match, svg }
-    })
-
-    const renderedBlocks = await Promise.all(renderPromises)
-
-    // Step 4: Replace code blocks with rendered SVGs
-    for (const { match, svg } of renderedBlocks) {
-      rawHtml = rawHtml.replace(match, svg)
-    }
-  }
-
-  return DOMPurify.sanitize(rawHtml, {
-    USE_PROFILES: { svg: true, svgFilters: true },
-    ADD_TAGS: ['style'],
-    ADD_ATTR: ['style', 'class'],
-  })
+  const rawHtml = await marked.parse(fileContent)
+  return DOMPurify.sanitize(rawHtml)
 })
 
 export const selectFile$ = command(
