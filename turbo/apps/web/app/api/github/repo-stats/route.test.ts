@@ -150,13 +150,7 @@ describe("/api/github/repo-stats", () => {
       });
 
       // First request - should fetch from GitHub
-      const response1 = await apiCall(
-        GET,
-        "GET",
-        {},
-        undefined,
-        "?repoUrl=owner/cached-repo",
-      );
+      const response1 = await callApi("?repoUrl=owner/cached-repo");
 
       expect(response1.status).toBe(200);
       expect(response1.data.stargazersCount).toBe(100);
@@ -164,13 +158,7 @@ describe("/api/github/repo-stats", () => {
       expect(mockGetRepositoryDetails).toHaveBeenCalledTimes(1);
 
       // Second request immediately after - should use cache
-      const response2 = await apiCall(
-        GET,
-        "GET",
-        {},
-        undefined,
-        "?repoUrl=owner/cached-repo",
-      );
+      const response2 = await callApi("?repoUrl=owner/cached-repo");
 
       expect(response2.status).toBe(200);
       expect(response2.data.stargazersCount).toBe(100);
@@ -204,13 +192,7 @@ describe("/api/github/repo-stats", () => {
         private: false,
       });
 
-      const response = await apiCall(
-        GET,
-        "GET",
-        {},
-        undefined,
-        "?repoUrl=owner/stale-repo",
-      );
+      const response = await callApi("?repoUrl=owner/stale-repo");
 
       expect(response.status).toBe(200);
       expect(response.data.stargazersCount).toBe(150); // Fresh data
@@ -229,13 +211,7 @@ describe("/api/github/repo-stats", () => {
         ),
       );
 
-      const response = await apiCall(
-        GET,
-        "GET",
-        {},
-        undefined,
-        "?repoUrl=owner/nonexistent",
-      );
+      const response = await callApi("?repoUrl=owner/nonexistent");
 
       expect(response.status).toBe(404);
       expect(response.data.error).toContain("not found");
@@ -251,13 +227,7 @@ describe("/api/github/repo-stats", () => {
         ),
       );
 
-      const response = await apiCall(
-        GET,
-        "GET",
-        {},
-        undefined,
-        "?repoUrl=owner/private",
-      );
+      const response = await callApi("?repoUrl=owner/private");
 
       expect(response.status).toBe(403);
       expect(response.data.error).toContain("Access denied");
@@ -273,13 +243,7 @@ describe("/api/github/repo-stats", () => {
         ),
       );
 
-      const response = await apiCall(
-        GET,
-        "GET",
-        {},
-        undefined,
-        "?repoUrl=owner/error-repo",
-      );
+      const response = await callApi("?repoUrl=owner/error-repo");
 
       expect(response.status).toBe(500);
       expect(response.data.error).toContain("Failed to fetch");
@@ -312,13 +276,7 @@ describe("/api/github/repo-stats", () => {
         private: false,
       });
 
-      const response = await apiCall(
-        GET,
-        "GET",
-        {},
-        undefined,
-        "?repoUrl=owner/upsert-test",
-      );
+      const response = await callApi("?repoUrl=owner/upsert-test");
 
       expect(response.status).toBe(200);
       expect(response.data.stargazersCount).toBe(20);
