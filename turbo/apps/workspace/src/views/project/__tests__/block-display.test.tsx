@@ -32,6 +32,105 @@ describe('block display', () => {
       render(<BlockDisplay block={block} />)
       expect(screen.getByText('Nested text content')).toBeInTheDocument()
     })
+
+    it('renders HTML content when html field is present', () => {
+      const block: Block = {
+        id: 'block-markdown-1',
+        turnId: 'turn-1',
+        type: 'text',
+        content: {
+          text: '# Heading',
+          html: '<h1>Heading</h1>',
+        },
+        createdAt: new Date(),
+      }
+
+      const { container } = render(<BlockDisplay block={block} />)
+      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+      const heading = container.querySelector('h1')
+      expect(heading).toBeInTheDocument()
+      expect(heading?.textContent).toBe('Heading')
+    })
+
+    it('renders markdown list as HTML when html field is present', () => {
+      const block: Block = {
+        id: 'block-markdown-2',
+        turnId: 'turn-1',
+        type: 'text',
+        content: {
+          text: '- Item 1\n- Item 2',
+          html: '<ul><li>Item 1</li><li>Item 2</li></ul>',
+        },
+        createdAt: new Date(),
+      }
+
+      const { container } = render(<BlockDisplay block={block} />)
+      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+      const ul = container.querySelector('ul')
+      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+      const lis = container.querySelectorAll('li')
+      expect(ul).toBeInTheDocument()
+      expect(lis).toHaveLength(2)
+      expect(lis[0].textContent).toBe('Item 1')
+      expect(lis[1].textContent).toBe('Item 2')
+    })
+
+    it('falls back to plain text when html field is not present', () => {
+      const block: Block = {
+        id: 'block-markdown-3',
+        turnId: 'turn-1',
+        type: 'text',
+        content: '# This is not rendered as HTML',
+        createdAt: new Date(),
+      }
+
+      const { container } = render(<BlockDisplay block={block} />)
+      // Should not have h1 element
+      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+      const heading = container.querySelector('h1')
+      expect(heading).not.toBeInTheDocument()
+      // Should render as plain text
+      expect(
+        screen.getByText('# This is not rendered as HTML'),
+      ).toBeInTheDocument()
+    })
+
+    it('applies markdown-preview class when rendering HTML', () => {
+      const block: Block = {
+        id: 'block-markdown-4',
+        turnId: 'turn-1',
+        type: 'text',
+        content: {
+          text: 'Content',
+          html: '<p>Content</p>',
+        },
+        createdAt: new Date(),
+      }
+
+      const { container } = render(<BlockDisplay block={block} />)
+      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+      const markdownDiv = container.querySelector('.markdown-preview')
+      expect(markdownDiv).toBeInTheDocument()
+    })
+
+    it('sanitizes dangerous HTML content', () => {
+      const block: Block = {
+        id: 'block-markdown-5',
+        turnId: 'turn-1',
+        type: 'text',
+        content: {
+          text: 'Safe content',
+          html: '<p>Safe content</p>',
+        },
+        createdAt: new Date(),
+      }
+
+      const { container } = render(<BlockDisplay block={block} />)
+      // Should not have script tags (DOMPurify should remove them)
+      // eslint-disable-next-line testing-library/no-container, testing-library/no-node-access
+      const scripts = container.querySelectorAll('script')
+      expect(scripts).toHaveLength(0)
+    })
   })
 
   describe('thinking blocks', () => {
