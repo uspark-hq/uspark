@@ -106,15 +106,32 @@ export async function POST(request: NextRequest) {
           }
 
           // Parse YJS document to find cron.md
-          const ydoc = new Y.Doc();
-          const yjsData = Buffer.from(project.ydocData, "base64");
-          Y.applyUpdate(ydoc, yjsData);
+          let ydoc: Y.Doc;
+          let filesMap: Y.Map<YjsFileNode>;
+          let blobsMap: Y.Map<YjsBlobInfo>;
+          let cronFileMetadata: YjsFileNode | undefined;
 
-          const filesMap = ydoc.getMap<YjsFileNode>("files");
-          const blobsMap = ydoc.getMap<YjsBlobInfo>("blobs");
+          try {
+            ydoc = new Y.Doc();
+            const yjsData = Buffer.from(project.ydocData, "base64");
+            Y.applyUpdate(ydoc, yjsData);
 
-          // Look for cron.md in the YJS filesystem
-          const cronFileMetadata = filesMap.get("cron.md");
+            filesMap = ydoc.getMap<YjsFileNode>("files");
+            blobsMap = ydoc.getMap<YjsBlobInfo>("blobs");
+
+            // Look for cron.md in the YJS filesystem
+            cronFileMetadata = filesMap.get("cron.md");
+          } catch (error) {
+            console.error(
+              `Error parsing YJS data for project ${project.id}:`,
+              error,
+            );
+            result.errors.push({
+              projectId: project.id,
+              error: `Failed to parse YJS data: ${error instanceof Error ? error.message : String(error)}`,
+            });
+            continue;
+          }
 
           if (!cronFileMetadata) {
             console.log(`Skipping project ${project.id}: cron.md not found`);
