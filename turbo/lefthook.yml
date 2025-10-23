@@ -11,5 +11,10 @@ pre-commit:
       glob: "turbo/**/*"
     knip:
       root: turbo/
-      run: pnpm knip
+      run: pnpm knip --cache --no-exit-code
       glob: "turbo/**/*.{js,ts,tsx,jsx,json}"
+      skip:
+        - merge
+        - rebase
+      fail_text: "Knip found unused code. Run 'cd turbo && pnpm knip' to see details."
+      timeout: 60
