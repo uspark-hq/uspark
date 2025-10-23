@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.34.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.34.0...workspace-v1.34.1) (2025-10-23)
+
+
+### Reverts
+
+* mermaid diagram support in markdown rendering ([#735](https://github.com/uspark-hq/uspark/issues/735)) ([2cdf379](https://github.com/uspark-hq/uspark/commit/2cdf3797570925d6d85cc7d684f8a3c70fa2ecae))
+
 ## [1.34.0](https://github.com/uspark-hq/uspark/compare/workspace-v1.33.0...workspace-v1.34.0) (2025-10-23)
 
 
