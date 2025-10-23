@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.32.2](https://github.com/uspark-hq/uspark/compare/workspace-v1.32.1...workspace-v1.32.2) (2025-10-23)
+
+
+### Bug Fixes
+
+* **workspace:** improve workers count display format ([#726](https://github.com/uspark-hq/uspark/issues/726)) ([41400aa](https://github.com/uspark-hq/uspark/commit/41400aaf1077c5b51da39020dd3131ffff1576aa))
+
 ## [1.32.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.32.0...workspace-v1.32.1) (2025-10-22)
 
 

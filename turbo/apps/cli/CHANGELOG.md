@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/uspark-hq/uspark/compare/cli-v1.0.1...cli-v1.0.2) (2025-10-23)
+
+
+### Bug Fixes
+
+* **cli:** remove --continue flag from claude-worker execution ([#725](https://github.com/uspark-hq/uspark/issues/725)) ([b6f55d2](https://github.com/uspark-hq/uspark/commit/b6f55d2f8431945f1fa33d319e199469d4acb37a))
+
 ## [1.0.1](https://github.com/uspark-hq/uspark/compare/cli-v1.0.0...cli-v1.0.1) (2025-10-22)
 
 
