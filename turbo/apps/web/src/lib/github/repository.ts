@@ -332,32 +332,47 @@ type RepositoryDetails = {
 };
 
 /**
+ * Error thrown when repository fetch fails
+ */
+export class RepositoryFetchError extends Error {
+  constructor(
+    message: string,
+    public readonly repoUrl: string,
+    public readonly statusCode?: number,
+    public readonly cause?: unknown,
+  ) {
+    super(message);
+    this.name = "RepositoryFetchError";
+  }
+}
+
+/**
  * Gets detailed information about a GitHub repository
  *
  * @param repoUrl - Repository URL in "owner/repo" format
  * @param installationId - Optional GitHub App installation ID for private repos
- * @returns Repository details including star count, or null if not found
+ * @returns Repository details including star count
+ * @throws {RepositoryFetchError} If the repository cannot be accessed
  */
 export async function getRepositoryDetails(
   repoUrl: string,
   installationId?: number | null,
-): Promise<RepositoryDetails | null> {
-  try {
-    // Parse owner and repo from the URL format "owner/repo"
-    const [owner, repo] = repoUrl.split("/");
-    if (!owner || !repo) {
-      return null;
-    }
+): Promise<RepositoryDetails> {
+  // Parse owner and repo from the URL format "owner/repo"
+  const [owner, repo] = repoUrl.split("/");
+  if (!owner || !repo) {
+    throw new RepositoryFetchError(
+      `Invalid repository URL format: "${repoUrl}". Expected format: "owner/repo"`,
+      repoUrl,
+    );
+  }
 
+  try {
     // If we have an installation ID, use authenticated request
     // Otherwise, use unauthenticated request for public repos
-    let octokit;
-    if (installationId) {
-      octokit = await createInstallationOctokit(installationId);
-    } else {
-      // For public repos without installation, use Octokit without auth
-      octokit = new Octokit();
-    }
+    const octokit = installationId
+      ? await createInstallationOctokit(installationId)
+      : new Octokit();
 
     // Fetch repository details
     const { data } = await octokit.request("GET /repos/{owner}/{repo}", {
@@ -373,9 +388,37 @@ export async function getRepositoryDetails(
       url: data.html_url,
       private: data.private,
     };
-  } catch (error) {
-    // Return null if repository not found or access denied
-    console.error(`Error fetching repository details for ${repoUrl}:`, error);
-    return null;
+  } catch (error: unknown) {
+    if (error && typeof error === "object" && "status" in error) {
+      const statusCode = error.status as number;
+      if (statusCode === 404) {
+        throw new RepositoryFetchError(
+          `Repository not found: ${repoUrl}`,
+          repoUrl,
+          404,
+          error,
+        );
+      }
+      if (statusCode === 403) {
+        throw new RepositoryFetchError(
+          `Access denied to repository: ${repoUrl}`,
+          repoUrl,
+          403,
+          error,
+        );
+      }
+      throw new RepositoryFetchError(
+        `GitHub API error (${statusCode}) for repository: ${repoUrl}`,
+        repoUrl,
+        statusCode,
+        error,
+      );
+    }
+    throw new RepositoryFetchError(
+      `Failed to fetch repository details for: ${repoUrl}`,
+      repoUrl,
+      undefined,
+      error,
+    );
   }
 }

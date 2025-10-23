@@ -3,7 +3,10 @@ import { auth } from "@clerk/nextjs/server";
 import { eq } from "drizzle-orm";
 import { initServices } from "../../../../src/lib/init-services";
 import { GITHUB_REPO_STATS_TBL } from "../../../../src/db/schema/github-repo-stats";
-import { getRepositoryDetails } from "../../../../src/lib/github/repository";
+import {
+  getRepositoryDetails,
+  RepositoryFetchError,
+} from "../../../../src/lib/github/repository";
 
 /**
  * GET /api/github/repo-stats?repoUrl=owner/repo&installationId=123
@@ -63,13 +66,18 @@ export async function GET(request: Request) {
   }
 
   // Fetch fresh data from GitHub
-  const repoDetails = await getRepositoryDetails(repoUrl, installationId);
-
-  if (!repoDetails) {
-    return NextResponse.json(
-      { error: "Repository not found or access denied" },
-      { status: 404 },
-    );
+  let repoDetails;
+  try {
+    repoDetails = await getRepositoryDetails(repoUrl, installationId);
+  } catch (error) {
+    if (error instanceof RepositoryFetchError) {
+      const statusCode = error.statusCode || 500;
+      return NextResponse.json(
+        { error: error.message, repoUrl: error.repoUrl },
+        { status: statusCode },
+      );
+    }
+    throw error;
   }
 
   // Upsert into cache
