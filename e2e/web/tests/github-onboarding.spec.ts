@@ -22,17 +22,9 @@ test.describe("GitHub Onboarding Flow", () => {
       // If no installation exists, this will fail with 404 - that's OK
     });
 
-    // Navigate directly to onboarding page with retry logic for flaky Vercel deployments
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        await page.goto("/onboarding/github", { timeout: 30000 });
-        await page.waitForLoadState("networkidle", { timeout: 10000 });
-        break;
-      } catch (error) {
-        if (attempt === 2) throw error;
-        await page.waitForTimeout(2000); // Wait 2s before retry
-      }
-    }
+    // Navigate directly to onboarding page
+    await page.goto("/onboarding/github");
+    await page.waitForLoadState("networkidle");
 
     // Verify main heading
     const heading = page.getByText("Connect Your GitHub Account");
@@ -67,17 +59,9 @@ test.describe("GitHub Onboarding Flow", () => {
       emailAddress: "e2e+clerk_test@uspark.ai",
     });
 
-    // Navigate to onboarding page with retry logic for flaky Vercel deployments
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        await page.goto("/onboarding/github", { timeout: 30000 });
-        await page.waitForLoadState("networkidle", { timeout: 10000 });
-        break;
-      } catch (error) {
-        if (attempt === 2) throw error;
-        await page.waitForTimeout(2000); // Wait 2s before retry
-      }
-    }
+    // Navigate to onboarding page
+    await page.goto("/onboarding/github");
+    await page.waitForLoadState("networkidle");
 
     // Check if we're redirected to projects or stayed on onboarding
     const currentUrl = page.url();
@@ -106,22 +90,9 @@ test.describe("GitHub Onboarding Flow", () => {
       // If no installation exists, this will fail with 404 - that's OK
     });
 
-    // Try to access projects page with retry logic for flaky Vercel deployments
-    let navigationSuccess = false;
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        await page.goto("/projects", {
-          waitUntil: "domcontentloaded",
-          timeout: 30000
-        });
-        await page.waitForLoadState("networkidle", { timeout: 10000 });
-        navigationSuccess = true;
-        break;
-      } catch (error) {
-        if (attempt === 2) throw error;
-        await page.waitForTimeout(2000); // Wait 2s before retry
-      }
-    }
+    // Try to access projects page
+    await page.goto("/projects", { waitUntil: "domcontentloaded" });
+    await page.waitForLoadState("networkidle");
 
     // Check where we ended up
     const currentUrl = page.url();
@@ -144,17 +115,8 @@ test.describe("GitHub Onboarding Flow", () => {
       emailAddress: "e2e+clerk_test@uspark.ai",
     });
 
-    // Navigate to onboarding page with retry logic for flaky Vercel deployments
-    for (let attempt = 0; attempt < 3; attempt++) {
-      try {
-        await page.goto("/onboarding/github", { timeout: 30000 });
-        await page.waitForLoadState("networkidle", { timeout: 10000 });
-        break;
-      } catch (error) {
-        if (attempt === 2) throw error;
-        await page.waitForTimeout(2000); // Wait 2s before retry
-      }
-    }
+    await page.goto("/onboarding/github");
+    await page.waitForLoadState("networkidle");
 
     // Find and click the Connect GitHub button
     const connectButton = page
