@@ -121,8 +121,9 @@ export default function ProjectsListPage() {
       // Fetch star counts for all projects with repositories
       const reposToFetch = projects.filter((p) => p.source_repo_url);
 
-      for (const project of reposToFetch) {
-        if (!project.source_repo_url) continue;
+      // Fetch all star counts in parallel instead of sequential
+      const fetchPromises = reposToFetch.map(async (project) => {
+        if (!project.source_repo_url) return null;
 
         try {
           const response = await fetch(
@@ -131,19 +132,34 @@ export default function ProjectsListPage() {
 
           if (response.ok) {
             const data = await response.json();
-            setStarCounts((prev) => ({
-              ...prev,
-              [project.source_repo_url!]: data.stargazersCount,
-            }));
+            return {
+              repoUrl: project.source_repo_url,
+              stargazersCount: data.stargazersCount as number,
+            };
           }
+          return null;
         } catch (err) {
           // Silently fail for individual repos - don't block UI
           console.error(
             `Failed to fetch stars for ${project.source_repo_url}:`,
             err,
           );
+          return null;
+        }
+      });
+
+      // Wait for all requests to complete
+      const results = await Promise.all(fetchPromises);
+
+      // Update state with all results at once
+      const newStarCounts: Record<string, number> = {};
+      for (const result of results) {
+        if (result) {
+          newStarCounts[result.repoUrl] = result.stargazersCount;
         }
       }
+
+      setStarCounts((prev) => ({ ...prev, ...newStarCounts }));
     };
 
     loadStarCounts();

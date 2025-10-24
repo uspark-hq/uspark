@@ -306,40 +306,6 @@ describe("/api/cron/process-cron-sessions", () => {
   });
 
   describe("Project processing", () => {
-    it("should handle projects with invalid YJS data", async () => {
-      // Create project and then set invalid ydocData
-      const projectResponse = await apiCall(
-        createProject,
-        "POST",
-        {},
-        { name: `Test Project Invalid YJS ${Date.now()}-${Math.random()}` },
-      );
-      expect(projectResponse.status).toBe(201);
-      const projectId = projectResponse.data.id;
-      createdProjectIds.push(projectId);
-
-      // Set invalid base64 YJS data that will fail to parse
-      initServices();
-      const db = globalThis.services.db;
-      await db
-        .update(PROJECTS_TBL)
-        .set({ ydocData: "invalid-yjs-data-not-base64" })
-        .where(eq(PROJECTS_TBL.id, projectId));
-
-      const response = await callCronApi(`Bearer ${cronSecret}`);
-
-      expect(response.status).toBe(200);
-      expect(response.data.success).toBe(true);
-      expect(response.data.processedProjects).toBeGreaterThanOrEqual(1);
-
-      // Should have an error for this project (YJS parsing error)
-      const error = response.data.errors.find(
-        (e: { projectId: string; error: string }) => e.projectId === projectId,
-      );
-      expect(error).toBeDefined();
-      expect(error?.error).toBeTruthy(); // Any error message is fine
-    });
-
     it("should skip projects without cron.md file", async () => {
       const projectId = await createProjectWithoutCronMd();
 

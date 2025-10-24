@@ -1,369 +1,286 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
-import {
-  createProjectRepository,
-  getProjectRepository,
-  hasInstallationAccess,
-  getUserInstallations,
-  getUserRepositories,
-} from "./repository";
-import { initServices } from "../init-services";
-import { githubInstallations, githubRepos } from "../../db/schema/github";
-import { eq } from "drizzle-orm";
-import { getInstallationDetails, createInstallationOctokit } from "./client";
+import { getRepositoryDetails, RepositoryFetchError } from "./repository";
 
-// Mock the client module - we still need to mock external APIs
+// Mock the GitHub client
 vi.mock("./client", () => ({
-  getInstallationDetails: vi.fn(),
   createInstallationOctokit: vi.fn(),
 }));
 
-describe("GitHub Repository", () => {
-  const testUserId = "test-user-123";
-  const testProjectId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"; // Valid UUID
-  const testInstallationId = 99999;
-  const expectedRepoName = `uspark-${testProjectId.substring(0, 8)}`; // uspark-a1b2c3d4
+// Mock Octokit
+vi.mock("@octokit/core", () => ({
+  Octokit: vi.fn(),
+}));
 
-  beforeEach(async () => {
+import { createInstallationOctokit } from "./client";
+import { Octokit } from "@octokit/core";
+
+const mockCreateInstallationOctokit = vi.mocked(createInstallationOctokit);
+const MockOctokit = vi.mocked(Octokit);
+
+describe("getRepositoryDetails", () => {
+  beforeEach(() => {
     vi.clearAllMocks();
-
-    // Initialize real database connection
-    initServices();
-    const db = globalThis.services.db;
-
-    // Clean up test data before each test
-    await db
-      .delete(githubRepos)
-      .where(eq(githubRepos.projectId, testProjectId));
-    await db
-      .delete(githubInstallations)
-      .where(eq(githubInstallations.userId, testUserId));
   });
 
-  describe("getProjectRepository", () => {
-    it("should return repository info for existing project", async () => {
-      // Create repository in database
-      const db = globalThis.services.db;
-      await db.insert(githubRepos).values({
-        projectId: testProjectId,
-        installationId: testInstallationId,
-        repoName: expectedRepoName,
-        repoId: 987654,
-      });
-
-      // Mock getInstallationDetails
-      vi.mocked(getInstallationDetails).mockResolvedValue({
-        account: {
-          type: "User",
-          login: "testuser",
-        },
-      } as Awaited<ReturnType<typeof getInstallationDetails>>);
-
-      const result = await getProjectRepository(testProjectId);
-
-      expect(result).toMatchObject({
-        projectId: testProjectId,
-        installationId: testInstallationId,
-        repoName: expectedRepoName,
-        repoId: 987654,
-        accountType: "User",
-        fullName: "testuser/uspark-a1b2c3d4",
-      });
-    });
-
-    it("should return repository info with account type and full name", async () => {
-      // Create repository in database
-      const db = globalThis.services.db;
-      await db.insert(githubRepos).values({
-        projectId: testProjectId,
-        installationId: testInstallationId,
-        repoName: expectedRepoName,
-        repoId: 987654,
-      });
-
-      // Mock getInstallationDetails to return account info
-      vi.mocked(getInstallationDetails).mockResolvedValue({
-        account: {
-          type: "Organization",
-          login: "test-org",
-        },
-      } as Awaited<ReturnType<typeof getInstallationDetails>>);
-
-      const result = await getProjectRepository(testProjectId);
-
-      expect(result).toMatchObject({
-        projectId: testProjectId,
-        installationId: testInstallationId,
-        repoName: expectedRepoName,
-        repoId: 987654,
-        accountType: "Organization",
-        fullName: "test-org/uspark-a1b2c3d4",
-      });
-    });
-
-    it("should return null for non-existent project", async () => {
-      const result = await getProjectRepository("non-existent-project");
-      expect(result).toBeNull();
-    });
-  });
-
-  describe("hasInstallationAccess", () => {
-    it("should return true for user with access", async () => {
-      // Create installation for user
-      const db = globalThis.services.db;
-      await db.insert(githubInstallations).values({
-        userId: testUserId,
-        installationId: testInstallationId,
-        accountName: "testuser",
-      });
-
-      const result = await hasInstallationAccess(
-        testUserId,
-        testInstallationId,
+  describe("Input Validation", () => {
+    it("should throw RepositoryFetchError for invalid URL format (missing repo)", async () => {
+      await expect(getRepositoryDetails("owner/", null)).rejects.toThrow(
+        RepositoryFetchError,
       );
-      expect(result).toBe(true);
+
+      try {
+        await getRepositoryDetails("owner/", null);
+      } catch (error) {
+        expect(error).toBeInstanceOf(RepositoryFetchError);
+        expect((error as RepositoryFetchError).repoUrl).toBe("owner/");
+        expect((error as RepositoryFetchError).message).toContain(
+          "Invalid repository URL format",
+        );
+      }
     });
 
-    it("should return false for user without access", async () => {
-      const result = await hasInstallationAccess(
-        testUserId,
-        testInstallationId,
+    it("should throw RepositoryFetchError for invalid URL format (missing owner)", async () => {
+      await expect(getRepositoryDetails("/repo", null)).rejects.toThrow(
+        RepositoryFetchError,
       );
-      expect(result).toBe(false);
+    });
+
+    it("should throw RepositoryFetchError for invalid URL format (no slash)", async () => {
+      await expect(getRepositoryDetails("invalid", null)).rejects.toThrow(
+        RepositoryFetchError,
+      );
     });
   });
 
-  describe("getUserInstallations", () => {
-    it("should return user installations", async () => {
-      // Create multiple installations for user
-      const db = globalThis.services.db;
-      await db.insert(githubInstallations).values([
-        {
-          userId: testUserId,
-          installationId: testInstallationId,
-          accountName: "testuser",
-        },
-        {
-          userId: testUserId,
-          installationId: testInstallationId + 1,
-          accountName: "testorg",
-        },
-      ]);
-
-      const result = await getUserInstallations(testUserId);
-
-      expect(result).toHaveLength(2);
-      expect(result[0]).toMatchObject({
-        userId: testUserId,
-        installationId: testInstallationId,
-        accountName: "testuser",
-      });
-      expect(result[1]).toMatchObject({
-        userId: testUserId,
-        installationId: testInstallationId + 1,
-        accountName: "testorg",
-      });
-    });
-
-    it("should return empty array for user with no installations", async () => {
-      const result = await getUserInstallations("user-without-installations");
-      expect(result).toEqual([]);
-    });
-  });
-
-  describe("createProjectRepository", () => {
-    it("should create a new repository for a project", async () => {
-      // Mock GitHub API responses
+  describe("Authenticated Requests (with installationId)", () => {
+    it("should use installation octokit when installationId is provided", async () => {
       const mockOctokit = {
         request: vi.fn().mockResolvedValue({
           data: {
-            id: 123456,
-            name: expectedRepoName,
-            full_name: `testuser/${expectedRepoName}`,
-            html_url: `https://github.com/testuser/${expectedRepoName}`,
-            clone_url: `https://github.com/testuser/${expectedRepoName}.git`,
+            id: 123,
+            name: "test-repo",
+            full_name: "owner/test-repo",
+            stargazers_count: 42,
+            html_url: "https://github.com/owner/test-repo",
+            private: true,
           },
         }),
       };
 
-      vi.mocked(createInstallationOctokit).mockResolvedValue(
-        mockOctokit as never,
+      mockCreateInstallationOctokit.mockResolvedValue(
+        mockOctokit as unknown as Awaited<
+          ReturnType<typeof createInstallationOctokit>
+        >,
       );
 
-      vi.mocked(getInstallationDetails).mockResolvedValue({
-        account: {
-          type: "User",
-          login: "testuser",
+      const result = await getRepositoryDetails("owner/test-repo", 789);
+
+      expect(mockCreateInstallationOctokit).toHaveBeenCalledWith(789);
+      expect(mockOctokit.request).toHaveBeenCalledWith(
+        "GET /repos/{owner}/{repo}",
+        {
+          owner: "owner",
+          repo: "test-repo",
         },
-      } as Awaited<ReturnType<typeof getInstallationDetails>>);
-
-      const result = await createProjectRepository(
-        testProjectId,
-        testInstallationId,
       );
-
       expect(result).toEqual({
-        repoId: 123456,
-        repoName: expectedRepoName,
-        fullName: `testuser/${expectedRepoName}`,
-        url: `https://github.com/testuser/${expectedRepoName}`,
-        cloneUrl: `https://github.com/testuser/${expectedRepoName}.git`,
-      });
-
-      // Verify database record was created
-      const db = globalThis.services.db;
-      const repos = await db
-        .select()
-        .from(githubRepos)
-        .where(eq(githubRepos.projectId, testProjectId));
-
-      expect(repos).toHaveLength(1);
-      expect(repos[0]).toMatchObject({
-        projectId: testProjectId,
-        installationId: testInstallationId,
-        repoName: expectedRepoName,
-        repoId: 123456,
+        id: 123,
+        name: "test-repo",
+        fullName: "owner/test-repo",
+        stargazersCount: 42,
+        url: "https://github.com/owner/test-repo",
+        private: true,
       });
     });
+  });
 
-    it("should throw error when repository already exists for project", async () => {
-      // Create existing repository
-      const db = globalThis.services.db;
-      await db.insert(githubRepos).values({
-        projectId: testProjectId,
-        installationId: testInstallationId,
-        repoName: expectedRepoName,
-        repoId: 111111,
+  describe("Unauthenticated Requests (public repos)", () => {
+    it("should use Octokit without auth when installationId is not provided", async () => {
+      const mockOctokit = {
+        request: vi.fn().mockResolvedValue({
+          data: {
+            id: 456,
+            name: "public-repo",
+            full_name: "org/public-repo",
+            stargazers_count: 1000,
+            html_url: "https://github.com/org/public-repo",
+            private: false,
+          },
+        }),
+      };
+
+      MockOctokit.mockImplementation(
+        () => mockOctokit as unknown as InstanceType<typeof Octokit>,
+      );
+
+      const result = await getRepositoryDetails("org/public-repo", null);
+
+      expect(MockOctokit).toHaveBeenCalled();
+      expect(mockOctokit.request).toHaveBeenCalledWith(
+        "GET /repos/{owner}/{repo}",
+        {
+          owner: "org",
+          repo: "public-repo",
+        },
+      );
+      expect(result).toEqual({
+        id: 456,
+        name: "public-repo",
+        fullName: "org/public-repo",
+        stargazersCount: 1000,
+        url: "https://github.com/org/public-repo",
+        private: false,
       });
+    });
+  });
+
+  describe("Error Handling", () => {
+    it("should throw RepositoryFetchError with 404 when repository not found", async () => {
+      const mockOctokit = {
+        request: vi.fn().mockRejectedValue({
+          status: 404,
+          message: "Not Found",
+        }),
+      };
+
+      MockOctokit.mockImplementation(
+        () => mockOctokit as unknown as InstanceType<typeof Octokit>,
+      );
 
       await expect(
-        createProjectRepository(testProjectId, testInstallationId),
-      ).rejects.toThrow(
-        `Repository already exists for project ${testProjectId}`,
+        getRepositoryDetails("owner/nonexistent", null),
+      ).rejects.toThrow(RepositoryFetchError);
+
+      try {
+        await getRepositoryDetails("owner/nonexistent", null);
+      } catch (error) {
+        expect(error).toBeInstanceOf(RepositoryFetchError);
+        expect((error as RepositoryFetchError).statusCode).toBe(404);
+        expect((error as RepositoryFetchError).repoUrl).toBe(
+          "owner/nonexistent",
+        );
+        expect((error as RepositoryFetchError).message).toContain("not found");
+      }
+    });
+
+    it("should throw RepositoryFetchError with 403 when access is denied", async () => {
+      const mockOctokit = {
+        request: vi.fn().mockRejectedValue({
+          status: 403,
+          message: "Forbidden",
+        }),
+      };
+
+      MockOctokit.mockImplementation(
+        () => mockOctokit as unknown as InstanceType<typeof Octokit>,
       );
+
+      await expect(
+        getRepositoryDetails("owner/private-repo", null),
+      ).rejects.toThrow(RepositoryFetchError);
+
+      try {
+        await getRepositoryDetails("owner/private-repo", null);
+      } catch (error) {
+        expect(error).toBeInstanceOf(RepositoryFetchError);
+        expect((error as RepositoryFetchError).statusCode).toBe(403);
+        expect((error as RepositoryFetchError).message).toContain(
+          "Access denied",
+        );
+      }
+    });
+
+    it("should throw RepositoryFetchError for other HTTP errors", async () => {
+      const mockOctokit = {
+        request: vi.fn().mockRejectedValue({
+          status: 500,
+          message: "Internal Server Error",
+        }),
+      };
+
+      MockOctokit.mockImplementation(
+        () => mockOctokit as unknown as InstanceType<typeof Octokit>,
+      );
+
+      await expect(
+        getRepositoryDetails("owner/error-repo", null),
+      ).rejects.toThrow(RepositoryFetchError);
+
+      try {
+        await getRepositoryDetails("owner/error-repo", null);
+      } catch (error) {
+        expect(error).toBeInstanceOf(RepositoryFetchError);
+        expect((error as RepositoryFetchError).statusCode).toBe(500);
+        expect((error as RepositoryFetchError).message).toContain(
+          "GitHub API error",
+        );
+      }
+    });
+
+    it("should throw RepositoryFetchError for network errors", async () => {
+      const mockOctokit = {
+        request: vi
+          .fn()
+          .mockRejectedValue(new Error("Network connection failed")),
+      };
+
+      MockOctokit.mockImplementation(
+        () => mockOctokit as unknown as InstanceType<typeof Octokit>,
+      );
+
+      await expect(
+        getRepositoryDetails("owner/network-error", null),
+      ).rejects.toThrow(RepositoryFetchError);
+
+      try {
+        await getRepositoryDetails("owner/network-error", null);
+      } catch (error) {
+        expect(error).toBeInstanceOf(RepositoryFetchError);
+        expect((error as RepositoryFetchError).statusCode).toBeUndefined();
+        expect((error as RepositoryFetchError).message).toContain(
+          "Failed to fetch repository details",
+        );
+        expect((error as RepositoryFetchError).cause).toBeInstanceOf(Error);
+      }
     });
   });
 
-  describe("getUserRepositories", () => {
-    it("should return repositories from all user installations", async () => {
-      // Create multiple installations for user
-      const db = globalThis.services.db;
-      await db.insert(githubInstallations).values([
-        {
-          userId: testUserId,
-          installationId: testInstallationId,
-          accountName: "testuser",
-        },
-        {
-          userId: testUserId,
-          installationId: testInstallationId + 1,
-          accountName: "testorg",
-        },
-      ]);
-
-      // Mock GitHub API responses for both installations
-      const mockOctokit1 = {
-        request: vi.fn().mockResolvedValue({
-          data: {
-            repositories: [
-              {
-                id: 100,
-                name: "repo1",
-                full_name: "testuser/repo1",
-                private: false,
-                html_url: "https://github.com/testuser/repo1",
-              },
-              {
-                id: 101,
-                name: "repo2",
-                full_name: "testuser/repo2",
-                private: true,
-                html_url: "https://github.com/testuser/repo2",
-              },
-            ],
-          },
-        }),
-      };
-
-      const mockOctokit2 = {
-        request: vi.fn().mockResolvedValue({
-          data: {
-            repositories: [
-              {
-                id: 200,
-                name: "org-repo",
-                full_name: "testorg/org-repo",
-                private: false,
-                html_url: "https://github.com/testorg/org-repo",
-              },
-            ],
-          },
-        }),
-      };
-
-      vi.mocked(createInstallationOctokit)
-        .mockResolvedValueOnce(mockOctokit1 as never)
-        .mockResolvedValueOnce(mockOctokit2 as never);
-
-      const result = await getUserRepositories(testUserId);
-
-      expect(result).toHaveLength(3);
-      expect(result).toEqual([
-        {
-          id: 100,
-          name: "repo1",
-          fullName: "testuser/repo1",
-          installationId: testInstallationId,
-          private: false,
-          url: "https://github.com/testuser/repo1",
-        },
-        {
-          id: 101,
-          name: "repo2",
-          fullName: "testuser/repo2",
-          installationId: testInstallationId,
-          private: true,
-          url: "https://github.com/testuser/repo2",
-        },
-        {
-          id: 200,
-          name: "org-repo",
-          fullName: "testorg/org-repo",
-          installationId: testInstallationId + 1,
-          private: false,
-          url: "https://github.com/testorg/org-repo",
-        },
-      ]);
-    });
-
-    it("should return empty array when user has no installations", async () => {
-      const result = await getUserRepositories("user-without-installations");
-      expect(result).toEqual([]);
-    });
-
-    it("should return empty array when installations have no repositories", async () => {
-      // Create installation with no repositories
-      const db = globalThis.services.db;
-      await db.insert(githubInstallations).values({
-        userId: testUserId,
-        installationId: testInstallationId,
-        accountName: "testuser",
-      });
-
+  describe("Return Value Structure", () => {
+    it("should return correctly shaped RepositoryDetails object", async () => {
       const mockOctokit = {
         request: vi.fn().mockResolvedValue({
           data: {
-            repositories: [],
+            id: 789,
+            name: "full-test",
+            full_name: "org/full-test",
+            stargazers_count: 5432,
+            html_url: "https://github.com/org/full-test",
+            private: false,
           },
         }),
       };
 
-      vi.mocked(createInstallationOctokit).mockResolvedValue(
-        mockOctokit as never,
+      MockOctokit.mockImplementation(
+        () => mockOctokit as unknown as InstanceType<typeof Octokit>,
       );
 
-      const result = await getUserRepositories(testUserId);
+      const result = await getRepositoryDetails("org/full-test", null);
 
-      expect(result).toEqual([]);
+      // Verify all fields are present
+      expect(result).toHaveProperty("id");
+      expect(result).toHaveProperty("name");
+      expect(result).toHaveProperty("fullName");
+      expect(result).toHaveProperty("stargazersCount");
+      expect(result).toHaveProperty("url");
+      expect(result).toHaveProperty("private");
+
+      // Verify types
+      expect(typeof result.id).toBe("number");
+      expect(typeof result.name).toBe("string");
+      expect(typeof result.fullName).toBe("string");
+      expect(typeof result.stargazersCount).toBe("number");
+      expect(typeof result.url).toBe("string");
+      expect(typeof result.private).toBe("boolean");
     });
   });
 });
