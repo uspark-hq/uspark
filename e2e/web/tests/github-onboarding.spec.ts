@@ -90,8 +90,10 @@ test.describe("GitHub Onboarding Flow", () => {
       // If no installation exists, this will fail with 404 - that's OK
     });
 
-    // Try to access projects page
-    await page.goto("/projects", { waitUntil: "domcontentloaded" });
+    // Try to access projects page - may abort due to redirect
+    await page.goto("/projects", { waitUntil: "domcontentloaded" }).catch(() => {
+      // Navigation may be aborted due to server-side redirect - that's OK
+    });
     await page.waitForLoadState("networkidle");
 
     // Check where we ended up
