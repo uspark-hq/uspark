@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/uspark-hq/uspark/compare/web-v1.2.0...web-v1.2.1) (2025-10-24)
+
+
+### Bug Fixes
+
+* **web:** improve github star count feature with parallel api calls and proper error handling ([#737](https://github.com/uspark-hq/uspark/issues/737)) ([ab08e4d](https://github.com/uspark-hq/uspark/commit/ab08e4dac748e2e77da6260ae967e460f2e45d5d))
+
 ## [1.2.0](https://github.com/uspark-hq/uspark/compare/web-v1.1.0...web-v1.2.0) (2025-10-23)
 
 
