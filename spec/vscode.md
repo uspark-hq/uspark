@@ -250,6 +250,181 @@ Extension activates when:
 - Production-ready sync
 - Offline mode support
 
+## Immediate Next Steps
+
+### 1. Release Please Configuration
+**Priority**: High
+**Description**: 配置 release-please 自动发布 VSCode 插件版本
+
+**Tasks**:
+- [ ] 在 `.release-please-manifest.json` 中添加 `apps/vscode-extension` 配置
+- [ ] 在 `release-please-config.json` 中添加 vscode-extension 包配置
+- [ ] 配置自动生成 CHANGELOG.md
+- [ ] 确保 package.json 版本自动更新
+- [ ] 测试 release-please workflow
+
+**Reference**: 参考 CLI 的 release-please 配置
+
+---
+
+### 2. Development Workflow Integration
+**Priority**: High
+**Description**: 在 `pnpm dev` 时自动构建 VSCode 插件，与 CLI 保持一致的开发体验
+
+**Tasks**:
+- [ ] 在 `apps/vscode-extension/package.json` 中添加 `dev` script
+- [ ] 配置 TypeScript watch 模式 (`tsc -watch`)
+- [ ] 在根目录 `package.json` 的 `dev` script 中包含 vscode-extension
+- [ ] 测试热重载是否正常工作
+- [ ] 添加开发文档说明如何在 VSCode 中调试扩展
+
+**Example dev script**:
+```json
+{
+  "scripts": {
+    "dev": "tsc -watch -p ./"
+  }
+}
+```
+
+---
+
+### 3. Authentication Flow Design
+**Priority**: Critical
+**Description**: 设计 VSCode 插件的登录流程，将认证信息存储在 `$HOME/.uspark` 中，与 CLI 保持一致
+
+**Tasks**:
+- [ ] **Web 端**: 设计新的登录页面用于 VSCode 设备登录
+  - [ ] 创建 `/vscode-auth` 页面（类似 CLI 的 `/cli-auth`）
+  - [ ] 实现设备码（device code）授权流程
+  - [ ] 显示用户码和确认界面
+  - [ ] 生成 VSCode 专用 token
+
+- [ ] **VSCode 插件端**: 实现认证流程
+  - [ ] 创建 `src/auth.ts` 模块
+  - [ ] 实现 OAuth device flow
+    1. 请求 device code 和 user code
+    2. 在浏览器中打开授权页面
+    3. 轮询检查用户是否授权
+    4. 获取 access token
+  - [ ] 将 token 存储到 `$HOME/.uspark/vscode-token.json`
+  - [ ] 实现 token 自动刷新机制
+  - [ ] 添加登出功能
+
+- [ ] **配置管理**:
+  - [ ] 统一 CLI 和 VSCode 的配置目录结构
+  - [ ] 配置文件格式：
+    ```
+    $HOME/.uspark/
+    ├── config.json          # 通用配置
+    ├── cli-token.json       # CLI token
+    └── vscode-token.json    # VSCode token
+    ```
+  - [ ] 实现配置读写工具函数
+  - [ ] 处理权限和安全问题
+
+**API Endpoints** (参考 CLI auth):
+- `POST /api/vscode-auth/device` - 生成设备码
+- `POST /api/vscode-auth/token` - 轮询获取 token
+- `GET /vscode-auth` - 用户授权页面
+
+**Security Considerations**:
+- Token 加密存储
+- 使用文件权限保护配置文件（chmod 600）
+- Token 过期和刷新机制
+- 安全的设备码流程
+
+**Reference**:
+- CLI auth implementation: `apps/cli/src/auth.ts`
+- CLI auth API: `apps/web/app/api/cli/auth/`
+
+---
+
+### 4. Implement Real Sync Functionality
+**Priority**: Critical
+**Description**: 实现真实的同步逻辑，替换当前的占位实现
+
+**Tasks**:
+- [ ] **Pull 功能**:
+  - [ ] 使用 `@uspark/core-node` 的 `ProjectSync` 类
+  - [ ] 实现 `pullAll()` 从远程拉取文档
+  - [ ] 处理文件写入到本地
+  - [ ] 检测并处理冲突
+
+- [ ] **Push 功能**:
+  - [ ] 集成 CLI 的 `pushAllFiles()` 功能
+  - [ ] 实现文件变更检测
+  - [ ] 批量上传变更文件
+  - [ ] 处理上传失败重试
+
+- [ ] **同步状态管理**:
+  - [ ] 实现同步队列
+  - [ ] 添加同步锁防止并发冲突
+  - [ ] 记录最后同步时间
+  - [ ] 实现增量同步（只同步变更）
+
+- [ ] **错误处理**:
+  - [ ] 网络错误重试机制
+  - [ ] 认证失败处理
+  - [ ] 文件冲突提示
+  - [ ] 日志记录和错误上报
+
+**Implementation Steps**:
+```typescript
+// 1. 添加依赖
+import { ProjectSync } from "@uspark/core-node";
+import { pushAllFiles } from "@uspark/cli"; // 需要导出此函数
+
+// 2. 实现同步函数
+async function sync(
+  projectId: string,
+  workDir: string,
+  statusBar: StatusBarItem,
+) {
+  try {
+    statusBar.text = "$(sync~spin) Syncing...";
+
+    // Pull from remote
+    const syncClient = new ProjectSync(projectId, workDir);
+    await syncClient.pullAll();
+
+    // Push local changes
+    await pushAllFiles(workDir, projectId);
+
+    statusBar.text = "$(check) Synced";
+    setTimeout(() => (statusBar.text = "$(sync) Auto Sync"), 2000);
+  } catch (error) {
+    statusBar.text = "$(error) Sync Failed";
+    console.error("Sync error:", error);
+    // Show error notification to user
+  }
+}
+```
+
+**Testing**:
+- [ ] 单元测试 pull 和 push 功能
+- [ ] 集成测试完整同步流程
+- [ ] 测试冲突场景
+- [ ] 测试网络错误恢复
+- [ ] 性能测试（大文件/多文件）
+
+---
+
+## Task Summary
+
+| Task | Priority | Status | Dependencies |
+|------|----------|--------|--------------|
+| Release Please 配置 | High | 🔴 Not Started | None |
+| 开发工作流集成 | High | 🔴 Not Started | None |
+| 认证流程设计 | Critical | 🔴 Not Started | Web auth page |
+| 实现真实同步 | Critical | 🔴 Not Started | Auth flow, @uspark/core-node |
+
+**Recommended Implementation Order**:
+1. Release Please 配置（便于版本管理）
+2. 开发工作流集成（提升开发效率）
+3. 认证流程设计（基础设施）
+4. 实现真实同步（核心功能）
+
 ## References
 
 - [VSCode Extension API](https://code.visualstudio.com/api)
