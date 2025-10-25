@@ -11,7 +11,7 @@ pre-commit:
       glob: "turbo/**/*"
     knip:
       root: turbo/
-      run: pnpm knip --cache --no-exit-code
+      run: pnpm knip --cache
       glob: "turbo/**/*.{js,ts,tsx,jsx,json}"
       skip:
         - merge

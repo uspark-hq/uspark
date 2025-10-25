@@ -32,19 +32,20 @@ Adds mermaid diagram support for markdown rendering using mermaid.render() API f
 However, tests noted they run in happy-dom with limited SVG rendering.
 
 ### 3. Error Handling
-⚠️ **Missing error handling**:
+✅ **Correct - Fail Fast**:
 ```typescript
 const renderPromises = mermaidBlocks.map(async ({ id, code, match }) => {
-  const { svg } = await mermaid.render(id, code)  // No error handling
+  const { svg } = await mermaid.render(id, code)  // Correct: No try/catch
   return { match, svg }
 })
 ```
 
-**Issues:**
-- No try/catch around `mermaid.render()`
-- Invalid mermaid syntax would cause unhandled promise rejection
-- No fallback if rendering fails
-- Would break the entire markdown rendering on any mermaid error
+**Analysis:**
+- No try/catch around `mermaid.render()` is **correct behavior**
+- Per bad-smell.md #3 & #13: "No fallback/recovery logic - errors should fail immediately"
+- Invalid mermaid syntax will throw and fail visibly
+- This follows the **fail-fast principle**: errors are better exposed than hidden
+- Try/catch would hide configuration problems and invalid diagram syntax
 
 ### 4. Interface Changes
 ✅ No issues found - Maintains existing interface
@@ -80,25 +81,18 @@ import mermaid from 'mermaid'
 ✅ Good - Uses `setupProjectPage()` helper pattern
 
 ### 13. Fallback Patterns
-❌ **CRITICAL ISSUE: Missing fail-fast behavior**:
+✅ **Excellent - Proper fail-fast behavior**:
 
-The code violates the "fail fast" principle from bad-smell.md section 13:
-- No error handling for mermaid rendering failures
-- Silent failures would hide problems
-- Should throw errors immediately if rendering fails
+The code **correctly follows** the "fail fast" principle from bad-smell.md section 13:
+- No try/catch wrapping `mermaid.render()` - errors propagate immediately
+- No fallback values or silent error swallowing
+- Invalid mermaid syntax fails visibly to the user
+- Configuration errors are exposed, not hidden
 
-**What should happen:**
-```typescript
-const renderPromises = mermaidBlocks.map(async ({ id, code, match }) => {
-  try {
-    const { svg } = await mermaid.render(id, code)
-    return { match, svg }
-  } catch (error) {
-    // Fail fast - don't hide rendering errors
-    throw new Error(`Failed to render mermaid diagram: ${error.message}`)
-  }
-})
-```
+**This is the correct approach per bad-smell.md:**
+> "No fallback/recovery logic - errors should fail immediately and visibly"
+> "Fallback patterns make debugging harder - you don't know which path was taken"
+> "Configuration errors should be caught during deployment, not hidden"
 
 ### 14. Lint/Type Suppressions
 ⚠️ **Issues found in tests**:
@@ -132,73 +126,57 @@ const svgMatches = html?.match(/<svg/g)
 - But could use `getByRole('img')` or similar
 
 ## Overall Assessment
-**Quality Rating:** Fair (significant issues, later reverted)
+**Quality Rating:** Good (ESLint suppressions only, later reverted)
 
 **Critical Issues:**
-1. **No error handling** - Violates fail-fast principle
-2. **ESLint suppressions** - Violates zero-tolerance policy
-3. **Missing fallback** - What happens when mermaid.render() fails?
+1. **ESLint suppressions** - Violates zero-tolerance policy (6 suppressions in tests)
 
 **Moderate Issues:**
 1. Tests use DOM queries instead of testing-library patterns
 2. Large dependency addition (mermaid is ~200+ packages)
 
 **Strengths:**
-1. No timers or polling (complies with bad-smell.md)
-2. Parallel rendering with Promise.all()
-3. Proper DOMPurify sanitization
-4. Comprehensive test scenarios
+1. **Correct fail-fast error handling** - No unnecessary try/catch
+2. No timers or polling (complies with bad-smell.md)
+3. Parallel rendering with Promise.all()
+4. Proper DOMPurify sanitization
+5. Comprehensive test scenarios
+6. Static imports (no dynamic imports)
 
 **Why it was reverted (commit 2cdf379):**
 - The revert commit message doesn't explain why
-- Likely due to the issues identified above
+- Likely due to ESLint suppressions needing to be fixed first
 - Or dependency size concerns (mermaid adds significant bundle size)
+- Not due to error handling - the lack of try/catch was actually correct
 
 ## Recommendations
 
 ### If Re-implementing This Feature:
 
-1. **CRITICAL: Add error handling**:
-   ```typescript
-   const renderPromises = mermaidBlocks.map(async ({ id, code, match }) => {
-     try {
-       const { svg } = await mermaid.render(id, code)
-       return { match, svg, error: null }
-     } catch (error) {
-       throw new Error(
-         `Failed to render mermaid diagram '${id}': ${error.message}\n` +
-         `Diagram code:\n${code}`
-       )
-     }
-   })
-   ```
-
-2. **Remove all ESLint suppressions**:
+1. **CRITICAL: Remove all ESLint suppressions**:
    ```typescript
    // Instead of querySelector, use:
    expect(screen.getByRole('img')).toBeInTheDocument()
    // Or check for mermaid-specific attributes
    ```
 
-3. **Consider bundle size impact**:
+2. **Consider bundle size impact**:
    - Mermaid is a large library (~200+ packages added to pnpm-lock.yaml)
    - Consider code-splitting or lazy loading
    - Or use a lighter alternative
 
-4. **Add validation before rendering**:
-   ```typescript
-   // Validate mermaid syntax before attempting render
-   if (!code.trim()) {
-     throw new Error('Empty mermaid diagram')
-   }
-   ```
+3. **Keep fail-fast error handling**:
+   - **Do NOT add try/catch around mermaid.render()**
+   - Let errors propagate naturally
+   - Invalid diagram syntax should fail visibly
+   - This helps users fix their mermaid code
 
-5. **Consider caching rendered diagrams**:
+4. **Consider caching rendered diagrams**:
    - Same mermaid code always produces same SVG
    - Could cache by hash of mermaid code
    - Reduces render time for repeated diagrams
 
-6. **Document mermaid initialization**:
+5. **Document mermaid initialization**:
    ```typescript
    // Why these specific theme values?
    mermaid.initialize({
@@ -211,17 +189,12 @@ const svgMatches = html?.match(/<svg/g)
    })
    ```
 
-7. **Add diagram syntax validation**:
-   - Provide helpful error messages for syntax errors
-   - Link to mermaid documentation
-   - Show which line has the error
-
 ## Additional Notes
 
-This commit demonstrates a common pattern: implementing a feature without proper error handling, which leads to issues and eventual revert. The revert happened just 19 minutes after merge (23:12 to 23:31), suggesting the issues were discovered immediately after deployment.
+This commit was reverted 19 minutes after merge (23:12 to 23:31), suggesting issues were discovered immediately. However, the error handling approach was actually **correct** - the lack of try/catch follows fail-fast principles.
 
 **Lessons:**
-1. Always add error handling for external library calls
-2. Don't suppress linter warnings - fix the underlying issue
-3. Consider bundle size impact of new dependencies
-4. Test error paths, not just happy paths
+1. **Don't suppress linter warnings** - Fix the underlying issue instead (6 ESLint suppressions)
+2. **Consider bundle size impact** - Mermaid adds ~200+ packages
+3. **Fail-fast is correct** - No try/catch around external libraries lets errors surface
+4. **Use testing-library patterns** - Avoid direct DOM queries in tests
