@@ -747,7 +747,7 @@ ruleTester.run('no-get-signal', noGetSignal, {
       name: 'get nested AbortSignal in Map',
       code: `
             import { state, command } from 'ccstate';
-            type ToggleContext = { initContext$: any };
+            type ToggleContext = { initContext$: unknown };
             const contextMap$ = state(new Map<string, ToggleContext>());
             command(({get}) => {
                 const map = get(contextMap$)
@@ -830,7 +830,7 @@ ruleTester.run('test-context-in-hooks', testContextInHooks, {
       code: `
             import { testContext } from '../../__tests__/app-context'
             describe('test suite', () => {
-                let context: any
+                let context: ReturnType<typeof testContext>
                 beforeEach(() => {
                     context = testContext()
                 })
@@ -863,7 +863,8 @@ ruleTester.run('test-context-in-hooks', testContextInHooks, {
       code: `
             import { testContext } from '../../__tests__/app-context'
             describe('test suite', () => {
-                let store: any, signal: any
+                let store: ReturnType<typeof testContext>['store']
+                let signal: ReturnType<typeof testContext>['signal']
                 beforeEach(() => {
                     const { store: s, signal: sig } = testContext()
                     store = s
