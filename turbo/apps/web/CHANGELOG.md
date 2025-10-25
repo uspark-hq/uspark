@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.4.0](https://github.com/uspark-hq/uspark/compare/web-v1.3.1...web-v1.4.0) (2025-10-25)
+
+
+### Features
+
+* **vscode-extension:** implement browser-based oauth authentication ([#761](https://github.com/uspark-hq/uspark/issues/761)) ([80bac4e](https://github.com/uspark-hq/uspark/commit/80bac4ea3ec31e8fb8ee735207336749ac9d63a6))
+
+
+### Bug Fixes
+
+* resolve configuration and test quality technical debt ([#763](https://github.com/uspark-hq/uspark/issues/763)) ([41490c8](https://github.com/uspark-hq/uspark/commit/41490c81fa6d0eb02c5c31bb421765f0a1682be4))
+* **test:** remove setTimeout for deterministic test behavior ([#759](https://github.com/uspark-hq/uspark/issues/759)) ([ae6dd1d](https://github.com/uspark-hq/uspark/commit/ae6dd1da0d9d9c693f02c4bdc2a3fcc510407107))
+
 ## [1.3.1](https://github.com/uspark-hq/uspark/compare/web-v1.3.0...web-v1.3.1) (2025-10-25)
 
 
