@@ -56,7 +56,7 @@ describe("ApiClient", () => {
 
       expect(user).toBeNull();
       expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "[Uspark] Failed to validate token:",
+        "[uSpark] Failed to validate token:",
         expect.any(Error),
       );
 
@@ -125,7 +125,7 @@ describe("ApiClient", () => {
       await client.sync("usp_live_token", "project-123", "/tmp/workdir");
 
       expect(consoleLogSpy).toHaveBeenCalledWith(
-        "[Uspark] Sync not yet implemented for project project-123",
+        "[uSpark] Sync not yet implemented for project project-123",
       );
 
       consoleLogSpy.mockRestore();

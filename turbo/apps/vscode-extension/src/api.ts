@@ -39,7 +39,7 @@ export class ApiClient {
         email: data.email,
       };
     } catch (error) {
-      console.error("[Uspark] Failed to validate token:", error);
+      console.error("[uSpark] Failed to validate token:", error);
       return null;
     }
   }
@@ -50,6 +50,6 @@ export class ApiClient {
    */
   async sync(token: string, projectId: string, workDir: string): Promise<void> {
     // TODO: Implement pull and push logic
-    console.log(`[Uspark] Sync not yet implemented for project ${projectId}`);
+    console.log(`[uSpark] Sync not yet implemented for project ${projectId}`);
   }
 }

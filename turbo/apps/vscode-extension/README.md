@@ -1,6 +1,6 @@
-# Uspark VSCode Extension
+# uSpark VSCode Extension
 
-Automatically sync workspace files with Uspark cloud.
+Automatically sync workspace files with uSpark cloud.
 
 ## Features
 
