@@ -141,6 +141,20 @@
       "when": 1761172274156,
       "tag": "0019_spotty_gamma_corps",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1761363286853,
+      "tag": "0020_oval_red_skull",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1761363328586,
+      "tag": "0021_last_scarecrow",
+      "breakpoints": true
     }
   ]
 }
