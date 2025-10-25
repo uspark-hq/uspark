@@ -1,5 +1,5 @@
 {
-  "name": "uspark-vscode",
+  "name": "uspark-sync",
   "displayName": "Uspark Auto Sync",
   "description": "Automatically sync workspace with Uspark - seamless file synchronization for your projects",
   "version": "0.0.1",
