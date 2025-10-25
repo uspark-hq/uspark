@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/uspark-hq/uspark/compare/uspark-sync-v0.1.0...uspark-sync-v0.2.0) (2025-10-25)
+
+
+### Features
+
+* **vscode-extension:** implement browser-based oauth authentication ([#761](https://github.com/uspark-hq/uspark/issues/761)) ([80bac4e](https://github.com/uspark-hq/uspark/commit/80bac4ea3ec31e8fb8ee735207336749ac9d63a6))
+
 ## [0.1.0](https://github.com/uspark-hq/uspark/compare/uspark-sync-v0.0.1...uspark-sync-v0.1.0) (2025-10-25)
 
 
