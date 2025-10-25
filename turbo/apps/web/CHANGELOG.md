@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/uspark-hq/uspark/compare/web-v1.2.1...web-v1.3.0) (2025-10-25)
+
+
+### Features
+
+* **api:** implement yjs diff api for efficient real-time sync ([#745](https://github.com/uspark-hq/uspark/issues/745)) ([d423e49](https://github.com/uspark-hq/uspark/commit/d423e499254e21c30c1f9dc58a9e1f5b6a0737ff))
+
 ## [1.2.1](https://github.com/uspark-hq/uspark/compare/web-v1.2.0...web-v1.2.1) (2025-10-24)
 
 
