@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/uspark-hq/uspark/compare/uspark-sync-v0.2.2...uspark-sync-v0.3.0) (2025-10-25)
+
+
+### Features
+
+* **vscode-extension:** add output logs, status menu, and multi-root support ([#778](https://github.com/uspark-hq/uspark/issues/778)) ([aa7bc27](https://github.com/uspark-hq/uspark/commit/aa7bc275cc51632115a44c47871ad22cdd8407ab))
+
 ## [0.2.2](https://github.com/uspark-hq/uspark/compare/uspark-sync-v0.2.1...uspark-sync-v0.2.2) (2025-10-25)
 
 
