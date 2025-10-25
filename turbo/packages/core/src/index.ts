@@ -33,3 +33,5 @@ export type {
   YjsBlobConfig,
 } from "./yjs-filesystem/types";
 export * from "./utils/blocks";
+export { DocStore } from "./doc-store";
+export type { DocStoreConfig, FileNode, BlobInfo } from "./doc-store";
