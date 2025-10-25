@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.3.1](https://github.com/uspark-hq/uspark/compare/web-v1.3.0...web-v1.3.1) (2025-10-25)
+
+
+### Bug Fixes
+
+* **cron:** remove broad try-catch block to improve error handling ([#753](https://github.com/uspark-hq/uspark/issues/753)) ([dc12ac9](https://github.com/uspark-hq/uspark/commit/dc12ac93e577379866c9e6cc3306384feb8506fe))
+* remove upsert logic from GET /api/projects/:projectId endpoint ([#754](https://github.com/uspark-hq/uspark/issues/754)) ([6864336](https://github.com/uspark-hq/uspark/commit/68643364d223f08408678da5a7e63677c1c2705a))
+
+
+### Performance Improvements
+
+* eliminate n+1 query pattern in turns endpoint ([#755](https://github.com/uspark-hq/uspark/issues/755)) ([4d9db45](https://github.com/uspark-hq/uspark/commit/4d9db4598efde0c729f8bed94691cf8e34acbc94))
+
 ## [1.3.0](https://github.com/uspark-hq/uspark/compare/web-v1.2.1...web-v1.3.0) (2025-10-25)
 
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/uspark-hq/uspark/compare/mcp-server-v0.2.4...mcp-server-v0.2.5) (2025-10-25)
+
+
+### Bug Fixes
+
+* **api:** remove duplicate variable declaration in turns route ([#641](https://github.com/uspark-hq/uspark/issues/641)) ([ce6a06c](https://github.com/uspark-hq/uspark/commit/ce6a06c679b17725495581faeed71e16926015e8))
+
 ## [0.2.4](https://github.com/uspark-hq/uspark/compare/mcp-server-v0.2.3...mcp-server-v0.2.4) (2025-10-22)
 
 
