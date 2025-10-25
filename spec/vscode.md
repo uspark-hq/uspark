@@ -307,7 +307,7 @@ Extension activates when:
     2. 在浏览器中打开授权页面
     3. 轮询检查用户是否授权
     4. 获取 access token
-  - [ ] 将 token 存储到 `$HOME/.uspark/vscode-token.json`
+  - [ ] 将 token 存储到 `$HOME/.uspark/config.json`
   - [ ] 实现 token 自动刷新机制
   - [ ] 添加登出功能
 
@@ -316,9 +316,7 @@ Extension activates when:
   - [ ] 配置文件格式：
     ```
     $HOME/.uspark/
-    ├── config.json          # 通用配置
-    ├── cli-token.json       # CLI token
-    └── vscode-token.json    # VSCode token
+    └── config.json          # 统一配置文件（CLI 和 VSCode 共用）
     ```
   - [ ] 实现配置读写工具函数
   - [ ] 处理权限和安全问题
@@ -345,68 +343,13 @@ Extension activates when:
 **Description**: 实现真实的同步逻辑，替换当前的占位实现
 
 **Tasks**:
-- [ ] **Pull 功能**:
-  - [ ] 使用 `@uspark/core-node` 的 `ProjectSync` 类
-  - [ ] 实现 `pullAll()` 从远程拉取文档
-  - [ ] 处理文件写入到本地
-  - [ ] 检测并处理冲突
-
-- [ ] **Push 功能**:
-  - [ ] 集成 CLI 的 `pushAllFiles()` 功能
-  - [ ] 实现文件变更检测
-  - [ ] 批量上传变更文件
-  - [ ] 处理上传失败重试
-
-- [ ] **同步状态管理**:
-  - [ ] 实现同步队列
-  - [ ] 添加同步锁防止并发冲突
-  - [ ] 记录最后同步时间
-  - [ ] 实现增量同步（只同步变更）
-
-- [ ] **错误处理**:
-  - [ ] 网络错误重试机制
-  - [ ] 认证失败处理
-  - [ ] 文件冲突提示
-  - [ ] 日志记录和错误上报
-
-**Implementation Steps**:
-```typescript
-// 1. 添加依赖
-import { ProjectSync } from "@uspark/core-node";
-import { pushAllFiles } from "@uspark/cli"; // 需要导出此函数
-
-// 2. 实现同步函数
-async function sync(
-  projectId: string,
-  workDir: string,
-  statusBar: StatusBarItem,
-) {
-  try {
-    statusBar.text = "$(sync~spin) Syncing...";
-
-    // Pull from remote
-    const syncClient = new ProjectSync(projectId, workDir);
-    await syncClient.pullAll();
-
-    // Push local changes
-    await pushAllFiles(workDir, projectId);
-
-    statusBar.text = "$(check) Synced";
-    setTimeout(() => (statusBar.text = "$(sync) Auto Sync"), 2000);
-  } catch (error) {
-    statusBar.text = "$(error) Sync Failed";
-    console.error("Sync error:", error);
-    // Show error notification to user
-  }
-}
-```
-
-**Testing**:
-- [ ] 单元测试 pull 和 push 功能
-- [ ] 集成测试完整同步流程
-- [ ] 测试冲突场景
-- [ ] 测试网络错误恢复
-- [ ] 性能测试（大文件/多文件）
+- [ ] 调研和设计同步方案（方案待定）
+- [ ] Pull 功能：从远程拉取文档到本地
+- [ ] Push 功能：将本地更改推送到远程
+- [ ] 同步状态管理
+- [ ] 冲突检测和处理
+- [ ] 错误处理和重试机制
+- [ ] 单元测试和集成测试
 
 ---
 
@@ -417,13 +360,7 @@ async function sync(
 | Release Please 配置 | High | 🔴 Not Started | None |
 | 开发工作流集成 | High | 🔴 Not Started | None |
 | 认证流程设计 | Critical | 🔴 Not Started | Web auth page |
-| 实现真实同步 | Critical | 🔴 Not Started | Auth flow, @uspark/core-node |
-
-**Recommended Implementation Order**:
-1. Release Please 配置（便于版本管理）
-2. 开发工作流集成（提升开发效率）
-3. 认证流程设计（基础设施）
-4. 实现真实同步（核心功能）
+| 实现真实同步 | Critical | 🔴 Not Started | Auth flow |
 
 ## References
 
