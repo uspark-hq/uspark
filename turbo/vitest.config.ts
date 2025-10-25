@@ -52,21 +52,39 @@ export default defineConfig({
         },
       },
 
+      // Web app - Node environment (API routes, utilities, database)
       {
         plugins: [react()],
         test: {
-          name: "web",
+          name: "web:node",
           root: "./apps/web",
+          environment: "node",
+          include: [
+            "app/api/**/*.test.ts",
+            "app/api/**/*.test.tsx",
+            "app/components/**/*.test.ts", // Non-JSX tests in components (e.g., parsers)
+            "src/lib/**/*.test.ts",
+            "src/test/**/*.test.ts",
+            "src/db/**/*.test.ts",
+          ],
           setupFiles: ["./src/test/setup.ts", "./src/test/db-setup.ts"],
           globalSetup: "./src/test/global-setup.ts",
-          environmentMatchGlobs: [
-            ["app/api/**/*.test.ts", "node"],
-            ["app/api/**/*.test.tsx", "node"],
-            ["src/lib/**/*.test.ts", "node"],
-            ["src/test/**/*.test.ts", "node"],
-            ["app/**/*.test.tsx", "jsdom"],
-            ["src/**/*.test.tsx", "jsdom"],
+        },
+      },
+
+      // Web app - JSDOM environment (React components, client-side code)
+      {
+        plugins: [react()],
+        test: {
+          name: "web:jsdom",
+          root: "./apps/web",
+          environment: "jsdom",
+          include: ["app/**/*.test.tsx", "src/**/*.test.tsx"],
+          exclude: [
+            "app/api/**/*.test.tsx", // API routes use node environment
           ],
+          setupFiles: ["./src/test/setup.ts", "./src/test/db-setup.ts"],
+          globalSetup: "./src/test/global-setup.ts",
         },
       },
 
