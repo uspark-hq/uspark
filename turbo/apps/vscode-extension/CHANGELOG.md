@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.1.0](https://github.com/uspark-hq/uspark/compare/uspark-sync-v0.0.1...uspark-sync-v0.1.0) (2025-10-25)
+
+
+### Features
+
+* **vscode-extension:** add basic VSCode extension framework ([#749](https://github.com/uspark-hq/uspark/issues/749)) ([d05376d](https://github.com/uspark-hq/uspark/commit/d05376d24b5a3c687ead8d66d123c8c4f7f97984))
+* **vscode-extension:** configure release-please for automated versioning ([#752](https://github.com/uspark-hq/uspark/issues/752)) ([f73a995](https://github.com/uspark-hq/uspark/commit/f73a995154c43e9442c3293ca7b49d5306ec63c9))
+
+
+### Bug Fixes
+
+* **api:** remove duplicate variable declaration in turns route ([#641](https://github.com/uspark-hq/uspark/issues/641)) ([ce6a06c](https://github.com/uspark-hq/uspark/commit/ce6a06c679b17725495581faeed71e16926015e8))
+
 ## 0.0.1 (2025-10-25)
 
 
