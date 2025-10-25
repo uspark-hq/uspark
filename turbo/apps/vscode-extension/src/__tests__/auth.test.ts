@@ -49,10 +49,10 @@ describe("AuthManager", () => {
   const realConfigDir = join(homedir(), ".uspark");
   const realConfigFile = join(realConfigDir, "config.json");
 
-  // Type-safe mock context
-  const mockContext: vscode.ExtensionContext = {
+  // Minimal mock context - AuthManager doesn't actually use context properties
+  const mockContext = {
     subscriptions: [],
-  } as vscode.ExtensionContext;
+  } as unknown as vscode.ExtensionContext;
 
   beforeEach(() => {
     // Clean up real config
