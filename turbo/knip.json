@@ -67,7 +67,7 @@
       "project": ["**/*.{js,json}"],
       "ignoreBinaries": ["caddy"]
     },
-    "packages/mcp-server": {
+    "apps/mcp-server": {
       "entry": [],
       "project": ["src/**/*.ts"],
       "tsup": {
