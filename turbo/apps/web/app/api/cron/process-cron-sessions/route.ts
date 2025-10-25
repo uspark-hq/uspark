@@ -7,6 +7,8 @@ import { randomUUID } from "crypto";
 import { ClaudeExecutor } from "../../../../src/lib/claude-executor";
 import * as Y from "yjs";
 import type { YjsFileNode, YjsBlobInfo } from "@uspark/core";
+import { getStoreIdFromToken } from "../../../../src/lib/blob/utils";
+import { env } from "../../../../src/env";
 
 // Route segment config
 export const maxDuration = 300;
@@ -37,14 +39,7 @@ interface CronResult {
 export async function POST(request: NextRequest) {
   // Verify request is from Vercel Cron
   const authHeader = request.headers.get("authorization");
-  const cronSecret = process.env.CRON_SECRET;
-
-  if (!cronSecret) {
-    return NextResponse.json(
-      { error: "CRON_SECRET not configured" },
-      { status: 500 },
-    );
-  }
+  const cronSecret = env().CRON_SECRET;
 
   if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -141,12 +136,8 @@ export async function POST(request: NextRequest) {
           throw new Error("BLOB_READ_WRITE_TOKEN not configured");
         }
 
-        // Extract store ID from token
-        const parts = blobToken.split("_");
-        if (parts.length < 4 || !parts[3]) {
-          throw new Error("Invalid BLOB_READ_WRITE_TOKEN format");
-        }
-        const storeId = parts[3];
+        // Extract store ID from token using centralized utility
+        const storeId = getStoreIdFromToken(blobToken);
 
         // Download from blob storage
         const blobUrl = `https://${storeId}.public.blob.vercel-storage.com/projects/${project.id}/${cronFileMetadata.hash}`;

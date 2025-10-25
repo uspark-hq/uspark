@@ -72,8 +72,13 @@
       "tsup": {
         "config": ["tsup.config.ts"]
       },
-      "ignoreDependencies": ["@vercel/blob", "eslint"],
-      "ignoreBinaries": ["tsup", "eslint"]
+      "ignoreDependencies": ["@vercel/blob"]
+    },
+    "apps/vscode-extension": {
+      "entry": [],
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["@vscode/vsce"],
+      "ignoreBinaries": ["vsce"]
     }
   },
   "ignore": [
