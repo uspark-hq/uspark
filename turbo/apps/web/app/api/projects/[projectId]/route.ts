@@ -3,11 +3,13 @@ import * as Y from "yjs";
 import { initServices } from "../../../../src/lib/init-services";
 import { getUserId } from "../../../../src/lib/auth/get-user-id";
 import { PROJECTS_TBL } from "../../../../src/db/schema/projects";
+import { PROJECT_VERSIONS_TBL } from "../../../../src/db/schema/project-versions";
 import { SESSIONS_TBL } from "../../../../src/db/schema/sessions";
 import { githubRepos } from "../../../../src/db/schema/github";
 import { SHARE_LINKS_TBL } from "../../../../src/db/schema/share-links";
 import { AGENT_SESSIONS_TBL } from "../../../../src/db/schema/agent-sessions";
 import { eq, and } from "drizzle-orm";
+import { randomUUID } from "crypto";
 
 /**
  * GET /api/projects/:projectId
@@ -42,6 +44,7 @@ export async function GET(
       headers: {
         "Content-Type": "application/octet-stream",
         "X-Version": project.version.toString(),
+        "Access-Control-Expose-Headers": "X-Version",
       },
     });
   } else {
@@ -50,19 +53,31 @@ export async function GET(
     const state = Y.encodeStateAsUpdate(ydoc);
     const base64Data = Buffer.from(state).toString("base64");
 
-    // Store in database
-    await globalThis.services.db.insert(PROJECTS_TBL).values({
-      id: projectId,
-      name: projectId,
-      userId,
-      ydocData: base64Data,
-      version: 0,
+    // Store in database with initial version snapshot
+    await globalThis.services.db.transaction(async (tx) => {
+      // Create project
+      await tx.insert(PROJECTS_TBL).values({
+        id: projectId,
+        name: projectId,
+        userId,
+        ydocData: base64Data,
+        version: 0,
+      });
+
+      // Save version 0 snapshot for future diffs
+      await tx.insert(PROJECT_VERSIONS_TBL).values({
+        id: randomUUID(),
+        projectId,
+        version: 0,
+        ydocSnapshot: Buffer.from(state),
+      });
     });
 
     return new Response(Buffer.from(state), {
       headers: {
         "Content-Type": "application/octet-stream",
         "X-Version": "0",
+        "Access-Control-Expose-Headers": "X-Version",
       },
     });
   }
@@ -123,25 +138,44 @@ export async function PATCH(
   // Serialize the updated YDoc
   const newState = Y.encodeStateAsUpdate(serverDoc);
   const newBase64Data = Buffer.from(newState).toString("base64");
+  const newVersion = project.version + 1;
 
-  // Update in database with version increment
-  const result = await globalThis.services.db
-    .update(PROJECTS_TBL)
-    .set({
-      ydocData: newBase64Data,
-      version: project.version + 1,
-      updatedAt: new Date(),
-    })
-    .where(
-      and(
-        eq(PROJECTS_TBL.id, projectId),
-        eq(PROJECTS_TBL.userId, userId),
-        eq(PROJECTS_TBL.version, project.version),
-      ),
-    )
-    .returning();
+  // Use transaction to update both tables atomically
+  const result = await globalThis.services.db.transaction(async (tx) => {
+    // Update project with new version
+    const [updatedProject] = await tx
+      .update(PROJECTS_TBL)
+      .set({
+        ydocData: newBase64Data,
+        version: newVersion,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(PROJECTS_TBL.id, projectId),
+          eq(PROJECTS_TBL.userId, userId),
+          eq(PROJECTS_TBL.version, project.version), // Optimistic locking
+        ),
+      )
+      .returning();
 
-  if (result.length === 0) {
+    if (!updatedProject) {
+      // Concurrent update happened
+      return null;
+    }
+
+    // Save version snapshot for diff calculation
+    await tx.insert(PROJECT_VERSIONS_TBL).values({
+      id: randomUUID(),
+      projectId,
+      version: newVersion,
+      ydocSnapshot: Buffer.from(newState),
+    });
+
+    return updatedProject;
+  });
+
+  if (!result) {
     // Concurrent update happened
     return NextResponse.json(
       { error: "Concurrent update conflict" },
@@ -152,7 +186,8 @@ export async function PATCH(
   return new Response("OK", {
     status: 200,
     headers: {
-      "X-Version": result[0]?.version.toString() || "",
+      "X-Version": result.version.toString(),
+      "Access-Control-Expose-Headers": "X-Version",
     },
   });
 }

@@ -98,7 +98,7 @@ jobs:
           fi
 
           # Check MCP server package
-          cd ../../turbo/packages/mcp-server
+          cd ../../turbo/apps/mcp-server
           if git diff --quiet HEAD^ HEAD .; then
             echo "No changes detected in MCP server"
             echo "mcp-server-changed=false" >> $GITHUB_OUTPUT

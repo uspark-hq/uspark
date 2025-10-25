@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.34.2](https://github.com/uspark-hq/uspark/compare/workspace-v1.34.1...workspace-v1.34.2) (2025-10-25)
+
+
+### Bug Fixes
+
+* remove eslint suppressions and fix knip pre-commit hook ([#741](https://github.com/uspark-hq/uspark/issues/741)) ([8084a7c](https://github.com/uspark-hq/uspark/commit/8084a7c1645692030f31204b14751236a16d162f))
+
 ## [1.34.1](https://github.com/uspark-hq/uspark/compare/workspace-v1.34.0...workspace-v1.34.1) (2025-10-23)
 
 

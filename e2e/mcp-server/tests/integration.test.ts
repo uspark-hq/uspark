@@ -50,7 +50,7 @@ describe("MCP Server Integration Tests", () => {
     // Path to built MCP server
     const serverPath = resolve(
       __dirname,
-      "../../../turbo/packages/mcp-server/dist/index.js",
+      "../../../turbo/apps/mcp-server/dist/index.js",
     );
 
     // Get auth token

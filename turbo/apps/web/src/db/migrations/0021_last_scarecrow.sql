@@ -1,0 +1,2 @@
+CREATE INDEX "idx_project_versions_lookup" ON "project_versions" USING btree ("project_id","version" DESC NULLS LAST);--> statement-breakpoint
+ALTER TABLE "project_versions" ADD CONSTRAINT "project_versions_project_id_version_unique" UNIQUE("project_id","version");

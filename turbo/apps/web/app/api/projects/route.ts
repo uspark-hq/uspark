@@ -3,6 +3,7 @@ import { getUserId } from "../../../src/lib/auth/get-user-id";
 import * as Y from "yjs";
 import { initServices } from "../../../src/lib/init-services";
 import { PROJECTS_TBL } from "../../../src/db/schema/projects";
+import { PROJECT_VERSIONS_TBL } from "../../../src/db/schema/project-versions";
 import { eq } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import {
@@ -117,27 +118,40 @@ export async function POST(request: NextRequest) {
   const state = Y.encodeStateAsUpdate(ydoc);
   const base64Data = Buffer.from(state).toString("base64");
 
-  // Insert project into database
+  // Insert project into database with initial version snapshot
   let newProjectData;
   try {
-    [newProjectData] = await globalThis.services.db
-      .insert(PROJECTS_TBL)
-      .values({
-        id: projectId,
-        userId,
-        name,
-        ydocData: base64Data,
+    newProjectData = await globalThis.services.db.transaction(async (tx) => {
+      // Create project
+      const [project] = await tx
+        .insert(PROJECTS_TBL)
+        .values({
+          id: projectId,
+          userId,
+          name,
+          ydocData: base64Data,
+          version: 0,
+          sourceRepoUrl: sourceRepoUrl || null,
+          sourceRepoInstallationId: installationId || null,
+          sourceRepoType: sourceRepoType,
+          initialScanStatus: sourceRepoUrl ? "pending" : null,
+        })
+        .returning({
+          id: PROJECTS_TBL.id,
+          name: PROJECTS_TBL.name,
+          created_at: PROJECTS_TBL.createdAt,
+        });
+
+      // Save version 0 snapshot for future diffs
+      await tx.insert(PROJECT_VERSIONS_TBL).values({
+        id: randomUUID(),
+        projectId,
         version: 0,
-        sourceRepoUrl: sourceRepoUrl || null,
-        sourceRepoInstallationId: installationId || null,
-        sourceRepoType: sourceRepoType,
-        initialScanStatus: sourceRepoUrl ? "pending" : null,
-      })
-      .returning({
-        id: PROJECTS_TBL.id,
-        name: PROJECTS_TBL.name,
-        created_at: PROJECTS_TBL.createdAt,
+        ydocSnapshot: Buffer.from(state),
       });
+
+      return project;
+    });
   } catch (error) {
     // Handle unique constraint violation for duplicate project names
     // Drizzle wraps PostgreSQL errors, so check both the error and its cause
