@@ -4,6 +4,7 @@ import { join } from "path";
 import { homedir } from "os";
 import { randomBytes } from "crypto";
 import { ApiClient } from "./api";
+import { logger } from "./logger";
 
 interface AuthConfig {
   token?: string;
@@ -173,7 +174,7 @@ export class AuthManager implements UriHandler {
       const content = await fs.readFile(CONFIG_FILE, "utf8");
       return JSON.parse(content);
     } catch (error) {
-      console.error("[uSpark] Failed to load config:", error);
+      logger.error("Failed to load config", error);
       return {};
     }
   }

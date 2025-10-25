@@ -2,7 +2,7 @@
   "name": "uspark-sync",
   "displayName": "uSpark Auto Sync",
   "description": "Automatically sync workspace with uSpark - seamless file synchronization for your projects",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "publisher": "uSpark",
   "engines": {
     "vscode": "^1.80.0"
@@ -33,6 +33,10 @@
   "main": "./out/extension.js",
   "contributes": {
     "commands": [
+      {
+        "command": "uspark.showMenu",
+        "title": "uSpark: Show Menu"
+      },
       {
         "command": "uspark.login",
         "title": "uSpark: Login"
