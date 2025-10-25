@@ -9,6 +9,7 @@ This document tracks known technical debt in the codebase that should be address
 **Problem**: The current `contractFetch` implementation only returns business data (response body) and doesn't expose response headers, status, or the Response object. This forces some call sites to use native `fetch` instead when they need access to response headers like `X-Version`.
 
 **Current Workaround**:
+
 - 3 call sites currently use native `fetch` to access response headers:
   - `DocStore.sync()` - needs X-Version header
   - `ProjectSync.syncFromRemote()` - needs X-Version header
@@ -16,6 +17,7 @@ This document tracks known technical debt in the codebase that should be address
 - 34+ other call sites use `contractFetch` successfully without needing headers
 
 **Proposed Solution**: Create a unified `withMeta` pattern for contractFetch that returns:
+
 ```typescript
 {
   data: T,
@@ -25,6 +27,7 @@ This document tracks known technical debt in the codebase that should be address
 ```
 
 **Migration Path**:
+
 1. Add new `contractFetchWithMeta` function (non-breaking)
 2. Gradually migrate the 3 call sites that need headers
 3. Consider whether to make metadata the default behavior
