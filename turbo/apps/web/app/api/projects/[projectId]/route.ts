@@ -84,8 +84,51 @@ export async function PATCH(
       and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)),
     );
 
+  // If project doesn't exist, create it with the update
   if (!project) {
-    return NextResponse.json({ error: "Project not found" }, { status: 404 });
+    const newDoc = new Y.Doc();
+    Y.applyUpdate(newDoc, update);
+    const newState = Y.encodeStateAsUpdate(newDoc);
+    const base64Data = Buffer.from(newState).toString("base64");
+
+    const result = await globalThis.services.db.transaction(async (tx) => {
+      // Create project with version 1
+      const [newProject] = await tx
+        .insert(PROJECTS_TBL)
+        .values({
+          id: projectId,
+          userId,
+          name: projectId,
+          ydocData: base64Data,
+          version: 1,
+        })
+        .returning();
+
+      // Save version 0 snapshot (empty) and version 1 snapshot
+      const emptyDoc = new Y.Doc();
+      const emptyState = Y.encodeStateAsUpdate(emptyDoc);
+      await tx.insert(PROJECT_VERSIONS_TBL).values([
+        {
+          id: randomUUID(),
+          projectId,
+          version: 0,
+          ydocSnapshot: Buffer.from(emptyState),
+        },
+        {
+          id: randomUUID(),
+          projectId,
+          version: 1,
+          ydocSnapshot: Buffer.from(newState),
+        },
+      ]);
+
+      return newProject;
+    });
+
+    return NextResponse.json({
+      success: true,
+      version: result.version,
+    });
   }
 
   // Check version if provided (optimistic locking)
