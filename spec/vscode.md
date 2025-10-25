@@ -252,7 +252,27 @@ Extension activates when:
 
 ## Immediate Next Steps
 
-### 1. Release Please Configuration
+### 1. UX Improvements
+**Priority**: High
+**Description**: 改进用户体验，优化状态栏和日志输出
+
+**Tasks**:
+- [ ] **未登录提示**: 没登录状态下打开窗口，应该右下角提示登录，点击后打开浏览器进行 OAuth 登录
+- [ ] **状态栏菜单优化**:
+  - [ ] 右下角不展示文字，只显示一个 icon
+  - [ ] 点击 icon 后弹出菜单
+  - [ ] 已登录状态显示用户名，如 `uSpark (ethan@uspark.ai)`
+  - [ ] 菜单项包含 Login / Logout 选项
+- [ ] **Output 日志输出**: 确保日志能正确输出到 VSCode 的 Output 面板中，用户可以在 Output 下拉菜单中找到 "uSpark" 频道
+
+**Current Issues**:
+- 日志没有出现在 Output 面板中
+- 状态栏显示文字而非图标
+- 未登录时没有明确的提示引导用户登录
+
+---
+
+### 2. Release Please Configuration
 **Priority**: High
 **Description**: 配置 release-please 自动发布 VSCode 插件版本
 
@@ -357,6 +377,7 @@ Extension activates when:
 
 | Task | Priority | Status | Dependencies |
 |------|----------|--------|--------------|
+| UX 改进 (状态栏/日志) | High | 🔴 Not Started | None |
 | Release Please 配置 | High | 🔴 Not Started | None |
 | 开发工作流集成 | High | 🔴 Not Started | None |
 | 认证流程设计 | Critical | 🔴 Not Started | Web auth page |
