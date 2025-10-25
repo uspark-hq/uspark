@@ -74,6 +74,12 @@
       },
       "ignoreDependencies": ["@vercel/blob", "eslint"],
       "ignoreBinaries": ["tsup", "eslint"]
+    },
+    "apps/vscode-extension": {
+      "entry": [],
+      "project": ["src/**/*.ts"],
+      "ignoreDependencies": ["@vscode/vsce"],
+      "ignoreBinaries": ["vsce"]
     }
   },
   "ignore": [

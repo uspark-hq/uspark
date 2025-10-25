@@ -14,10 +14,8 @@ export async function pullCommand(options: {
 }): Promise<void> {
   const { token, apiUrl, sync } = await requireAuth();
 
-  // Get project ID from config or option
   const projectId = options.projectId || (await getProjectId());
 
-  // If no project ID found, require it from options
   if (!projectId) {
     console.error(
       chalk.red(
@@ -27,7 +25,6 @@ export async function pullCommand(options: {
     process.exit(1);
   }
 
-  // Initialize config if it doesn't exist
   const existingConfig = await loadProjectConfig();
   if (!existingConfig) {
     await saveProjectConfig({
@@ -59,10 +56,8 @@ export async function pushCommand(options: {
 }): Promise<void> {
   const { token, apiUrl, sync } = await requireAuth();
 
-  // Get project ID from config or option
   const projectId = options.projectId || (await getProjectId());
 
-  // If no project ID found, require it from options
   if (!projectId) {
     console.error(
       chalk.red(
@@ -72,7 +67,6 @@ export async function pushCommand(options: {
     process.exit(1);
   }
 
-  // Initialize config if it doesn't exist
   const existingConfig = await loadProjectConfig();
   if (!existingConfig) {
     await saveProjectConfig({
@@ -95,7 +89,6 @@ export async function pushCommand(options: {
     return;
   }
 
-  // Increment version after successful push
   const currentVersion = await getProjectVersion();
   const newVersion = currentVersion ? String(Number(currentVersion) + 1) : "1";
   await updateProjectVersion(newVersion);
