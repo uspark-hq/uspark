@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/uspark-hq/uspark/compare/uspark-sync-v0.2.0...uspark-sync-v0.2.1) (2025-10-25)
+
+
+### Bug Fixes
+
+* **vscode-extension:** resolve typescript compilation error in auth tests ([#766](https://github.com/uspark-hq/uspark/issues/766)) ([fcf693b](https://github.com/uspark-hq/uspark/commit/fcf693bdc88b48ff2d31040346dad08a41cd60cd))
+
 ## [0.2.0](https://github.com/uspark-hq/uspark/compare/uspark-sync-v0.1.0...uspark-sync-v0.2.0) (2025-10-25)
 
 
