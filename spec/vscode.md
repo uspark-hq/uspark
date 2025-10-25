@@ -375,13 +375,49 @@ Extension activates when:
 
 ## Task Summary
 
-| Task | Priority | Status | Dependencies |
-|------|----------|--------|--------------|
-| UX 改进 (状态栏/日志) | High | 🔴 Not Started | None |
-| Release Please 配置 | High | 🔴 Not Started | None |
-| 开发工作流集成 | High | 🔴 Not Started | None |
-| 认证流程设计 | Critical | 🔴 Not Started | Web auth page |
-| 实现真实同步 | Critical | 🔴 Not Started | Auth flow |
+| Task | Priority | Status | PR/Notes | Dependencies |
+|------|----------|--------|----------|---------------|
+| UX 改进 (状态栏/日志/Multi-root) | High | ✅ **Completed** | [PR #778](https://github.com/uspark-hq/uspark/pull/778) | None |
+| Release Please 配置 | High | ✅ **Completed** | Already configured, v0.2.2 released | None |
+| 开发工作流集成 | High | ✅ **Completed** | Turbo auto-discovery works | None |
+| 认证流程设计 | Critical | ✅ **Completed** | [PR #761](https://github.com/uspark-hq/uspark/pull/761) | None |
+| **实现真实同步** | **Critical** | 🔴 **Not Started** | **Next Priority** | Auth flow ✅ |
+
+### Completed Tasks Summary (v0.2.2)
+
+#### 1. ✅ UX Improvements - [PR #778](https://github.com/uspark-hq/uspark/pull/778)
+- Created `src/logger.ts` for structured logging to Output channel
+- Optimized status bar to show icon only with interactive menu
+- Added Login/Logout/Sync Now/Show Logs options in quick menu
+- Multi-root workspace support (.code-workspace files)
+- All logs with timestamps and levels (INFO, ERROR, WARN, DEBUG)
+
+#### 2. ✅ Development Workflow Integration
+- `dev` script in package.json: `tsc -watch -p ./`
+- Turbo automatically discovers and runs the dev task
+- Verified command: `pnpm dev` runs TypeScript watch mode
+
+#### 3. ✅ Release Please Configuration
+- CHANGELOG.md auto-generated ✅
+- package.json version auto-updated ✅
+- Current version: v0.2.2
+- Release workflow functional
+
+#### 4. ✅ Authentication Flow - [PR #761](https://github.com/uspark-hq/uspark/pull/761)
+- Web端: `/vscode-auth` page with OAuth flow
+- VSCode端: `src/auth.ts` with browser-based authentication
+- Token storage in `$HOME/.uspark/config.json`
+- File permissions set to 0600 for security
+
+---
+
+### Next Priority: Implement Real Sync Functionality
+
+**Status**: 🔴 Not Started (All prerequisites completed)
+
+**Critical Task**: Replace placeholder sync logic with real implementation (see `src/api.ts:51-56`)
+
+
 
 ## References
 
