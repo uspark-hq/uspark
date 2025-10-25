@@ -24,6 +24,7 @@ jobs:
       workspace_release_created: ${{ steps.release.outputs['turbo/apps/workspace--release_created'] }}
       core_release_created: ${{ steps.release.outputs['turbo/packages/core--release_created'] }}
       mcp_server_release_created: ${{ steps.release.outputs['turbo/apps/mcp-server--release_created'] }}
+      vscode_extension_release_created: ${{ steps.release.outputs['turbo/apps/vscode-extension--release_created'] }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -195,3 +196,25 @@ jobs:
       - run: cd turbo/apps/mcp-server && npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-vscode-extension:
+    needs: release-please
+    if: ${{ needs.release-please.outputs.vscode_extension_release_created == 'true' }}
+    runs-on: ubuntu-latest
+    container:
+      image: ghcr.io/uspark-hq/uspark-toolchain:c2b456c
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/toolchain-init
+
+      - name: Build VSCode Extension
+        run: |
+          cd turbo/apps/vscode-extension
+          pnpm compile
+
+      - name: Publish to VSCode Marketplace
+        run: |
+          cd turbo/apps/vscode-extension
+          pnpm vscode:publish -p ${{ secrets.VSCE_PAT }}
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
