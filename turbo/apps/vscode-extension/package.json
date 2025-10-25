@@ -29,9 +29,26 @@
   "license": "MIT",
   "activationEvents": [
     "workspaceContains:.uspark.json",
-    "workspaceContains:.uspark/.config.json"
+    "workspaceContains:.uspark/.config.json",
+    "onUri"
   ],
   "main": "./out/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "uspark.login",
+        "title": "Uspark: Login"
+      },
+      {
+        "command": "uspark.logout",
+        "title": "Uspark: Logout"
+      },
+      {
+        "command": "uspark.syncNow",
+        "title": "Uspark: Sync Now"
+      }
+    ]
+  },
   "scripts": {
     "compile": "tsc -p ./",
     "dev": "tsc -watch -p ./",
@@ -41,11 +58,11 @@
     "vscode:package": "vsce package --no-dependencies",
     "vscode:publish": "vsce publish --no-dependencies"
   },
-  "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.80.0",
     "@vscode/vsce": "^3.2.1",
+    "msw": "^2.11.1",
     "typescript": "^5.0.0"
   }
 }
