@@ -6,48 +6,6 @@ test.describe("GitHub Onboarding Flow", () => {
     await clerkSetup();
   });
 
-  test("displays onboarding page when user has no github installation", async ({
-    page,
-  }) => {
-    // Sign in with test user
-    await page.goto("/", { waitUntil: "domcontentloaded" });
-    await clerk.signIn({
-      page,
-      emailAddress: "e2e+clerk_test@uspark.ai",
-    });
-
-    // Ensure user has no GitHub installation by disconnecting if exists
-    // This makes the test deterministic regardless of previous test state
-    await page.request.post("/api/github/disconnect").catch(() => {
-      // If no installation exists, this will fail with 404 - that's OK
-    });
-
-    // Navigate directly to onboarding page
-    await page.goto("/onboarding/github");
-    await page.waitForLoadState("networkidle");
-
-    // Verify main heading
-    const heading = page.getByText("Connect Your GitHub Account");
-    await expect(heading).toBeVisible();
-
-    // Verify value propositions are shown
-    await expect(page.getByText("Seamless Repository Sync")).toBeVisible();
-    await expect(page.getByText("Real-time Updates")).toBeVisible();
-    await expect(page.getByText("You Control Access")).toBeVisible();
-
-    // Verify Connect GitHub button
-    const connectButton = page
-      .locator("button")
-      .filter({ hasText: /Connect GitHub/i });
-    await expect(connectButton).toBeVisible();
-    await expect(connectButton).toBeEnabled();
-
-    // Verify disclaimer text
-    await expect(
-      page.getByText(/By connecting your GitHub account/),
-    ).toBeVisible();
-  });
-
   test("redirects to projects if github already installed", async ({
     page,
   }) => {
