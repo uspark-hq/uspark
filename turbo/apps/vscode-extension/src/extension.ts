@@ -86,12 +86,15 @@ export async function activate(context: ExtensionContext) {
   const authManager = new AuthManager(context);
   const api = new ApiClient();
 
-  // Register URI handler
-  context.subscriptions.push(window.registerUriHandler(authManager));
-
   // Create status bar (always show it)
   const statusBar = window.createStatusBarItem(StatusBarAlignment.Right);
   statusBar.show();
+
+  // Set callback to update status bar when auth state changes
+  authManager.setOnAuthChanged(() => updateStatusBar(statusBar, authManager));
+
+  // Register URI handler
+  context.subscriptions.push(window.registerUriHandler(authManager));
 
   // Update status bar based on auth state
   await updateStatusBar(statusBar, authManager);
