@@ -28,9 +28,7 @@
   "homepage": "https://github.com/uspark-hq/uspark#readme",
   "license": "MIT",
   "activationEvents": [
-    "workspaceContains:.uspark.json",
-    "workspaceContains:.uspark/.config.json",
-    "onUri"
+    "onStartupFinished"
   ],
   "main": "./out/extension.js",
   "contributes": {
