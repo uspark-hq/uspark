@@ -32,7 +32,10 @@ export const PROJECT_VERSIONS_TBL = pgTable(
     id: text("id").primaryKey().notNull(), // UUID
     projectId: text("project_id")
       .notNull()
-      .references(() => PROJECTS_TBL.id, { onDelete: "cascade" }),
+      .references(() => PROJECTS_TBL.id, {
+        onDelete: "cascade",
+        onUpdate: "cascade",
+      }),
     version: integer("version").notNull(), // Version number
     ydocSnapshot: bytea("ydoc_snapshot").notNull(), // Full YDoc state at this version
     createdAt: timestamp("created_at").notNull().defaultNow(),
