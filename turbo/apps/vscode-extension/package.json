@@ -34,6 +34,10 @@
   "contributes": {
     "commands": [
       {
+        "command": "uspark.showMenu",
+        "title": "uSpark: Show Menu"
+      },
+      {
         "command": "uspark.login",
         "title": "uSpark: Login"
       },

@@ -1,6 +1,31 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { mkdirSync, writeFileSync, rmSync, existsSync } from "fs";
 import { join } from "path";
+
+// Mock vscode
+vi.mock("vscode", () => ({
+  window: {
+    createOutputChannel: vi.fn(() => ({
+      appendLine: vi.fn(),
+      show: vi.fn(),
+      dispose: vi.fn(),
+    })),
+  },
+}));
+
+// Mock logger
+vi.mock("../logger", () => ({
+  logger: {
+    init: vi.fn(),
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+    show: vi.fn(),
+    dispose: vi.fn(),
+  },
+}));
+
 import { loadConfig } from "../config";
 
 describe("loadConfig", () => {
