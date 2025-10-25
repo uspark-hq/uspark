@@ -1,3 +1,5 @@
+import { logger } from "./logger";
+
 interface User {
   id: string;
   email: string;
@@ -39,7 +41,7 @@ export class ApiClient {
         email: data.email,
       };
     } catch (error) {
-      console.error("[uSpark] Failed to validate token:", error);
+      logger.error("Failed to validate token", error);
       return null;
     }
   }
@@ -50,6 +52,6 @@ export class ApiClient {
    */
   async sync(token: string, projectId: string, workDir: string): Promise<void> {
     // TODO: Implement pull and push logic
-    console.log(`[uSpark] Sync not yet implemented for project ${projectId}`);
+    logger.info(`Sync not yet implemented for project ${projectId}`);
   }
 }

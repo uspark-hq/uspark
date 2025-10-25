@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "fs";
 import { join, dirname } from "path";
+import { logger } from "./logger";
 
 interface Config {
   projectId: string;
@@ -15,8 +16,12 @@ export async function loadConfig(
     join(workspaceRoot, ".uspark", ".config.json"),
   ];
 
+  logger.info(`Looking for config files in: ${workspaceRoot}`);
+
   for (const configPath of paths) {
+    logger.info(`Checking: ${configPath}`);
     if (existsSync(configPath)) {
+      logger.info(`Found config file: ${configPath}`);
       const content = readFileSync(configPath, "utf8");
       const config = JSON.parse(content);
       return {
@@ -27,5 +32,6 @@ export async function loadConfig(
     }
   }
 
+  logger.info("No config file found in any of the checked paths");
   return null;
 }
