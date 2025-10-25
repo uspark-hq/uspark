@@ -14,8 +14,12 @@ setup() {
         skip "CLI not authenticated - run auth setup first"
     fi
 
-    # Get the auth token for API calls
-    export CLI_TOKEN=$(cli_with_host auth status | grep "Token:" | awk '{print $2}')
+    # Get the auth token from CLI config file
+    export CLI_TOKEN=$(cat ~/.uspark/config.json | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+
+    if [ -z "$CLI_TOKEN" ]; then
+        skip "No CLI token found in config"
+    fi
 
     # Create a project via API and extract the generated ID
     PROJECT_NAME="test-worker-project-$(date +%s)"
