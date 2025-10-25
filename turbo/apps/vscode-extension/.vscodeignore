@@ -1,0 +1,26 @@
+# Source files
+src/**
+**/*.ts
+**/*.map
+
+# Test files
+**/__tests__/**
+*.test.ts
+
+# Build artifacts
+tsconfig.json
+.eslintrc*
+.prettierrc*
+
+# Development
+node_modules/
+.vscode-test/
+.vscode/
+
+# Documentation
+.github/
+docs/
+
+# Misc
+.gitignore
+.vscodeignore

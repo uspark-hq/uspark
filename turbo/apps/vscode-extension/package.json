@@ -1,11 +1,32 @@
 {
-  "name": "@uspark/vscode-extension",
+  "name": "uspark-vscode",
   "displayName": "Uspark Auto Sync",
-  "description": "Automatically sync workspace with Uspark",
+  "description": "Automatically sync workspace with Uspark - seamless file synchronization for your projects",
   "version": "0.0.1",
+  "publisher": "uspark",
   "engines": {
     "vscode": "^1.80.0"
   },
+  "categories": [
+    "Other"
+  ],
+  "keywords": [
+    "sync",
+    "uspark",
+    "cloud",
+    "collaboration",
+    "file-sync"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/uspark-hq/uspark.git",
+    "directory": "turbo/apps/vscode-extension"
+  },
+  "bugs": {
+    "url": "https://github.com/uspark-hq/uspark/issues"
+  },
+  "homepage": "https://github.com/uspark-hq/uspark#readme",
+  "license": "MIT",
   "activationEvents": [
     "workspaceContains:.uspark.json",
     "workspaceContains:.uspark/.config.json"
@@ -14,12 +35,16 @@
   "scripts": {
     "compile": "tsc -p ./",
     "watch": "tsc -watch -p ./",
-    "test": "echo 'Run tests from turbo root: pnpm vitest --project vscode-extension' && exit 1"
+    "test": "echo 'Run tests from turbo root: pnpm vitest --project vscode-extension' && exit 1",
+    "vscode:prepublish": "pnpm compile",
+    "vscode:package": "vsce package --no-dependencies",
+    "vscode:publish": "vsce publish --no-dependencies"
   },
   "dependencies": {},
   "devDependencies": {
     "@types/node": "^20.0.0",
     "@types/vscode": "^1.80.0",
+    "@vscode/vsce": "^3.2.1",
     "typescript": "^5.0.0"
   }
 }
