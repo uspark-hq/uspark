@@ -1,0 +1,25 @@
+{
+  "name": "@uspark/vscode-extension",
+  "displayName": "Uspark Auto Sync",
+  "description": "Automatically sync workspace with Uspark",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "activationEvents": [
+    "workspaceContains:.uspark.json",
+    "workspaceContains:.uspark/.config.json"
+  ],
+  "main": "./out/extension.js",
+  "scripts": {
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "test": "echo 'Run tests from turbo root: pnpm vitest --project vscode-extension' && exit 1"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/vscode": "^1.80.0",
+    "typescript": "^5.0.0"
+  }
+}
