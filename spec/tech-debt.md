@@ -831,19 +831,74 @@ After thorough investigation, these files are **actively used** and part of the 
 
 ---
 
+### 🟡 MEDIUM: Consolidate Vitest Configuration
+**Issue:** Vitest configuration should be centralized as a shared package instead of living in the turbo root
+**File:** `/turbo/vitest.config.ts`
+**Status:** 🟡 **NEW MEDIUM PRIORITY**
+**Discovery Date:** October 25, 2025
+
+**Current State:**
+```typescript
+// /turbo/vitest.config.ts
+export default defineConfig({
+  test: {
+    projects: [
+      { test: { name: "cli", root: "./apps/cli", ... } },
+      { test: { name: "core", root: "./packages/core", ... } },
+      { test: { name: "web", root: "./apps/web", ... } },
+      // ... 6 total projects
+    ],
+  },
+});
+```
+
+**Problem:**
+- Configuration lives in turbo root instead of shared packages directory
+- Not following monorepo best practices for shared configurations
+- Harder to reuse across different workspaces
+- Inconsistent with how other shared configs are managed (e.g., eslint-config, typescript-config)
+
+**Proposed Solution:**
+Move configuration to `packages/vitest-config` following the same pattern as other shared configs:
+
+```
+packages/vitest-config/
+├── package.json         # "@turbo/vitest-config"
+├── base.ts             # Base vitest config
+└── workspace.ts        # Workspace-specific config for projects
+```
+
+**Benefits:**
+- ✅ Consistent with other shared configurations in the monorepo
+- ✅ Easier to version and update independently
+- ✅ Can be imported by individual packages if needed
+- ✅ Follows Turborepo best practices for configuration management
+- ✅ Better separation of concerns
+
+**Migration Steps:**
+1. Create `packages/vitest-config` package
+2. Move vitest.config.ts content to the new package
+3. Update turbo root to import from `@turbo/vitest-config`
+4. Update documentation to reflect new structure
+
+**Priority:** MEDIUM - Improves maintainability and consistency
+
+---
+
 ## Audit Statistics Summary
 
 ### Issues by Severity
 | Severity | Count | Category |
 |----------|-------|----------|
 | 🔴 Critical | 1 | CI/CD (1) |
-| 🟡 Medium | 1 | Testing (1) |
+| 🟡 Medium | 2 | Testing (1), Configuration (1) |
 | 🟢 Low | 1 | CI/CD (1) |
 | ✅ Resolved | 4 | Performance (1), Error Handling (1), Configuration (1), False Positive (1) |
-| **Total** | **7** | **3 open issues, 4 resolved** |
+| **Total** | **8** | **4 open issues, 4 resolved** |
 
 ### Files Requiring Immediate Attention
 1. `.github/workflows/*.yml` (3 files) - Hardcoded image tags
+2. `/turbo/vitest.config.ts` - Should be moved to `packages/vitest-config`
 
 ### Positive Audit Findings
 - ✅ **Type Safety:** Zero explicit `any` types (all fixed in PR #746 on October 25, 2025)
@@ -867,9 +922,10 @@ After thorough investigation, these files are **actively used** and part of the 
 ### Sprint 2 (Soon - Next Month)
 6. **Fix test quality issues** - Add mock cleanup, remove setTimeout
 7. **Refactor MSW mocking** - Replace global.fetch with MSW handlers
+8. **Consolidate vitest configuration** - Move to `packages/vitest-config` package
 
 ### Backlog (When Time Permits)
-8. **Optimize CI/CD** - Remove duplicate installations, add retry logic
+9. **Optimize CI/CD** - Remove duplicate installations, add retry logic
 
 ---
 
