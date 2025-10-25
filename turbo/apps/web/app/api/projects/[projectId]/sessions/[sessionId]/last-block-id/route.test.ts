@@ -201,11 +201,9 @@ describe("/api/projects/:projectId/sessions/:sessionId/last-block-id", () => {
           turnId: turn1!.id,
           type: "content",
           content: { text: "Answer 1" },
+          createdAt: new Date("2024-01-01T00:00:00Z"),
         })
         .returning();
-
-      // Wait a bit to ensure different timestamps
-      await new Promise((resolve) => setTimeout(resolve, 10));
 
       const [turn2] = await globalThis.services.db
         .insert(TURNS_TBL)
@@ -224,6 +222,7 @@ describe("/api/projects/:projectId/sessions/:sessionId/last-block-id", () => {
           turnId: turn2!.id,
           type: "content",
           content: { text: "Answer 2" },
+          createdAt: new Date("2024-01-01T00:00:01Z"),
         })
         .returning();
 
