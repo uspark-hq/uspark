@@ -106,6 +106,8 @@ export class DocStore {
       // If diff is not empty, we have local changes
       if (diff.length > 0) {
         // PATCH: Push local changes to server
+        // Create a new Uint8Array to ensure we have an ArrayBuffer (not SharedArrayBuffer)
+        const body = new Uint8Array(diff);
         response = await fetch(url, {
           method: "PATCH",
           headers: {
@@ -113,7 +115,7 @@ export class DocStore {
             "Content-Type": "application/octet-stream",
             "If-Match": this.version.toString(),
           },
-          body: diff,
+          body,
           signal,
         });
       } else {
