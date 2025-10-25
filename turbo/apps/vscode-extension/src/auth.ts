@@ -31,12 +31,20 @@ function getDefaultApiUrl(): string {
 export class AuthManager implements UriHandler {
   private pendingAuth: PendingAuth | null = null;
   private api: ApiClient;
+  private onAuthChanged?: () => void | Promise<void>;
 
   constructor(
     private context: ExtensionContext,
     apiUrl: string = getDefaultApiUrl(),
   ) {
     this.api = new ApiClient(apiUrl);
+  }
+
+  /**
+   * Set callback to be called when auth state changes
+   */
+  setOnAuthChanged(callback: () => void | Promise<void>): void {
+    this.onAuthChanged = callback;
   }
 
   /**
@@ -78,6 +86,11 @@ export class AuthManager implements UriHandler {
       void window.showInformationMessage(
         `Successfully logged in as ${user.email}`,
       );
+
+      // Notify auth state changed
+      if (this.onAuthChanged) {
+        void this.onAuthChanged();
+      }
     }
   }
 
