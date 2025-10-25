@@ -25,13 +25,10 @@ Reviewed 7 commits from October 23, 2025 against bad code smell criteria defined
   - Tests should be refactored to use testing-library queries instead of `container.querySelector()`
 
 #### 2. Commit a063573 - Mermaid Support (#733) [REVERTED]
-- **Violation: Missing Error Handling** (Bad Smell #3 & #13)
-  - No try/catch around `mermaid.render()` calls
-  - Violates fail-fast principle - errors should fail immediately
-  - Would cause silent failures hiding configuration problems
 - **Violation: Lint/Type Suppressions** (Bad Smell #14)
   - Same ESLint suppressions as #729
   - Tests query DOM directly instead of using testing-library
+- **NOTE**: Error handling was actually **correct** (no try/catch follows fail-fast principle)
 - **Note**: This was properly reverted in commit 2cdf379
 
 #### 3. Commit aec4463 - Knip Configuration (#728)
@@ -85,10 +82,10 @@ Reviewed 7 commits from October 23, 2025 against bad code smell criteria defined
 | Category | Issues Found | Commits Affected |
 |----------|--------------|------------------|
 | Lint/Type Suppressions (#14) | 2 | b39a214, a063573 |
-| Error Handling (#3) | 1 | a063573 |
 | Test Coverage (#2) | 3 | 41400aa, aec4463, 4dbe127 |
-| Fallback Patterns (#13) | 1 | a063573 |
 | Bad Tests (#15) | 2 | b39a214, a063573 |
+
+**Note**: Error handling in a063573 was initially flagged but was actually correct (fail-fast principle)
 
 ### Quality Ratings
 
@@ -99,7 +96,7 @@ Reviewed 7 commits from October 23, 2025 against bad code smell criteria defined
 | b39a214 | Good | ESLint suppressions |
 | aec4463 | Fair | Duplicate + knip config issue |
 | 4dbe127 | Very Good | Minor: no tests for prompt |
-| a063573 | Fair | Multiple violations (reverted) |
+| a063573 | Good | ESLint suppressions only (reverted) |
 | 2cdf379 | Excellent | Perfect revert |
 
 ## Recommendations
@@ -152,23 +149,16 @@ Reviewed 7 commits from October 23, 2025 against bad code smell criteria defined
 
 ### If Re-implementing Mermaid Support
 
-Based on issues in a063573:
+Based on a063573 (the error handling was actually correct):
 
-1. Add comprehensive error handling:
-   ```typescript
-   try {
-     const { svg } = await mermaid.render(id, code)
-     return { match, svg }
-   } catch (error) {
-     throw new Error(`Failed to render mermaid diagram: ${error.message}`)
-   }
-   ```
-
+1. **Keep fail-fast error handling** - Do NOT add try/catch around `mermaid.render()`
+   - Let errors propagate naturally
+   - Invalid diagram syntax should fail visibly
+   - This helps users fix their mermaid code
 2. Remove all ESLint suppressions
 3. Use testing-library patterns
 4. Consider lazy-loading to reduce bundle size
-5. Add diagram syntax validation
-6. Write design document first
+5. Write design document first
 
 ## Conclusion
 
@@ -185,7 +175,6 @@ Overall code quality is good with a few specific violations that need attention:
 - Enforce zero-tolerance policies in CI
 - Better test coverage for UI changes
 - Remove all lint suppressions
-- Add error handling for external libraries
 - Fix knip pre-commit configuration
 
 **Priority Actions:**

@@ -9,7 +9,7 @@ Total commits: 12 (7 reviewed, 5 automated release commits skipped)
 - [x] [b39a214](review-b39a214.md) - feat(workspace): add markdown rendering for chat turn blocks (#729) - ⚠️ ESLint suppressions
 - [x] [aec4463](review-aec4463.md) - fix(workspace): improve workers count display format (#728) - ⚠️ Knip config issue
 - [x] [4dbe127](review-4dbe127.md) - feat(web): enhance initial scan prompt with commit analysis and improved structure (#731) - ✅ Very Good
-- [x] [a063573](review-a063573.md) - feat(workspace): add mermaid diagram support in markdown rendering (#733) - ❌ Multiple violations (reverted)
+- [x] [a063573](review-a063573.md) - feat(workspace): add mermaid diagram support in markdown rendering (#733) - ✅ Good - ESLint suppressions only (reverted)
 - [x] [2cdf379](review-2cdf379.md) - revert: mermaid diagram support in markdown rendering (#735) - ✅ Excellent
 
 ## Release Commits (Automated, Not Reviewed)
