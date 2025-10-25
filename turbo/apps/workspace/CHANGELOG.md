@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.34.3](https://github.com/uspark-hq/uspark/compare/workspace-v1.34.2...workspace-v1.34.3) (2025-10-25)
+
+
+### Bug Fixes
+
+* remove all remaining any types from test code ([#746](https://github.com/uspark-hq/uspark/issues/746)) ([ae3853a](https://github.com/uspark-hq/uspark/commit/ae3853a783024c025ad5ee1022319c7219a3c464))
+
 ## [1.34.2](https://github.com/uspark-hq/uspark/compare/workspace-v1.34.1...workspace-v1.34.2) (2025-10-25)
 
 
