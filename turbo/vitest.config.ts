@@ -86,6 +86,7 @@ export default defineConfig({
           root: "./apps/vscode-extension",
           environment: "node",
           exclude: ["**/node_modules/**", "**/out/**"],
+          setupFiles: ["./src/test/msw-setup.ts"],
         },
       },
     ],

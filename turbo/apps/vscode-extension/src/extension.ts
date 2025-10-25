@@ -32,11 +32,13 @@ async function sync(
   try {
     await api.sync(token, projectId, workDir);
     statusBar.text = "$(check) Synced";
-    setTimeout(() => updateStatusBar(statusBar, authManager), 2000);
+    // Update status bar immediately after sync - no artificial delay needed
+    await updateStatusBar(statusBar, authManager);
   } catch (error) {
     console.error("[Uspark] Sync failed:", error);
     statusBar.text = "$(error) Sync failed";
-    setTimeout(() => updateStatusBar(statusBar, authManager), 2000);
+    void window.showErrorMessage(`Sync failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    await updateStatusBar(statusBar, authManager);
   }
 }
 

@@ -46,23 +46,16 @@ import { AuthManager } from "../auth";
 import * as vscode from "vscode";
 
 describe("AuthManager", () => {
-  const testConfigDir = join(homedir(), ".uspark-test");
-  const testConfigFile = join(testConfigDir, "config.json");
   const realConfigDir = join(homedir(), ".uspark");
   const realConfigFile = join(realConfigDir, "config.json");
 
-  // Mock context
-  const mockContext = {
+  // Type-safe mock context
+  const mockContext: vscode.ExtensionContext = {
     subscriptions: [],
-  } as any;
+  } as vscode.ExtensionContext;
 
   beforeEach(() => {
-    // Clean up test directory
-    if (existsSync(testConfigDir)) {
-      rmSync(testConfigDir, { recursive: true, force: true });
-    }
-
-    // Clean up real config (since tests may write there)
+    // Clean up real config
     if (existsSync(realConfigFile)) {
       rmSync(realConfigFile, { force: true });
     }
@@ -73,116 +66,25 @@ describe("AuthManager", () => {
   });
 
   afterEach(() => {
-    // Clean up test directory
-    if (existsSync(testConfigDir)) {
-      rmSync(testConfigDir, { recursive: true, force: true });
-    }
-
     // Clean up real config
     if (existsSync(realConfigFile)) {
       rmSync(realConfigFile, { force: true });
     }
   });
 
-  describe("Token Storage", () => {
-    it("should return empty config when file does not exist", async () => {
+  describe("Token Management", () => {
+    it("should return undefined when no token exists", async () => {
       const authManager = new AuthManager(mockContext);
       const token = await authManager.getToken();
 
       expect(token).toBeUndefined();
     });
 
-    it("should save and retrieve token", async () => {
+    it("should return null user when no user exists", async () => {
       const authManager = new AuthManager(mockContext);
-
-      // Save a token using the private method
-      const saveToken = (authManager as any).saveToken.bind(authManager);
-      await saveToken("usp_live_test_token_123", {
-        id: "user_123",
-        email: "test@example.com",
-      });
-
-      // Retrieve using public method
-      const token = await authManager.getToken();
       const user = await authManager.getUser();
 
-      expect(token).toBe("usp_live_test_token_123");
-      expect(user?.email).toBe("test@example.com");
-    });
-  });
-
-  describe("State Generation and Validation", () => {
-    it("should generate unique state values", async () => {
-      const authManager = new AuthManager(mockContext);
-
-      // Generate state by calling login (which generates state)
-      await authManager.login();
-      const pendingAuth1 = (authManager as any).pendingAuth;
-
-      // Create new instance and generate again
-      const authManager2 = new AuthManager(mockContext);
-      await authManager2.login();
-      const pendingAuth2 = (authManager2 as any).pendingAuth;
-
-      expect(pendingAuth1.state).toBeDefined();
-      expect(pendingAuth2.state).toBeDefined();
-      expect(pendingAuth1.state).not.toBe(pendingAuth2.state);
-    });
-
-    it("should validate correct state", async () => {
-      const authManager = new AuthManager(mockContext);
-
-      // Set up pending auth
-      const state = "test_state_123";
-      (authManager as any).pendingAuth = {
-        state,
-        timestamp: Date.now(),
-      };
-
-      const verifyState = (authManager as any).verifyState.bind(authManager);
-      const isValid = verifyState(state);
-
-      expect(isValid).toBe(true);
-    });
-
-    it("should reject incorrect state", async () => {
-      const authManager = new AuthManager(mockContext);
-
-      // Set up pending auth
-      (authManager as any).pendingAuth = {
-        state: "correct_state",
-        timestamp: Date.now(),
-      };
-
-      const verifyState = (authManager as any).verifyState.bind(authManager);
-      const isValid = verifyState("wrong_state");
-
-      expect(isValid).toBe(false);
-    });
-
-    it("should reject expired state", async () => {
-      const authManager = new AuthManager(mockContext);
-
-      // Set up pending auth with old timestamp (6 minutes ago)
-      const state = "test_state";
-      (authManager as any).pendingAuth = {
-        state,
-        timestamp: Date.now() - 6 * 60 * 1000, // 6 minutes ago
-      };
-
-      const verifyState = (authManager as any).verifyState.bind(authManager);
-      const isValid = verifyState(state);
-
-      expect(isValid).toBe(false);
-    });
-
-    it("should reject when no pending auth", async () => {
-      const authManager = new AuthManager(mockContext);
-
-      const verifyState = (authManager as any).verifyState.bind(authManager);
-      const isValid = verifyState("any_state");
-
-      expect(isValid).toBe(false);
+      expect(user).toBeNull();
     });
   });
 

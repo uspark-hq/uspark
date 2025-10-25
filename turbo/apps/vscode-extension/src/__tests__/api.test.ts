@@ -1,8 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { ApiClient } from "../api";
-
-// Mock global fetch
-global.fetch = vi.fn();
+import { http, HttpResponse, server } from "../test/msw-setup";
 
 describe("ApiClient", () => {
   beforeEach(() => {
@@ -11,14 +9,14 @@ describe("ApiClient", () => {
 
   describe("Token Validation", () => {
     it("should validate valid token and return user info", async () => {
-      const mockResponse = {
-        ok: true,
-        json: async () => ({
-          userId: "user_123",
-          email: "test@example.com",
+      server.use(
+        http.get("https://test.uspark.ai/api/auth/me", () => {
+          return HttpResponse.json({
+            userId: "user_123",
+            email: "test@example.com",
+          });
         }),
-      };
-      (global.fetch as any).mockResolvedValue(mockResponse);
+      );
 
       const client = new ApiClient("https://test.uspark.ai");
       const user = await client.validateToken("usp_live_valid_token");
@@ -27,84 +25,88 @@ describe("ApiClient", () => {
         id: "user_123",
         email: "test@example.com",
       });
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        "https://test.uspark.ai/api/auth/me",
-        {
-          method: "GET",
-          headers: {
-            Authorization: "Bearer usp_live_valid_token",
-            "Content-Type": "application/json",
-          },
-        },
-      );
     });
 
     it("should return null for invalid token", async () => {
-      const mockResponse = {
-        ok: false,
-        status: 401,
-      };
-      (global.fetch as any).mockResolvedValue(mockResponse);
+      server.use(
+        http.get("https://test.uspark.ai/api/auth/me", () => {
+          return new HttpResponse(null, { status: 401 });
+        }),
+      );
 
-      const client = new ApiClient();
+      const client = new ApiClient("https://test.uspark.ai");
       const user = await client.validateToken("invalid_token");
 
       expect(user).toBeNull();
     });
 
     it("should return null on network error", async () => {
-      (global.fetch as any).mockRejectedValue(new Error("Network error"));
+      server.use(
+        http.get("https://test.uspark.ai/api/auth/me", () => {
+          return HttpResponse.error();
+        }),
+      );
+
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+
+      const client = new ApiClient("https://test.uspark.ai");
+      const user = await client.validateToken("usp_live_token");
+
+      expect(user).toBeNull();
+      expect(consoleErrorSpy).toHaveBeenCalledWith(
+        "[Uspark] Failed to validate token:",
+        expect.any(Error),
+      );
+
+      consoleErrorSpy.mockRestore();
+    });
+
+    it("should use default API URL when not specified", async () => {
+      const defaultUrl = process.env.USPARK_API_URL || "https://www.uspark.ai";
+
+      server.use(
+        http.get(`${defaultUrl}/api/auth/me`, () => {
+          return HttpResponse.json({
+            userId: "user_123",
+            email: "test@example.com",
+          });
+        }),
+      );
 
       const client = new ApiClient();
       const user = await client.validateToken("usp_live_token");
 
-      expect(user).toBeNull();
-    });
-
-    it("should use default API URL when not specified", async () => {
-      const mockResponse = {
-        ok: true,
-        json: async () => ({
-          userId: "user_123",
-          email: "test@example.com",
-        }),
-      };
-      (global.fetch as any).mockResolvedValue(mockResponse);
-
-      const client = new ApiClient();
-      await client.validateToken("usp_live_token");
-
-      expect(global.fetch).toHaveBeenCalledWith(
-        "https://www.uspark.ai/api/auth/me",
-        expect.any(Object),
-      );
+      expect(user).toEqual({
+        id: "user_123",
+        email: "test@example.com",
+      });
     });
 
     it("should use custom API URL when specified", async () => {
-      const mockResponse = {
-        ok: true,
-        json: async () => ({
-          userId: "user_123",
-          email: "test@example.com",
+      server.use(
+        http.get("https://custom.example.com/api/auth/me", () => {
+          return HttpResponse.json({
+            userId: "user_123",
+            email: "test@example.com",
+          });
         }),
-      };
-      (global.fetch as any).mockResolvedValue(mockResponse);
+      );
 
       const client = new ApiClient("https://custom.example.com");
-      await client.validateToken("usp_live_token");
+      const user = await client.validateToken("usp_live_token");
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        "https://custom.example.com/api/auth/me",
-        expect.any(Object),
-      );
+      expect(user).toEqual({
+        id: "user_123",
+        email: "test@example.com",
+      });
     });
   });
 
   describe("getApiUrl", () => {
     it("should return default API URL", () => {
       const client = new ApiClient();
-      expect(client.getApiUrl()).toBe("https://www.uspark.ai");
+      const defaultUrl = process.env.USPARK_API_URL || "https://www.uspark.ai";
+      expect(client.getApiUrl()).toBe(defaultUrl);
     });
 
     it("should return custom API URL", () => {

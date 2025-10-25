@@ -3,8 +3,13 @@ interface User {
   email: string;
 }
 
+function getDefaultApiUrl(): string {
+  // Support environment variable for local development/testing
+  return process.env.USPARK_API_URL || "https://www.uspark.ai";
+}
+
 export class ApiClient {
-  constructor(private apiUrl: string = "https://www.uspark.ai") {}
+  constructor(private apiUrl: string = getDefaultApiUrl()) {}
 
   getApiUrl(): string {
     return this.apiUrl;

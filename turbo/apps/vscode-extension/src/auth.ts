@@ -23,13 +23,18 @@ const CONFIG_DIR = join(homedir(), ".uspark");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
 const STATE_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
+function getDefaultApiUrl(): string {
+  // Support environment variable for local development/testing
+  return process.env.USPARK_API_URL || "https://www.uspark.ai";
+}
+
 export class AuthManager implements UriHandler {
   private pendingAuth: PendingAuth | null = null;
   private api: ApiClient;
 
   constructor(
     private context: ExtensionContext,
-    apiUrl: string = "https://www.uspark.ai",
+    apiUrl: string = getDefaultApiUrl(),
   ) {
     this.api = new ApiClient(apiUrl);
   }
