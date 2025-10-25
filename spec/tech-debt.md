@@ -730,10 +730,11 @@ jobs:
    - `/turbo/apps/web/app/projects/[id]/init/__tests__/page.test.tsx`
    - Missing `vi.clearAllMocks()` in beforeEach
 
-2. **Hardcoded setTimeout in test**
+2. ~~**Hardcoded setTimeout in test**~~ ✅ **RESOLVED** (October 25, 2025)
    - `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/last-block-id/route.test.ts:208`
-   - `await new Promise((resolve) => setTimeout(resolve, 10));`
-   - Should use deterministic approach
+   - **Solution:** Replaced `setTimeout` with explicit `createdAt` timestamps for deterministic test behavior
+   - Tests now use `new Date("2024-01-01T00:00:00Z")` and `new Date("2024-01-01T00:00:01Z")` instead of waiting
+   - All 6 tests pass successfully
 
 3. **global.fetch mocking instead of MSW (3 files)**
    - Should use MSW handlers for consistency
@@ -825,6 +826,7 @@ After thorough investigation, these files are **actively used** and part of the 
 - ✅ **Type Safety:** Zero explicit `any` types (all fixed in PR #746 on October 25, 2025)
 - ✅ **React Patterns:** All timers properly cleaned up, no memory leaks
 - ✅ **Test Coverage:** 99.7% of tests have proper mock cleanup
+- ✅ **Test Determinism:** Removed setTimeout from tests, using explicit timestamps instead
 - ✅ **Pagination:** All list endpoints properly paginated
 - ✅ **Security:** No hardcoded secrets found in source code
 - ✅ **Error Handling:** Good custom error classes and fail-fast patterns in library code
