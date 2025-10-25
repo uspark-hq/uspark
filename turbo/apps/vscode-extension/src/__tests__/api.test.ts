@@ -47,7 +47,9 @@ describe("ApiClient", () => {
         }),
       );
 
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+      const consoleErrorSpy = vi
+        .spyOn(console, "error")
+        .mockImplementation(() => {});
 
       const client = new ApiClient("https://test.uspark.ai");
       const user = await client.validateToken("usp_live_token");

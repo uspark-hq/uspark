@@ -37,7 +37,9 @@ async function sync(
   } catch (error) {
     console.error("[Uspark] Sync failed:", error);
     statusBar.text = "$(error) Sync failed";
-    void window.showErrorMessage(`Sync failed: ${error instanceof Error ? error.message : "Unknown error"}`);
+    void window.showErrorMessage(
+      `Sync failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+    );
     await updateStatusBar(statusBar, authManager);
   }
 }
