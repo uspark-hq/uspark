@@ -1,7 +1,7 @@
 {
   "name": "uspark-sync",
-  "displayName": "Uspark Auto Sync",
-  "description": "Automatically sync workspace with Uspark - seamless file synchronization for your projects",
+  "displayName": "uSpark Auto Sync",
+  "description": "Automatically sync workspace with uSpark - seamless file synchronization for your projects",
   "version": "0.2.1",
   "publisher": "uSpark",
   "engines": {
@@ -35,15 +35,15 @@
     "commands": [
       {
         "command": "uspark.login",
-        "title": "Uspark: Login"
+        "title": "uSpark: Login"
       },
       {
         "command": "uspark.logout",
-        "title": "Uspark: Logout"
+        "title": "uSpark: Logout"
       },
       {
         "command": "uspark.syncNow",
-        "title": "Uspark: Sync Now"
+        "title": "uSpark: Sync Now"
       }
     ]
   },

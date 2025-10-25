@@ -160,7 +160,7 @@ export class AuthManager implements UriHandler {
       const content = await fs.readFile(CONFIG_FILE, "utf8");
       return JSON.parse(content);
     } catch (error) {
-      console.error("[Uspark] Failed to load config:", error);
+      console.error("[uSpark] Failed to load config:", error);
       return {};
     }
   }

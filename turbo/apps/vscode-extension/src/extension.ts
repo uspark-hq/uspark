@@ -22,11 +22,11 @@ async function sync(
   // Check authentication
   const token = await authManager.getToken();
   if (!token) {
-    console.log("[Uspark] Sync skipped: not authenticated");
+    console.log("[uSpark] Sync skipped: not authenticated");
     return;
   }
 
-  console.log(`[Uspark] Sync triggered for project ${projectId} in ${workDir}`);
+  console.log(`[uSpark] Sync triggered for project ${projectId} in ${workDir}`);
   statusBar.text = "$(sync~spin) Syncing...";
 
   try {
@@ -35,7 +35,7 @@ async function sync(
     // Update status bar immediately after sync - no artificial delay needed
     await updateStatusBar(statusBar, authManager);
   } catch (error) {
-    console.error("[Uspark] Sync failed:", error);
+    console.error("[uSpark] Sync failed:", error);
     statusBar.text = "$(error) Sync failed";
     void window.showErrorMessage(
       `Sync failed: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -51,7 +51,7 @@ async function updateStatusBar(
   const isAuthenticated = await authManager.isAuthenticated();
 
   if (!isAuthenticated) {
-    statusBar.text = "$(account) Login to Uspark";
+    statusBar.text = "$(account) Login to uSpark";
     statusBar.command = "uspark.login";
     statusBar.tooltip = "Click to login";
   } else {
@@ -69,17 +69,17 @@ async function updateStatusBar(
 }
 
 export async function activate(context: ExtensionContext) {
-  console.log("[Uspark] Extension activating...");
+  console.log("[uSpark] Extension activating...");
 
   const workspaceRoot = workspace.workspaceFolders?.[0]?.uri.fsPath;
   const config = workspaceRoot ? await loadConfig(workspaceRoot) : null;
 
   if (config) {
     console.log(
-      `[Uspark] Project configured: ${config.projectId} in ${config.configDir}`,
+      `[uSpark] Project configured: ${config.projectId} in ${config.configDir}`,
     );
   } else {
-    console.log("[Uspark] No project configuration found");
+    console.log("[uSpark] No project configuration found");
   }
 
   // Initialize auth manager and API client
@@ -115,7 +115,7 @@ export async function activate(context: ExtensionContext) {
     commands.registerCommand("uspark.syncNow", async () => {
       if (!config) {
         void window.showErrorMessage(
-          "No Uspark project configured in this workspace. Create a .uspark.json file first.",
+          "No uSpark project configured in this workspace. Create a .uspark.json file first.",
         );
         return;
       }
@@ -136,17 +136,17 @@ export async function activate(context: ExtensionContext) {
 
     const isAuthenticated = await authManager.isAuthenticated();
     if (isAuthenticated) {
-      console.log("[Uspark] Starting auto-sync...");
+      console.log("[uSpark] Starting auto-sync...");
       void syncFn();
       setInterval(syncFn, SYNC_INTERVAL);
     } else {
       console.log(
-        "[Uspark] Auto-sync disabled: not authenticated. Please login first.",
+        "[uSpark] Auto-sync disabled: not authenticated. Please login first.",
       );
     }
   } else {
-    console.log("[Uspark] Auto-sync disabled: no project configuration.");
+    console.log("[uSpark] Auto-sync disabled: no project configuration.");
   }
 
-  console.log("[Uspark] Extension activated successfully");
+  console.log("[uSpark] Extension activated successfully");
 }
