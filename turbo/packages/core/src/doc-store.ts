@@ -24,6 +24,7 @@ export class DocStore {
   private projectId: string;
   private token: string;
   private baseUrl: string;
+  private lastSyncStateVector: Uint8Array | null;
 
   constructor(config: DocStoreConfig) {
     this.doc = new Y.Doc();
@@ -31,6 +32,14 @@ export class DocStore {
     this.projectId = config.projectId;
     this.token = config.token;
     this.baseUrl = config.baseUrl || "";
+    this.lastSyncStateVector = null;
+  }
+
+  /**
+   * Get the current version number
+   */
+  getVersion(): number {
+    return this.version;
   }
 
   /**
@@ -81,18 +90,50 @@ export class DocStore {
 
   /**
    * Sync with the server (pull + push)
-   * Currently only implements pull (downloading latest state from server)
+   * If there are local changes, pushes them to server using PATCH
+   * Otherwise, pulls latest state from server using GET
    */
   async sync(signal: AbortSignal): Promise<void> {
-    // Using contract path: /api/projects/:projectId (getProjectSnapshot)
     const url = `${this.baseUrl}/api/projects/${this.projectId}`;
 
-    const response = await fetch(url, {
-      headers: {
-        Authorization: `Bearer ${this.token}`,
-      },
-      signal,
-    });
+    let response: Response;
+
+    // Check if we have local changes
+    if (this.lastSyncStateVector) {
+      // Calculate diff from last sync
+      const diff = Y.encodeStateAsUpdate(this.doc, this.lastSyncStateVector);
+
+      // If diff is not empty, we have local changes
+      if (diff.length > 0) {
+        // PATCH: Push local changes to server
+        response = await fetch(url, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+            "Content-Type": "application/octet-stream",
+            "If-Match": this.version.toString(),
+          },
+          body: diff,
+          signal,
+        });
+      } else {
+        // No local changes, do GET
+        response = await fetch(url, {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+          signal,
+        });
+      }
+    } else {
+      // First sync, do GET
+      response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+        },
+        signal,
+      });
+    }
 
     if (!response.ok) {
       throw new Error(
@@ -106,9 +147,12 @@ export class DocStore {
       this.version = parseInt(versionHeader, 10);
     }
 
-    // Apply YJS update
+    // Apply YJS update from server
     const buffer = await response.arrayBuffer();
     const update = new Uint8Array(buffer);
     Y.applyUpdate(this.doc, update);
+
+    // Save current state vector after successful sync
+    this.lastSyncStateVector = Y.encodeStateVector(this.doc);
   }
 }
