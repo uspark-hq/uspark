@@ -79,6 +79,14 @@ export default defineConfig({
           setupFiles: ["./src/test/setup.ts"],
         },
       },
+
+      {
+        test: {
+          name: "vscode-extension",
+          root: "./apps/vscode-extension",
+          environment: "node",
+        },
+      },
     ],
   },
 });
