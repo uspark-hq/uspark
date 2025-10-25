@@ -8,7 +8,7 @@ import {
   BLOCKS_TBL,
 } from "../../../../../../../src/db/schema/sessions";
 import { PROJECTS_TBL } from "../../../../../../../src/db/schema/projects";
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { randomUUID } from "crypto";
 import { turnsContract } from "@uspark/core";
 import { ClaudeExecutor } from "../../../../../../../src/lib/claude-executor";
@@ -253,37 +253,38 @@ export async function GET(
 
   const { limit, offset } = parseResult.data;
 
-  // Get turns with block counts
-  const turns = await globalThis.services.db
+  // Get turns with block counts using a single optimized query with LEFT JOIN
+  // This replaces the previous N+1 query pattern (1 query for turns + N queries for blocks)
+  const turnsWithBlocks = await globalThis.services.db
     .select({
       id: TURNS_TBL.id,
       user_prompt: TURNS_TBL.userPrompt,
       status: TURNS_TBL.status,
       completed_at: TURNS_TBL.completedAt,
       created_at: TURNS_TBL.createdAt,
+      // Count blocks for each turn (0 if no blocks)
+      block_count: sql<number>`count(${BLOCKS_TBL.id})::int`,
+      // Aggregate block IDs into an array, ordered by creation time
+      // Use FILTER to exclude nulls, and COALESCE to return empty array if no blocks
+      block_ids: sql<string[]>`coalesce(
+        array_agg(${BLOCKS_TBL.id} order by ${BLOCKS_TBL.createdAt})
+        filter (where ${BLOCKS_TBL.id} is not null),
+        array[]::text[]
+      )`,
     })
     .from(TURNS_TBL)
+    .leftJoin(BLOCKS_TBL, eq(TURNS_TBL.id, BLOCKS_TBL.turnId))
     .where(eq(TURNS_TBL.sessionId, sessionId))
+    .groupBy(
+      TURNS_TBL.id,
+      TURNS_TBL.userPrompt,
+      TURNS_TBL.status,
+      TURNS_TBL.completedAt,
+      TURNS_TBL.createdAt,
+    )
     .orderBy(TURNS_TBL.createdAt)
     .limit(limit)
     .offset(offset);
-
-  // Get block IDs for each turn
-  const turnsWithBlocks = await Promise.all(
-    turns.map(async (turn) => {
-      const blocks = await globalThis.services.db
-        .select({ id: BLOCKS_TBL.id })
-        .from(BLOCKS_TBL)
-        .where(eq(BLOCKS_TBL.turnId, turn.id))
-        .orderBy(BLOCKS_TBL.createdAt);
-
-      return {
-        ...turn,
-        block_count: blocks.length,
-        block_ids: blocks.map((b) => b.id),
-      };
-    }),
-  );
 
   // Get total count
   const countResult = await globalThis.services.db

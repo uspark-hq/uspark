@@ -556,7 +556,7 @@ On January 25, 2025, we conducted a comprehensive technical debt audit using 8 s
 ### 🔴 CRITICAL: N+1 Query Pattern in Turns Endpoint
 **Issue:** The `/api/projects/[projectId]/sessions/[sessionId]/turns/route.ts` endpoint executes 1 + N database queries
 **File:** `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/turns/route.ts:256-286`
-**Status:** 🔴 **NEW CRITICAL ISSUE**
+**Status:** ✅ **RESOLVED** (October 25, 2025)
 **Discovery Date:** January 25, 2025
 
 **Problem:**
@@ -579,26 +579,43 @@ const turnsWithBlocks = await Promise.all(
 - Scales linearly with page size
 - High latency for large sessions
 
-**Solution:**
-Use a single query with LEFT JOIN and aggregation:
+**Solution Implemented:**
+Replaced N+1 pattern with a single optimized query using LEFT JOIN and PostgreSQL aggregation functions:
 ```typescript
 const turnsWithBlocks = await db
   .select({
-    ...turnColumns,
-    blocks: sql`json_agg(
-      json_build_object('id', ${BLOCKS_TBL.id})
-      order by ${BLOCKS_TBL.createdAt}
+    id: TURNS_TBL.id,
+    user_prompt: TURNS_TBL.userPrompt,
+    status: TURNS_TBL.status,
+    completed_at: TURNS_TBL.completedAt,
+    created_at: TURNS_TBL.createdAt,
+    block_count: sql<number>`count(${BLOCKS_TBL.id})::int`,
+    block_ids: sql<string[]>`coalesce(
+      array_agg(${BLOCKS_TBL.id} order by ${BLOCKS_TBL.createdAt})
+      filter (where ${BLOCKS_TBL.id} is not null),
+      array[]::text[]
     )`,
   })
   .from(TURNS_TBL)
   .leftJoin(BLOCKS_TBL, eq(TURNS_TBL.id, BLOCKS_TBL.turnId))
   .where(eq(TURNS_TBL.sessionId, sessionId))
-  .groupBy(TURNS_TBL.id)
+  .groupBy(
+    TURNS_TBL.id,
+    TURNS_TBL.userPrompt,
+    TURNS_TBL.status,
+    TURNS_TBL.completedAt,
+    TURNS_TBL.createdAt,
+  )
+  .orderBy(TURNS_TBL.createdAt)
   .limit(limit)
   .offset(offset);
 ```
 
-**Priority:** HIGH - Should be fixed in next sprint
+**Resolution Impact:**
+- ✅ Reduced database queries from (1 + N) to 1 for listing turns
+- ✅ For 20 turns: 21 queries → 1 query (95% reduction)
+- ✅ Significant performance improvement for sessions with many turns
+- ✅ All existing tests pass without modification
 
 ---
 
@@ -767,16 +784,16 @@ jobs:
 ### Issues by Severity
 | Severity | Count | Category |
 |----------|-------|----------|
-| 🔴 Critical | 3 | Performance (1), Error Handling (1), CI/CD (1) |
+| 🔴 Critical | 2 | Error Handling (1), CI/CD (1) |
 | 🟡 Medium | 3 | Configuration (1), Testing (1), Code Cleanup (1) |
 | 🟢 Low | 1 | CI/CD (1) |
-| **Total** | **7** | **New issues identified** |
+| ✅ Resolved | 1 | Performance (1) |
+| **Total** | **7** | **6 open issues, 1 resolved** |
 
 ### Files Requiring Immediate Attention
-1. `/turbo/apps/web/app/api/projects/[projectId]/sessions/[sessionId]/turns/route.ts` - N+1 query
-2. `/turbo/apps/web/app/api/cron/process-cron-sessions/route.ts` - Broad try-catch
-3. `.github/workflows/*.yml` (3 files) - Hardcoded image tags
-4. `/turbo/apps/web/src/env.ts` - Add CRON_SECRET validation
+1. `/turbo/apps/web/app/api/cron/process-cron-sessions/route.ts` - Broad try-catch
+2. `.github/workflows/*.yml` (3 files) - Hardcoded image tags
+3. `/turbo/apps/web/src/env.ts` - Add CRON_SECRET validation
 
 ### Positive Audit Findings
 - ✅ **Type Safety:** Zero explicit `any` types (all fixed in PR #746 on October 25, 2025)
@@ -791,7 +808,7 @@ jobs:
 ## Next Steps (Priority Order)
 
 ### Sprint 1 (Immediate - Next 2 Weeks)
-1. **Fix N+1 query in turns endpoint** - Replace with JOIN query
+1. ✅ ~~**Fix N+1 query in turns endpoint**~~ - **COMPLETED** (October 25, 2025)
 2. **Refactor cron job error handling** - Remove broad try-catch
 3. **Centralize Docker image tag** - Use GitHub Actions variables
 4. **Add CRON_SECRET to env.ts** - Proper validation
