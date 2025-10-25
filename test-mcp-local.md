@@ -151,7 +151,7 @@ cd /workspaces/uspark3/turbo
 pnpm --filter @uspark/mcp-server build
 
 # 测试运行 MCP server
-node packages/mcp-server/dist/index.js
+node apps/mcp-server/dist/index.js
 ```
 
 **预期输出：**

@@ -23,7 +23,7 @@ jobs:
       docs_release_created: ${{ steps.release.outputs['turbo/apps/docs--release_created'] }}
       workspace_release_created: ${{ steps.release.outputs['turbo/apps/workspace--release_created'] }}
       core_release_created: ${{ steps.release.outputs['turbo/packages/core--release_created'] }}
-      mcp_server_release_created: ${{ steps.release.outputs['turbo/packages/mcp-server--release_created'] }}
+      mcp_server_release_created: ${{ steps.release.outputs['turbo/apps/mcp-server--release_created'] }}
     steps:
       - uses: googleapis/release-please-action@v4
         id: release
@@ -192,6 +192,6 @@ jobs:
           npm config set registry https://registry.npmjs.org/
           npm config set //registry.npmjs.org/:_authToken ${{ secrets.NPM_TOKEN }}
 
-      - run: cd turbo/packages/mcp-server && npm publish --access public
+      - run: cd turbo/apps/mcp-server && npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
