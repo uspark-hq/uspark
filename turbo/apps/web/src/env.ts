@@ -23,6 +23,7 @@ function initEnv() {
       GH_APP_PRIVATE_KEY: z.string().min(1),
       GH_WEBHOOK_SECRET: z.string().min(1),
       DEFAULT_CLAUDE_TOKEN: z.string().min(1),
+      CRON_SECRET: z.string().min(1),
       // E2B development environment variables (optional, for local testing only)
       USPARK_TOKEN_FOR_DEV: z.string().optional(),
       PROJECT_ID_FOR_DEV: z.string().min(1).optional(),
@@ -54,6 +55,9 @@ function initEnv() {
       DEFAULT_CLAUDE_TOKEN: isTest
         ? "sk-ant-test-default-token-for-testing"
         : process.env.DEFAULT_CLAUDE_TOKEN,
+      CRON_SECRET: isTest
+        ? "test_cron_secret_for_testing"
+        : process.env.CRON_SECRET,
       USPARK_TOKEN_FOR_DEV: process.env.USPARK_TOKEN_FOR_DEV,
       PROJECT_ID_FOR_DEV: process.env.PROJECT_ID_FOR_DEV,
       TURN_ID_FOR_DEV: process.env.TURN_ID_FOR_DEV,

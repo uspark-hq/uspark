@@ -31,22 +31,16 @@ const mockClaudeExecute = vi.mocked(ClaudeExecutor.execute);
 describe("/api/cron/process-cron-sessions", () => {
   const userId = `test-user-cron-${Date.now()}-${process.pid}`;
   const createdProjectIds: string[] = [];
-  const cronSecret = "test-cron-secret-key";
+  const cronSecret = "test_cron_secret_for_testing";
 
   // Store blob content for mocking fetch
   const blobContentStore = new Map<string, string>();
-
-  // Store original env
-  const originalCronSecret = process.env.CRON_SECRET;
-  const originalBlobToken = process.env.BLOB_READ_WRITE_TOKEN;
 
   beforeEach(async () => {
     vi.clearAllMocks();
     mockAuth.mockResolvedValue({ userId } as Awaited<ReturnType<typeof auth>>);
 
-    // Set CRON_SECRET for tests
-    process.env.CRON_SECRET = cronSecret;
-
+    // Note: CRON_SECRET is now managed by env.ts and automatically set in test environment
     // Set BLOB_READ_WRITE_TOKEN for tests (format: vercel_blob_rw_STOREID_...)
     process.env.BLOB_READ_WRITE_TOKEN = "vercel_blob_rw_test-store-id_extra";
 
@@ -137,10 +131,7 @@ describe("/api/cron/process-cron-sessions", () => {
       }
     }
 
-    // Restore original env
-    process.env.CRON_SECRET = originalCronSecret;
-    process.env.BLOB_READ_WRITE_TOKEN = originalBlobToken;
-
+    // Note: CRON_SECRET is now managed by env.ts, no need to restore
     // Restore global fetch
     vi.restoreAllMocks();
   });
@@ -286,15 +277,6 @@ describe("/api/cron/process-cron-sessions", () => {
 
       expect(response.status).toBe(401);
       expect(response.data.error).toBe("Unauthorized");
-    });
-
-    it("should return error if CRON_SECRET env is not configured", async () => {
-      delete process.env.CRON_SECRET;
-
-      const response = await callCronApi("Bearer any-value");
-
-      expect(response.status).toBe(500);
-      expect(response.data.error).toBe("CRON_SECRET not configured");
     });
 
     it("should accept requests with valid CRON_SECRET", async () => {

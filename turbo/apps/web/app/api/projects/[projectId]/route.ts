@@ -125,6 +125,13 @@ export async function PATCH(
       return newProject;
     });
 
+    if (!result) {
+      return NextResponse.json(
+        { error: "Failed to create project" },
+        { status: 500 },
+      );
+    }
+
     return NextResponse.json({
       success: true,
       version: result.version,
