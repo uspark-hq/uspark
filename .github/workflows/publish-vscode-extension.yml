@@ -1,0 +1,41 @@
+name: Publish VSCode Extension
+
+on:
+  release:
+    types: [published]
+
+jobs:
+  publish:
+    # Only publish when it's a vscode-extension release
+    if: startsWith(github.event.release.tag_name, 'vscode-extension-v')
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v2
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: 'turbo/pnpm-lock.yaml'
+
+      - name: Install dependencies
+        run: |
+          cd turbo
+          pnpm install --frozen-lockfile
+
+      - name: Build extension
+        run: |
+          cd turbo/apps/vscode-extension
+          pnpm compile
+
+      - name: Publish to VSCode Marketplace
+        run: |
+          cd turbo/apps/vscode-extension
+          pnpm vscode:publish -p ${{ secrets.VSCE_PAT }}
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
