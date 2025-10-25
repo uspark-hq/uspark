@@ -17,6 +17,9 @@
         },
         "turbo/apps/mcp-server": {
             "releaseType": "node"
+        },
+        "turbo/apps/vscode-extension": {
+            "releaseType": "node"
         }
     },
     "plugins": [
