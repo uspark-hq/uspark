@@ -4,6 +4,60 @@ This document tracks technical debt items that need to be addressed in the codeb
 
 > **Goal**: Achieve zero direct database operations in tests, proper test isolation, and strict type safety
 
+## ✅ RESOLVED: Vitest Configuration and Test Environment Assignment
+
+**Created**: 2025-10-25
+**Resolved**: 2025-10-25
+
+**Problem**: Vitest's `environmentMatchGlobs` API is deprecated. The recommended replacement (`test.projects` with `include/exclude`) initially failed due to edge cases.
+
+### Issues Identified
+
+1. **Inconsistent file extensions**: 1 file using `.spec.ts` instead of `.test.ts`
+2. **Edge case placement**: 1 non-JSX test file in component directory (`app/components/file-explorer/__tests__/yjs-parser.test.ts`)
+3. **Missing path coverage**: Initial migration lost 9 tests (2 files)
+
+### Resolution Steps
+
+1. ✅ Renamed `schema.spec.ts` → `schema.test.ts`
+2. ✅ Added `app/components/**/*.test.ts` to node environment includes
+3. ✅ Migrated to recommended `test.projects` API with split configurations
+4. ✅ All 460 tests passing with zero DEPRECATED warnings
+
+### Final Configuration
+
+```typescript
+// web:node - API routes, utilities, database (node environment)
+{
+  name: "web:node",
+  environment: "node",
+  include: [
+    "app/api/**/*.test.ts",
+    "app/api/**/*.test.tsx",
+    "app/components/**/*.test.ts",  // Edge case: non-JSX component tests
+    "src/lib/**/*.test.ts",
+    "src/test/**/*.test.ts",
+    "src/db/**/*.test.ts",
+  ]
+}
+
+// web:jsdom - React components (jsdom environment)
+{
+  name: "web:jsdom",
+  environment: "jsdom",
+  include: ["app/**/*.test.tsx", "src/**/*.test.tsx"],
+  exclude: ["app/api/**/*.test.tsx"]
+}
+```
+
+**Impact:**
+- ✅ Zero deprecated API warnings
+- ✅ Clearer test environment separation
+- ✅ All 460 tests passing (75 test files)
+- ✅ Following Vitest best practices
+
+---
+
 ## Test Mock Cleanup Issues
 **Issue:** Tests don't explicitly call `vi.clearAllMocks()` in beforeEach hooks, which could lead to mock state leakage between tests.
 **Source:** Code review commit 3d3a1ff
