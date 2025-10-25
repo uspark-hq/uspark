@@ -87,16 +87,6 @@ export class ProjectSync {
       token,
     );
 
-    // If project doesn't exist (404), initialize with empty document
-    if (response.status === 404) {
-      this.log(
-        `📝 Project not found, will be created on first push`,
-        options.verbose,
-      );
-      this.version = 0;
-      return;
-    }
-
     if (!response.ok) {
       console.error(
         `❌ Failed to fetch project: ${response.status} ${response.statusText}`,

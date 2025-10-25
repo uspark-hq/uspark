@@ -9,12 +9,27 @@ setup() {
     export ORIGINAL_DIR="$(pwd)"
     cd "$TEST_DIR"
 
-    # Create a test project ID
-    export PROJECT_ID="test-worker-project-$(date +%s)"
-
     # Ensure we have authentication
     if ! cli_with_host auth status | grep -q "Authenticated"; then
         skip "CLI not authenticated - run auth setup first"
+    fi
+
+    # Get the auth token for API calls
+    export CLI_TOKEN=$(cli_with_host auth status | grep "Token:" | awk '{print $2}')
+
+    # Create a project via API and extract the generated ID
+    PROJECT_NAME="test-worker-project-$(date +%s)"
+    RESPONSE=$(curl -s -X POST "$API_HOST/api/projects" \
+        -H "Authorization: Bearer $CLI_TOKEN" \
+        -H "Content-Type: application/json" \
+        -d "{\"name\": \"$PROJECT_NAME\"}")
+
+    # Extract project ID from response
+    export PROJECT_ID=$(echo "$RESPONSE" | grep -o '"id":"[^"]*"' | cut -d'"' -f4)
+
+    if [ -z "$PROJECT_ID" ]; then
+        echo "Failed to create project or extract ID from response: $RESPONSE"
+        exit 1
     fi
 
     # Create .uspark directory structure

@@ -240,7 +240,7 @@ describe("sync commands", () => {
       expect(content).toBe("test content");
     });
 
-    it("should handle project not found (404) gracefully", async () => {
+    it("should handle project not found error", async () => {
       // Override handler for this specific test
       server.use(
         http.get(
@@ -267,10 +267,7 @@ describe("sync commands", () => {
         ),
       );
 
-      // 404 is now treated as success - project will be created on first push
-      await expect(
-        pullCommand({ projectId: "nonexistent" }),
-      ).resolves.not.toThrow();
+      await expect(pullCommand({ projectId: "nonexistent" })).rejects.toThrow();
     });
   });
 });
