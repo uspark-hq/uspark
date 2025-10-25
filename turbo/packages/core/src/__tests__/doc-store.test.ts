@@ -132,9 +132,11 @@ describe("DocStore", () => {
             Y.applyUpdate(serverDoc, update);
 
             // Verify server doc now has the modified hash
-            const updatedFile = serverDoc.getMap("files").get("src/app.ts");
+            const updatedFile = serverDoc
+              .getMap<{ hash: string; mtime: number }>("files")
+              .get("src/app.ts");
             expect(updatedFile).toBeDefined();
-            expect((updatedFile as any).hash).toBe("modified-hash");
+            expect(updatedFile?.hash).toBe("modified-hash");
 
             // Return updated state with new version
             return new HttpResponse(Y.encodeStateAsUpdate(serverDoc), {
