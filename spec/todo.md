@@ -2,45 +2,23 @@
 
 ## API Issues
 
-### GET /api/projects/:projectId 不应该有 upsert 逻辑
+### ✅ RESOLVED: GET /api/projects/:projectId 不应该有 upsert 逻辑
 
 **位置**: `turbo/apps/web/app/api/projects/[projectId]/route.ts:16`
+**解决日期**: 2025-10-25
+**PR/Commit**: Fixed in current session
 
 **问题描述**:
-当前实现中，如果项目不存在，会自动创建一个新的空 YDoc 项目：
+当前实现中，如果项目不存在，会自动创建一个新的空 YDoc 项目，违反了 GET 请求的幂等性原则。
+
+**解决方案**:
+已修改 GET handler，移除了 upsert 逻辑，现在当项目不存在时返回 404：
 
 ```typescript
-// 当前逻辑 (route.ts:47-68)
-if (project) {
-  // 返回现有项目
-} else {
-  // 自动创建新项目 ❌
-  const ydoc = new Y.Doc();
-  await db.insert(PROJECTS_TBL).values({
-    id: projectId,
-    name: projectId,
-    userId,
-    ydocData: base64Data,
-    version: 0
-  });
-}
-```
-
-**期望行为**:
-GET 请求应该是幂等的，只用于读取数据，不应该有副作用（创建资源）。如果项目不存在，应该返回 404。
-
-**修改方案**:
-```typescript
-const [project] = await db.select().from(PROJECTS_TBL)
-  .where(and(
-    eq(PROJECTS_TBL.id, projectId),
-    eq(PROJECTS_TBL.userId, userId)
-  ));
-
 if (!project) {
   return NextResponse.json(
     { error: "project_not_found" },
-    { status: 404 }
+    { status: 404 },
   );
 }
 
@@ -49,17 +27,23 @@ const binaryData = Buffer.from(project.ydocData, "base64");
 return new Response(binaryData, {
   headers: {
     "Content-Type": "application/octet-stream",
-    "X-Version": project.version.toString()
-  }
+    "X-Version": project.version.toString(),
+    "Access-Control-Expose-Headers": "X-Version",
+  },
 });
 ```
 
-**影响范围**:
-- 需要检查所有调用此 API 的客户端代码
-- 确保项目创建只通过 POST /api/projects 进行
-- 更新相关测试用例
+**测试更新**:
+- ✅ 添加新测试：`should return 404 when project doesn't exist`
+- ✅ 验证项目未被创建
+- ✅ 所有现有测试继续通过（7/7 tests passed）
 
-**优先级**: Medium
+**影响分析**:
+- ✅ 客户端代码（yjs-file-explorer.tsx）已正确处理 404 错误
+- ✅ 项目创建已通过 POST /api/projects 进行
+- ✅ 符合 REST API 最佳实践
+
+**优先级**: ~~Medium~~ **COMPLETED**
 
 ---
 

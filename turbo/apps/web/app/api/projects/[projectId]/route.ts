@@ -36,51 +36,20 @@ export async function GET(
       and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)),
     );
 
-  if (project) {
-    // Decode base64 YDoc data and return as binary
-    const binaryData = Buffer.from(project.ydocData, "base64");
-
-    return new Response(binaryData, {
-      headers: {
-        "Content-Type": "application/octet-stream",
-        "X-Version": project.version.toString(),
-        "Access-Control-Expose-Headers": "X-Version",
-      },
-    });
-  } else {
-    // Create new empty YDoc for this project
-    const ydoc = new Y.Doc();
-    const state = Y.encodeStateAsUpdate(ydoc);
-    const base64Data = Buffer.from(state).toString("base64");
-
-    // Store in database with initial version snapshot
-    await globalThis.services.db.transaction(async (tx) => {
-      // Create project
-      await tx.insert(PROJECTS_TBL).values({
-        id: projectId,
-        name: projectId,
-        userId,
-        ydocData: base64Data,
-        version: 0,
-      });
-
-      // Save version 0 snapshot for future diffs
-      await tx.insert(PROJECT_VERSIONS_TBL).values({
-        id: randomUUID(),
-        projectId,
-        version: 0,
-        ydocSnapshot: Buffer.from(state),
-      });
-    });
-
-    return new Response(Buffer.from(state), {
-      headers: {
-        "Content-Type": "application/octet-stream",
-        "X-Version": "0",
-        "Access-Control-Expose-Headers": "X-Version",
-      },
-    });
+  if (!project) {
+    return NextResponse.json({ error: "project_not_found" }, { status: 404 });
   }
+
+  // Decode base64 YDoc data and return as binary
+  const binaryData = Buffer.from(project.ydocData, "base64");
+
+  return new Response(binaryData, {
+    headers: {
+      "Content-Type": "application/octet-stream",
+      "X-Version": project.version.toString(),
+      "Access-Control-Expose-Headers": "X-Version",
+    },
+  });
 }
 
 /**

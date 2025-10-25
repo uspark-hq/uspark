@@ -48,27 +48,17 @@ describe("/api/projects/:projectId", () => {
   });
 
   describe("GET /api/projects/:projectId", () => {
-    it("should create new project with empty YDoc when project doesn't exist", async () => {
+    it("should return 404 when project doesn't exist", async () => {
       const mockRequest = new NextRequest("http://localhost:3000");
       const context = { params: Promise.resolve({ projectId }) };
 
       const response = await GET(mockRequest, context);
 
-      expect(response.status).toBe(200);
-      expect(response.headers.get("Content-Type")).toBe(
-        "application/octet-stream",
-      );
-      expect(response.headers.get("X-Version")).toBe("0");
+      expect(response.status).toBe(404);
+      const data = await response.json();
+      expect(data).toHaveProperty("error", "project_not_found");
 
-      // Verify the response is a valid YDoc
-      const binaryData = await response.arrayBuffer();
-      const ydoc = new Y.Doc();
-      Y.applyUpdate(ydoc, new Uint8Array(binaryData));
-
-      const files = ydoc.getMap("files");
-      expect(files.size).toBe(0);
-
-      // Verify project was created in database
+      // Verify project was NOT created in database
       const [storedProject] = await globalThis.services.db
         .select()
         .from(PROJECTS_TBL)
@@ -76,8 +66,7 @@ describe("/api/projects/:projectId", () => {
           and(eq(PROJECTS_TBL.id, projectId), eq(PROJECTS_TBL.userId, userId)),
         );
 
-      expect(storedProject).toBeDefined();
-      expect(storedProject?.version).toBe(0);
+      expect(storedProject).toBeUndefined();
     });
 
     it("should return existing project YDoc", async () => {
