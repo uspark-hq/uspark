@@ -3,6 +3,7 @@ import type { z } from "zod";
 import { projectDetailContract } from "@uspark/core";
 import { getUserId } from "../../../src/lib/auth/get-user-id";
 import { env } from "../../../src/env";
+import { getStoreIdFromToken } from "../../../src/lib/blob/utils";
 
 // Extract types from contract
 type BlobStoreResponse = z.infer<
@@ -40,20 +41,18 @@ export async function GET() {
     );
   }
 
-  // Extract store ID from token format: vercel_blob_rw_[STORE_ID]_[SECRET]
-  const parts = readWriteToken.split("_");
-  if (parts.length < 4 || !parts[3]) {
+  try {
+    const storeId = getStoreIdFromToken(readWriteToken);
+    const response: BlobStoreResponse = { store_id: storeId };
+    return NextResponse.json(response);
+  } catch (error) {
     return NextResponse.json(
       {
         error: "invalid_blob_token",
-        error_description: "Invalid BLOB_READ_WRITE_TOKEN format",
+        error_description:
+          error instanceof Error ? error.message : "Invalid token format",
       },
       { status: 500 },
     );
   }
-
-  const storeId = parts[3];
-
-  const response: BlobStoreResponse = { store_id: storeId };
-  return NextResponse.json(response);
 }

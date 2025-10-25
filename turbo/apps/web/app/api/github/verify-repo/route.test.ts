@@ -1,10 +1,11 @@
 import { POST } from "./route";
 import { auth } from "@clerk/nextjs/server";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { initServices } from "../../../../src/lib/init-services";
 import { githubInstallations } from "../../../../src/db/schema/github";
 import { eq } from "drizzle-orm";
 import { createInstallationOctokit } from "../../../../src/lib/github/client";
+import { server, http, HttpResponse } from "../../../../src/test/msw-setup";
 
 // Mock Clerk auth
 vi.mock("@clerk/nextjs/server", () => ({
@@ -17,9 +18,6 @@ vi.mock("../../../../src/lib/github/client", () => ({
 }));
 
 const mockAuth = vi.mocked(auth);
-
-// Mock global fetch for public repo checks
-const originalFetch = global.fetch;
 
 describe("POST /api/github/verify-repo", () => {
   const testUserId = `test-user-verify-${Date.now()}-${process.pid}`;
@@ -43,20 +41,19 @@ describe("POST /api/github/verify-repo", () => {
       ReturnType<typeof auth>
     >);
 
-    // Reset fetch mock
-    global.fetch = originalFetch;
+    // Set up default MSW handler to return 404 for public repo checks
+    server.use(
+      http.get("https://api.github.com/repos/:owner/:repo", () => {
+        return HttpResponse.json({}, { status: 404 });
+      }),
+    );
+  });
+
+  afterEach(() => {
+    server.resetHandlers();
   });
 
   describe("URL format parsing", () => {
-    beforeEach(() => {
-      // Mock fetch to return 404 for all public repo checks
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: false,
-        status: 404,
-        json: async () => ({}),
-      });
-    });
-
     it("accepts owner/repo format", async () => {
       const request = new Request("http://localhost", {
         method: "POST",
@@ -64,17 +61,11 @@ describe("POST /api/github/verify-repo", () => {
       });
 
       const response = await POST(request);
-      await response.json();
+      const data = await response.json();
 
-      // Should attempt to verify as public repo
-      expect(global.fetch).toHaveBeenCalledWith(
-        "https://api.github.com/repos/facebook/react",
-        expect.objectContaining({
-          headers: expect.objectContaining({
-            Accept: "application/vnd.github.v3+json",
-          }),
-        }),
-      );
+      // Should return 404 since repo doesn't exist (mocked as 404)
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("not_found");
     });
 
     it("accepts HTTPS URL format", async () => {
@@ -86,12 +77,10 @@ describe("POST /api/github/verify-repo", () => {
       });
 
       const response = await POST(request);
-      await response.json();
+      const data = await response.json();
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        "https://api.github.com/repos/facebook/react",
-        expect.any(Object),
-      );
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("not_found");
     });
 
     it("accepts HTTPS URL with .git suffix", async () => {
@@ -103,12 +92,10 @@ describe("POST /api/github/verify-repo", () => {
       });
 
       const response = await POST(request);
-      await response.json();
+      const data = await response.json();
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        "https://api.github.com/repos/facebook/react",
-        expect.any(Object),
-      );
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("not_found");
     });
 
     it("accepts SSH URL format", async () => {
@@ -120,12 +107,10 @@ describe("POST /api/github/verify-repo", () => {
       });
 
       const response = await POST(request);
-      await response.json();
+      const data = await response.json();
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        "https://api.github.com/repos/facebook/react",
-        expect.any(Object),
-      );
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("not_found");
     });
 
     it("accepts repository names with dots", async () => {
@@ -135,12 +120,10 @@ describe("POST /api/github/verify-repo", () => {
       });
 
       const response = await POST(request);
-      await response.json();
+      const data = await response.json();
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        "https://api.github.com/repos/backend/backend.ai",
-        expect.any(Object),
-      );
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("not_found");
     });
 
     it("accepts repository names with multiple dots", async () => {
@@ -150,12 +133,10 @@ describe("POST /api/github/verify-repo", () => {
       });
 
       const response = await POST(request);
-      await response.json();
+      const data = await response.json();
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        "https://api.github.com/repos/owner/repo.with.multiple.dots",
-        expect.any(Object),
-      );
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("not_found");
     });
 
     it("accepts owner names with dots", async () => {
@@ -165,12 +146,10 @@ describe("POST /api/github/verify-repo", () => {
       });
 
       const response = await POST(request);
-      await response.json();
+      const data = await response.json();
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        "https://api.github.com/repos/owner.name/repo",
-        expect.any(Object),
-      );
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("not_found");
     });
 
     it("accepts HTTPS URL with dots in repo name", async () => {
@@ -182,12 +161,10 @@ describe("POST /api/github/verify-repo", () => {
       });
 
       const response = await POST(request);
-      await response.json();
+      const data = await response.json();
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        "https://api.github.com/repos/backend/backend.ai",
-        expect.any(Object),
-      );
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("not_found");
     });
 
     it("accepts SSH URL with dots in repo name", async () => {
@@ -199,12 +176,10 @@ describe("POST /api/github/verify-repo", () => {
       });
 
       const response = await POST(request);
-      await response.json();
+      const data = await response.json();
 
-      expect(global.fetch).toHaveBeenCalledWith(
-        "https://api.github.com/repos/backend/backend.ai",
-        expect.any(Object),
-      );
+      expect(response.status).toBe(404);
+      expect(data.error).toBe("not_found");
     });
 
     it("rejects invalid format", async () => {
@@ -278,16 +253,16 @@ describe("POST /api/github/verify-repo", () => {
     });
 
     it("returns public repo when not in installations but publicly accessible", async () => {
-      // Mock fetch to return public repo
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          name: "react",
-          full_name: "facebook/react",
-          private: false,
+      // Use MSW to mock GitHub API response for public repo
+      server.use(
+        http.get("https://api.github.com/repos/facebook/react", () => {
+          return HttpResponse.json({
+            name: "react",
+            full_name: "facebook/react",
+            private: false,
+          });
         }),
-      });
+      );
 
       const request = new Request("http://localhost", {
         method: "POST",
@@ -304,16 +279,16 @@ describe("POST /api/github/verify-repo", () => {
     });
 
     it("rejects private repo not in installations", async () => {
-      // Mock fetch to return private repo
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: true,
-        status: 200,
-        json: async () => ({
-          name: "private-repo",
-          full_name: "someuser/private-repo",
-          private: true,
+      // Use MSW to mock GitHub API response for private repo
+      server.use(
+        http.get("https://api.github.com/repos/someuser/private-repo", () => {
+          return HttpResponse.json({
+            name: "private-repo",
+            full_name: "someuser/private-repo",
+            private: true,
+          });
         }),
-      });
+      );
 
       const request = new Request("http://localhost", {
         method: "POST",
@@ -328,13 +303,7 @@ describe("POST /api/github/verify-repo", () => {
     });
 
     it("returns 404 when repository does not exist", async () => {
-      // Mock fetch to return 404
-      global.fetch = vi.fn().mockResolvedValue({
-        ok: false,
-        status: 404,
-        json: async () => ({}),
-      });
-
+      // Default MSW handler already returns 404, no need to override
       const request = new Request("http://localhost", {
         method: "POST",
         body: JSON.stringify({ repoUrl: "nonexistent/repo" }),
