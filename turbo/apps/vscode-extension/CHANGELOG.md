@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.2](https://github.com/uspark-hq/uspark/compare/uspark-sync-v0.2.1...uspark-sync-v0.2.2) (2025-10-25)
+
+
+### Bug Fixes
+
+* **vscode-extension:** activate extension on startup instead of config file presence ([#769](https://github.com/uspark-hq/uspark/issues/769)) ([23868dc](https://github.com/uspark-hq/uspark/commit/23868dc240876c43131b38eb3e56be5a03accb4f))
+* **vscode-extension:** always show status bar and commands regardless of config ([#771](https://github.com/uspark-hq/uspark/issues/771)) ([03e3048](https://github.com/uspark-hq/uspark/commit/03e3048b4003ad85a6c0b97ef02343aec295d32e))
+* **vscode-extension:** correct brand name capitalization to uspark ([#772](https://github.com/uspark-hq/uspark/issues/772)) ([b3546cf](https://github.com/uspark-hq/uspark/commit/b3546cff8c72359933715aaecfaa0473bfd3dab1))
+
 ## [0.2.1](https://github.com/uspark-hq/uspark/compare/uspark-sync-v0.2.0...uspark-sync-v0.2.1) (2025-10-25)
 
 
