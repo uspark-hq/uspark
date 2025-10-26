@@ -435,5 +435,59 @@ describe("DocStore", () => {
       expect(store.getFile("file-b.txt")).toBeDefined(); // Exists (YJS resolved conflict)
       expect(store.getFile("file-c.txt")?.hash).toBe("hash-c3"); // From server
     });
+
+    it("should handle 409 conflict on PATCH by returning early", async () => {
+      // Setup: Create v42 with file-a
+      const serverDocV42 = new Y.Doc();
+      serverDocV42
+        .getMap("files")
+        .set("file-a.txt", { hash: "hash-a0", mtime: 1000 });
+      serverDocV42.getMap("blobs").set("hash-a0", { size: 100 });
+      const snapshotV42 = Y.encodeStateAsUpdate(serverDocV42);
+
+      server.use(
+        // GET - return initial state
+        http.get("http://localhost/api/projects/:projectId", () => {
+          return new HttpResponse(snapshotV42, {
+            status: 200,
+            headers: {
+              "Content-Type": "application/octet-stream",
+              "X-Version": "42",
+            },
+          });
+        }),
+
+        // GET /diff - no updates
+        http.get("http://localhost/api/projects/:projectId/diff", () => {
+          return new HttpResponse(null, { status: 304 });
+        }),
+
+        // PATCH - return 409 conflict
+        http.patch("http://localhost/api/projects/:projectId", () => {
+          return new HttpResponse(null, { status: 409 });
+        }),
+      );
+
+      const store = new DocStore({
+        projectId: "test-project",
+        token: "test-token",
+        baseUrl: "http://localhost",
+      });
+
+      // Initial sync
+      await store.sync(new AbortController().signal);
+      expect(store.getVersion()).toBe(42);
+
+      // Modify locally
+      store.setFile("file-a.txt", "hash-a1", 110);
+
+      // Sync - should get 409 and return early without error
+      await store.sync(new AbortController().signal);
+
+      // Should still be at version 42 (not updated due to conflict)
+      expect(store.getVersion()).toBe(42);
+      // Local change should still be present
+      expect(store.getFile("file-a.txt")?.hash).toBe("hash-a1");
+    });
   });
 });
