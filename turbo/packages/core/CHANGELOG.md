@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.28.0](https://github.com/uspark-hq/uspark/compare/core-v0.27.0...core-v0.28.0) (2025-10-26)
+
+
+### Features
+
+* **core:** implement three-way merge for doc store sync ([#783](https://github.com/uspark-hq/uspark/issues/783)) ([9300896](https://github.com/uspark-hq/uspark/commit/93008969709d7c3620a07c7d5e1ca50303d13e84))
+
 ## [0.27.0](https://github.com/uspark-hq/uspark/compare/core-v0.26.0...core-v0.27.0) (2025-10-22)
 
 

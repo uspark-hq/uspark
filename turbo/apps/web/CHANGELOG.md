@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.5.0](https://github.com/uspark-hq/uspark/compare/web-v1.4.0...web-v1.5.0) (2025-10-26)
+
+
+### Features
+
+* **core:** implement three-way merge for doc store sync ([#783](https://github.com/uspark-hq/uspark/issues/783)) ([9300896](https://github.com/uspark-hq/uspark/commit/93008969709d7c3620a07c7d5e1ca50303d13e84))
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.28.0
+
 ## [1.4.0](https://github.com/uspark-hq/uspark/compare/web-v1.3.1...web-v1.4.0) (2025-10-25)
 
 
