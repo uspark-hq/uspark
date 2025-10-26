@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.1](https://github.com/uspark-hq/uspark/compare/uspark-sync-v0.3.0...uspark-sync-v0.3.1) (2025-10-26)
+
+
+### Bug Fixes
+
+* **test:** resolve code review issues from oct 25 commits ([#788](https://github.com/uspark-hq/uspark/issues/788)) ([f6bb105](https://github.com/uspark-hq/uspark/commit/f6bb105e80d9079e6d8b4e9cf232d866e0189c32))
+
 ## [0.3.0](https://github.com/uspark-hq/uspark/compare/uspark-sync-v0.2.2...uspark-sync-v0.3.0) (2025-10-25)
 
 

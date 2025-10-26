@@ -2,7 +2,7 @@
   "name": "uspark-sync",
   "displayName": "uSpark Auto Sync",
   "description": "Automatically sync workspace with uSpark - seamless file synchronization for your projects",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "publisher": "uSpark",
   "engines": {
     "vscode": "^1.80.0"
