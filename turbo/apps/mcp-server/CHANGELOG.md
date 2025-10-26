@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.6](https://github.com/uspark-hq/uspark/compare/mcp-server-v0.2.5...mcp-server-v0.2.6) (2025-10-26)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.28.0
+
 ## [0.2.5](https://github.com/uspark-hq/uspark/compare/mcp-server-v0.2.4...mcp-server-v0.2.5) (2025-10-25)
 
 
