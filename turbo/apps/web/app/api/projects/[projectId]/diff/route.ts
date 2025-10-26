@@ -9,6 +9,10 @@ import { eq, and } from "drizzle-orm";
 const POLL_INTERVAL = 1000; // 1 second
 const MAX_POLLS = process.env.NODE_ENV === "test" ? 1 : 5; // Test: 1 attempt, Prod: 5 attempts = 5 seconds max
 
+// Binary protocol constants (must match doc-store.ts)
+const STATE_VECTOR_LENGTH_BYTES = 4;
+const BIG_ENDIAN = false;
+
 /**
  * GET /api/projects/:projectId/diff?fromVersion={clientVersion}
  * Returns YJS diff between client version and current version
@@ -129,19 +133,22 @@ async function computeAndReturnDiff(
 
   // Encode response: [length(4 bytes)][stateVector][diff]
   const responseBuffer = new ArrayBuffer(
-    4 + currentStateVector.length + diff.length,
+    STATE_VECTOR_LENGTH_BYTES + currentStateVector.length + diff.length,
   );
   const view = new DataView(responseBuffer);
 
   // Write state vector length (uint32, big-endian)
-  view.setUint32(0, currentStateVector.length, false);
+  view.setUint32(0, currentStateVector.length, BIG_ENDIAN);
 
   // Write state vector
   const responseArray = new Uint8Array(responseBuffer);
-  responseArray.set(currentStateVector, 4);
+  responseArray.set(currentStateVector, STATE_VECTOR_LENGTH_BYTES);
 
   // Write diff
-  responseArray.set(diff, 4 + currentStateVector.length);
+  responseArray.set(
+    diff,
+    STATE_VECTOR_LENGTH_BYTES + currentStateVector.length,
+  );
 
   return new Response(Buffer.from(responseArray), {
     headers: {

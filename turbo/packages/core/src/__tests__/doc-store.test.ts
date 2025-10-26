@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { DocStore } from "../doc-store";
 import { server, http, HttpResponse } from "../test/msw-setup";
 import * as Y from "yjs";
@@ -24,6 +24,7 @@ describe("DocStore", () => {
 
   describe("sync", () => {
     beforeEach(() => {
+      vi.clearAllMocks();
       server.resetHandlers();
     });
 

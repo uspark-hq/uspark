@@ -1,5 +1,9 @@
 import * as Y from "yjs";
 
+// Binary protocol constants
+const STATE_VECTOR_LENGTH_BYTES = 4;
+const BIG_ENDIAN = false;
+
 export interface DocStoreConfig {
   projectId: string;
   token: string;
@@ -127,17 +131,8 @@ export class DocStore {
       if (diffResponse.status === 200) {
         // Server has updates, parse encoded response: [length][stateVector][diff]
         const responseBuffer = await diffResponse.arrayBuffer();
-        const responseArray = new Uint8Array(responseBuffer);
-
-        // Read state vector length (first 4 bytes, big-endian uint32)
-        const view = new DataView(responseBuffer);
-        const stateVectorLength = view.getUint32(0, false);
-
-        // Extract state vector
-        const serverStateVector = responseArray.slice(4, 4 + stateVectorLength);
-
-        // Extract diff
-        const serverDiff = responseArray.slice(4 + stateVectorLength);
+        const { stateVector: serverStateVector, diff: serverDiff } =
+          this.parseEncodedResponse(responseBuffer);
 
         const currentVersion = parseInt(
           diffResponse.headers.get("X-Version") || "0",
@@ -228,23 +223,42 @@ export class DocStore {
   }
 
   /**
+   * Parse binary-encoded response format: [length][stateVector][diff]
+   * Returns the state vector and diff as separate Uint8Arrays
+   */
+  private parseEncodedResponse(responseBuffer: ArrayBuffer): {
+    stateVector: Uint8Array;
+    diff: Uint8Array;
+  } {
+    const responseArray = new Uint8Array(responseBuffer);
+    const view = new DataView(responseBuffer);
+
+    // Read state vector length (first 4 bytes, big-endian uint32)
+    const stateVectorLength = view.getUint32(0, BIG_ENDIAN);
+
+    // Extract state vector
+    const stateVector = responseArray.slice(
+      STATE_VECTOR_LENGTH_BYTES,
+      STATE_VECTOR_LENGTH_BYTES + stateVectorLength,
+    );
+
+    // Extract diff
+    const diff = responseArray.slice(
+      STATE_VECTOR_LENGTH_BYTES + stateVectorLength,
+    );
+
+    return { stateVector, diff };
+  }
+
+  /**
    * Handle 409 conflict response
    * Applies server updates, merges with local changes, and returns
    */
   private async handleConflict(conflictResponse: Response): Promise<void> {
     // Parse 409 response: [length][stateVector][diff]
     const responseBuffer = await conflictResponse.arrayBuffer();
-    const responseArray = new Uint8Array(responseBuffer);
-
-    // Read state vector length (first 4 bytes, big-endian uint32)
-    const view = new DataView(responseBuffer);
-    const stateVectorLength = view.getUint32(0, false);
-
-    // Extract state vector
-    const serverStateVector = responseArray.slice(4, 4 + stateVectorLength);
-
-    // Extract diff
-    const serverDiff = responseArray.slice(4 + stateVectorLength);
+    const { stateVector: serverStateVector, diff: serverDiff } =
+      this.parseEncodedResponse(responseBuffer);
 
     const currentVersion = parseInt(
       conflictResponse.headers.get("X-Version") || "0",
