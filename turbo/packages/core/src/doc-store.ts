@@ -114,6 +114,10 @@ export class DocStore {
   }
 
   private async applyRemoteDiff(signal: AbortSignal): Promise<void> {
+    if (!this.lastSyncStateVector) {
+      return;
+    }
+
     const diffResponse = await fetch(
       `${this.baseUrl}/api/projects/${this.projectId}/diff?fromVersion=${this.version}`,
       {
@@ -127,6 +131,11 @@ export class DocStore {
     if (diffResponse.status !== 200) {
       return;
     }
+
+    this.unackedDiff = Y.encodeStateAsUpdate(
+      this.doc,
+      this.lastSyncStateVector,
+    );
 
     const responseBuffer = await diffResponse.arrayBuffer();
     const { stateVector: serverStateVector, diff: serverDiff } =

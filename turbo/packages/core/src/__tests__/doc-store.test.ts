@@ -280,29 +280,15 @@ describe("DocStore", () => {
         baseUrl: "http://localhost",
       });
 
-      // Step 1: Initial sync - get v42
       await store.sync(new AbortController().signal);
       expect(store.getVersion()).toBe(42);
       expect(store.getFile("file-a.txt")?.hash).toBe("hash-a0");
 
-      // Step 2: Client modifies file-a and adds file-b
       store.setFile("file-a.txt", "hash-a1", 110);
       store.setFile("file-b.txt", "hash-b1", 200);
 
-      // Step 3: Second sync - pull server updates and merge locally
-      // GET /diff returns v43 with file-b and file-c
-      // After merge, returns without pushing
       await store.sync(new AbortController().signal);
-      expect(store.getVersion()).toBe(43); // Server version
-      expect(store.getFile("file-a.txt")?.hash).toBe("hash-a1"); // Client modified
-      expect(store.getFile("file-b.txt")).toBeDefined(); // Merged (YJS decides hash)
-      expect(store.getFile("file-c.txt")?.hash).toBe("hash-c2"); // Server added
-
-      // Step 4: Third sync - push merged changes
-      // GET /diff returns 304 (no new updates)
-      // PATCH merged changes to server
-      await store.sync(new AbortController().signal);
-      expect(store.getVersion()).toBe(44); // Updated after PATCH
+      expect(store.getVersion()).toBe(44);
       expect(store.getFile("file-a.txt")?.hash).toBe("hash-a1");
       expect(store.getFile("file-b.txt")).toBeDefined();
       expect(store.getFile("file-c.txt")?.hash).toBe("hash-c2");
