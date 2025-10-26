@@ -1,7 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
-import { mkdirSync, writeFileSync, rmSync, existsSync, readFileSync } from "fs";
+import { rmSync, existsSync } from "fs";
 import { join } from "path";
 import { homedir } from "os";
+import { http, HttpResponse, server } from "../test/msw-setup";
 
 // Mock VSCode API - must be before imports that use it
 vi.mock("vscode", () => ({
@@ -9,6 +10,11 @@ vi.mock("vscode", () => ({
     showInformationMessage: vi.fn(),
     showErrorMessage: vi.fn(),
     registerUriHandler: vi.fn(),
+    createOutputChannel: vi.fn(() => ({
+      appendLine: vi.fn(),
+      show: vi.fn(),
+      dispose: vi.fn(),
+    })),
   },
   env: {
     openExternal: vi.fn(),
@@ -19,25 +25,16 @@ vi.mock("vscode", () => ({
   ExtensionContext: class {},
 }));
 
-// Mock ApiClient
-vi.mock("../api", () => ({
-  ApiClient: class {
-    constructor(private apiUrl: string = "https://www.uspark.ai") {}
-
-    getApiUrl() {
-      return this.apiUrl;
-    }
-
-    async validateToken(token: string) {
-      // Mock validation - return user if token starts with "usp_live_"
-      if (token.startsWith("usp_live_")) {
-        return {
-          id: "user_123",
-          email: "test@example.com",
-        };
-      }
-      return null;
-    }
+// Mock logger
+vi.mock("../logger", () => ({
+  logger: {
+    init: vi.fn(),
+    info: vi.fn(),
+    error: vi.fn(),
+    warn: vi.fn(),
+    debug: vi.fn(),
+    show: vi.fn(),
+    dispose: vi.fn(),
   },
 }));
 
@@ -63,6 +60,20 @@ describe("AuthManager", () => {
     // Reset all mocks
     vi.clearAllMocks();
     vi.mocked(vscode.env.openExternal).mockResolvedValue(true);
+
+    // Default MSW handler - return 401 for invalid tokens
+    server.use(
+      http.get("*/api/auth/me", ({ request }) => {
+        const authHeader = request.headers.get("Authorization");
+        if (authHeader?.startsWith("Bearer usp_live_")) {
+          return HttpResponse.json({
+            userId: "user_123",
+            email: "test@example.com",
+          });
+        }
+        return new HttpResponse(null, { status: 401 });
+      }),
+    );
   });
 
   afterEach(() => {

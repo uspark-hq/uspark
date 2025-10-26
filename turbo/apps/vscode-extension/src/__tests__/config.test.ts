@@ -27,16 +27,20 @@ vi.mock("../logger", () => ({
 }));
 
 import { loadConfig } from "../config";
+import { logger } from "../logger";
 
 describe("loadConfig", () => {
   const testDir = join(__dirname, "test-workspace");
 
   beforeEach(() => {
-    // 清理测试目录
+    // Clean up test directory
     if (existsSync(testDir)) {
       rmSync(testDir, { recursive: true, force: true });
     }
     mkdirSync(testDir, { recursive: true });
+
+    // Clear all mocks
+    vi.clearAllMocks();
   });
 
   afterEach(() => {
@@ -60,6 +64,14 @@ describe("loadConfig", () => {
     expect(result?.projectId).toBe("test-project-123");
     expect(result?.version).toBe("1");
     expect(result?.configDir).toBe(testDir);
+
+    // Verify logger was called with config discovery messages
+    expect(logger.info).toHaveBeenCalledWith(
+      expect.stringContaining("Looking for config files"),
+    );
+    expect(logger.info).toHaveBeenCalledWith(
+      expect.stringContaining("Found config file"),
+    );
   });
 
   it("should load config from .uspark/.config.json", async () => {
@@ -85,6 +97,11 @@ describe("loadConfig", () => {
     const result = await loadConfig(testDir);
 
     expect(result).toBeNull();
+
+    // Verify logger was called indicating no config found
+    expect(logger.info).toHaveBeenCalledWith(
+      expect.stringContaining("No config file found"),
+    );
   });
 
   it("should prefer .uspark.json over .uspark/.config.json", async () => {
