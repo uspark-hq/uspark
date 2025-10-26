@@ -49,6 +49,7 @@ export default defineConfig({
           name: "core-node",
           root: "./packages/core-node",
           environment: "node",
+          setupFiles: ["../core/src/test/msw-setup.ts"],
         },
       },
 

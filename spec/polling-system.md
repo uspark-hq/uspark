@@ -302,3 +302,31 @@ function sleep(ms: number): Promise<void> {
 │    ↓                                                        │
 └─────────────────────────────────────────────────────────────┘
 ```
+
+## NodeFsDocStore Implementation
+
+### Current Status
+✅ Minimal viable implementation complete:
+- [x] Basic class structure with DocStore integration
+- [x] Constructor accepts projectId, token, localDir, baseUrl
+- [x] sync(signal: AbortSignal) method that calls DocStore.sync()
+- [x] Basic test with MSW mocking
+- [x] Exported from @uspark/core-node package
+
+### Current Limitations
+- Only calls DocStore.sync() without any file system interaction
+- No local filesystem scanning or file operations
+- No blob upload/download implementation
+- No version tracking in local config file
+
+### Long-term Goal
+The `sync()` method should read version from a local config file and bidirectionally sync local filesystem changes with remote project:
+1. Read last synced version from local config file (e.g., `.uspark/config.json`)
+2. Scan local directory for file changes since last sync
+3. Pull remote changes from server (DocStore.sync)
+4. Upload new/modified local files as blobs
+5. Download new/modified remote files to local filesystem
+6. Handle file deletions (both local and remote)
+7. Update version in config file after successful sync
+
+This enables proper incremental sync based on version tracking.
