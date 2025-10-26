@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { DocStore } from "../doc-store";
 import { server, http, HttpResponse } from "../test/msw-setup";
 import * as Y from "yjs";
@@ -24,6 +24,7 @@ describe("DocStore", () => {
 
   describe("sync", () => {
     beforeEach(() => {
+      vi.clearAllMocks();
       server.resetHandlers();
     });
 
@@ -117,6 +118,11 @@ describe("DocStore", () => {
 
       // Step 3: Second sync - PATCH to push changes, get version 43
       server.use(
+        // GET /diff - no server updates
+        http.get("http://localhost/api/projects/:projectId/diff", () => {
+          return new HttpResponse(null, { status: 304 });
+        }),
+
         http.patch(
           "http://localhost/api/projects/:projectId",
           async ({ request }) => {
@@ -155,6 +161,151 @@ describe("DocStore", () => {
       // Step 4: Verify version is now 43
       expect(store.getVersion()).toBe(43);
       expect(store.getFile("src/app.ts")?.hash).toBe("modified-hash");
+    });
+
+    it("should handle three-way merge with concurrent modifications", async () => {
+      // Setup: Create v42 with only file-a
+      const serverDocV42 = new Y.Doc();
+      serverDocV42
+        .getMap("files")
+        .set("file-a.txt", { hash: "hash-a0", mtime: 1000 });
+      serverDocV42.getMap("blobs").set("hash-a0", { size: 100 });
+      const snapshotV42 = Y.encodeStateAsUpdate(serverDocV42);
+      const stateVectorV42 = Y.encodeStateVector(serverDocV42);
+
+      // Setup: Create v43 - server adds file-b and file-c
+      const serverDocV43 = new Y.Doc();
+      Y.applyUpdate(serverDocV43, snapshotV42);
+      serverDocV43
+        .getMap("files")
+        .set("file-b.txt", { hash: "hash-b2", mtime: 2000 });
+      serverDocV43.getMap("blobs").set("hash-b2", { size: 200 });
+      serverDocV43
+        .getMap("files")
+        .set("file-c.txt", { hash: "hash-c2", mtime: 3000 });
+      serverDocV43.getMap("blobs").set("hash-c2", { size: 300 });
+      const snapshotV43 = Y.encodeStateAsUpdate(serverDocV43);
+      const diffV42ToV43 = Y.encodeStateAsUpdate(serverDocV43, stateVectorV42);
+      const stateVectorV43 = Y.encodeStateVector(serverDocV43);
+
+      let serverCurrentVersion = 42;
+
+      server.use(
+        // GET - return current version
+        http.get("http://localhost/api/projects/:projectId", () => {
+          const snapshot =
+            serverCurrentVersion === 42 ? snapshotV42 : snapshotV43;
+          return new HttpResponse(snapshot, {
+            status: 200,
+            headers: {
+              "Content-Type": "application/octet-stream",
+              "X-Version": serverCurrentVersion.toString(),
+            },
+          });
+        }),
+
+        // GET /diff - return server updates
+        http.get(
+          "http://localhost/api/projects/:projectId/diff",
+          ({ request }) => {
+            const url = new URL(request.url);
+            const fromVersion = parseInt(
+              url.searchParams.get("fromVersion") || "0",
+            );
+
+            serverCurrentVersion = 43; // Server upgrades to v43
+
+            if (fromVersion === 42 && serverCurrentVersion === 43) {
+              // Encode response: [length(4 bytes)][stateVector][diff]
+              const responseBuffer = new ArrayBuffer(
+                4 + stateVectorV43.length + diffV42ToV43.length,
+              );
+              const view = new DataView(responseBuffer);
+              view.setUint32(0, stateVectorV43.length, false);
+
+              const responseArray = new Uint8Array(responseBuffer);
+              responseArray.set(stateVectorV43, 4);
+              responseArray.set(diffV42ToV43, 4 + stateVectorV43.length);
+
+              return new HttpResponse(responseArray, {
+                status: 200,
+                headers: {
+                  "Content-Type": "application/octet-stream",
+                  "X-Version": "43",
+                },
+              });
+            }
+
+            return new HttpResponse(null, { status: 304 });
+          },
+        ),
+
+        // PATCH - apply client changes
+        http.patch(
+          "http://localhost/api/projects/:projectId",
+          async ({ request }) => {
+            const ifMatch = request.headers.get("If-Match");
+            expect(ifMatch).toBe("43");
+
+            const updateBuffer = await request.arrayBuffer();
+            const clientUpdate = new Uint8Array(updateBuffer);
+
+            // Apply client update to server v43
+            const serverDocV44 = new Y.Doc();
+            Y.applyUpdate(serverDocV44, snapshotV43);
+            Y.applyUpdate(serverDocV44, clientUpdate);
+
+            // Verify merge result - all three files should exist
+            const filesV44 = serverDocV44.getMap("files");
+
+            expect(filesV44.get("file-a.txt")?.hash).toBe("hash-a1"); // Client modified
+            expect(filesV44.has("file-b.txt")).toBe(true); // Either hash-b1 or hash-b2 (YJS decides)
+            expect(filesV44.get("file-c.txt")?.hash).toBe("hash-c2"); // Server only
+
+            const snapshotV44 = Y.encodeStateAsUpdate(serverDocV44);
+            return new HttpResponse(snapshotV44, {
+              status: 200,
+              headers: {
+                "Content-Type": "application/octet-stream",
+                "X-Version": "44",
+              },
+            });
+          },
+        ),
+      );
+
+      const store = new DocStore({
+        projectId: "test-project",
+        token: "test-token",
+        baseUrl: "http://localhost",
+      });
+
+      // Step 1: Initial sync - get v42
+      await store.sync(new AbortController().signal);
+      expect(store.getVersion()).toBe(42);
+      expect(store.getFile("file-a.txt")?.hash).toBe("hash-a0");
+
+      // Step 2: Client modifies file-a and adds file-b
+      store.setFile("file-a.txt", "hash-a1", 110);
+      store.setFile("file-b.txt", "hash-b1", 200);
+
+      // Step 3: Second sync - pull server updates and merge locally
+      // GET /diff returns v43 with file-b and file-c
+      // After merge, returns without pushing
+      await store.sync(new AbortController().signal);
+      expect(store.getVersion()).toBe(43); // Server version
+      expect(store.getFile("file-a.txt")?.hash).toBe("hash-a1"); // Client modified
+      expect(store.getFile("file-b.txt")).toBeDefined(); // Merged (YJS decides hash)
+      expect(store.getFile("file-c.txt")?.hash).toBe("hash-c2"); // Server added
+
+      // Step 4: Third sync - push merged changes
+      // GET /diff returns 304 (no new updates)
+      // PATCH merged changes to server
+      await store.sync(new AbortController().signal);
+      expect(store.getVersion()).toBe(44); // Updated after PATCH
+      expect(store.getFile("file-a.txt")?.hash).toBe("hash-a1");
+      expect(store.getFile("file-b.txt")).toBeDefined();
+      expect(store.getFile("file-c.txt")?.hash).toBe("hash-c2");
     });
   });
 });

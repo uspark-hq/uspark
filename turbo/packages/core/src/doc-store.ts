@@ -1,5 +1,9 @@
 import * as Y from "yjs";
 
+// Binary protocol constants
+const STATE_VECTOR_LENGTH_BYTES = 4;
+const BIG_ENDIAN = false;
+
 export interface DocStoreConfig {
   projectId: string;
   token: string;
@@ -25,6 +29,7 @@ export class DocStore {
   private token: string;
   private baseUrl: string;
   private lastSyncStateVector: Uint8Array | null;
+  private unackedDiff: Uint8Array | null;
 
   constructor(config: DocStoreConfig) {
     this.doc = new Y.Doc();
@@ -33,6 +38,7 @@ export class DocStore {
     this.token = config.token;
     this.baseUrl = config.baseUrl || "";
     this.lastSyncStateVector = null;
+    this.unackedDiff = null;
   }
 
   /**
@@ -90,52 +96,122 @@ export class DocStore {
 
   /**
    * Sync with the server (pull + push)
-   * If there are local changes, pushes them to server using PATCH
-   * Otherwise, pulls latest state from server using GET
+   * Flow:
+   * 1. If not first sync, check for server updates via GET /diff
+   * 2. If server has updates (200), apply them locally
+   * 3. If there are local changes, PATCH them to server
+   * 4. If PATCH returns 409, handle conflict and return
    */
   async sync(signal: AbortSignal): Promise<void> {
     const url = `${this.baseUrl}/api/projects/${this.projectId}`;
 
-    let response: Response;
-
-    // Check if we have local changes
+    // Step 1: Calculate and save unacked diff before checking server updates
     if (this.lastSyncStateVector) {
-      // Calculate diff from last sync
-      const diff = Y.encodeStateAsUpdate(this.doc, this.lastSyncStateVector);
-
-      // If diff is not empty, we have local changes
-      if (diff.length > 0) {
-        // PATCH: Push local changes to server
-        // Create a new Uint8Array to ensure we have an ArrayBuffer (not SharedArrayBuffer)
-        const body = new Uint8Array(diff);
-        response = await fetch(url, {
-          method: "PATCH",
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-            "Content-Type": "application/octet-stream",
-            "If-Match": this.version.toString(),
-          },
-          body,
-          signal,
-        });
-      } else {
-        // No local changes, do GET
-        response = await fetch(url, {
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-          },
-          signal,
-        });
+      const localDiff = Y.encodeStateAsUpdate(
+        this.doc,
+        this.lastSyncStateVector,
+      );
+      if (localDiff.length > 0) {
+        this.unackedDiff = new Uint8Array(localDiff);
       }
-    } else {
-      // First sync, do GET
-      response = await fetch(url, {
+    }
+
+    // Step 2: If not first sync, proactively check for server updates
+    if (this.lastSyncStateVector) {
+      const diffResponse = await fetch(
+        `${url}/diff?fromVersion=${this.version}`,
+        {
+          headers: {
+            Authorization: `Bearer ${this.token}`,
+          },
+          signal,
+        },
+      );
+
+      if (diffResponse.status === 200) {
+        // Server has updates, parse encoded response: [length][stateVector][diff]
+        const responseBuffer = await diffResponse.arrayBuffer();
+        const { stateVector: serverStateVector, diff: serverDiff } =
+          this.parseEncodedResponse(responseBuffer);
+
+        const currentVersion = parseInt(
+          diffResponse.headers.get("X-Version") || "0",
+        );
+
+        // Apply server updates to doc
+        Y.applyUpdate(this.doc, serverDiff);
+        this.version = currentVersion;
+
+        // Use server's state vector
+        this.lastSyncStateVector = serverStateVector;
+
+        // Re-apply local changes (YJS is idempotent, won't duplicate)
+        if (this.unackedDiff) {
+          Y.applyUpdate(this.doc, this.unackedDiff);
+        }
+
+        // Recalculate unackedDiff based on server state
+        this.unackedDiff = Y.encodeStateAsUpdate(
+          this.doc,
+          this.lastSyncStateVector,
+        );
+
+        // Return after merging server updates
+        // Next sync() call will push the merged changes
+        return;
+      }
+      // If 304, server has no updates, continue to push local changes
+    }
+
+    // Step 3: Check if we have local changes to push
+    if (
+      this.lastSyncStateVector &&
+      this.unackedDiff &&
+      this.unackedDiff.length > 0
+    ) {
+      // We have local changes, PATCH them to server
+      const body = new Uint8Array(this.unackedDiff);
+
+      const patchResponse = await fetch(url, {
+        method: "PATCH",
         headers: {
           Authorization: `Bearer ${this.token}`,
+          "Content-Type": "application/octet-stream",
+          "If-Match": this.version.toString(),
         },
+        body,
         signal,
       });
+
+      if (patchResponse.status === 409) {
+        // Conflict detected, handle it and return
+        await this.handleConflict(patchResponse);
+        return;
+      }
+
+      if (!patchResponse.ok) {
+        throw new Error(
+          `PATCH failed: ${patchResponse.status} ${patchResponse.statusText}`,
+        );
+      }
+
+      // PATCH successful, apply response
+      await this.applyServerResponse(patchResponse);
+      return;
     }
+
+    // No local changes or already synced
+    if (this.lastSyncStateVector) {
+      return;
+    }
+
+    // Step 4: First sync, GET full state
+    const response = await fetch(url, {
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+      },
+      signal,
+    });
 
     if (!response.ok) {
       throw new Error(
@@ -143,6 +219,77 @@ export class DocStore {
       );
     }
 
+    await this.applyServerResponse(response);
+  }
+
+  /**
+   * Parse binary-encoded response format: [length][stateVector][diff]
+   * Returns the state vector and diff as separate Uint8Arrays
+   */
+  private parseEncodedResponse(responseBuffer: ArrayBuffer): {
+    stateVector: Uint8Array;
+    diff: Uint8Array;
+  } {
+    const responseArray = new Uint8Array(responseBuffer);
+    const view = new DataView(responseBuffer);
+
+    // Read state vector length (first 4 bytes, big-endian uint32)
+    const stateVectorLength = view.getUint32(0, BIG_ENDIAN);
+
+    // Extract state vector
+    const stateVector = responseArray.slice(
+      STATE_VECTOR_LENGTH_BYTES,
+      STATE_VECTOR_LENGTH_BYTES + stateVectorLength,
+    );
+
+    // Extract diff
+    const diff = responseArray.slice(
+      STATE_VECTOR_LENGTH_BYTES + stateVectorLength,
+    );
+
+    return { stateVector, diff };
+  }
+
+  /**
+   * Handle 409 conflict response
+   * Applies server updates, merges with local changes, and returns
+   */
+  private async handleConflict(conflictResponse: Response): Promise<void> {
+    // Parse 409 response: [length][stateVector][diff]
+    const responseBuffer = await conflictResponse.arrayBuffer();
+    const { stateVector: serverStateVector, diff: serverDiff } =
+      this.parseEncodedResponse(responseBuffer);
+
+    const currentVersion = parseInt(
+      conflictResponse.headers.get("X-Version") || "0",
+    );
+
+    // Apply server updates
+    Y.applyUpdate(this.doc, serverDiff);
+    this.version = currentVersion;
+
+    // Use server's state vector
+    this.lastSyncStateVector = serverStateVector;
+
+    // Re-apply local changes (YJS is idempotent)
+    if (this.unackedDiff) {
+      Y.applyUpdate(this.doc, this.unackedDiff);
+    }
+
+    // Recalculate unackedDiff for next sync
+    this.unackedDiff = Y.encodeStateAsUpdate(
+      this.doc,
+      this.lastSyncStateVector,
+    );
+
+    // Don't retry PATCH, just return
+    // Next sync() call will push the remaining local changes
+  }
+
+  /**
+   * Apply server response (common logic)
+   */
+  private async applyServerResponse(response: Response): Promise<void> {
     // Read version from response header
     const versionHeader = response.headers.get("X-Version");
     if (versionHeader) {
@@ -156,5 +303,8 @@ export class DocStore {
 
     // Save current state vector after successful sync
     this.lastSyncStateVector = Y.encodeStateVector(this.doc);
+
+    // Clear unacknowledged diff after successful sync
+    this.unackedDiff = null;
   }
 }

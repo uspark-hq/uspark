@@ -84,8 +84,7 @@ describe("GET /api/projects/:projectId/diff", () => {
     const response = await GET(request, context);
 
     expect(response.status).toBe(304);
-    expect(response.headers.get("X-From-Version")).toBe("0");
-    expect(response.headers.get("X-To-Version")).toBe("0");
+    expect(response.headers.get("X-Version")).toBe("0");
   });
 
   it("should return diff when version has changed", async () => {
@@ -121,13 +120,26 @@ describe("GET /api/projects/:projectId/diff", () => {
     expect(response.headers.get("Content-Type")).toBe(
       "application/octet-stream",
     );
-    expect(response.headers.get("X-From-Version")).toBe("0");
-    expect(response.headers.get("X-To-Version")).toBe("1");
+    expect(response.headers.get("X-Version")).toBe("1");
 
-    // Verify diff can be applied
-    const diffBinary = await response.arrayBuffer();
+    // Verify response format: [length][stateVector][diff]
+    const responseBinary = await response.arrayBuffer();
+    const responseArray = new Uint8Array(responseBinary);
+
+    // Read state vector length
+    const view = new DataView(responseBinary);
+    const stateVectorLength = view.getUint32(0, false);
+
+    // Extract state vector
+    const stateVector = responseArray.slice(4, 4 + stateVectorLength);
+    expect(stateVector.length).toBe(stateVectorLength);
+
+    // Extract diff
+    const diff = responseArray.slice(4 + stateVectorLength);
+
+    // Apply diff to verify it works
     const clientDoc = new Y.Doc();
-    Y.applyUpdate(clientDoc, new Uint8Array(diffBinary));
+    Y.applyUpdate(clientDoc, diff);
 
     const clientFiles = clientDoc.getMap("files");
     expect(clientFiles.size).toBe(1);
@@ -188,13 +200,20 @@ describe("GET /api/projects/:projectId/diff", () => {
     const response = await GET(request, context);
 
     expect(response.status).toBe(200);
-    expect(response.headers.get("X-From-Version")).toBe("0");
-    expect(response.headers.get("X-To-Version")).toBe("2");
+    expect(response.headers.get("X-Version")).toBe("2");
+
+    // Verify response format and extract diff
+    const responseBinary = await response.arrayBuffer();
+    const responseArray = new Uint8Array(responseBinary);
+
+    const view = new DataView(responseBinary);
+    const stateVectorLength = view.getUint32(0, false);
+
+    const diff = responseArray.slice(4 + stateVectorLength);
 
     // Verify diff includes both files
-    const diffBinary = await response.arrayBuffer();
     const clientDoc = new Y.Doc();
-    Y.applyUpdate(clientDoc, new Uint8Array(diffBinary));
+    Y.applyUpdate(clientDoc, diff);
 
     const clientFiles = clientDoc.getMap("files");
     expect(clientFiles.size).toBe(2);
