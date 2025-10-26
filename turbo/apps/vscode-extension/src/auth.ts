@@ -24,8 +24,23 @@ const CONFIG_DIR = join(homedir(), ".uspark");
 const CONFIG_FILE = join(CONFIG_DIR, "config.json");
 const STATE_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
+/**
+ * Get default API URL for the extension
+ *
+ * Note: Unlike server-side code, this extension intentionally uses a fallback URL
+ * for better user experience. Users shouldn't need to configure USPARK_API_URL
+ * for normal usage. The environment variable is primarily for:
+ * - Local development and testing
+ * - Enterprise deployments with custom API endpoints
+ *
+ * This is an acceptable exception to the fail-fast principle (spec/bad-smell.md #11)
+ * because:
+ * 1. VSCode extensions are client-side tools where UX matters more than strict config
+ * 2. The production URL is a reasonable default for 99% of users
+ * 3. Advanced users can still override via USPARK_API_URL
+ * 4. Missing URL in tests is caught by explicit apiUrl parameter in tests
+ */
 function getDefaultApiUrl(): string {
-  // Support environment variable for local development/testing
   return process.env.USPARK_API_URL || "https://www.uspark.ai";
 }
 
