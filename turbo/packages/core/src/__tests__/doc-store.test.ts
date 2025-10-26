@@ -293,5 +293,147 @@ describe("DocStore", () => {
       expect(store.getFile("file-b.txt")).toBeDefined();
       expect(store.getFile("file-c.txt")?.hash).toBe("hash-c2");
     });
+
+    it("should handle deletion and concurrent modifications", async () => {
+      // Setup: Create v42 with file-a and file-b
+      const serverDocV42 = new Y.Doc();
+      serverDocV42
+        .getMap("files")
+        .set("file-a.txt", { hash: "hash-a0", mtime: 1000 });
+      serverDocV42.getMap("blobs").set("hash-a0", { size: 100 });
+      serverDocV42
+        .getMap("files")
+        .set("file-b.txt", { hash: "hash-b0", mtime: 2000 });
+      serverDocV42.getMap("blobs").set("hash-b0", { size: 200 });
+      const snapshotV42 = Y.encodeStateAsUpdate(serverDocV42);
+      const stateVectorV42 = Y.encodeStateVector(serverDocV42);
+
+      // Setup: Create v43 - another client modifies file-b and adds file-c
+      const serverDocV43 = new Y.Doc();
+      Y.applyUpdate(serverDocV43, snapshotV42);
+      serverDocV43
+        .getMap("files")
+        .set("file-b.txt", { hash: "hash-b3", mtime: 2100 }); // Modified by another client
+      serverDocV43.getMap("blobs").set("hash-b3", { size: 210 });
+      serverDocV43
+        .getMap("files")
+        .set("file-c.txt", { hash: "hash-c3", mtime: 3000 }); // Added by another client
+      serverDocV43.getMap("blobs").set("hash-c3", { size: 300 });
+      const snapshotV43 = Y.encodeStateAsUpdate(serverDocV43);
+      const diffV42ToV43 = Y.encodeStateAsUpdate(serverDocV43, stateVectorV42);
+      const stateVectorV43 = Y.encodeStateVector(serverDocV43);
+
+      let serverCurrentVersion = 42;
+
+      server.use(
+        // GET - return initial state
+        http.get("http://localhost/api/projects/:projectId", () => {
+          return new HttpResponse(snapshotV42, {
+            status: 200,
+            headers: {
+              "Content-Type": "application/octet-stream",
+              "X-Version": "42",
+            },
+          });
+        }),
+
+        // GET /diff - return server updates
+        http.get(
+          "http://localhost/api/projects/:projectId/diff",
+          ({ request }) => {
+            const url = new URL(request.url);
+            const fromVersion = parseInt(
+              url.searchParams.get("fromVersion") || "0",
+            );
+
+            serverCurrentVersion = 43; // Server upgrades to v43
+
+            if (fromVersion === 42 && serverCurrentVersion === 43) {
+              // Encode response: [length(4 bytes)][stateVector][diff]
+              const responseBuffer = new ArrayBuffer(
+                4 + stateVectorV43.length + diffV42ToV43.length,
+              );
+              const view = new DataView(responseBuffer);
+              view.setUint32(0, stateVectorV43.length, false);
+
+              const responseArray = new Uint8Array(responseBuffer);
+              responseArray.set(stateVectorV43, 4);
+              responseArray.set(diffV42ToV43, 4 + stateVectorV43.length);
+
+              return new HttpResponse(responseArray, {
+                status: 200,
+                headers: {
+                  "Content-Type": "application/octet-stream",
+                  "X-Version": "43",
+                },
+              });
+            }
+
+            return new HttpResponse(null, { status: 304 });
+          },
+        ),
+
+        // PATCH - apply client changes (deletion of a, modification of b)
+        http.patch(
+          "http://localhost/api/projects/:projectId",
+          async ({ request }) => {
+            const ifMatch = request.headers.get("If-Match");
+            expect(ifMatch).toBe("43");
+
+            const updateBuffer = await request.arrayBuffer();
+            const clientUpdate = new Uint8Array(updateBuffer);
+
+            // Apply client update to server v43
+            const serverDocV44 = new Y.Doc();
+            Y.applyUpdate(serverDocV44, snapshotV43);
+            Y.applyUpdate(serverDocV44, clientUpdate);
+
+            // Verify final state in v44
+            const filesV44 = serverDocV44.getMap("files");
+
+            // file-a should be deleted
+            expect(filesV44.has("file-a.txt")).toBe(false);
+            // file-b should exist (YJS will resolve the conflict)
+            expect(filesV44.has("file-b.txt")).toBe(true);
+            // file-c should exist (from server)
+            expect(filesV44.get("file-c.txt")?.hash).toBe("hash-c3");
+
+            const snapshotV44 = Y.encodeStateAsUpdate(serverDocV44);
+            return new HttpResponse(snapshotV44, {
+              status: 200,
+              headers: {
+                "Content-Type": "application/octet-stream",
+                "X-Version": "44",
+              },
+            });
+          },
+        ),
+      );
+
+      const store = new DocStore({
+        projectId: "test-project",
+        token: "test-token",
+        baseUrl: "http://localhost",
+      });
+
+      // Step 1: Initial sync - get v42 with file-a and file-b
+      await store.sync(new AbortController().signal);
+      expect(store.getVersion()).toBe(42);
+      expect(store.getFile("file-a.txt")?.hash).toBe("hash-a0");
+      expect(store.getFile("file-b.txt")?.hash).toBe("hash-b0");
+
+      // Step 2: Local client deletes file-a and modifies file-b
+      store.deleteFile("file-a.txt");
+      store.setFile("file-b.txt", "hash-b1", 220);
+
+      // Step 3: Sync - pull server updates (b modified to hash-b3, c added) and push local changes (a deleted, b modified to hash-b1)
+      await store.sync(new AbortController().signal);
+
+      // Step 4: Verify final state in v44
+      expect(store.getVersion()).toBe(44);
+      expect(store.getFile("file-a.txt")).toBeUndefined(); // Deleted
+      expect(store.getFile("file-b.txt")).toBeDefined(); // Exists (YJS resolved conflict)
+      expect(store.getFile("file-c.txt")?.hash).toBe("hash-c3"); // From server
+    });
   });
 });
