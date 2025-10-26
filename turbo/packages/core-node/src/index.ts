@@ -1,6 +1,7 @@
 // Export Node.js-specific YJS filesystem utilities
 export { FileSystem } from "./filesystem";
 export { ProjectSync } from "./project-sync";
+export { NodeFsDocStore } from "./node-fs-doc-store";
 
 // Export Node.js-specific blob storage implementations
 export { VercelBlobStorage } from "./blob/vercel-blob-storage";
