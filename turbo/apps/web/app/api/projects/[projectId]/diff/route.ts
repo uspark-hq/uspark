@@ -74,9 +74,8 @@ export async function GET(
   return new Response(null, {
     status: 304,
     headers: {
-      "X-From-Version": fromVersion.toString(),
-      "X-To-Version": fromVersion.toString(),
-      "Access-Control-Expose-Headers": "X-From-Version, X-To-Version",
+      "X-Version": fromVersion.toString(),
+      "Access-Control-Expose-Headers": "X-Version",
     },
   });
 }
@@ -125,12 +124,30 @@ async function computeAndReturnDiff(
   const oldStateVector = Y.encodeStateVector(oldDoc);
   const diff = Y.encodeStateAsUpdate(currentDoc, oldStateVector);
 
-  return new Response(Buffer.from(diff), {
+  // Get current state vector (server's state)
+  const currentStateVector = Y.encodeStateVector(currentDoc);
+
+  // Encode response: [length(4 bytes)][stateVector][diff]
+  const responseBuffer = new ArrayBuffer(
+    4 + currentStateVector.length + diff.length,
+  );
+  const view = new DataView(responseBuffer);
+
+  // Write state vector length (uint32, big-endian)
+  view.setUint32(0, currentStateVector.length, false);
+
+  // Write state vector
+  const responseArray = new Uint8Array(responseBuffer);
+  responseArray.set(currentStateVector, 4);
+
+  // Write diff
+  responseArray.set(diff, 4 + currentStateVector.length);
+
+  return new Response(Buffer.from(responseArray), {
     headers: {
       "Content-Type": "application/octet-stream",
-      "X-From-Version": fromVersion.toString(),
-      "X-To-Version": project.version.toString(),
-      "Access-Control-Expose-Headers": "X-From-Version, X-To-Version",
+      "X-Version": project.version.toString(),
+      "Access-Control-Expose-Headers": "X-Version",
     },
   });
 }
