@@ -436,6 +436,69 @@ describe("DocStore", () => {
       expect(store.getFile("file-c.txt")?.hash).toBe("hash-c3"); // From server
     });
 
+    it("should dump and load state correctly", () => {
+      const store1 = new DocStore({
+        projectId: "test-project",
+        token: "test-token",
+      });
+
+      // Add some data
+      store1.setFile("test.txt", "hash123", 100);
+      store1.setFile("test2.txt", "hash456", 200);
+
+      // Dump state
+      const snapshot = store1.dump();
+      expect(snapshot).toBeInstanceOf(Uint8Array);
+      expect(snapshot.length).toBeGreaterThan(0);
+
+      // Create new store and load
+      const store2 = new DocStore({
+        projectId: "test-project",
+        token: "test-token",
+      });
+      store2.load(snapshot);
+
+      // Verify data is identical
+      expect(store2.getFile("test.txt")).toEqual({
+        hash: "hash123",
+        mtime: expect.any(Number),
+      });
+      expect(store2.getFile("test2.txt")).toEqual({
+        hash: "hash456",
+        mtime: expect.any(Number),
+      });
+
+      // Verify all files match
+      const files1 = store1.getAllFiles();
+      const files2 = store2.getAllFiles();
+      expect(files2.size).toBe(files1.size);
+    });
+
+    it("should merge loaded state with existing state", () => {
+      const store = new DocStore({
+        projectId: "test-project",
+        token: "test-token",
+      });
+
+      // Add initial data
+      store.setFile("existing.txt", "hash-existing", 50);
+
+      // Create another store with different data
+      const otherStore = new DocStore({
+        projectId: "test-project",
+        token: "test-token",
+      });
+      otherStore.setFile("new.txt", "hash-new", 75);
+
+      // Dump and load - should merge
+      const snapshot = otherStore.dump();
+      store.load(snapshot);
+
+      // Both files should exist (YJS CRDT merge)
+      expect(store.getFile("existing.txt")).toBeDefined();
+      expect(store.getFile("new.txt")).toBeDefined();
+    });
+
     it("should handle 409 conflict on PATCH by returning early", async () => {
       // Setup: Create v42 with file-a
       const serverDocV42 = new Y.Doc();
