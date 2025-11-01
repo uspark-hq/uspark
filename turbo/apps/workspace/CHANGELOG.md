@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.34.5](https://github.com/uspark-hq/uspark/compare/workspace-v1.34.4...workspace-v1.34.5) (2025-11-01)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @uspark/core bumped to 0.29.0
+
 ## [1.34.4](https://github.com/uspark-hq/uspark/compare/workspace-v1.34.3...workspace-v1.34.4) (2025-10-26)
 
 
