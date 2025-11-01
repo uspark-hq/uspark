@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.29.0](https://github.com/uspark-hq/uspark/compare/core-v0.28.0...core-v0.29.0) (2025-11-01)
+
+
+### Features
+
+* **core-node:** add nodefsdocstore minimal implementation ([#790](https://github.com/uspark-hq/uspark/issues/790)) ([2186bb7](https://github.com/uspark-hq/uspark/commit/2186bb7f66d942bf6c2c55c90afdf2eb6a09524f))
+
 ## [0.28.0](https://github.com/uspark-hq/uspark/compare/core-v0.27.0...core-v0.28.0) (2025-10-26)
 
 
