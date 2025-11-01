@@ -94,6 +94,24 @@ export class DocStore {
     return result;
   }
 
+  /**
+   * Dump the entire DocStore state as a binary snapshot
+   * Can be used for persistence or transfer
+   * @returns Binary YJS state
+   */
+  dump(): Uint8Array {
+    return Y.encodeStateAsUpdate(this.doc);
+  }
+
+  /**
+   * Load a previously dumped state into the DocStore
+   * Merges the state with current document using YJS CRDT rules
+   * @param snapshot Binary YJS state from dump()
+   */
+  load(snapshot: Uint8Array): void {
+    Y.applyUpdate(this.doc, snapshot);
+  }
+
   private async cloneDoc(signal: AbortSignal) {
     const url = `${this.baseUrl}/api/projects/${this.projectId}`;
 
